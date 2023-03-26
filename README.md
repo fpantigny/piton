@@ -28,4 +28,3 @@ The file `piton.sty` is the only file necessary to use the extension `piton`.
 You have to put it in the same directory as your document or (best) in a `texmf` tree. 
 
 
-
