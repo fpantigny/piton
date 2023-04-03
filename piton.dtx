@@ -2100,6 +2100,14 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \bool_new:N \l_@@_left_margin_auto_bool
 %    \end{macrocode}
+%
+% \medskip
+% The following dimension corresponds to the key |numbers-sep| of
+% |\PitonOptions|.
+%    \begin{macrocode}
+\dim_new:N \l_@@_numbers_sep_dim 
+\dim_set:Nn \l_@@_numbers_sep_dim { 0.4 em }
+%    \end{macrocode}
 % 
 % \medskip
 % The tabulators will be replaced by the content of the following token list.
@@ -2551,6 +2559,8 @@ version 2005/12/01 or later.
         }
         { \dim_set:Nn \l_@@_left_margin_dim { #1 } } ,
     left-margin      .value_required:n  = true ,
+    numbers-sep      .dim_set:N         = \l_@@_numbers_sep_dim ,
+    numbers-sep      .value_required:n  = true , 
     tab-size         .code:n            = \@@_set_tab_tl:n { #1 } ,
     tab-size         .value_required:n  = true , 
     show-spaces      .bool_set:N        = \l_@@_show_spaces_bool , 
@@ -2605,7 +2615,7 @@ version 2005/12/01 or later.
     \hbox_overlap_left:n
       { 
         { \color { gray } \footnotesize \int_to_arabic:n \g_@@_visual_line_int }
-        \skip_horizontal:n { 0.4 em } 
+        \skip_horizontal:N \l_@@_numbers_sep_dim  
       }
   }
 %    \end{macrocode}
@@ -2877,7 +2887,8 @@ version 2005/12/01 or later.
                     { \g_@@_visual_line_int + \l_@@_nb_non_empty_lines_int }   
                 }
             }
-          \dim_set:Nn \l_@@_left_margin_dim { \box_wd:N \l_tmpa_box + 0.5em }
+          \dim_set:Nn \l_@@_left_margin_dim 
+            { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
         }
 %    \end{macrocode}
 % Now, the main job.
@@ -2958,7 +2969,7 @@ version 2005/12/01 or later.
                       }
                   }
                 \dim_set:Nn \l_@@_left_margin_dim
-                  { \box_wd:N \l_tmpa_box + 0.5 em }
+                  { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
               }
 %    \end{macrocode}
 % Now, the main job.

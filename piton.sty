@@ -161,6 +161,8 @@
 \bool_new:N \l__piton_slim_bool
 \dim_new:N \l__piton_left_margin_dim
 \bool_new:N \l__piton_left_margin_auto_bool
+\dim_new:N \l__piton_numbers_margin_dim
+\dim_set:Nn \l__piton_numbers_margin_dim { 0.4 em }
 \tl_new:N \l__piton_tab_tl
 \cs_new_protected:Npn \__piton_set_tab_tl:n #1
   {
@@ -438,6 +440,8 @@
         }
         { \dim_set:Nn \l__piton_left_margin_dim { #1 } } ,
     left-margin      .value_required:n  = true ,
+    numbers-margin   .dim_set:N         = \l__piton_numbers_margin_dim ,
+    numbers-margin   .value_required:n  = true ,
     tab-size         .code:n            = \__piton_set_tab_tl:n { #1 } ,
     tab-size         .value_required:n  = true ,
     show-spaces      .bool_set:N        = \l__piton_show_spaces_bool ,
@@ -469,7 +473,7 @@
     \hbox_overlap_left:n
       {
         { \color { gray } \footnotesize \int_to_arabic:n \g__piton_visual_line_int }
-        \skip_horizontal:n { 0.4 em }
+        \skip_horizontal:N \l__piton_numbers_margin_dim
       }
   }
 \cs_new_protected:Npn \__piton_write_aux:
@@ -666,7 +670,8 @@
                     { \g__piton_visual_line_int + \l__piton_nb_non_empty_lines_int }
                 }
             }
-          \dim_set:Nn \l__piton_left_margin_dim { \box_wd:N \l_tmpa_box + 0.5em }
+          \dim_set:Nn \l__piton_left_margin_dim
+            { \box_wd:N \l_tmpa_box + \l__piton_numbers_margin_dim + 0.1 em }
         }
       \ttfamily
       \bool_if:NT \c__piton_footnote_bool { \begin { savenotes } }
@@ -722,7 +727,7 @@
                       }
                   }
                 \dim_set:Nn \l__piton_left_margin_dim
-                  { \box_wd:N \l_tmpa_box + 0.5 em }
+                  { \box_wd:N \l_tmpa_box + \l__piton_numbers_margin_dim + 0.1 em }
               }
             \ttfamily
             \bool_if:NT \c__piton_footnote_bool { \begin { savenotes } }
