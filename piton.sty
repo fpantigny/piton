@@ -18,12 +18,8 @@
 %% and version 1.3 or later is part of all distributions of
 %% LaTeX version 2005/12/01 or later.
 %% 
-\def\myfileversion{1.4x}
+\def\myfileversion{1.4y}
 \def\myfiledate{2023/04/03}
-
-\bigskip
-
-%%
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -161,8 +157,8 @@
 \bool_new:N \l__piton_slim_bool
 \dim_new:N \l__piton_left_margin_dim
 \bool_new:N \l__piton_left_margin_auto_bool
-\dim_new:N \l__piton_numbers_margin_dim
-\dim_set:Nn \l__piton_numbers_margin_dim { 0.4 em }
+\dim_new:N \l__piton_numbers_sep_dim
+\dim_set:Nn \l__piton_numbers_sep_dim { 0.4 em }
 \tl_new:N \l__piton_tab_tl
 \cs_new_protected:Npn \__piton_set_tab_tl:n #1
   {
@@ -440,8 +436,8 @@
         }
         { \dim_set:Nn \l__piton_left_margin_dim { #1 } } ,
     left-margin      .value_required:n  = true ,
-    numbers-margin   .dim_set:N         = \l__piton_numbers_margin_dim ,
-    numbers-margin   .value_required:n  = true ,
+    numbers-sep      .dim_set:N         = \l__piton_numbers_sep_dim ,
+    numbers-sep      .value_required:n  = true ,
     tab-size         .code:n            = \__piton_set_tab_tl:n { #1 } ,
     tab-size         .value_required:n  = true ,
     show-spaces      .bool_set:N        = \l__piton_show_spaces_bool ,
@@ -473,7 +469,7 @@
     \hbox_overlap_left:n
       {
         { \color { gray } \footnotesize \int_to_arabic:n \g__piton_visual_line_int }
-        \skip_horizontal:N \l__piton_numbers_margin_dim
+        \skip_horizontal:N \l__piton_numbers_sep_dim
       }
   }
 \cs_new_protected:Npn \__piton_write_aux:
@@ -671,7 +667,7 @@
                 }
             }
           \dim_set:Nn \l__piton_left_margin_dim
-            { \box_wd:N \l_tmpa_box + \l__piton_numbers_margin_dim + 0.1 em }
+            { \box_wd:N \l_tmpa_box + \l__piton_numbers_sep_dim + 0.1 em }
         }
       \ttfamily
       \bool_if:NT \c__piton_footnote_bool { \begin { savenotes } }
@@ -727,7 +723,7 @@
                       }
                   }
                 \dim_set:Nn \l__piton_left_margin_dim
-                  { \box_wd:N \l_tmpa_box + \l__piton_numbers_margin_dim + 0.1 em }
+                  { \box_wd:N \l_tmpa_box + \l__piton_numbers_sep_dim + 0.1 em }
               }
             \ttfamily
             \bool_if:NT \c__piton_footnote_bool { \begin { savenotes } }

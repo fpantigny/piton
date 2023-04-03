@@ -15,7 +15,7 @@
 %
 % \fi
 % \iffalse
-\def\myfileversion{1.4x}
+\def\myfileversion{1.4y}
 \def\myfiledate{2023/04/03}
 %
 %
@@ -125,7 +125,6 @@ version 2005/12/01 or later.
 % 
 %
 % \bigskip
-% 
 % The package \pkg{piton} is entirely contained in the file
 % |piton.sty|. This file may be put in the current directory or in a
 % |texmf| tree. However, the best is to install \pkg{piton} with a TeX
@@ -557,7 +556,7 @@ version 2005/12/01 or later.
 %   {\end{tcolorbox}}
 % \end{verbatim}
 %
-\bigskip
+% \bigskip
 % With this new environment |{Python}|, it's possible to write:
 %
 % \begin{Verbatim}
@@ -990,7 +989,7 @@ version 2005/12/01 or later.
 %
 % However, there is a restriction: these environments must contain only \emph{whole
 % lines of Python code} in their body.
-%%
+%
 %\medskip
 % Here is an example:
 %
@@ -1097,7 +1096,6 @@ version 2005/12/01 or later.
 % \item The key |break-lines| is a conjonction of the two previous keys.
 % \end{itemize}
 % 
-
 % \bigskip 
 % The package \pkg{piton} provides also several keys to control the appearance
 % on the line breaks allowed by |break-lines-in-Piton|.
@@ -1393,7 +1391,7 @@ version 2005/12/01 or later.
 % If an environment |{Piton}| is used in an environment |{minipage}| of LaTeX,
 % the notes are composed, of course, at the foot of the environment
 % |{minipage}|. Recall that such |{minipage}| can't be broken by a page break.
-
+%
 %
 % \begingroup
 % \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
@@ -1755,7 +1753,7 @@ version 2005/12/01 or later.
 % \subsection{The L3 part of the implementation}
 %
 % \subsubsection{Declaration of the package}
-%     \begin{macrocode}
+%    \begin{macrocode}
 \NeedsTeXFormat{LaTeX2e}
 \RequirePackage{l3keys2e}
 \ProvidesExplPackage
