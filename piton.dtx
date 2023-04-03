@@ -15,8 +15,8 @@
 %
 % \fi
 % \iffalse
-\def\myfileversion{1.4}
-\def\myfiledate{2023/02/14}
+\def\myfileversion{1.4x}
+\def\myfiledate{2023/04/03}
 %
 %
 %<*batchfile> 
@@ -2089,14 +2089,13 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 % \medskip
-% The following dimension corresponds to the key |left-margin| of
-% |\PitonOptions|. 
+% The following dimension corresponds to the key |left-margin| of |\PitonOptions|. 
 %    \begin{macrocode}
 \dim_new:N \l_@@_left_margin_dim
 %    \end{macrocode}
 %
 % \medskip
-% The following boolean correspond will be set when the key |left-margin=auto|
+% The following boolean will be set when the key |left-margin=auto|
 % is used.
 %    \begin{macrocode}
 \bool_new:N \l_@@_left_margin_auto_bool
@@ -2324,8 +2323,8 @@ version 2005/12/01 or later.
 % \bigskip
 % In the contents provided by Lua, each line of the Python code will be
 % surrounded by |\@@_begin_line:| and |\@@_end_line:|. |\@@_begin_line:| is a
-% LaTeX that we will define now but |\@@_end_line:| is only a syntactic marker
-% that has no definition.
+% LaTeX command that we will define now but |\@@_end_line:| is only a syntactic
+% marker that has no definition.
 %
 %    \begin{macrocode}
 \cs_set_protected:Npn \@@_begin_line: #1 \@@_end_line:
@@ -2368,7 +2367,13 @@ version 2005/12/01 or later.
               \@@_print_number:
           }
         \clist_if_empty:NF \l_@@_bg_color_clist 
-          { \skip_horizontal:n { 0.5 em } }
+          { 
+            \dim_compare:nNnT \l_@@_left_margin_dim = \c_zero_dim 
+               { 
+                 \bool_if:NF \l_@@_left_margin_auto_bool
+                   { \skip_horizontal:n { 0.5 em } }
+               }
+          }
         \coffin_typeset:Nnnnn \l_tmpa_coffin T l \c_zero_dim \c_zero_dim 
       }  
 %    \end{macrocode}
