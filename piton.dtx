@@ -15,8 +15,8 @@
 %
 % \fi
 % \iffalse
-\def\myfileversion{1.5}
-\def\myfiledate{2023/04/04}
+\def\myfileversion{1.5xxx}
+\def\myfiledate{2023/04/10}
 %
 %
 %<*batchfile> 
@@ -2374,7 +2374,7 @@ version 2005/12/01 or later.
         \bool_if:NT \l_@@_line_numbers_bool
           {
             \bool_if:NF \l_@@_all_line_numbers_bool
-              { \tl_if_empty:nF { #1 } }
+              { \tl_if_eq:nnF  { #1 } { \PitonStyle {Prompt}{} } } % corrected 2023/04/10
               \@@_print_number:
           }
         \clist_if_empty:NF \l_@@_bg_color_clist 
@@ -2879,15 +2879,15 @@ version 2005/12/01 or later.
              \footnotesize
              \bool_if:NTF \l_@@_all_line_numbers_bool
                {
-                  \int_to_arabic:n 
-                    { \g_@@_visual_line_int + \l_@@_nb_lines_int }  
+                 \int_to_arabic:n 
+                   { \g_@@_visual_line_int + \l_@@_nb_lines_int }  
                }
                {
-                  \lua_now:n 
-                    { piton.CountNonEmptyLinesFile(token.scan_argument()) } 
-                    { #3 }
-                  \int_to_arabic:n 
-                    { \g_@@_visual_line_int + \l_@@_nb_non_empty_lines_int }   
+                 \lua_now:n 
+                   { piton.CountNonEmptyLinesFile(token.scan_argument()) } 
+                   { #3 }
+                 \int_to_arabic:n 
+                   { \g_@@_visual_line_int + \l_@@_nb_non_empty_lines_int }   
                 }
             }
           \dim_set:Nn \l_@@_left_margin_dim 
@@ -5060,6 +5060,15 @@ end
 % 
 % \vspace{1cm}
 % \section{History}
+%
+% The successive versions of the file |piton.sty| provided by TeXLive are available on the
+% \textsc{svn} server of TeXLive:\par\nobreak
+%
+% \smallskip
+% {
+% \small
+% \nolinkurl{https://tug.org/svn/texlive/trunk/Master/texmf-dist/tex/lualatex/piton/piton.sty}
+% }
 %
 % % \subsection*{Changes between versions 1.4 and 1.5}
 %

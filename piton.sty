@@ -18,8 +18,8 @@
 %% and version 1.3 or later is part of all distributions of
 %% LaTeX version 2005/12/01 or later.
 %% 
-\def\myfileversion{1.5}
-\def\myfiledate{2023/04/04}
+\def\myfileversion{1.5xxx}
+\def\myfiledate{2023/04/10}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -297,7 +297,7 @@
         \bool_if:NT \l__piton_line_numbers_bool
           {
             \bool_if:NF \l__piton_all_line_numbers_bool
-              { \tl_if_empty:nF { #1 } }
+              { \tl_if_eq:nnF  { #1 } { \PitonStyle {Prompt}{} } } % corrected 2023/04/10
               \__piton_print_number:
           }
         \clist_if_empty:NF \l__piton_bg_color_clist
@@ -655,15 +655,15 @@
              \footnotesize
              \bool_if:NTF \l__piton_all_line_numbers_bool
                {
-                  \int_to_arabic:n
-                    { \g__piton_visual_line_int + \l__piton_nb_lines_int }
+                 \int_to_arabic:n
+                   { \g__piton_visual_line_int + \l__piton_nb_lines_int }
                }
                {
-                  \lua_now:n
-                    { piton.CountNonEmptyLinesFile(token.scan_argument()) }
-                    { #3 }
-                  \int_to_arabic:n
-                    { \g__piton_visual_line_int + \l__piton_nb_non_empty_lines_int }
+                 \lua_now:n
+                   { piton.CountNonEmptyLinesFile(token.scan_argument()) }
+                   { #3 }
+                 \int_to_arabic:n
+                   { \g__piton_visual_line_int + \l__piton_nb_non_empty_lines_int }
                 }
             }
           \dim_set:Nn \l__piton_left_margin_dim
