@@ -15,8 +15,8 @@
 %
 % \fi
 % \iffalse
-\def\myfileversion{1.5x}
-\def\myfiledate{2023/04/25}
+\def\myfileversion{1.5a}
+\def\myfiledate{2023/04/11}
 %
 %
 %<*batchfile> 
@@ -3119,18 +3119,12 @@ version 2005/12/01 or later.
     Comment.Math      .initial:n = ,
     Comment           .tl_set:c = pitonStyle Comment , 
     Comment           .value_required:n = true ,
-    Name.Constructor  .tl_set:c = pitonStyle Name.Constructor , 
-    Name.Constructor  .value_required:n = true ,
     InitialValues     .tl_set:c = pitonStyle InitialValues ,
     InitialValues     .value_required:n = true ,
     Number            .tl_set:c = pitonStyle Number , 
     Number            .value_required:n = true ,
     Name.Namespace    .tl_set:c = pitonStyle Name.Namespace , 
     Name.Namespace    .value_required:n = true ,
-    Name.ModuleType   .tl_set:c = pitonStyle Name.ModuleType , 
-    Name.ModuleType   .value_required:n = true ,
-    Name.Module       .tl_set:c = pitonStyle Name.Module , 
-    Name.Module       .value_required:n = true ,
     Name.Class        .tl_set:c = pitonStyle Name.Class , 
     Name.Class        .value_required:n = true ,
     Name.Builtin      .tl_set:c = pitonStyle Name.Builtin , 
@@ -3178,13 +3172,9 @@ version 2005/12/01 or later.
     Keyword.Constant,~
     Name.Builtin,~
     Name.Class,~
-    Name.Constructor,~
     Name.Decorator,~
     Name.Function,~
-    Name.Module,~
-    Name.ModuleType,~
     Name.Namespace,~
-    Name.UserFunction,~
     Number,~
     Operator,~
     Operator.Word,~
@@ -3215,9 +3205,6 @@ version 2005/12/01 or later.
     Name.Class         = \color[HTML]{00AA88} \bfseries ,
     Name.Function      = \color[HTML]{CC00FF} , 
     Name.Namespace     = \color[HTML]{00CCFF} , 
-    Name.Constructor   = \color[HTML]{006000} \bfseries , 
-    Name.Module        = \color[HTML]{0060A0} \bfseries ,
-    Name.ModuleType    = ,
     Number             = \color[HTML]{FF6600} ,
     Operator           = \color[HTML]{555555} ,
     Operator.Word      = \bfseries ,
@@ -4461,22 +4448,9 @@ local Punct = Q ( S ",:;!" )
 % 
 %    \begin{macrocode}
 local identifier = 
-  ( R "az" + P "_") * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0 
-
-local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0 
+  ( R "az" + R "AZ" + P "_") * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0 
 
 local Identifier = K ( 'Identifier' , identifier )
-%    \end{macrocode}
-%
-%    \begin{macrocode}
-local Constructor = K ( 'Name.Constructor' , cap_identifier )
-
-local ModuleType = K ( 'Name.ModuleType' , cap_identifier ) 
-
-local ModuleUse = 
-  K ( 'Name.Module' , cap_identifier ) 
-  * Q "." 
-  * ( Identifier + Constructor ) 
 
 local Operator = 
   K ( 'Operator' ,
@@ -4505,7 +4479,20 @@ local Keyword =
 
 
 local Builtin = 
-  K ( 'Name.Builtin' , P "not" + P "incr" + P "decr" + P "fst" + P "snd" )
+  K ( 'Name.Builtin' ,
+        P "not" + P "incr" + P "decr" + P "fst" + P "snd" 
+      + P "String.length" 
+      + P "List.tl" + P "List.hd" + P "List.mem" + P "List.exists" 
+      + P "List.for_all" + P "List.filter" + P "List.length" + P "List.map" 
+      + P "List.iter" 
+      + P "Array.length" + P "Array.make" + P "Array.make_matrix" 
+      + P "Array.init" + P "Array.copy" + P "Array.copy" + P "Array.mem" 
+      + P "Array.exists" + P "Array.for_all" + P "Array.map" + P "Array.iter" 
+      + P "Queue.create" + P "Queue.is_empty" + P "Queue.push" + P "Queue.pop" 
+      + P "Stack.create" + P "Stack.is_empty" + P "Stack.push" + P "Stack.pop" 
+      + P "Hashtbl.create" + P "Hashtbl.add" + P "Hashtbl.remove" 
+      + P "Hashtbl.mem" + P "Hashtbl.find" + P "Hashtbl.find_opt" 
+      + P "Hashtbl.iter" )
 %    \end{macrocode}
 % 
 % \bigskip
@@ -4734,56 +4721,6 @@ local DefFunction =
   * Space 
   * # ( P "=" * space * P "function" + ( 1 - P "=" ) )
 %    \end{macrocode}
-%
-% 
-% \bigskip
-% \paragraph{The DefModule}
-%
-% The following LPEG will be used in the definitions of modules but also in the
-% definitions of \emph{types} of modules.
-%    \begin{macrocode}
-local DefModule = 
-  K ( 'Keyword' , P "module" ) * Space
-  *
-    (
-          K ( 'Keyword' , P "type" ) * Space
-        * K ( 'Name.ModuleType' , cap_identifier ) 
-      + 
-        K ( 'Name.Module' , cap_identifier ) * SkipSpace 
-        * 
-          (
-            Q "(" * SkipSpace 
-              * K ( 'Name.Module' , cap_identifier ) * SkipSpace 
-              * Q ":" * SkipSpace 
-              * K ( 'Name.ModuleType' , cap_identifier ) * SkipSpace 
-              *
-                (
-                  Q "," * SkipSpace 
-                    * K ( 'Name.Module' , cap_identifier ) * SkipSpace 
-                    * Q ":" * SkipSpace 
-                    * K ( 'Name.ModuleType' , cap_identifier ) * SkipSpace 
-                ) ^ 0 
-              * Q ")"
-          ) ^ -1
-        *
-          (
-            Q "=" * SkipSpace
-            * K ( 'Name.Module' , cap_identifier )  * SkipSpace 
-            * Q "("
-            * K ( 'Name.Module' , cap_identifier ) * SkipSpace 
-              * 
-              (
-                Q ","
-                * 
-                K ( 'Name.Module' , cap_identifier ) * SkipSpace 
-              ) ^ 0 
-            * Q ")"
-          ) ^ -1
-    )
-  + 
-  K ( 'Keyword' , P "include" + P "open" )
-  * Space * K ( 'Name.Module' , cap_identifier ) 
-%    \end{macrocode}
 % 
 % \bigskip
 % \paragraph{The parameters of the types}
@@ -4814,12 +4751,9 @@ MainLoopOCaml =
      + ImportAs
      + Exception 
      + DefFunction
-     + DefModule
      + Keyword * ( Space + Punct + Delim + EOL + -1 ) 
      + OperatorWord * ( Space + Punct + Delim + EOL + -1 ) 
      + Builtin * ( Space + Punct + Delim + EOL + -1 ) 
-     + ModuleUse * ( Space + Punct + Delim + EOL + -1 ) 
-     + Constructor * ( Space + Punct + Delim + EOL + -1 ) 
      + Identifier 
      + Number
      + Word
