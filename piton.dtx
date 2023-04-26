@@ -15,8 +15,8 @@
 %
 % \fi
 % \iffalse
-\def\myfileversion{1.5x}
-\def\myfiledate{2023/04/25}
+\def\myfileversion{1.5y}
+\def\myfiledate{2023/04/26}
 %
 %
 %<*batchfile> 
@@ -3097,6 +3097,8 @@ version 2005/12/01 or later.
     Dict.Value        .value_required:n = true ,
     Name.Decorator    .tl_set:c = pitonStyle Name.Decorator ,
     Name.Decorator    .value_required:n = true ,
+    Name.Field        .tl_set:c = pitonStyle Name.Field , 
+    Name.Field        .value_required:n = true ,
     Name.Function     .tl_set:c = pitonStyle Name.Function ,
     Name.Function     .value_required:n = true ,
     Name.UserFunction .tl_set:c = pitonStyle Name.UserFunction ,
@@ -3180,6 +3182,7 @@ version 2005/12/01 or later.
     Name.Class,~
     Name.Constructor,~
     Name.Decorator,~
+    Name.Field,~
     Name.Function,~
     Name.Module,~
     Name.ModuleType,~
@@ -3216,6 +3219,7 @@ version 2005/12/01 or later.
     Name.Function      = \color[HTML]{CC00FF} , 
     Name.Namespace     = \color[HTML]{00CCFF} , 
     Name.Constructor   = \color[HTML]{006000} \bfseries , 
+    Name.Field         = \color[HTML]{AA6600} , 
     Name.Module        = \color[HTML]{0060A0} \bfseries ,
     Name.ModuleType    = ,
     Number             = \color[HTML]{FF6600} ,
@@ -4249,13 +4253,13 @@ local CommentLaTeX =
 % \bigskip
 % \paragraph{DefFunction}
 %
-% The following \textsc{lpeg} |Expression| will be used for the parameters in
+% The following \textsc{lpeg} |expression| will be used for the parameters in
 % the \emph{argspec} of a Python function. It's necessary to use a \emph{grammar}
 % because that pattern mainly checks the correct nesting of the delimiters
 % (and it's known in the theory of formal languages that this can't be done with
 % regular expressions \emph{stricto sensu} only). 
 %    \begin{macrocode}
-local Expression =
+local expression =
   P { "E" ,
        E = ( 1 - S "{}()[]\r," ) ^ 0
            *  (
@@ -4291,8 +4295,8 @@ local Expression =
 local Param = 
   SkipSpace * Identifier * SkipSpace
    * ( 
-         K ( 'InitialValues' , P "=" * Expression )
-       + Q ( P ":" ) * SkipSpace * K ( 'Name.Type' , letter^1  ) 
+         K ( 'InitialValues' , P "=" * expression )
+       + Q ( P ":" ) * SkipSpace * K ( 'Name.Type' , letter ^ 1  ) 
      ) ^ -1
 %    \end{macrocode}
 % 
@@ -4364,7 +4368,7 @@ local DefFunction =
 %
 %    \begin{macrocode}
 local ItemDict = 
-  ShortString * SkipSpace * Q ( P ":" ) * K ( 'Dict.Value' , Expression  ) 
+  ShortString * SkipSpace * Q ( P ":" ) * K ( 'Dict.Value' , expression  ) 
 
 local ItemOfSet = SkipSpace * ( ItemDict + ShortString ) * SkipSpace 
 
@@ -4459,24 +4463,87 @@ local Delim = Q ( P "[|" + P "|]" + S "[()]" )
 local Punct = Q ( S ",:;!" )
 %    \end{macrocode}
 % 
+% The identifiers catched by |cap_identifier| begin with a cap. In OCaml, it's
+% used for the constructors of types and for the modules.
 %    \begin{macrocode}
-local identifier = 
-  ( R "az" + P "_") * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0 
-
 local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0 
-
-local Identifier = K ( 'Identifier' , identifier )
 %    \end{macrocode}
 %
 %    \begin{macrocode}
 local Constructor = K ( 'Name.Constructor' , cap_identifier )
-
 local ModuleType = K ( 'Name.ModuleType' , cap_identifier ) 
+%    \end{macrocode}
+%
+% The identifiers which begin with a lower case letter of an underscore are used 
+% elsewhere in OCaml.
+%    \begin{macrocode}
+local identifier = 
+  ( R "az" + P "_") * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0 
+local Identifier = K ( 'Identifier' , identifier )
+%    \end{macrocode}
+%
+% Now, we deal with the records because we want to catch the names of the fields
+% of those records in all circunstancies.
+%    \begin{macrocode}
+local expression_for_fields =
+  P { "E" ,
+       E = ( 1 - S "{}()[]\r,;" ) ^ 0
+           *  (
+                (   P "{" * V "F" * P "}"
+                  + P "(" * V "F" * P ")"
+                  + P "[" * V "F" * P "]" ) * ( 1 - S "{}()[]\r," ) ^ 0
+              ) ^ 0 ,
+       F = ( 1 - S "{}()[]\r\"'" ) ^ 0
+           * ( (
+                   P "'" * (P "\\'" + 1 - S"'\r" )^0 * P "'"
+                 + P "\"" * (P "\\\"" + 1 - S"\"\r" )^0 * P "\""
+                 + P "{"  * V "F" * P "}"
+                 + P "(" * V "F" * P ")"
+                 + P "[" * V "F" * P "]"
+               ) * ( 1 - S "{}()[]\r\"'" ) ^ 0 ) ^ 0 , 
+    }
+%    \end{macrocode}
+% 
+%    \begin{macrocode}
+local OneFieldDefinition = 
+    ( K ( 'KeyWord' , P "mutable" ) * SkipSpace ) ^ -1
+  * K ( 'Name.Field' , identifier ) * SkipSpace
+  * Q ":" * SkipSpace
+  * K ( 'Name.Type' , expression_for_fields ) 
 
-local ModuleUse = 
-  K ( 'Name.Module' , cap_identifier ) 
-  * Q "." 
-  * ( Identifier + Constructor ) 
+local OneField = 
+    K ( 'Name.Field' , identifier ) * SkipSpace
+  * Q "=" * SkipSpace
+  * K ( 'ParseAgain' , expression_for_fields ) 
+
+local Record = 
+  Q "{" * SkipSpace
+  * 
+    (
+      OneFieldDefinition * ( Q ";" * SkipSpace * OneFieldDefinition ) ^ 0 
+      + 
+      OneField * ( Q ";" * SkipSpace * OneField ) ^ 0 
+    )
+  *
+  Q "}"
+%    \end{macrocode}
+%
+% \bigskip
+% Now, we deal with the notations with points (eg: |List.length|). In OCaml,
+% such notation is used for the fields of the records and for the modules.
+%    \begin{macrocode}
+local DotNotation = 
+  (
+      K ( 'Name.Module' , cap_identifier ) 
+        * Q "." 
+        * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) 
+
+      + 
+      Identifier 
+        * Q "."
+        * K ( 'Name.Field' , identifier ) 
+  )
+  * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0 
 
 local Operator = 
   K ( 'Operator' ,
@@ -4726,13 +4793,19 @@ local Comment =
 % \bigskip
 % \paragraph{The DefFunction}
 %
+% Despite its name, then \textsc{lpeg} |DefFunction| deals also with |let open|
+% which opens locally a module.
 %    \begin{macrocode}
 local DefFunction = 
+  K ( 'Keyword' , P "let open" ) 
+    * Space
+    * K ( 'Name.Module' , cap_identifier ) 
+  + 
   K ( 'Keyword' , P "let rec" + P "let" + P "and" ) 
-  * Space
-  * K ( 'Name.Function.Internal' , identifier ) 
-  * Space 
-  * # ( P "=" * space * P "function" + ( 1 - P "=" ) )
+    * Space
+    * K ( 'Name.Function.Internal' , identifier ) 
+    * Space 
+    * # ( P "=" * space * P "function" + ( 1 - P "=" ) )
 %    \end{macrocode}
 %
 % 
@@ -4815,11 +4888,12 @@ MainLoopOCaml =
      + Exception 
      + DefFunction
      + DefModule
+     + Record 
      + Keyword * ( Space + Punct + Delim + EOL + -1 ) 
      + OperatorWord * ( Space + Punct + Delim + EOL + -1 ) 
      + Builtin * ( Space + Punct + Delim + EOL + -1 ) 
-     + ModuleUse * ( Space + Punct + Delim + EOL + -1 ) 
-     + Constructor * ( Space + Punct + Delim + EOL + -1 ) 
+     + DotNotation
+     + Constructor
      + Identifier 
      + Number
      + Word
