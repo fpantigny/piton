@@ -3129,8 +3129,6 @@ version 2005/12/01 or later.
     Number            .value_required:n = true ,
     Name.Namespace    .tl_set:c = pitonStyle Name.Namespace , 
     Name.Namespace    .value_required:n = true ,
-    Name.ModuleType   .tl_set:c = pitonStyle Name.ModuleType , 
-    Name.ModuleType   .value_required:n = true ,
     Name.Module       .tl_set:c = pitonStyle Name.Module , 
     Name.Module       .value_required:n = true ,
     Name.Class        .tl_set:c = pitonStyle Name.Class , 
@@ -3185,7 +3183,6 @@ version 2005/12/01 or later.
     Name.Field,~
     Name.Function,~
     Name.Module,~
-    Name.ModuleType,~
     Name.Namespace,~
     Name.UserFunction,~
     Number,~
@@ -3221,7 +3218,6 @@ version 2005/12/01 or later.
     Name.Constructor   = \color[HTML]{006000} \bfseries , 
     Name.Field         = \color[HTML]{AA6600} , 
     Name.Module        = \color[HTML]{0060A0} \bfseries ,
-    Name.ModuleType    = ,
     Number             = \color[HTML]{FF6600} ,
     Operator           = \color[HTML]{555555} ,
     Operator.Word      = \bfseries ,
@@ -3233,7 +3229,7 @@ version 2005/12/01 or later.
     InitialValues      = \@@_piton:n ,
     Dict.Value         = \@@_piton:n ,
     Interpol.Inside    = \color{black}\@@_piton:n ,
-    TypeParameter      = \color[HTML]{008800} \itshape ,
+    TypeParameter      = \color[HTML]{336666} \itshape ,
     Identifier         = \@@_identifier:n , 
     Name.UserFunction  = , 
     Prompt             = , 
@@ -3945,13 +3941,13 @@ local ShortString = SingleShortString + DoubleShortString
 % \bigskip
 % \paragraph{Beamer}
 %
-% The following \textsc{lpeg} |BalancedBraces| will be used for the (mandatory)
+% The following \textsc{lpeg} |balanced_braces| will be used for the (mandatory)
 % argument of the commands |\only| and \emph{al.} of Beamer. It's necessary to
 % use a \emph{grammar} because that pattern mainly checks the correct nesting of
 % the delimiters (and it's known in the theory of formal languages that this
 % can't be done with regular expressions \emph{stricto sensu} only).
 %    \begin{macrocode}
-local BalancedBraces =
+local balanced_braces =
   P { "E" ,
        E = 
            (
@@ -3973,18 +3969,14 @@ local Beamer = P ( false )
 local BeamerBeginEnvironments = P ( true ) 
 local BeamerEndEnvironments = P ( true ) 
 local BeamerNamesEnvironments =  
-  P "uncoverenv" + P "onlyenv" + P "visibleenv" + P "invisibleenv" 
-  + P "alertenv" + P "actionenv"
-
+  P "uncoverenv" + P "onlyenv" + P "visibleenv" + P "invisibleenv" + P "alertenv" + P "actionenv"
 %    \end{macrocode}
 %
-%    \begin{macrocode}
-UserCommands = 
-       Ct ( Cc "Open" * C ( "\\emph{" ) * Cc "}" ) 
-     * ( C ( BalancedBraces ) / (function (s) return MainLoopPython:match(s) end ) )
-     * P "}" * Ct ( Cc "Close" ) 
-%    \end{macrocode}
 % 
+% \bigskip
+% The following function will return a \textsc{lpeg} which will catch an
+% environment of Beamer (supported by \pkg{piton}), that is to say |{uncover}|,
+% |{only}|, etc.
 %    \begin{macrocode}
 function OneBeamerEnvironment(name)
   return 
@@ -3997,7 +3989,7 @@ function OneBeamerEnvironment(name)
           ) 
      * ( 
          C ( ( 1 - P ( "\\end{" .. name .. "}" ) ) ^ 0 ) 
-         / (function (s) return MainLoopPython:match(s) end ) 
+         / ( function (s) return MainLoopPython:match(s) end ) 
        )
      * P ( "\\end{" .. name ..  "}" ) * Ct ( Cc "Close" ) 
 end 
@@ -4009,7 +4001,7 @@ end
 if piton_beamer 
 then
   Beamer =
-      L  ( P "\\pause" * ( P "[" * (1 - P "]") ^ 0 * P "]" ) ^ -1 ) 
+      L ( P "\\pause" * ( P "[" * ( 1 - P "]" ) ^ 0 * P "]" ) ^ -1 ) 
     + 
       Ct ( Cc "Open" 
             * C ( 
@@ -4022,10 +4014,9 @@ then
                 ) 
             * Cc "}" 
          ) 
-       * ( C ( BalancedBraces ) / (function (s) return MainLoopPython:match(s) end ) )
+       * ( C ( balanced_braces ) / (function (s) return MainLoopPython:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
-    + 
-      OneBeamerEnvironment "uncoverenv" 
+    + OneBeamerEnvironment "uncoverenv" 
     + OneBeamerEnvironment "onlyenv" 
     + OneBeamerEnvironment "visibleenv" 
     + OneBeamerEnvironment "invisibleenv" 
@@ -4040,9 +4031,9 @@ then
           * P "<" * (1 - P ">") ^ 0 * P ">" 
           * P "{" 
         )
-      * K ( 'ParseAgain.noCR' , BalancedBraces ) 
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , BalancedBraces ) 
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
       * L ( P "}" )
     +  
       L ( 
@@ -4053,11 +4044,11 @@ then
           * P "<" * (1 - P ">") ^ 0 * P ">" 
           * P "{" 
         )
-      * K ( 'ParseAgain.noCR' , BalancedBraces ) 
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , BalancedBraces ) 
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , BalancedBraces ) 
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
       * L ( P "}" )
 %    \end{macrocode}
 % Now for the environemnts.
@@ -4261,20 +4252,16 @@ local CommentLaTeX =
 %    \begin{macrocode}
 local expression =
   P { "E" ,
-       E = ( 1 - S "{}()[]\r," ) ^ 0
-           *  (
-                (   P "{" * V "F" * P "}"
-                  + P "(" * V "F" * P ")"
-                  + P "[" * V "F" * P "]" ) * ( 1 - S "{}()[]\r," ) ^ 0
-              ) ^ 0 ,
-       F = ( 1 - S "{}()[]\r\"'" ) ^ 0
-           * ( (
-                   P "'" * (P "\\'" + 1 - S"'\r" )^0 * P "'"
-                 + P "\"" * (P "\\\"" + 1 - S"\"\r" )^0 * P "\""
-                 + P "{"  * V "F" * P "}"
-                 + P "(" * V "F" * P ")"
-                 + P "[" * V "F" * P "]"
-               ) * ( 1 - S "{}()[]\r\"'" ) ^ 0 ) ^ 0 , 
+       E = ( P "'" * ( P "\\'" + 1 - S "'\r" ) ^ 0 * P "'"
+             + P "\"" * (P "\\\"" + 1 - S "\"\r" ) ^ 0 * P "\""
+             + P "{" * V "F" * P "}"
+             + P "(" * V "F" * P ")"
+             + P "[" * V "F" * P "]" 
+             + ( 1 - S "{}()[]\r," ) ) ^ 0 ,
+       F = ( P "{" * V "F" * P "}"
+             + P "(" * V "F" * P ")"
+             + P "[" * V "F" * P "]"
+             + ( 1 - S "{}()[]\r\"'" ) ) ^ 0
     }
 %    \end{macrocode}
 %
@@ -4390,15 +4377,13 @@ local ExceptionInConsole = Exception *  Q ( ( 1 - P "\r" ) ^ 0 ) * EOL
 %
 % First, the main loop :
 %    \begin{macrocode}
-MainLoopPython = 
-  (  ( space^1 * -1 ) 
-     + EOL
+local MainPython = 
+       EOL
      + Space 
      + Tab
      + Escape 
      + CommentLaTeX
      + Beamer
-     + UserCommands 
      + LongString 
      + Comment
      + ExceptionInConsole
@@ -4414,13 +4399,17 @@ MainLoopPython =
      + RaiseException 
      + DefFunction
      + DefClass 
-     + Keyword * ( Space + Punct + Delim + EOL+ -1 ) 
+     + Keyword * ( Space + Punct + Delim + EOL + -1 ) 
      + Decorator
-     + OperatorWord * ( Space + Punct + Delim + EOL+ -1 ) 
-     + Builtin * ( Space + Punct + Delim + EOL+ -1 ) 
+     + OperatorWord * ( Space + Punct + Delim + EOL + -1 ) 
+     + Builtin * ( Space + Punct + Delim + EOL + -1 ) 
      + Identifier 
      + Number
      + Word
+
+local MainLoopPython = 
+  (  ( space^1 * -1 ) 
+     + MainPython
   ) ^ 0 
 %    \end{macrocode}
 %
@@ -4471,7 +4460,7 @@ local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
 %
 %    \begin{macrocode}
 local Constructor = K ( 'Name.Constructor' , cap_identifier )
-local ModuleType = K ( 'Name.ModuleType' , cap_identifier ) 
+local ModuleType = K ( 'Name.Type' , cap_identifier ) 
 %    \end{macrocode}
 %
 % The identifiers which begin with a lower case letter of an underscore are used 
@@ -4482,25 +4471,22 @@ local identifier =
 local Identifier = K ( 'Identifier' , identifier )
 %    \end{macrocode}
 %
+%
 % Now, we deal with the records because we want to catch the names of the fields
 % of those records in all circunstancies.
 %    \begin{macrocode}
 local expression_for_fields =
   P { "E" ,
-       E = ( 1 - S "{}()[]\r,;" ) ^ 0
-           *  (
-                (   P "{" * V "F" * P "}"
-                  + P "(" * V "F" * P ")"
-                  + P "[" * V "F" * P "]" ) * ( 1 - S "{}()[]\r," ) ^ 0
-              ) ^ 0 ,
-       F = ( 1 - S "{}()[]\r\"'" ) ^ 0
-           * ( (
-                   P "'" * (P "\\'" + 1 - S"'\r" )^0 * P "'"
-                 + P "\"" * (P "\\\"" + 1 - S"\"\r" )^0 * P "\""
-                 + P "{"  * V "F" * P "}"
-                 + P "(" * V "F" * P ")"
-                 + P "[" * V "F" * P "]"
-               ) * ( 1 - S "{}()[]\r\"'" ) ^ 0 ) ^ 0 , 
+       E = ( P "{" * V "F" * P "}"
+             + P "(" * V "F" * P ")"
+             + P "[" * V "F" * P "]" 
+             + P "\"" * (P "\\\"" + 1 - S "\"\r" )^0 * P "\""
+             + P "'" * ( P "\\'" + 1 - S "'\r" )^0 * P "'"
+             + ( 1 - S "{}()[]\r;" ) ) ^ 0 ,
+       F = ( P "{" * V "F" * P "}"
+             + P "(" * V "F" * P ")"
+             + P "[" * V "F" * P "]"
+             + ( 1 - S "{}()[]\r\"'" ) ) ^ 0
     }
 %    \end{macrocode}
 % 
@@ -4510,11 +4496,13 @@ local OneFieldDefinition =
   * K ( 'Name.Field' , identifier ) * SkipSpace
   * Q ":" * SkipSpace
   * K ( 'Name.Type' , expression_for_fields ) 
+  * SkipSpace
 
 local OneField = 
     K ( 'Name.Field' , identifier ) * SkipSpace
   * Q "=" * SkipSpace
-  * K ( 'ParseAgain' , expression_for_fields ) 
+  * ( C ( expression_for_fields ) / ( function (s) return LoopOCaml:match(s) end ) )
+  * SkipSpace
 
 local Record = 
   Q "{" * SkipSpace
@@ -4544,7 +4532,9 @@ local DotNotation =
         * K ( 'Name.Field' , identifier ) 
   )
   * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0 
-
+%    \end{macrocode}
+%
+%    \begin{macrocode}
 local Operator = 
   K ( 'Operator' ,
       P "!=" + P "<>" + P "==" + P "<<" + P ">>" + P "<=" + P ">=" + P ":=" 
@@ -4599,7 +4589,7 @@ local Char =
 % \paragraph{Beamer}
 %
 %    \begin{macrocode}
-local BalancedBraces =
+local balanced_braces =
   P { "E" ,
        E = 
            (
@@ -4628,7 +4618,7 @@ then
       ) 
       *
       L ( ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 * P "{" )
-      * K ( 'ParseAgain.noCR' , BalancedBraces ) 
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
       * L ( P "}" )
     +  
       L ( 
@@ -4636,9 +4626,9 @@ then
           * P "<" * (1 - P ">") ^ 0 * P ">" 
           * P "{" 
         )
-      * K ( 'ParseAgain.noCR' , BalancedBraces ) 
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , BalancedBraces ) 
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
       * L ( P "}" )
     +  
       L ( 
@@ -4646,11 +4636,11 @@ then
           * P "<" * (1 - P ">") ^ 0 * P ">" 
           * P "{" 
         )
-      * K ( 'ParseAgain.noCR' , BalancedBraces ) 
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , BalancedBraces ) 
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , BalancedBraces ) 
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
       * L ( P "}" )
   BeamerBeginEnvironments = 
       ( space ^ 0 * 
@@ -4793,6 +4783,28 @@ local Comment =
 % \bigskip
 % \paragraph{The DefFunction}
 %
+%    \begin{macrocode}
+local balanced_parens =
+  P { "E" ,
+       E = 
+           (
+             P "(" * V "E" * P ")" 
+             + 
+             ( 1 - S "()" ) 
+           ) ^ 0 
+    }
+%    \end{macrocode}
+% 
+%    \begin{macrocode}
+local Argument = 
+  Identifier 
+  + Q "(" * SkipSpace 
+    * Identifier * SkipSpace 
+    * Q ":" * SkipSpace  
+    * K ( 'Name.Type' , balanced_parens ) * SkipSpace
+    * Q ")"
+%    \end{macrocode}
+%
 % Despite its name, then \textsc{lpeg} |DefFunction| deals also with |let open|
 % which opens locally a module.
 %    \begin{macrocode}
@@ -4805,7 +4817,17 @@ local DefFunction =
     * Space
     * K ( 'Name.Function.Internal' , identifier ) 
     * Space 
-    * # ( P "=" * space * P "function" + ( 1 - P "=" ) )
+    * (
+        Q "=" * SkipSpace * K ( 'Keyword' , P "function" ) 
+        + 
+        Argument 
+         * ( SkipSpace * Argument ) ^ 0 
+         * ( 
+             SkipSpace 
+             * Q ":" 
+             * K ( 'Name.Type' , ( 1 - P "=" ) ^ 0 ) 
+           ) ^ 1 
+      ) 
 %    \end{macrocode}
 %
 % 
@@ -4820,7 +4842,7 @@ local DefModule =
   *
     (
           K ( 'Keyword' , P "type" ) * Space
-        * K ( 'Name.ModuleType' , cap_identifier ) 
+        * K ( 'Name.Type' , cap_identifier ) 
       + 
         K ( 'Name.Module' , cap_identifier ) * SkipSpace 
         * 
@@ -4828,13 +4850,13 @@ local DefModule =
             Q "(" * SkipSpace 
               * K ( 'Name.Module' , cap_identifier ) * SkipSpace 
               * Q ":" * SkipSpace 
-              * K ( 'Name.ModuleType' , cap_identifier ) * SkipSpace 
+              * K ( 'Name.Type' , cap_identifier ) * SkipSpace 
               *
                 (
                   Q "," * SkipSpace 
                     * K ( 'Name.Module' , cap_identifier ) * SkipSpace 
                     * Q ":" * SkipSpace 
-                    * K ( 'Name.ModuleType' , cap_identifier ) * SkipSpace 
+                    * K ( 'Name.Type' , cap_identifier ) * SkipSpace 
                 ) ^ 0 
               * Q ")"
           ) ^ -1
@@ -4870,9 +4892,8 @@ local TypeParameter = K ( 'TypeParameter' , P "'" * alpha * # ( 1 - P "'" ) )
 %
 % First, the main loop :
 %    \begin{macrocode}
-MainLoopOCaml = 
-  (  ( space^1 * -1 ) 
-     + EOL
+MainOCaml = 
+       EOL
      + Space 
      + Tab
      + Escape 
@@ -4897,6 +4918,12 @@ MainLoopOCaml =
      + Identifier 
      + Number
      + Word
+
+LoopOCaml = MainOCaml ^ 0 
+
+MainLoopOCaml = 
+  (  ( space^1 * -1 ) 
+     + MainOCaml
   ) ^ 0 
 %    \end{macrocode}
 %
@@ -4946,15 +4973,28 @@ function piton.Parse(language,code)
      if one_item[1] == "EOL"
      then 
           for _ , s in ipairs(right_stack) 
-            do tex.sprint( s ) 
+            do tex.sprint(s) 
             end
           for _ , s in ipairs(one_item[2]) 
             do tex.tprint(s)
             end
           for _ , s in ipairs(left_stack) 
-            do tex.sprint( s ) 
+            do tex.sprint(s) 
             end
      else 
+%    \end{macrocode}
+%
+% Here is an example of an item beginning with |"Open"|.
+%
+% |{ "Open" , "\begin{uncover}<2>" , "\end{cover}" }|
+%
+% In order to deal with the ends of lines, we have to close the environment
+% (|{cover}| in this example) at the end of each line and reopen it at the
+% beginning of the new line. That's why we use two Lua stacks, called
+% |left_stack| and |right_stack|. |left_stack| will be for the elements like
+% |\begin{uncover}<2>| and |right_stack| will be for the elements like
+% |\end{cover}|. 
+%    \begin{macrocode}
           if one_item[1] == "Open"
           then
                tex.sprint( one_item[2] ) 

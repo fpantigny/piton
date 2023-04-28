@@ -318,7 +318,7 @@ produits par |\PitonInputFile| (ce fond a une largeur égale à la valeur couran
 
 \item Avec la clé \Definition{prompt-background-color}, \pkg{piton} ajoute un fond coloré aux lignes débutant par
 le prompt «|>>>|» (et sa continuation «|...|») caractéristique des consoles Python avec boucle \textsc{repl}
-(\emph{read-only-eval loop}). Pour un exemple d'utilisation de cette clé, voir la partie \ref{pythonrepl}
+(\emph{read-eval-print loop}). Pour un exemple d'utilisation de cette clé, voir la partie \ref{pythonrepl}
 p.~\pageref{pythonrepl}.
 
 \item En activant la clé \Definition{show-spaces-in-strings}, les espaces dans les chaînes courtes (c'est-à-dire
@@ -1595,7 +1595,8 @@ Voici la programmation d'un environnement |{PitonREPL}| qui effectue ce travail 
 \NewDocumentEnvironment { PitonREPL } { ! O { } } % le ! est obligatoire
  { 
    \PitonOptions
-     { background-color=white,
+     { 
+       background-color=white,
        ~emphase#prompt-background-color = gray!10@,
        ~#1
      }

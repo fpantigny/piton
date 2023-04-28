@@ -818,8 +818,6 @@
     Number            .value_required:n = true ,
     Name.Namespace    .tl_set:c = pitonStyle Name.Namespace ,
     Name.Namespace    .value_required:n = true ,
-    Name.ModuleType   .tl_set:c = pitonStyle Name.ModuleType ,
-    Name.ModuleType   .value_required:n = true ,
     Name.Module       .tl_set:c = pitonStyle Name.Module ,
     Name.Module       .value_required:n = true ,
     Name.Class        .tl_set:c = pitonStyle Name.Class ,
@@ -869,7 +867,6 @@
     Name.Field,~
     Name.Function,~
     Name.Module,~
-    Name.ModuleType,~
     Name.Namespace,~
     Name.UserFunction,~
     Number,~
@@ -896,7 +893,6 @@
     Name.Constructor   = \color[HTML]{006000} \bfseries ,
     Name.Field         = \color[HTML]{AA6600} ,
     Name.Module        = \color[HTML]{0060A0} \bfseries ,
-    Name.ModuleType    = ,
     Number             = \color[HTML]{FF6600} ,
     Operator           = \color[HTML]{555555} ,
     Operator.Word      = \bfseries ,
@@ -908,7 +904,7 @@
     InitialValues      = \__piton_piton:n ,
     Dict.Value         = \__piton_piton:n ,
     Interpol.Inside    = \color{black}\__piton_piton:n ,
-    TypeParameter      = \color[HTML]{008800} \itshape ,
+    TypeParameter      = \color[HTML]{336666} \itshape ,
     Identifier         = \__piton_identifier:n ,
     Name.UserFunction  = ,
     Prompt             = ,
@@ -1231,7 +1227,7 @@ local DoubleShortString =
          * Q ( P "\"" ) )
 
 local ShortString = SingleShortString + DoubleShortString
-local BalancedBraces =
+local balanced_braces =
   P { "E" ,
        E =
            (
@@ -1246,13 +1242,7 @@ local Beamer = P ( false )
 local BeamerBeginEnvironments = P ( true )
 local BeamerEndEnvironments = P ( true )
 local BeamerNamesEnvironments =
-  P "uncoverenv" + P "onlyenv" + P "visibleenv" + P "invisibleenv"
-  + P "alertenv" + P "actionenv"
-
-UserCommands =
-       Ct ( Cc "Open" * C ( "\\emph{" ) * Cc "}" )
-     * ( C ( BalancedBraces ) / (function (s) return MainLoopPython:match(s) end ) )
-     * P "}" * Ct ( Cc "Close" )
+  P "uncoverenv" + P "onlyenv" + P "visibleenv" + P "invisibleenv" + P "alertenv" + P "actionenv"
 function OneBeamerEnvironment(name)
   return
       Ct ( Cc "Open"
@@ -1264,14 +1254,14 @@ function OneBeamerEnvironment(name)
           )
      * (
          C ( ( 1 - P ( "\\end{" .. name .. "}" ) ) ^ 0 )
-         / (function (s) return MainLoopPython:match(s) end )
+         / ( function (s) return MainLoopPython:match(s) end )
        )
      * P ( "\\end{" .. name ..  "}" ) * Ct ( Cc "Close" )
 end
 if piton_beamer
 then
   Beamer =
-      L  ( P "\\pause" * ( P "[" * (1 - P "]") ^ 0 * P "]" ) ^ -1 )
+      L ( P "\\pause" * ( P "[" * ( 1 - P "]" ) ^ 0 * P "]" ) ^ -1 )
     +
       Ct ( Cc "Open"
             * C (
@@ -1284,10 +1274,9 @@ then
                 )
             * Cc "}"
          )
-       * ( C ( BalancedBraces ) / (function (s) return MainLoopPython:match(s) end ) )
+       * ( C ( balanced_braces ) / (function (s) return MainLoopPython:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
-    +
-      OneBeamerEnvironment "uncoverenv"
+    + OneBeamerEnvironment "uncoverenv"
     + OneBeamerEnvironment "onlyenv"
     + OneBeamerEnvironment "visibleenv"
     + OneBeamerEnvironment "invisibleenv"
@@ -1299,9 +1288,9 @@ then
           * P "<" * (1 - P ">") ^ 0 * P ">"
           * P "{"
         )
-      * K ( 'ParseAgain.noCR' , BalancedBraces )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , BalancedBraces )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}" )
     +
       L (
@@ -1309,11 +1298,11 @@ then
           * P "<" * (1 - P ">") ^ 0 * P ">"
           * P "{"
         )
-      * K ( 'ParseAgain.noCR' , BalancedBraces )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , BalancedBraces )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , BalancedBraces )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}" )
   BeamerBeginEnvironments =
       ( space ^ 0 *
@@ -1431,20 +1420,16 @@ local CommentLaTeX =
   * ( EOL + -1 )  -- you could put EOL instead of EOL
 local expression =
   P { "E" ,
-       E = ( 1 - S "{}()[]\r," ) ^ 0
-           *  (
-                (   P "{" * V "F" * P "}"
-                  + P "(" * V "F" * P ")"
-                  + P "[" * V "F" * P "]" ) * ( 1 - S "{}()[]\r," ) ^ 0
-              ) ^ 0 ,
-       F = ( 1 - S "{}()[]\r\"'" ) ^ 0
-           * ( (
-                   P "'" * (P "\\'" + 1 - S"'\r" )^0 * P "'"
-                 + P "\"" * (P "\\\"" + 1 - S"\"\r" )^0 * P "\""
-                 + P "{"  * V "F" * P "}"
-                 + P "(" * V "F" * P ")"
-                 + P "[" * V "F" * P "]"
-               ) * ( 1 - S "{}()[]\r\"'" ) ^ 0 ) ^ 0 ,
+       E = ( P "'" * ( P "\\'" + 1 - S "'\r" ) ^ 0 * P "'"
+             + P "\"" * (P "\\\"" + 1 - S "\"\r" ) ^ 0 * P "\""
+             + P "{" * V "F" * P "}"
+             + P "(" * V "F" * P ")"
+             + P "[" * V "F" * P "]"
+             + ( 1 - S "{}()[]\r," ) ) ^ 0 ,
+       F = ( P "{" * V "F" * P "}"
+             + P "(" * V "F" * P ")"
+             + P "[" * V "F" * P "]"
+             + ( 1 - S "{}()[]\r\"'" ) ) ^ 0
     }
 local Param =
   SkipSpace * Identifier * SkipSpace
@@ -1479,15 +1464,13 @@ local Set =
   * ItemOfSet * ( Q ( P "," ) * ItemOfSet )  ^ 0
   * Q ( P "}" )
 local ExceptionInConsole = Exception *  Q ( ( 1 - P "\r" ) ^ 0 ) * EOL
-MainLoopPython =
-  (  ( space^1 * -1 )
-     + EOL
+local MainPython =
+       EOL
      + Space
      + Tab
      + Escape
      + CommentLaTeX
      + Beamer
-     + UserCommands
      + LongString
      + Comment
      + ExceptionInConsole
@@ -1500,13 +1483,17 @@ MainLoopPython =
      + RaiseException
      + DefFunction
      + DefClass
-     + Keyword * ( Space + Punct + Delim + EOL+ -1 )
+     + Keyword * ( Space + Punct + Delim + EOL + -1 )
      + Decorator
-     + OperatorWord * ( Space + Punct + Delim + EOL+ -1 )
-     + Builtin * ( Space + Punct + Delim + EOL+ -1 )
+     + OperatorWord * ( Space + Punct + Delim + EOL + -1 )
+     + Builtin * ( Space + Punct + Delim + EOL + -1 )
      + Identifier
      + Number
      + Word
+
+local MainLoopPython =
+  (  ( space^1 * -1 )
+     + MainPython
   ) ^ 0
 local python = P ( true )
 
@@ -1528,37 +1515,35 @@ local Delim = Q ( P "[|" + P "|]" + S "[()]" )
 local Punct = Q ( S ",:;!" )
 local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
 local Constructor = K ( 'Name.Constructor' , cap_identifier )
-local ModuleType = K ( 'Name.ModuleType' , cap_identifier )
+local ModuleType = K ( 'Name.Type' , cap_identifier )
 local identifier =
   ( R "az" + P "_") * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
 local Identifier = K ( 'Identifier' , identifier )
 local expression_for_fields =
   P { "E" ,
-       E = ( 1 - S "{}()[]\r,;" ) ^ 0
-           *  (
-                (   P "{" * V "F" * P "}"
-                  + P "(" * V "F" * P ")"
-                  + P "[" * V "F" * P "]" ) * ( 1 - S "{}()[]\r," ) ^ 0
-              ) ^ 0 ,
-       F = ( 1 - S "{}()[]\r\"'" ) ^ 0
-           * ( (
-                   P "'" * (P "\\'" + 1 - S"'\r" )^0 * P "'"
-                 + P "\"" * (P "\\\"" + 1 - S"\"\r" )^0 * P "\""
-                 + P "{"  * V "F" * P "}"
-                 + P "(" * V "F" * P ")"
-                 + P "[" * V "F" * P "]"
-               ) * ( 1 - S "{}()[]\r\"'" ) ^ 0 ) ^ 0 ,
+       E = ( P "{" * V "F" * P "}"
+             + P "(" * V "F" * P ")"
+             + P "[" * V "F" * P "]"
+             + P "\"" * (P "\\\"" + 1 - S "\"\r" )^0 * P "\""
+             + P "'" * ( P "\\'" + 1 - S "'\r" )^0 * P "'"
+             + ( 1 - S "{}()[]\r;" ) ) ^ 0 ,
+       F = ( P "{" * V "F" * P "}"
+             + P "(" * V "F" * P ")"
+             + P "[" * V "F" * P "]"
+             + ( 1 - S "{}()[]\r\"'" ) ) ^ 0
     }
 local OneFieldDefinition =
     ( K ( 'KeyWord' , P "mutable" ) * SkipSpace ) ^ -1
   * K ( 'Name.Field' , identifier ) * SkipSpace
   * Q ":" * SkipSpace
   * K ( 'Name.Type' , expression_for_fields )
+  * SkipSpace
 
 local OneField =
     K ( 'Name.Field' , identifier ) * SkipSpace
   * Q "=" * SkipSpace
-  * K ( 'ParseAgain' , expression_for_fields )
+  * ( C ( expression_for_fields ) / ( function (s) return LoopOCaml:match(s) end ) )
+  * SkipSpace
 
 local Record =
   Q "{" * SkipSpace
@@ -1582,7 +1567,6 @@ local DotNotation =
         * K ( 'Name.Field' , identifier )
   )
   * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0
-
 local Operator =
   K ( 'Operator' ,
       P "!=" + P "<>" + P "==" + P "<<" + P ">>" + P "<=" + P ">=" + P ":="
@@ -1618,7 +1602,7 @@ local Exception =
      + P "Sys_error" + P "Undefined_recursive_module" )
 local Char =
   K ( 'String.Short' , P "'" * ( ( 1 - P "'" ) ^ 0 + P "\\'" ) * P "'" )
-local BalancedBraces =
+local balanced_braces =
   P { "E" ,
        E =
            (
@@ -1643,7 +1627,7 @@ then
       )
       *
       L ( ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 * P "{" )
-      * K ( 'ParseAgain.noCR' , BalancedBraces )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}" )
     +
       L (
@@ -1651,9 +1635,9 @@ then
           * P "<" * (1 - P ">") ^ 0 * P ">"
           * P "{"
         )
-      * K ( 'ParseAgain.noCR' , BalancedBraces )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , BalancedBraces )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}" )
     +
       L (
@@ -1661,11 +1645,11 @@ then
           * P "<" * (1 - P ">") ^ 0 * P ">"
           * P "{"
         )
-      * K ( 'ParseAgain.noCR' , BalancedBraces )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , BalancedBraces )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , BalancedBraces )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}" )
   BeamerBeginEnvironments =
       ( space ^ 0 *
@@ -1746,6 +1730,22 @@ local Comment =
                ) ^ 0
              * Q "*)"
        }   )
+local balanced_parens =
+  P { "E" ,
+       E =
+           (
+             P "(" * V "E" * P ")"
+             +
+             ( 1 - S "()" )
+           ) ^ 0
+    }
+local Argument =
+  Identifier
+  + Q "(" * SkipSpace
+    * Identifier * SkipSpace
+    * Q ":" * SkipSpace
+    * K ( 'Name.Type' , balanced_parens ) * SkipSpace
+    * Q ")"
 local DefFunction =
   K ( 'Keyword' , P "let open" )
     * Space
@@ -1755,13 +1755,23 @@ local DefFunction =
     * Space
     * K ( 'Name.Function.Internal' , identifier )
     * Space
-    * # ( P "=" * space * P "function" + ( 1 - P "=" ) )
+    * (
+        Q "=" * SkipSpace * K ( 'Keyword' , P "function" )
+        +
+        Argument
+         * ( SkipSpace * Argument ) ^ 0
+         * (
+             SkipSpace
+             * Q ":"
+             * K ( 'Name.Type' , ( 1 - P "=" ) ^ 0 )
+           ) ^ 1
+      )
 local DefModule =
   K ( 'Keyword' , P "module" ) * Space
   *
     (
           K ( 'Keyword' , P "type" ) * Space
-        * K ( 'Name.ModuleType' , cap_identifier )
+        * K ( 'Name.Type' , cap_identifier )
       +
         K ( 'Name.Module' , cap_identifier ) * SkipSpace
         *
@@ -1769,13 +1779,13 @@ local DefModule =
             Q "(" * SkipSpace
               * K ( 'Name.Module' , cap_identifier ) * SkipSpace
               * Q ":" * SkipSpace
-              * K ( 'Name.ModuleType' , cap_identifier ) * SkipSpace
+              * K ( 'Name.Type' , cap_identifier ) * SkipSpace
               *
                 (
                   Q "," * SkipSpace
                     * K ( 'Name.Module' , cap_identifier ) * SkipSpace
                     * Q ":" * SkipSpace
-                    * K ( 'Name.ModuleType' , cap_identifier ) * SkipSpace
+                    * K ( 'Name.Type' , cap_identifier ) * SkipSpace
                 ) ^ 0
               * Q ")"
           ) ^ -1
@@ -1798,9 +1808,8 @@ local DefModule =
   K ( 'Keyword' , P "include" + P "open" )
   * Space * K ( 'Name.Module' , cap_identifier )
 local TypeParameter = K ( 'TypeParameter' , P "'" * alpha * # ( 1 - P "'" ) )
-MainLoopOCaml =
-  (  ( space^1 * -1 )
-     + EOL
+MainOCaml =
+       EOL
      + Space
      + Tab
      + Escape
@@ -1825,6 +1834,12 @@ MainLoopOCaml =
      + Identifier
      + Number
      + Word
+
+LoopOCaml = MainOCaml ^ 0
+
+MainLoopOCaml =
+  (  ( space^1 * -1 )
+     + MainOCaml
   ) ^ 0
 local ocaml = P ( true )
 
@@ -1848,13 +1863,13 @@ function piton.Parse(language,code)
      if one_item[1] == "EOL"
      then
           for _ , s in ipairs(right_stack)
-            do tex.sprint( s )
+            do tex.sprint(s)
             end
           for _ , s in ipairs(one_item[2])
             do tex.tprint(s)
             end
           for _ , s in ipairs(left_stack)
-            do tex.sprint( s )
+            do tex.sprint(s)
             end
      else
           if one_item[1] == "Open"
