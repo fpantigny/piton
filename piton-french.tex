@@ -727,7 +727,7 @@ p.~\pageref{example-comments}.
 
 
 \bigskip 
-Si l'utilisateur a demandé l'affichage des numéros de ligne (avec |line-numbers| ou |all-line-numbers|), il est
+Si l'utilisateur a demandé l'affichage des numéros de ligne avec |line-numbers| ou |all-line-numbers|, il est
 possible de faire référence à ce numéro de ligne avec la commande |\label| placée dans un commentaire
 LaTeX.\footnote{Cette fonctionnalité est implémentée en redéfinissant, dans les environnements |{Piton}|, la
   commande |\label|. Il peut donc y avoir des incompatibilités avec les extensions qui redéfinissent (globalement)
@@ -1046,7 +1046,7 @@ les espaces dans les chaînes Python).
 (mais pas dans la commande \verb+\piton|...|+, c'est-à-dire avec la syntaxe verbatim). 
 
 \item Avec la clé |break-lines-in-Piton|, les coupures de ligne sont autorisées dans l'environnement |{Piton}|
-(d'où la lettre |P| capitale dans le nom) et dans les listings produits par |\PitonInputFile|.
+(d'où la lettre |P| capitale dans le nom) et les listings produits par |\PitonInputFile|.
 
 \item La clé |break-lines| est la conjonction des deux clés précédentes.
 \end{itemize}
@@ -1069,15 +1069,14 @@ l'indentation (uniquement dans le cas où la clé |indent-broken-lines| est acti
 \end{itemize}
 
 \bigskip
-Le code suivant a été composé dans une |{minipage}| standard de LaTeX de largeur 12~cm avec le réglage suivant :  
+Le code suivant a été composé avec le réglage suivant :  
 
 \begin{Verbatim}
-\PitonOptions{break-lines,indent-broken-lines,background-color=gray!15}
+\PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
 \end{Verbatim}
 
 \begin{center}
-\PitonOptions{break-lines,indent-broken-lines,background-color=gray!15}
-\begin{minipage}{12cm}
+\PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
 \begin{Piton}
 def dict_of_liste(liste):
     """Convertit une liste de subrs et de descriptions de glyphes en dictionnaire"""
@@ -1092,7 +1091,6 @@ def dict_of_liste(liste):
         dict[nom] = [traite_ligne_Postscript(k) for k in liste_lettre[1:-1]]
     return dict
 \end{Piton}
-\end{minipage}
 \end{center}
 
 
@@ -1233,16 +1231,16 @@ def arctan(x,n=10):
 
 \vspace{1cm}
 On peut aussi faire afficher les commentaires dans une deuxième colonne à droite si on limite la largeur du code
-proprement dit avec un environnement |{minipage}| de LaTeX.
+proprement dit avec la clé |width|. Dans l'exemple qui suit, on utilise la clé |width| avec la valeur
+spéciale~|min|. 
 
 
 \begingroup
 \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 \begin{Verbatim}
-\PitonOptions{background-color=gray!10}
+\PitonOptions{width=min, background-color=gray!10}
 ~emphase&\NewDocumentCommand{\MyLaTeXCommand}{m}{\hfill \normalfont\itshape\rlap{\quad #1}}@
 ~emphase&\SetPitonStyle{Comment.LaTeX = \MyLaTeXCommand}@
-~emphase&\begin{minipage}{12cm}@
 \begin{Piton}
 def arctan(x,n=10):
     if x < 0:
@@ -1255,17 +1253,15 @@ def arctan(x,n=10):
              s += (-1)**k/(2*k+1)*x**(2*k+1)
         return s 
 \end{Piton}
-~emphase&\end{minipage}@
 \end{Verbatim}
 \endgroup
 
 
 
 \begingroup
-\PitonOptions{background-color=gray!10}
+\PitonOptions{width = min, background-color=gray!10}
 \NewDocumentCommand{\MyLaTeXCommand}{m}{\hfill \normalfont\itshape\rlap{\quad #1}}
 \SetPitonStyle{Comment.LaTeX = \MyLaTeXCommand}
-\begin{minipage}{12cm}
 \begin{Piton}
 def arctan(x,n=10):
     if x < 0:
@@ -1278,7 +1274,6 @@ def arctan(x,n=10):
              s += (-1)**k/(2*k+1)*x**(2*k+1)
         return s 
 \end{Piton}
-\end{minipage}
 \endgroup
 
 \bigskip
@@ -1362,48 +1357,6 @@ def arctan(x,n=10):
 \end{minipage}
 \endgroup
 
-
-\vspace{1cm}
-Si on encapsule l'environnement |{Piton}| dans un environnement |{minipage}| pour, typiquement, limiter la largeur
-d'un fond coloré, il faut encadrer l'ensemble dans un environnement |{savenotes}| (de \pkg{footnote} ou
-\pkg{footnotehyper}) si on veut avoir les notes reportées en pied de page.
-
-\begingroup
-\fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
-\begin{Verbatim}
-\PitonOptions{background-color=gray!10}
-~emphase&\begin{savenotes}@
-\begin{minipage}{13cm}
-\begin{Piton}
-def arctan(x,n=10):
-    if x < 0:
-        return -arctan(-x)~emphase&#>\footnote{Un premier appel récursif.}@
-    elif x > 1: 
-        return pi/2 - arctan(1/x)~emphase&#>\footnote{Un deuxième appel récursif.}@
-    else: 
-        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
-\end{Piton}
-\end{minipage}
-~emphase&\end{savenotes}@
-\end{Verbatim}
-\endgroup
-
-
-
-\begin{savenotes}
-\PitonOptions{background-color=gray!10}
-\begin{minipage}{13cm}
-\begin{Piton}
-def arctan(x,n=10):
-    if x < 0:
-        return -arctan(-x)#>\footnote{Un premier appel récursif.}
-    elif x > 1: 
-        return pi/2 - arctan(1/x)#>\footnote{Un deuxième appel récursif.}
-    else: 
-        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
-\end{Piton}
-\end{minipage}
-\end{savenotes}
 
 \bigskip
 

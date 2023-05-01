@@ -15,8 +15,8 @@
 %
 % \fi
 % \iffalse
-\def\myfileversion{1.5z}
-\def\myfiledate{2023/05/01}
+\def\myfileversion{1.5y}
+\def\myfiledate{2023/04/26}
 %
 %
 %<*batchfile> 
@@ -2047,14 +2047,14 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 % 
 % \medskip
-% We will also use another dimension called |\l_@@_line_width_dim|. That
+% We will also use another dimension called |\l_@@_effective_width_dim|. That
 % will the width of the actual lines of code. That dimension may be lower than
 % the whole |\l_@@_width_dim| because we have to take into account the value of
 % |\l_@@_left_margin_dim| (for the numbers of lines when |line-numbers| is in
 % force) and another small margin when a background color is used (with the key
 % |background-color|). 
 %    \begin{macrocode}
-\dim_new:N \l_@@_line_width_dim
+\dim_new:N \l_@@_effective_width_dim
 %    \end{macrocode}
 % 
 % \medskip
@@ -2332,14 +2332,14 @@ version 2005/12/01 or later.
 % In the general case (which is also the simpler), the key |width| is not used,
 % or (if used) it is not used with the special value~|min|.
 % In that case, the content of a line of code is composed in a vertical coffin
-% with a width equal to |\l_@@_line_width_dim|. That coffin may,
+% with a width equal to |\l_@@_effective_width_dim|. That coffin may,
 % eventually, contains several lines when the key |broken-lines-in-Piton| (or
 % |broken-lines|) is used.
 % 
 % That commands takes in its argument by curryfication.
 %    \begin{macrocode}
 \cs_set_protected:Npn \@@_put_in_coffin_i:n 
-  { \vcoffin_set:Nnn \l_tmpa_coffin \l_@@_line_width_dim }
+  { \vcoffin_set:Nnn \l_tmpa_coffin \l_@@_effective_width_dim }
 %    \end{macrocode}
 %
 % \bigskip
@@ -2365,7 +2365,7 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
     \hcoffin_set:Nn \l_tmpa_coffin 
       { 
-        \hbox_to_wd:nn \l_@@_line_width_dim 
+        \hbox_to_wd:nn \l_@@_effective_width_dim 
 %    \end{macrocode}
 % We unpack the bock in order to free the potential |\hfill| springs present in
 % the LaTeX comments (cf. section~\ref{example-comments}, p.~\pageref{example-comments}).
@@ -2621,11 +2621,15 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_width_to_aux:
   {
-    \tl_gput_right:Nx \g_@@_aux_tl
+    \dim_gadd:Nn \g_@@_tmp_width_dim \l_@@_left_margin_dim 
+    \clist_if_empty:NF \l_@@_bg_color_clist 
       { 
-        \dim_set:Nn \l_@@_line_width_dim 
-          { \dim_eval:n { \g_@@_tmp_width_dim } }
-      } 
+        \dim_gadd:Nn \g_@@_tmp_width_dim { 0.5 em }
+        \bool_if:NF \l_@@_left_margin_auto_bool
+          { \dim_gadd:Nn \g_@@_tmp_width_dim { 0.5 em } }
+      }
+    \tl_gput_right:Nx \g_@@_aux_tl
+      { \dim_set:Nn \l_@@_width_dim { \dim_eval:n { \g_@@_tmp_width_dim } } }
   }
 %    \end{macrocode}
 % 
@@ -2786,15 +2790,6 @@ version 2005/12/01 or later.
     \automatichyphenmode = 1
     \int_gincr:N \g_@@_env_int 
     \tl_gclear:N \g_@@_aux_tl
-    \dim_compare:nNnT \l_@@_width_dim = \c_zero_dim 
-      { \dim_set_eq:NN \l_@@_width_dim \linewidth }
-%    \end{macrocode}
-% We read the information written on the |aux| file by previous run (when the
-% key |width| is used with the special value~|min|). At this time, the only
-% potential information written on the |aux| file is the value of
-% |\l_@@_line_width_dim| when the key |width| has been used with the special
-% value~|min|). 
-%    \begin{macrocode}
     \cs_if_exist_use:c { c_@@ _ \int_use:N \g_@@_env_int _ tl }
     \bool_if:NF \l_@@_resume_bool { \int_gzero:N \g_@@_visual_line_int }
     \dim_gzero:N \g_@@_tmp_width_dim
@@ -2803,6 +2798,8 @@ version 2005/12/01 or later.
     \dim_zero:N \lineskip 
     \dim_zero:N \parindent 
     \cs_set_eq:NN \label \@@_label:n
+    \dim_compare:nNnT \l_@@_width_dim = \c_zero_dim 
+      { \dim_set_eq:NN \l_@@_width_dim \linewidth }
   }
 %    \end{macrocode}
 % 
@@ -2819,29 +2816,22 @@ version 2005/12/01 or later.
 %
 % \bigskip
 % Whereas |\l_@@_with_dim| is the width of the environment,
-% |\l_@@_line_width_dim| is the width of the lines of code without the
+% |\l_@@_effective_width_dim| is the width of the lines of code without the
 % potential margins for the numbers of lines and the background.
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_compute_line_width:
+\cs_new_protected:Npn \@@_compute_effective_width:
   {
-%    \end{macrocode}
-% If |\l_@@_line_width_dim| has yet a non-empty value, that means that it has
-% been read on the |aux| file: it has been written on a previous run because the
-% key |width| is used with the special value~|min|).
-%    \begin{macrocode}
-    \dim_compare:nNnT \l_@@_line_width_dim = \c_zero_dim
-      {
-        \dim_set_eq:NN \l_@@_line_width_dim \l_@@_width_dim
-        \clist_if_empty:NTF \l_@@_bg_color_clist
+    \dim_set_eq:NN \l_@@_effective_width_dim \l_@@_width_dim
+    \clist_if_empty:NTF \l_@@_bg_color_clist
 %    \end{macrocode}
 % If there is no background, we only subtract the left margin. 
 %    \begin{macrocode}
-          { \dim_sub:Nn \l_@@_line_width_dim \l_@@_left_margin_dim }
+      { \dim_sub:Nn \l_@@_effective_width_dim \l_@@_left_margin_dim }
 %    \end{macrocode}
 % If there is a background, we subtract 0.5~em for the margin on the right.
 %    \begin{macrocode}
-          { 
-            \dim_sub:Nn \l_@@_line_width_dim { 0.5 em }
+      { 
+        \dim_sub:Nn \l_@@_effective_width_dim { 0.5 em }
 %    \end{macrocode}
 % And we subtract also for the left margin. If the key |left-margin| has been
 % used (with a numerical value or with the special value~|min|),
@@ -2851,10 +2841,9 @@ version 2005/12/01 or later.
 % computed when we use the current command.} and we use that value. Elsewhere,
 % we use a value of 0.5~em.
 %    \begin{macrocode}
-            \dim_compare:nNnTF \l_@@_left_margin_dim = \c_zero_dim 
-              { \dim_sub:Nn \l_@@_line_width_dim { 0.5 em } }
-              { \dim_sub:Nn \l_@@_line_width_dim \l_@@_left_margin_dim }
-          }
+        \dim_compare:nNnTF \l_@@_left_margin_dim = \c_zero_dim 
+          { \dim_sub:Nn \l_@@_effective_width_dim { 0.5 em } }
+          { \dim_sub:Nn \l_@@_effective_width_dim \l_@@_left_margin_dim }
       }
   }
 %    \end{macrocode}
@@ -2909,7 +2898,7 @@ version 2005/12/01 or later.
           \dim_set:Nn \l_@@_left_margin_dim 
             { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
         }
-     \@@_compute_line_width:
+     \@@_compute_effective_width:
 %    \end{macrocode}
 % Now, the main job.
 %    \begin{macrocode}
@@ -2991,7 +2980,7 @@ version 2005/12/01 or later.
                 \dim_set:Nn \l_@@_left_margin_dim
                   { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
               }
-            \@@_compute_line_width:
+            \@@_compute_effective_width:
 %    \end{macrocode}
 % Now, the main job.
 %    \begin{macrocode}
