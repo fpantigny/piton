@@ -15,7 +15,7 @@
 %
 % \fi
 % \iffalse
-\def\myfileversion{1.5z}
+\def\myfileversion{1.5t}
 \def\myfiledate{2023/05/01}
 %
 %
@@ -1222,9 +1222,9 @@ version 2005/12/01 or later.
 % \begin{Piton}
 % def arctan(x,n=10):
 %     if x < 0:
-%         return -arctan(-x)        #> (appel récursif)
+%         return -arctan(-x)        #> (recursive call)
 %     elif x > 1: 
-%         return pi/2 - arctan(1/x) #> (autre appel récursif) 
+%         return pi/2 - arctan(1/x) #> (other recursive call) 
 %     else: 
 %         return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
 % \end{Piton}
@@ -1238,9 +1238,9 @@ version 2005/12/01 or later.
 % \begin{Piton}
 % def arctan(x,n=10):
 %     if x < 0:
-%         return -arctan(-x)        #> (appel récursif)
+%         return -arctan(-x)        #> (recursive call)
 %     elif x > 1: 
-%         return pi/2 - arctan(1/x) #> (autre appel récursif) 
+%         return pi/2 - arctan(1/x) #> (other recursive call) 
 %     else: 
 %         return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
 % \end{Piton}
@@ -1266,9 +1266,9 @@ version 2005/12/01 or later.
 % \begin{Piton}
 % def arctan(x,n=10):
 %     if x < 0:
-%         return -arctan(-x)        #> appel récursif
+%         return -arctan(-x)        #> recursive call
 %     elif x > 1: 
-%         return pi/2 - arctan(1/x) #> autre appel récursif 
+%         return pi/2 - arctan(1/x) #> other recursive call 
 %     else: 
 %         return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
 % \end{Piton}
@@ -1281,9 +1281,9 @@ version 2005/12/01 or later.
 % \begin{Piton}
 % def arctan(x,n=10):
 %     if x < 0:
-%         return -arctan(-x)        #> appel récursif
+%         return -arctan(-x)        #> recursive call
 %     elif x > 1: 
-%         return pi/2 - arctan(1/x) #> autre appel récursif 
+%         return pi/2 - arctan(1/x) #> another recursive call 
 %     else: 
 %         return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
 % \end{Piton}
@@ -1305,9 +1305,9 @@ version 2005/12/01 or later.
 % \begin{Piton}
 % def arctan(x,n=10):
 %     if x < 0:
-%         return -arctan(-x)       #> appel récursif
+%         return -arctan(-x) #> recursive call
 %     elif x > 1: 
-%         return pi/2 - arctan(1/x) #> autre appel récursif 
+%         return pi/2 - arctan(1/x) #> anoother recursive call 
 %     else: 
 %         s = 0
 %         for k in range(n):
@@ -1326,9 +1326,9 @@ version 2005/12/01 or later.
 % \begin{Piton}
 % def arctan(x,n=10):
 %     if x < 0:
-%         return -arctan(-x)       #> appel récursif
+%         return -arctan(-x) #> recursive call
 %     elif x > 1: 
-%         return pi/2 - arctan(1/x) #> autre appel récursif 
+%         return pi/2 - arctan(1/x) #> another recursive call 
 %     else: 
 %         s = 0
 %         for k in range(n):
@@ -1502,7 +1502,7 @@ version 2005/12/01 or later.
 %     n is the number of terms in the sum
 %     """
 %     if x < 0:
-%         return -arctan(-x) # appel récursif
+%         return -arctan(-x) # recursive call
 %     elif x > 1: 
 %         return pi/2 - arctan(1/x) 
 %         #> (we have used that $\arctan(x)+\arctan(1/x)=\pi/2$ for $x>0$)
@@ -2030,14 +2030,15 @@ version 2005/12/01 or later.
 % 
 % \bigskip
 % The following dimension will be the width of the listing constructed by
-% |{Piton}| of |\PitonInputFile|.
+% |{Piton}| or |\PitonInputFile|.
 % \begin{itemize}
 % \item If the user uses the key |width| of |\PitonOptions| with a numerical
 % value, that value will be stored in |\l_@@_width_dim|.
-% \item If the user uses the key |width| with the special value |min|, the
-% dimension |\l_@@_width_dim| will, \emph{in the second run}, contain a value
-% computed during the first run the maximal width of the lines of the listing
-% (during the first run, it will be set to |\linewidth|).
+% \item If the user uses the key |width| with the special value~|min|, the
+% dimension |\l_@@_width_dim| will, \emph{in the second run}, be computed from
+% the value of |\l_@@_line_width_dim| stored in the |aux| file
+% (computed during the first run the maximal width of the lines of the listing).
+% During the first run, |\l_@@_width_line_dim| will be set equal to |\linewidth|.
 % \item Elsewhere, |\l_@@_width_dim| will be set at the beginning of the listing
 % (in |\@@_pre_env:|) equal to the current value of |\linewidth|.
 % \end{itemize}
@@ -2817,19 +2818,52 @@ version 2005/12/01 or later.
   }
 %    \end{macrocode}
 %
+%
+% \bigskip
+% If the final user has used both |left-margin=auto| and |line-numbers|, we have
+% to compute the width of the maximal number of lines at the end of the
+% environment to fix the correct value to |left-margin|. The first argument of
+% the following function is the name of the Lua function that will be applied to
+% the second argument in order to count the number of lines.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_compute_left_margin:nn #1 #2
+  {
+    \bool_lazy_and:nnT \l_@@_left_margin_auto_bool \l_@@_line_numbers_bool
+       {
+        \hbox_set:Nn \l_tmpa_box
+          {
+            \footnotesize
+            \bool_if:NTF \l_@@_all_line_numbers_bool
+              {
+                \int_to_arabic:n 
+                  { \g_@@_visual_line_int + \l_@@_nb_lines_int }  
+              }
+              {
+                \lua_now:n 
+                  { piton.#1(token.scan_argument()) }
+                  { #2 }
+                \int_to_arabic:n 
+                  { \g_@@_visual_line_int + \l_@@_nb_non_empty_lines_int }   
+               }
+           }
+         \dim_set:Nn \l_@@_left_margin_dim 
+           { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
+       }
+  }
+%    \end{macrocode}
+% 
+%
+%
 % \bigskip
 % Whereas |\l_@@_with_dim| is the width of the environment,
 % |\l_@@_line_width_dim| is the width of the lines of code without the
-% potential margins for the numbers of lines and the background.
+% potential margins for the numbers of lines and the background. Depending on
+% the case, you have to compute |\l_@@_line_width_dim| from |\l_@@_width_dim| or
+% we have to do the opposite.
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_compute_line_width:
+\cs_new_protected:Npn \@@_compute_width:
   {
-%    \end{macrocode}
-% If |\l_@@_line_width_dim| has yet a non-empty value, that means that it has
-% been read on the |aux| file: it has been written on a previous run because the
-% key |width| is used with the special value~|min|).
-%    \begin{macrocode}
-    \dim_compare:nNnT \l_@@_line_width_dim = \c_zero_dim
+    \dim_compare:nNnTF \l_@@_line_width_dim = \c_zero_dim
       {
         \dim_set_eq:NN \l_@@_line_width_dim \l_@@_width_dim
         \clist_if_empty:NTF \l_@@_bg_color_clist
@@ -2856,82 +2890,26 @@ version 2005/12/01 or later.
               { \dim_sub:Nn \l_@@_line_width_dim \l_@@_left_margin_dim }
           }
       }
+%    \end{macrocode}
+% If |\l_@@_line_width_dim| has yet a non-empty value, that means that it has
+% been read on the |aux| file: it has been written on a previous run because the
+% key |width| is used with the special value~|min|). We compute now the width of
+% the environment by computations opposite to the preceding ones.
+%    \begin{macrocode}
+      {
+        \dim_set_eq:NN \l_@@_width_dim \l_@@_line_width_dim
+        \clist_if_empty:NTF \l_@@_bg_color_clist
+          { \dim_add:Nn \l_@@_width_dim \l_@@_left_margin_dim }
+          { 
+            \dim_add:Nn \l_@@_width_dim { 0.5 em }
+            \dim_compare:nNnTF \l_@@_left_margin_dim = \c_zero_dim 
+              { \dim_add:Nn \l_@@_width_dim { 0.5 em } }
+              { \dim_add:Nn \l_@@_width_dim \l_@@_left_margin_dim }
+          }
+      }
   }
 %    \end{macrocode}
 % 
-% \bigskip
-%    \begin{macrocode}
-\NewDocumentCommand { \PitonInputFile } { d < > O { } m }
-  {
-    \tl_if_novalue:nF { #1 }
-      {
-        \bool_if:NTF \c_@@_beamer_bool
-          { \begin { uncoverenv } < #1 > }     
-          { \msg_error:nn { piton } { overlay~without~beamer } }
-      }
-    \group_begin:
-      \int_zero_new:N \l_@@_first_line_int
-      \int_zero_new:N \l_@@_last_line_int 
-      \int_set_eq:NN \l_@@_last_line_int \c_max_int
-      \keys_set:nn { PitonInputFile } { #2 }
-      \@@_pre_env:
-      \mode_if_vertical:TF \mode_leave_vertical: \newline 
-%    \end{macrocode}
-% We count with Lua the number of lines of the argument. The result will be
-% stored by Lua in |\l_@@_nb_lines_int|. That information will be used to allow
-% or disallow page breaks.
-%    \begin{macrocode}
-      \lua_now:n { piton.CountLinesFile(token.scan_argument()) } { #3 }  
-%    \end{macrocode}     
-% If the final user has used both |left-margin=auto| and |line-numbers| or
-% |all-line-numbers|, we have to compute the width of the maximal number of
-% lines at the end of the composition of the listing to fix the correct value to
-% |left-margin|. 
-%    \begin{macrocode}
-      \bool_lazy_and:nnT \l_@@_left_margin_auto_bool \l_@@_line_numbers_bool
-        {
-         \hbox_set:Nn \l_tmpa_box
-           {
-             \footnotesize
-             \bool_if:NTF \l_@@_all_line_numbers_bool
-               {
-                 \int_to_arabic:n 
-                   { \g_@@_visual_line_int + \l_@@_nb_lines_int }  
-               }
-               {
-                 \lua_now:n 
-                   { piton.CountNonEmptyLinesFile(token.scan_argument()) } 
-                   { #3 }
-                 \int_to_arabic:n 
-                   { \g_@@_visual_line_int + \l_@@_nb_non_empty_lines_int }   
-                }
-            }
-          \dim_set:Nn \l_@@_left_margin_dim 
-            { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
-        }
-     \@@_compute_line_width:
-%    \end{macrocode}
-% Now, the main job.
-%    \begin{macrocode}
-      \ttfamily
-      \bool_if:NT \c_@@_footnote_bool { \begin { savenotes } } 
-      \vtop \bgroup 
-      \lua_now:e
-        { 
-          piton.ParseFile('\l_@@_language_str',token.scan_argument() ,
-           \int_use:N \l_@@_first_line_int , 
-           \int_use:N \l_@@_last_line_int ) 
-        } 
-        { #3 }
-      \egroup 
-      \bool_if:NT \c_@@_footnote_bool { \end { savenotes } } 
-      \bool_if:NT \l_@@_width_min_bool \@@_width_to_aux:
-    \group_end:
-    \tl_if_novalue:nF { #1 }
-      { \bool_if:NT \c_@@_beamer_bool { \end { uncoverenv } } }
-    \@@_write_aux:
-  }
-%    \end{macrocode}
 %
 % 
 % \bigskip 
@@ -2962,40 +2940,16 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
             \lua_now:n { piton.CountLines(token.scan_argument()) } { ##1 }  
 %    \end{macrocode}
-% If the final user has used both |left-margin=auto| and |line-numbers|, we have
-% to compute the width of the maximal number of lines at the end of the
-% environment to fix the correct value to |left-margin|.
+% The first argument of the following function is the name of the Lua function
+% that will be applied to the second argument in order to count the number of lines.
 %    \begin{macrocode}
-            \bool_lazy_and:nnT \l_@@_left_margin_auto_bool \l_@@_line_numbers_bool
-              {
-                \bool_if:NTF \l_@@_all_line_numbers_bool
-                  {
-                    \hbox_set:Nn \l_tmpa_box
-                      { 
-                        \footnotesize
-                        \int_to_arabic:n 
-                          { \g_@@_visual_line_int + \l_@@_nb_lines_int }  
-                      }
-                  }
-                  {
-                    \lua_now:n 
-                      { piton.CountNonEmptyLines(token.scan_argument()) } 
-                      { ##1 }  
-                    \hbox_set:Nn \l_tmpa_box
-                      { 
-                        \footnotesize
-                        \int_to_arabic:n 
-                          { \g_@@_visual_line_int + \l_@@_nb_non_empty_lines_int }   
-                      }
-                  }
-                \dim_set:Nn \l_@@_left_margin_dim
-                  { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
-              }
-            \@@_compute_line_width:
-%    \end{macrocode}
-% Now, the main job.
-%    \begin{macrocode}
+            \@@_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
+            \@@_compute_width:
             \ttfamily
+%    \end{macrocode}
+% |\c_@@_footnote_bool| is raised when the package \pkg{piton} has been load
+% with the key |footnote| \emph{or} the key |footnotehyper|.
+%    \begin{macrocode}
             \bool_if:NT \c_@@_footnote_bool { \begin { savenotes } } 
             \vtop \bgroup 
             \lua_now:e 
@@ -3011,10 +2965,14 @@ version 2005/12/01 or later.
             \vspace { 2.5 pt } 
             \egroup 
             \bool_if:NT \c_@@_footnote_bool { \end { savenotes } } 
+%    \end{macrocode}
+% If the user has used the key |width| with the special value~|min|, we write on
+% the |aux| file the value of |\l_@@_line_width_dim| (largest width of the lines
+% of code of the environment).
+%    \begin{macrocode}
             \bool_if:NT \l_@@_width_min_bool \@@_width_to_aux:
 %    \end{macrocode}
-% The following |\end{#1}| is only for the groups and the stack of environments
-% of LaTeX.
+% The following |\end{#1}| is only for the stack of environments of LaTeX.
 %    \begin{macrocode}
             \end { #1 }
             \@@_write_aux:
@@ -3072,6 +3030,78 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 %
+% \bigskip
+% The code of the command |\PitonInputFile| is somewhat similar to the code of
+% the environment |{Piton}|. In fact, it's simpler because there isn't the
+% problem of catching the content of the environment in a verbatim mode.
+%    \begin{macrocode}
+\NewDocumentCommand { \PitonInputFile } { d < > O { } m }
+  {
+    \file_if_exist:nTF { #3 }
+      { \@@_input_file:nnn { #1 } { #2 } { #3 } }
+      { \msg_error:nnn { piton } { unknown~file } { #3 } } 
+  }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_input_file:nnn #1 #2 #3
+  {
+%    \end{macrocode}
+% We recall that, if we are in Beamer, the command |\PitonInputFile| is
+% ``overlay-aware'' and that's why there is an optional argument between angular
+% brackets (|<| and |>|).
+%    \begin{macrocode}
+    \tl_if_novalue:nF { #1 }
+      {
+        \bool_if:NTF \c_@@_beamer_bool
+          { \begin { uncoverenv } < #1 > }     
+          { \msg_error:nn { piton } { overlay~without~beamer } }
+      }
+    \group_begin:
+      \int_zero_new:N \l_@@_first_line_int
+      \int_zero_new:N \l_@@_last_line_int 
+      \int_set_eq:NN \l_@@_last_line_int \c_max_int
+      \keys_set:nn { PitonInputFile } { #2 }
+      \@@_pre_env:
+      \mode_if_vertical:TF \mode_leave_vertical: \newline 
+%    \end{macrocode}
+% We count with Lua the number of lines of the argument. The result will be
+% stored by Lua in |\l_@@_nb_lines_int|. That information will be used to allow
+% or disallow page breaks.
+%    \begin{macrocode}
+      \lua_now:n { piton.CountLinesFile(token.scan_argument()) } { #3 }  
+%    \end{macrocode}
+% The first argument of the following function is the name of the Lua function
+% that will be applied to the second argument in order to count the number of lines.
+%    \begin{macrocode}
+      \@@_compute_left_margin:nn { CountNonEmptyLinesFile } { #3 }
+      \@@_compute_width:
+      \ttfamily
+      \bool_if:NT \c_@@_footnote_bool { \begin { savenotes } } 
+      \vtop \bgroup 
+      \lua_now:e
+        { 
+          piton.ParseFile(
+           '\l_@@_language_str',
+           token.scan_argument() ,
+           \int_use:N \l_@@_first_line_int , 
+           \int_use:N \l_@@_last_line_int ) 
+        } 
+        { #3 }
+      \egroup 
+      \bool_if:NT \c_@@_footnote_bool { \end { savenotes } } 
+      \bool_if:NT \l_@@_width_min_bool \@@_width_to_aux:
+    \group_end:
+%    \end{macrocode}
+% We recall that, if we are in Beamer, the command |\PitonInputFile| is
+% ``overlay-aware'' and that's why we close now an environment |{uncoverenv}|
+% that we have opened at the beginning of the command.
+%    \begin{macrocode}
+    \tl_if_novalue:nF { #1 }
+      { \bool_if:NT \c_@@_beamer_bool { \end { uncoverenv } } }
+    \@@_write_aux:
+  }
+%    \end{macrocode}
 %
 % \bigskip
 % \subsubsection{The styles}
@@ -3366,6 +3396,15 @@ version 2005/12/01 or later.
 % \bigskip
 % \subsubsection{The error messages of the package}
 %
+%    \begin{macrocode}
+\msg_new:nnn { piton } { unknown~file }
+  {
+    Unknown~file. \\
+    The~file~'#1'~is~unknown.\\
+    Your~command~\token_to_str:N \PitonInputFile\ will~be~discarded.
+  }
+%    \end{macrocode}
+% 
 %    \begin{macrocode}
 \msg_new:nnnn { piton } { Unknown~key~for~PitonOptions }
   { 
@@ -3666,7 +3705,7 @@ end
 %    \begin{macrocode}
 local Space = ( Q " " ) ^ 1
 
-local SkipSpace = ( Q " " ) ^ 0
+local SkipSpace = ( Q " " ) ^ 0 
 
 local Punct = Q ( S ".,:;!" )
 
@@ -3709,7 +3748,7 @@ local Operator =
     )
 
 local OperatorWord = 
-  K ( 'Operator.Word' ,P "in" + P "is" + P "and" + P "or" + P "not" )
+  K ( 'Operator.Word' , P "in" + P "is" + P "and" + P "or" + P "not" )
 
 local Keyword = 
   K ( 'Keyword' ,
@@ -4247,7 +4286,7 @@ local CommentLaTeX =
   * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces" 
   * L ( ( 1 - P "\r" ) ^ 0 ) 
   * Lc "}}" 
-  * ( EOL + -1 )  -- you could put EOL instead of EOL
+  * ( EOL + -1 )  
 %    \end{macrocode}
 % 
 % \bigskip
@@ -4399,6 +4438,7 @@ local MainPython =
      + Set 
      + Delim
      + Operator
+     + OperatorWord * ( Space + Punct + Delim + EOL + -1 ) 
      + ShortString
      + Punct
      + FromImport
@@ -4407,7 +4447,6 @@ local MainPython =
      + DefClass 
      + Keyword * ( Space + Punct + Delim + EOL + -1 ) 
      + Decorator
-     + OperatorWord * ( Space + Punct + Delim + EOL + -1 ) 
      + Builtin * ( Space + Punct + Delim + EOL + -1 ) 
      + Identifier 
      + Number
@@ -4702,7 +4741,7 @@ local EOL =
 % We need a pattern |string| without captures because it will be used within the
 % comments of OCaml.
 %    \begin{macrocode}
-local string =
+local ocaml_string =
        Q ( P "\"" )
      * ( 
          VisualSpace
@@ -4715,7 +4754,7 @@ local string =
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
-local String = WithStyle ( 'String.Long' , string ) 
+local String = WithStyle ( 'String.Long' , ocaml_string ) 
 %    \end{macrocode}
 %
 % 
@@ -4781,7 +4820,7 @@ local Comment =
          A = Q "(*"
              * ( V "A" 
                  + Q ( ( 1 - P "(*" - P "*)" - S "\r$\"" ) ^ 1 ) -- $
-                 + string 
+                 + ocaml_string 
                  + P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) * P "$" -- $
                  + EOL
                ) ^ 0 
@@ -5031,7 +5070,7 @@ end
 % then apply the function~|Parse| to the resulting Lua string.
 %    \begin{macrocode}
 function piton.ParseFile(language,name,first_line,last_line)
-  s = ''
+  local s = ''
   local i = 0 
   for line in io.lines(name) 
   do i = i + 1 
@@ -5040,7 +5079,19 @@ function piton.ParseFile(language,name,first_line,last_line)
      end
      if i >= last_line then break end 
   end
-  piton.Parse(language,s) 
+%    \end{macrocode}
+% We extract the BOM of utf-8, if present.
+%    \begin{macrocode}
+  if string.byte(s,1) == 13
+  then if string.byte(s,2) == 239
+       then if string.byte(s,3) == 187
+            then if string.byte(s,4) == 191
+                 then s = string.sub(s,5,-1)
+                 end 
+            end
+       end
+  end
+  piton.Parse(language,s)
 end
 %    \end{macrocode}
 % 

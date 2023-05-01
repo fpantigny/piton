@@ -18,7 +18,7 @@
 %% and version 1.3 or later is part of all distributions of
 %% LaTeX version 2005/12/01 or later.
 %% 
-\def\myfileversion{1.5z}
+\def\myfileversion{1.5t}
 \def\myfiledate{2023/05/01}
 
 
@@ -595,9 +595,33 @@
     last-line .int_set:N = \l__piton_last_line_int ,
     last-line .value_required:n = true ,
   }
-\cs_new_protected:Npn \__piton_compute_line_width:
+\cs_new_protected:Npn \__piton_compute_left_margin:nn #1 #2
   {
-    \dim_compare:nNnT \l__piton_line_width_dim = \c_zero_dim
+    \bool_lazy_and:nnT \l__piton_left_margin_auto_bool \l__piton_line_numbers_bool
+       {
+        \hbox_set:Nn \l_tmpa_box
+          {
+            \footnotesize
+            \bool_if:NTF \l__piton_all_line_numbers_bool
+              {
+                \int_to_arabic:n
+                  { \g__piton_visual_line_int + \l__piton_nb_lines_int }
+              }
+              {
+                \lua_now:n
+                  { piton.#1(token.scan_argument()) }
+                  { #2 }
+                \int_to_arabic:n
+                  { \g__piton_visual_line_int + \l__piton_nb_non_empty_lines_int }
+               }
+           }
+         \dim_set:Nn \l__piton_left_margin_dim
+           { \box_wd:N \l_tmpa_box + \l__piton_numbers_sep_dim + 0.1 em }
+       }
+  }
+\cs_new_protected:Npn \__piton_compute_width:
+  {
+    \dim_compare:nNnTF \l__piton_line_width_dim = \c_zero_dim
       {
         \dim_set_eq:NN \l__piton_line_width_dim \l__piton_width_dim
         \clist_if_empty:NTF \l__piton_bg_color_clist
@@ -609,62 +633,17 @@
               { \dim_sub:Nn \l__piton_line_width_dim \l__piton_left_margin_dim }
           }
       }
-  }
-\NewDocumentCommand { \PitonInputFile } { d < > O { } m }
-  {
-    \tl_if_novalue:nF { #1 }
       {
-        \bool_if:NTF \c__piton_beamer_bool
-          { \begin { uncoverenv } < #1 > }
-          { \msg_error:nn { piton } { overlay~without~beamer } }
+        \dim_set_eq:NN \l__piton_width_dim \l__piton_line_width_dim
+        \clist_if_empty:NTF \l__piton_bg_color_clist
+          { \dim_add:Nn \l__piton_width_dim \l__piton_left_margin_dim }
+          {
+            \dim_add:Nn \l__piton_width_dim { 0.5 em }
+            \dim_compare:nNnTF \l__piton_left_margin_dim = \c_zero_dim
+              { \dim_add:Nn \l__piton_width_dim { 0.5 em } }
+              { \dim_add:Nn \l__piton_width_dim \l__piton_left_margin_dim }
+          }
       }
-    \group_begin:
-      \int_zero_new:N \l__piton_first_line_int
-      \int_zero_new:N \l__piton_last_line_int
-      \int_set_eq:NN \l__piton_last_line_int \c_max_int
-      \keys_set:nn { PitonInputFile } { #2 }
-      \__piton_pre_env:
-      \mode_if_vertical:TF \mode_leave_vertical: \newline
-      \lua_now:n { piton.CountLinesFile(token.scan_argument()) } { #3 }
-      \bool_lazy_and:nnT \l__piton_left_margin_auto_bool \l__piton_line_numbers_bool
-        {
-         \hbox_set:Nn \l_tmpa_box
-           {
-             \footnotesize
-             \bool_if:NTF \l__piton_all_line_numbers_bool
-               {
-                 \int_to_arabic:n
-                   { \g__piton_visual_line_int + \l__piton_nb_lines_int }
-               }
-               {
-                 \lua_now:n
-                   { piton.CountNonEmptyLinesFile(token.scan_argument()) }
-                   { #3 }
-                 \int_to_arabic:n
-                   { \g__piton_visual_line_int + \l__piton_nb_non_empty_lines_int }
-                }
-            }
-          \dim_set:Nn \l__piton_left_margin_dim
-            { \box_wd:N \l_tmpa_box + \l__piton_numbers_sep_dim + 0.1 em }
-        }
-     \__piton_compute_line_width:
-      \ttfamily
-      \bool_if:NT \c__piton_footnote_bool { \begin { savenotes } }
-      \vtop \bgroup
-      \lua_now:e
-        {
-          piton.ParseFile('\l__piton_language_str',token.scan_argument() ,
-           \int_use:N \l__piton_first_line_int ,
-           \int_use:N \l__piton_last_line_int )
-        }
-        { #3 }
-      \egroup
-      \bool_if:NT \c__piton_footnote_bool { \end { savenotes } }
-      \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
-    \group_end:
-    \tl_if_novalue:nF { #1 }
-      { \bool_if:NT \c__piton_beamer_bool { \end { uncoverenv } } }
-    \__piton_write_aux:
   }
 \NewDocumentCommand { \NewPitonEnvironment } { m m m m }
   {
@@ -679,32 +658,8 @@
             \group_end:
             \mode_if_vertical:TF \mode_leave_vertical: \newline
             \lua_now:n { piton.CountLines(token.scan_argument()) } { ##1 }
-            \bool_lazy_and:nnT \l__piton_left_margin_auto_bool \l__piton_line_numbers_bool
-              {
-                \bool_if:NTF \l__piton_all_line_numbers_bool
-                  {
-                    \hbox_set:Nn \l_tmpa_box
-                      {
-                        \footnotesize
-                        \int_to_arabic:n
-                          { \g__piton_visual_line_int + \l__piton_nb_lines_int }
-                      }
-                  }
-                  {
-                    \lua_now:n
-                      { piton.CountNonEmptyLines(token.scan_argument()) }
-                      { ##1 }
-                    \hbox_set:Nn \l_tmpa_box
-                      {
-                        \footnotesize
-                        \int_to_arabic:n
-                          { \g__piton_visual_line_int + \l__piton_nb_non_empty_lines_int }
-                      }
-                  }
-                \dim_set:Nn \l__piton_left_margin_dim
-                  { \box_wd:N \l_tmpa_box + \l__piton_numbers_sep_dim + 0.1 em }
-              }
-            \__piton_compute_line_width:
+            \__piton_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
+            \__piton_compute_width:
             \ttfamily
             \bool_if:NT \c__piton_footnote_bool { \begin { savenotes } }
             \vtop \bgroup
@@ -749,6 +704,50 @@
       { \end { uncoverenv } }
   }
   { \NewPitonEnvironment { Piton } { } { } { } }
+\NewDocumentCommand { \PitonInputFile } { d < > O { } m }
+  {
+    \file_if_exist:nTF { #3 }
+      { \__piton_input_file:nnn { #1 } { #2 } { #3 } }
+      { \msg_error:nnn { piton } { unknown~file } { #3 } }
+  }
+\cs_new_protected:Npn \__piton_input_file:nnn #1 #2 #3
+  {
+    \tl_if_novalue:nF { #1 }
+      {
+        \bool_if:NTF \c__piton_beamer_bool
+          { \begin { uncoverenv } < #1 > }
+          { \msg_error:nn { piton } { overlay~without~beamer } }
+      }
+    \group_begin:
+      \int_zero_new:N \l__piton_first_line_int
+      \int_zero_new:N \l__piton_last_line_int
+      \int_set_eq:NN \l__piton_last_line_int \c_max_int
+      \keys_set:nn { PitonInputFile } { #2 }
+      \__piton_pre_env:
+      \mode_if_vertical:TF \mode_leave_vertical: \newline
+      \lua_now:n { piton.CountLinesFile(token.scan_argument()) } { #3 }
+      \__piton_compute_left_margin:nn { CountNonEmptyLinesFile } { #3 }
+      \__piton_compute_width:
+      \ttfamily
+      \bool_if:NT \c__piton_footnote_bool { \begin { savenotes } }
+      \vtop \bgroup
+      \lua_now:e
+        {
+          piton.ParseFile(
+           '\l__piton_language_str',
+           token.scan_argument() ,
+           \int_use:N \l__piton_first_line_int ,
+           \int_use:N \l__piton_last_line_int )
+        }
+        { #3 }
+      \egroup
+      \bool_if:NT \c__piton_footnote_bool { \end { savenotes } }
+      \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
+    \group_end:
+    \tl_if_novalue:nF { #1 }
+      { \bool_if:NT \c__piton_beamer_bool { \end { uncoverenv } } }
+    \__piton_write_aux:
+  }
 \NewDocumentCommand { \PitonStyle } { m } { \use:c { pitonStyle #1 } }
 \NewDocumentCommand { \SetPitonStyle } { } { \keys_set:nn { piton / Styles } }
 \cs_new_protected:Npn \__piton_math_scantokens:n #1
@@ -938,6 +937,12 @@
     \token_to_str:N \piton\ but~there~is~no~environment~
     {piton}.~This~error~is~fatal.
   }
+\msg_new:nnn { piton } { unknown~file }
+  {
+    Unknown~file. \\
+    The~file~'#1'~is~unknown.\\
+    Your~command~\token_to_str:N \PitonInputFile\ will~be~discarded.
+  }
 \msg_new:nnnn { piton } { Unknown~key~for~PitonOptions }
   {
     Unknown~key. \\
@@ -1076,7 +1081,7 @@ local Operator =
     )
 
 local OperatorWord =
-  K ( 'Operator.Word' ,P "in" + P "is" + P "and" + P "or" + P "not" )
+  K ( 'Operator.Word' , P "in" + P "is" + P "and" + P "or" + P "not" )
 
 local Keyword =
   K ( 'Keyword' ,
@@ -1394,7 +1399,7 @@ local CommentLaTeX =
   * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces"
   * L ( ( 1 - P "\r" ) ^ 0 )
   * Lc "}}"
-  * ( EOL + -1 )  -- you could put EOL instead of EOL
+  * ( EOL + -1 )
 local expression =
   P { "E" ,
        E = ( P "'" * ( P "\\'" + 1 - S "'\r" ) ^ 0 * P "'"
@@ -1454,6 +1459,7 @@ local MainPython =
      + Set
      + Delim
      + Operator
+     + OperatorWord * ( Space + Punct + Delim + EOL + -1 )
      + ShortString
      + Punct
      + FromImport
@@ -1462,7 +1468,6 @@ local MainPython =
      + DefClass
      + Keyword * ( Space + Punct + Delim + EOL + -1 )
      + Decorator
-     + OperatorWord * ( Space + Punct + Delim + EOL + -1 )
      + Builtin * ( Space + Punct + Delim + EOL + -1 )
      + Identifier
      + Number
@@ -1663,7 +1668,7 @@ local EOL =
   )
   *
   SpaceIndentation ^ 0
-local string =
+local ocaml_string =
        Q ( P "\"" )
      * (
          VisualSpace
@@ -1673,7 +1678,7 @@ local string =
          EOL
        ) ^ 0
      * Q ( P "\"" )
-local String = WithStyle ( 'String.Long' , string )
+local String = WithStyle ( 'String.Long' , ocaml_string )
 local ext = ( R "az" + P "_" ) ^ 0
 local open = "{" * Cg(ext, 'init') * "|"
 local close = "|" * C(ext) * "}"
@@ -1700,7 +1705,7 @@ local Comment =
          A = Q "(*"
              * ( V "A"
                  + Q ( ( 1 - P "(*" - P "*)" - S "\r$\"" ) ^ 1 ) -- $
-                 + string
+                 + ocaml_string
                  + P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) * P "$" -- $
                  + EOL
                ) ^ 0
@@ -1866,7 +1871,7 @@ function piton.Parse(language,code)
   end
 end
 function piton.ParseFile(language,name,first_line,last_line)
-  s = ''
+  local s = ''
   local i = 0
   for line in io.lines(name)
   do i = i + 1
@@ -1874,6 +1879,15 @@ function piton.ParseFile(language,name,first_line,last_line)
      then s = s .. '\r' .. line
      end
      if i >= last_line then break end
+  end
+  if string.byte(s,1) == 13
+  then if string.byte(s,2) == 239
+       then if string.byte(s,3) == 187
+            then if string.byte(s,4) == 191
+                 then s = string.sub(s,5,-1)
+                 end
+            end
+       end
   end
   piton.Parse(language,s)
 end
