@@ -185,7 +185,7 @@ délimité entre deux caractères identiques (par ex. : \verb!\piton|...|!). On 
 \begin{itemize}
 \item {\color{blue} \textsf{Syntaxe} \verb|\piton{...}|}\par\nobreak
 
-Quant son argument est donné entre accolades, la commande |\piton| ne prend pas son argument en mode verbatim. Les
+Quand son argument est donné entre accolades, la commande |\piton| ne prend pas son argument en mode verbatim. Les
 points suivants doivent être remarqués :
 
 \begin{itemize}
@@ -201,8 +201,9 @@ points suivants doivent être remarqués :
 
 {\color{cyan} mais les commandes |\{| et |\}| sont aussi fournies pour insérer des accolades individuelles} ;
 
-\item les commandes LaTeX\footnote{Cela s'applique aux commandes commençant par une contre-oblique |\| mais également aux caractères actifs.} sont
-complètement développées sans être exécutées 
+\item les commandes LaTeX\footnote{Cela s'applique aux commandes commençant par une contre-oblique |\| mais
+  également aux caractères actifs, c'est-à-dire ceux de catcode~13.} sont complètement développées sans être
+exécutées
 
 {\color{cyan} et on peut donc utiliser |\\| pour insérer une contre-oblique}.
 \end{itemize}
@@ -306,13 +307,13 @@ début d'un environnement |{Piton}| ou bien au début d'un listing produit par |
 poursuivre la numérotation d'un environnement à l'autre.
 
 \item La clé \Definition{background-color} fixe la couleur de fond des environnements |{Piton}| et des listings
-produits par |\PitonInputFile| (ce fond a une largeur égale à la valeur courante de |\linewidth|). La clé
-|background-color| accepte une couleur définie «à la volée», c'est-à-dire que l'on peut écrire par exemple
+produits par |\PitonInputFile| (ce fond a une largeur que l'on peut fixer avec la clé |width| décrite ci-dessous).
+La clé |background-color| accepte une couleur définie «à la volée», c'est-à-dire que l'on peut écrire par exemple
 |background-color = [cmyk]{0.1,0.05,0,0}|
 
 \smallskip
-\colorbox{yellow!50}{\textbf{Nouveau 1.4}}\enskip La clé |background-color| accepte aussi en argument une
-\emph{liste} de couleurs. Les lignes sont alors coloriées de manière cyclique avec ces couleurs.
+La clé |background-color| accepte aussi en argument une \emph{liste} de couleurs. Les lignes sont alors coloriées
+de manière cyclique avec ces couleurs.
 
 \emph{Exemple} : |\PitonOptions{background-color = {gray!5,white}}|
 
@@ -320,6 +321,19 @@ produits par |\PitonInputFile| (ce fond a une largeur égale à la valeur couran
 le prompt «|>>>|» (et sa continuation «|...|») caractéristique des consoles Python avec boucle \textsc{repl}
 (\emph{read-eval-print loop}). Pour un exemple d'utilisation de cette clé, voir la partie \ref{pythonrepl}
 p.~\pageref{pythonrepl}.
+
+\item \colorbox{yellow!50}{\textbf{Nouveau 1.6}}\enskip La clé \Definition{width} fixe la largeur du listing
+produit. Cette largeur s'applique aux fonds colorés spécifiés par les clés |background-color| et
+|prompt-background-color| et également quand une coupure automatique des lignes est demandée par |break-lines|
+(cf.~\ref{line-breaks}, p.~\pageref{line-breaks}). 
+
+Cette clé peut prendre comme valeur une longueur explicite mais aussi la valeur spéciale~|min|. Avec cette valeur,
+la largeur sera calculée à partir de la largeur maximale des lignes de code. Attention : l'usage de cette valeur
+spéciale~|min| requiert deux compilations LuaLaTeX\footnote{La largeur maximale est calculée lors de la première
+compilation, écrite sur le fichier~|aux|, puis réutilisée lors de la compilation suivante. Certains outils comme
+|latexmk| (utilisé par Overleaf) effectuent automatiquement un nombre suffisant de compilations.}.
+
+Pour un exemple d'utilisation de |width=min|, voir la partie~\ref{example-comments} sur les exemples, p.~\pageref{example-comments}.
 
 \item En activant la clé \Definition{show-spaces-in-strings}, les espaces dans les chaînes courtes (c'est-à-dire
 celles délimitées par |'| ou |"|) sont matérialisés par le caractère ␣ (U+2423 : \textsc{open box}). Bien sûr, le
@@ -480,8 +494,8 @@ Keyword & les mots-clés suivants :
 \end{table}
 
 \bigskip
-\colorbox{yellow!50}{\textbf{Nouveau 1.4}}\enskip La commande |\PitonStyle| prend en argument le nom d'un style
-et permet de récupérer la valeur (en tant que liste d'instructions LaTeX) de ce style.
+La commande |\PitonStyle| prend en argument le nom d'un style et permet de récupérer la valeur (en tant que liste
+d'instructions LaTeX) de ce style.
 
 \smallskip
 Par exemple, on peut écrire, dans le texte courant, |{\PitonStyle{Keyword}{function}}| et on aura 
@@ -490,6 +504,53 @@ le mot {\PitonStyle{Keyword}{function}} formaté comme un mot-clé.
 \smallskip
 La syntaxe |{\PitonStyle{|\textsl{\texttt{style}}|}{...}}| est nécessaire pour pouvoir tenir compte à la fois des commandes
 semi-globales et des commandes à argument présentes dans la valeur courante du style \texttt{\textsl{style}}.
+
+
+\vspace{1cm} \colorbox{yellow!50}{\textbf{Nouveau 1.6}}\par\nobreak
+
+Il existe un style spécial nommé |UserFunction|. Ce style s'applique aux noms des fonctions précédemment définies
+par l'utilisateur via une instruction Python \piton{def} dans l'un des listings précédents. La valeur initiale de
+ce style est nulle (=vide), ce qui fait que ces noms de fonctions sont formatés comme du texte courant (en noir).
+Néanmoins, il est possible de ce changer la valeur de ce style, comme tous les autres styles, avec la commande
+|\PitonSetStyle|.
+
+
+\medskip
+Dans l'exemple suivant, on prend comme valeur de ce style |UserFunction| la valeur initiale du style
+|Name.Function| (qui s'applique au nom des fonctions \emph{au moment de leur définition}).
+
+\begingroup
+
+\begin{Verbatim}
+\PitonSetStyle{~emphase#UserFunction@ = \color[HTML]{CC00FF}}
+\end{Verbatim}
+
+\SetPitonStyle{UserFunction = \color[HTML]{CC00FF}}
+
+\begin{Piton}
+def transpose(v,i,j):
+    x = v[i]
+    v[i] = v[j]
+    v[j] = x 
+
+def passe(v):
+    for in in range(0,len(v)-1):
+        if v[i] > v[i+1]:
+            transpose(v,i,i+1)
+\end{Piton}
+
+\endgroup
+
+\medskip
+Comme on le voit, le nom |transpose| a été mis en évidence comme étant le nom d'une fonction définie précédemment
+par l'utilisateur (d'où le nom |UserFunction| pour ce style).
+
+\PitonClearUserFunctions
+
+\bigskip
+Bien sûr, la liste des noms de fonctions Python précédemment définies est gardée en mémoire de LuaLaTeX (de manière
+globale, c'est-à-dire indépendamment des groupes TeX). L'extension \pkg{piton} fournit une commande pour permet de
+vider cette liste : c'est la commande |\PitonClearUserFunctions|.
 
 
 \subsection{Définition de nouveaux environnements}
@@ -552,8 +613,6 @@ def carré(x):
 
 
 \subsection{Mise en évidence d'identificateurs}
-
-\colorbox{yellow!50}{\textbf{Nouveau 1.4}}
 
 On peut demander le changement de formatage de certains identificateurs avec la clé |identifiers| de
 |\PitonOptions|.  
@@ -854,9 +913,10 @@ appelé dans ce document «commentaire LaTeX», il suffit de le faire débuter p
 
 \emph{Première remarque}\par\nobreak
 Remarquons que, comme l'environnement |{Piton}| prend son argument selon un mode verbatim, il convient, ce qui
-n'est pas surprenant, de l'utiliser dans des environnements |{frame}| de Beamer protégés par la clé |fragile|.\footnote{On
-  rappelle que pour un environnement |{frame}| de Beamer qui utilise la clé |fragile|, l'instruction |\end{frame}|
-  doit être seule sur une ligne (à l'exception d'éventuels espaces en début de ligne).}
+n'est pas surprenant, de l'utiliser dans des environnements |{frame}| de Beamer protégés par la clé |fragile|,
+c'est-à-dire avec |\begin{frame}[fragile]|.\footnote{On rappelle que pour un environnement |{frame}| de Beamer qui
+  utilise la clé |fragile|, l'instruction |\end{frame}| doit être seule sur une ligne (à l'exception d'éventuels
+  espaces en début de ligne).}
 
 
 \medskip

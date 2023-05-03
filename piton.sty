@@ -18,8 +18,8 @@
 %% and version 1.3 or later is part of all distributions of
 %% LaTeX version 2005/12/01 or later.
 %% 
-\def\myfileversion{1.5t}
-\def\myfiledate{2023/05/01}
+\def\myfileversion{1.6}
+\def\myfiledate{2023/05/03}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -766,8 +766,8 @@
     Name.Field        .value_required:n = true ,
     Name.Function     .tl_set:c = pitonStyle Name.Function ,
     Name.Function     .value_required:n = true ,
-    Name.UserFunction .tl_set:c = pitonStyle Name.UserFunction ,
-    Name.UserFunction .value_required:n = true ,
+    UserFunction      .tl_set:c = pitonStyle UserFunction ,
+    UserFunction      .value_required:n = true ,
     Keyword           .tl_set:c = pitonStyle Keyword ,
     Keyword           .value_required:n = true ,
     Keyword.Constant  .tl_set:c = pitonStyle Keyword.Constant ,
@@ -844,7 +844,7 @@
     Name.Function,~
     Name.Module,~
     Name.Namespace,~
-    Name.UserFunction,~
+    UserFunction,~
     Number,~
     Operator,~
     Operator.Word,~
@@ -882,7 +882,7 @@
     Interpol.Inside    = \color{black}\__piton_piton:n ,
     TypeParameter      = \color[HTML]{336666} \itshape ,
     Identifier         = \__piton_identifier:n ,
-    Name.UserFunction  = ,
+    UserFunction  = ,
     Prompt             = ,
     ParseAgain.noCR    = \__piton_piton_no_cr:n ,
     ParseAgain         = \__piton_piton:n ,
@@ -913,7 +913,7 @@
   {
     { \PitonStyle { Name.Function } { #1 } }
     \cs_gset_protected:cpn { PitonIdentifier _ \l__piton_language_str _ #1 }
-      { \PitonStyle { Name.UserFunction } }
+      { \PitonStyle { UserFunction } }
     \seq_if_exist:cF { g__piton_functions _ \l__piton_language_str _ seq }
       { \seq_new:c { g__piton_functions _ \l__piton_language_str _ seq } }
     \seq_gput_right:cn { g__piton_functions _ \l__piton_language_str _ seq } { #1 }

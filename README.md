@@ -4,6 +4,8 @@ Author: F. Pantigny (`fpantigny@wanadoo.fr`).
 
 CTAN page: `https://ctan.org/pkg/piton`
 
+GitHub page: `github.com/fpantigny/piton`
+
 ## License
 The LaTeX extension `piton` is distributed under the LPPL 1.3 license.
 

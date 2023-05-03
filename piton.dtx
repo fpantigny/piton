@@ -15,8 +15,8 @@
 %
 % \fi
 % \iffalse
-\def\myfileversion{1.5t}
-\def\myfiledate{2023/05/01}
+\def\myfileversion{1.6}
+\def\myfiledate{2023/05/03}
 %
 %
 %<*batchfile> 
@@ -205,8 +205,8 @@ version 2005/12/01 or later.
 % {\color{cyan} but the commands |\{| and |\}| are also provided for individual braces};
 %
 % \item the LaTeX commands\footnote{That concerns the commands beginning with a
-% backslash but also the active characters.} are fully expanded and not
-% executed,
+% backslash but also the active characters (with catcode equal to 13).} are
+% fully expanded and not executed,
 %
 % {\color{cyan} so it's possible to use |\\| to insert a backslash}.
 % \end{itemize}
@@ -325,16 +325,16 @@ version 2005/12/01 or later.
 % example part \ref{example-numbering} on page~\pageref{example-numbering}.
 %
 % \item The key \Definition{background-color} sets the background color of the
-% environments |{Piton}| and the listings produced by |\PitonInputFile| (that
-% background has a width of |\linewidth|).
+% environments |{Piton}| and the listings produced by |\PitonInputFile| (it's
+% possible to fix the width of that background with the key |width| described
+% below). 
 %
 % \smallskip
-% \colorbox{yellow!50}{\textbf{New 1.4}}\enskip The key |background-color|
-% supports also as value a \emph{list} of colors. In this case, the successive
-% rows are colored by using the colors of the list in a cyclic way.
+% The key |background-color| supports also as value a \emph{list} of colors. In
+% this case, the successive rows are colored by using the colors of the list in
+% a cyclic way.
 %
 % \emph{Example} : |\PitonOptions{background-color = {gray!5,white}}|
-%
 %
 % The key |background-color| accepts a color defined «on the fly». For example,
 % it's possible to write |background-color = [cmyk]{0.1,0.05,0,0}|.
@@ -343,6 +343,24 @@ version 2005/12/01 or later.
 % color background to the lines beginning with the prompt ``|>>>|'' (and its
 % continuation ``|...|'') characteristic of the Python consoles with
 % \textsc{repl} (\emph{read-eval-print loop}).
+%
+% \item \colorbox{yellow!50}{\textbf{New 1.6}}\enskip The key |width| will fix
+% the width of the listing. That width applies to the colored backgrounds 
+% specified by |background-color| and |prompt-background-color| but also for the
+% automatic breaking of the lines (when required by |break-lines|:
+% cf.~\ref{line-breaks}, p.~\pageref{line-breaks}).
+%
+% That key may take in as value a numeric value but also the special
+% value~|min|. With that value, the width will be computed from the maximal
+% width of the lines of code. Caution: the special value~|min| requires two
+% compilations with LuaLaTeX\footnote{The maximal width is computed during the
+% first compilation, written on the |aux| file and re-used during the second
+% compilation. Several tools such as |latexmk| (used by Overleaf) do
+% automatically a sufficient number of compilations.}.
+%
+% For an example of use of |width=min|, see the section~\ref{example-comments},
+% p.~\pageref{example-comments}. 
+%
 %
 % \item When the key \Definition{show-spaces-in-strings} is activated, the
 % spaces in the short strings (that is to say those delimited by |'| or |"|) are
@@ -464,9 +482,8 @@ version 2005/12/01 or later.
 % \url{https://pygments.org/styles/}. Remark that, by default, Pygments provides for its style \pkg{manni} a colored background whose color is the HTML color \texttt{\#F0F3F3}. It's possible to have the same color in \texttt{\{Pion\}} with the instruction \texttt{\textbackslash PitonOptions\{background-color = [HTML]\{F0F3F3\}\}}.}
 %
 % \bigskip
-% \colorbox{yellow!50}{\textbf{New 1.4}}\enskip The command |\PitonStyle| takes
-% in as argument the name of a style and allows to retrieve the value (as a list
-% of LaTeX instructions) of that style.
+% The command |\PitonStyle| takes in as argument the name of a style and allows
+% to retrieve the value (as a list of LaTeX instructions) of that style.
 %
 % \smallskip
 % For example, it's possible to write |{\PitonStyle{Keyword}{function}}| and we
@@ -521,7 +538,53 @@ version 2005/12/01 or later.
 % \end{table}
 %
 %
+% \vspace{1cm} \colorbox{yellow!50}{\textbf{New 1.6}}\par\nobreak
 %
+% The extension \pkg{piton} provides a special style called~|UserFunction|. That
+% style applies to the names of the functions previously defined by the user via
+% an instruction Python \piton{def} in one of the previous listings. The initial
+% value of that style is empty, and, therefore, the names of the functions are
+% formatted as standard text (in black). However, it's possible to change the
+% value of that style, as any other style, with the command |\PitonSetStyle|.
+%
+% \medskip
+% In the following example, we fix as value for that style |UserFunction| the
+% initial value of the the style |Name.Function| (which applies to the name of
+% the functions, \emph{at the moment of their definition}).
+%
+% \begingroup
+%
+% \begin{Verbatim}
+% \PitonSetStyle{~emphase#UserFunction@ = \color[HTML]{CC00FF}}
+% \end{Verbatim}
+%
+% \SetPitonStyle{UserFunction = \color[HTML]{CC00FF}}
+%
+% \begin{Piton}
+% def transpose(v,i,j):
+%     x = v[i]
+%     v[i] = v[j]
+%     v[j] = x 
+%
+% def passe(v):
+%     for in in range(0,len(v)-1):
+%         if v[i] > v[i+1]:
+%             transpose(v,i,i+1)
+% \end{Piton}
+%
+% \endgroup
+%
+% As one see, the name |transpse| has been highlighted because it's the name of
+% a Python function previously defined by the user (hence the name
+% |UserFunction| for that style).
+%
+% \PitonClearUserFunctions
+%
+% \bigskip
+% Of course, the list of the names of Python functions previously défined is
+% kept in the memory of LuaLaTeX (in a global way, that is to say independtly of
+% the TeX groups). The extension \pkg{piton} provides a command to clear that
+% list : it's the command |\PitonClearUserFunctions|.
 % 
 % \subsection{Creation of new environments}
 %
@@ -588,9 +651,8 @@ version 2005/12/01 or later.
 %
 % \subsection{Highlighting some identifiers}
 %
-% \colorbox{yellow!50}{\textbf{New 1.4}} It's possible to require a changement
-% of formating for some identifiers with the key |identifiers| of
-% |\PitonOptions|.
+% It's possible to require a changement of formating for some identifiers with
+% the key |identifiers| of |\PitonOptions|.
 %
 % \smallskip
 % That key takes in as argument a value of the following format:
@@ -894,12 +956,13 @@ version 2005/12/01 or later.
 % \label{beamer}
 %
 % \emph{First remark}\par\nobreak
-% Since the environment |{Piton}| catches its body with a verbatim mode,
-% it's necessary to use the environments |{Piton}| within environments |{frame}|
-% of Beamer protected by the key |fragile|.\footnote{Remind that for an
-% environment \texttt{\{frame\}} of Beamer using the key |fragile|, the
-% instruction \texttt{\textbackslash end\{frame\}} must be alone on a single
-% line (except for any leading whitespace).}
+% Since the environment |{Piton}| catches its body with a verbatim mode, it's
+% necessary to use the environments |{Piton}| within environments |{frame}| of
+% Beamer protected by the key |fragile|, i.e. with
+% |\begin{frame}[fragile]|.\footnote{Remind that for an environment
+% \texttt{\{frame\}} of Beamer using the key |fragile|, the instruction
+% \texttt{\textbackslash end\{frame\}} must be alone on a single line (except
+% for any leading whitespace).}
 %
 %
 % \bigskip
@@ -3140,8 +3203,8 @@ version 2005/12/01 or later.
     Name.Field        .value_required:n = true ,
     Name.Function     .tl_set:c = pitonStyle Name.Function ,
     Name.Function     .value_required:n = true ,
-    Name.UserFunction .tl_set:c = pitonStyle Name.UserFunction ,
-    Name.UserFunction .value_required:n = true ,
+    UserFunction      .tl_set:c = pitonStyle UserFunction ,
+    UserFunction      .value_required:n = true ,
     Keyword           .tl_set:c = pitonStyle Keyword ,
     Keyword           .value_required:n = true ,
     Keyword.Constant  .tl_set:c = pitonStyle Keyword.Constant ,
@@ -3223,7 +3286,7 @@ version 2005/12/01 or later.
     Name.Function,~
     Name.Module,~
     Name.Namespace,~
-    Name.UserFunction,~
+    UserFunction,~
     Number,~
     Operator,~
     Operator.Word,~
@@ -3237,9 +3300,9 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 % \bigskip
-% \subsubsection{The initial style}
+% \subsubsection{The initial styles}
 %
-% The initial style is inspired by the style ``manni'' of Pygments.
+% The initial styles are inspired by the style ``manni'' of Pygments.
 % 
 % \medskip
 %    \begin{macrocode}
@@ -3270,7 +3333,7 @@ version 2005/12/01 or later.
     Interpol.Inside    = \color{black}\@@_piton:n ,
     TypeParameter      = \color[HTML]{336666} \itshape ,
     Identifier         = \@@_identifier:n , 
-    Name.UserFunction  = , 
+    UserFunction  = , 
     Prompt             = , 
     ParseAgain.noCR    = \@@_piton_no_cr:n , 
     ParseAgain         = \@@_piton:n ,
@@ -3347,12 +3410,12 @@ version 2005/12/01 or later.
     { \PitonStyle { Name.Function } { #1 } }
 %    \end{macrocode}
 % Now, we specify that the name of the new Python function is a known identifier
-% that will be formated with the Piton style |Name.UserFunction|. Of course,
+% that will be formated with the Piton style |UserFunction|. Of course,
 % here the affectation is global because we have to exit many groups and even
 % the environments |{Piton}|).
 %    \begin{macrocode}
     \cs_gset_protected:cpn { PitonIdentifier _ \l_@@_language_str _ #1 } 
-      { \PitonStyle { Name.UserFunction } }
+      { \PitonStyle { UserFunction } }
 %    \end{macrocode}
 % Now, we put the name of that new user function in the dedicated sequence
 % (specific of the current language). {\bfseries That sequence will be used only
@@ -5324,7 +5387,15 @@ end
 %
 % \verb|https://github.com/fpantigny/piton|
 %
-% % \subsection*{Changes between versions 1.4 and 1.5}
+% \subsection*{Changes between versions 1.5 and 1.6}
+%
+% New key |width| (for the total width of the listing).
+%
+% New style |UserFunction| to format the names of the Python functions
+% previously defined by the user. Command |\PitonClearUserFunctions| to clear
+% the list of such functions names.
+%
+% \subsection*{Changes between versions 1.4 and 1.5}
 %
 % New key |numbers-sep|.
 %
