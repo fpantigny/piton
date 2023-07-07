@@ -661,6 +661,7 @@
             \__piton_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
             \__piton_compute_width:
             \ttfamily
+            \dim_zero:N \parskip % added 2023/07/06
             \bool_if:NT \c__piton_footnote_bool { \begin { savenotes } }
             \vtop \bgroup
             \lua_now:e
@@ -937,6 +938,13 @@
     \token_to_str:N \piton\ but~there~is~no~environment~
     {piton}.~This~error~is~fatal.
   }
+\msg_new:nnn { piton } { syntax~error }
+  {
+    Your~code~is~not~syntactically~correct.\\
+    It~won't~be~printed~in~the~PDF~file.
+  }
+\NewDocumentCommand \PitonSyntaxError { }
+  { \msg_error:nn { piton } { syntax~error } }
 \msg_new:nnn { piton } { unknown~file }
   {
     Unknown~file. \\
@@ -1836,6 +1844,11 @@ ocaml =
 languages['ocaml'] = ocaml
 function piton.Parse(language,code)
   local t = languages[language] : match ( code )
+  if t == nil
+  then
+    tex.sprint("\\PitonSyntaxError")
+    return -- to exit in force the function
+  end
   local left_stack = {}
   local right_stack = {}
   for _ , one_item in ipairs(t)

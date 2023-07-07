@@ -15,8 +15,8 @@
 %
 % \fi
 % \iffalse
-\def\myfileversion{1.6}
-\def\myfiledate{2023/05/03}
+\def\myfileversion{1.6xxx}
+\def\myfiledate{2023/07/07}
 %
 %
 %<*batchfile> 
@@ -263,6 +263,10 @@ version 2005/12/01 or later.
 % \end{itemize}
 % 
 % \section{Customization}
+%
+% With regard to the font used by \pkg{piton} in its listings, it's only the
+% current monospaced font. The package \pkg{piton} merely uses internally the
+% standard LaTeX command |\texttt|.
 %
 % \subsection{The command \textbackslash PitonOptions}
 %
@@ -958,7 +962,7 @@ version 2005/12/01 or later.
 % \emph{First remark}\par\nobreak
 % Since the environment |{Piton}| catches its body with a verbatim mode, it's
 % necessary to use the environments |{Piton}| within environments |{frame}| of
-% Beamer protected by the key |fragile|, i.e. with
+% Beamer protected by the key |fragile|, i.e. beginning with
 % |\begin{frame}[fragile]|.\footnote{Remind that for an environment
 % \texttt{\{frame\}} of Beamer using the key |fragile|, the instruction
 % \texttt{\textbackslash end\{frame\}} must be alone on a single line (except
@@ -3009,6 +3013,7 @@ version 2005/12/01 or later.
             \@@_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
             \@@_compute_width:
             \ttfamily
+            \dim_zero:N \parskip % added 2023/07/06
 %    \end{macrocode}
 % |\c_@@_footnote_bool| is raised when the package \pkg{piton} has been load
 % with the key |footnote| \emph{or} the key |footnotehyper|.
@@ -3459,6 +3464,19 @@ version 2005/12/01 or later.
 % \bigskip
 % \subsubsection{The error messages of the package}
 %
+%   \begin{macrocode}
+\msg_new:nnn { piton } { syntax~error }
+  {
+    Your~code~is~not~syntactically~correct.\\
+    It~won't~be~printed~in~the~PDF~file.
+  }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\NewDocumentCommand \PitonSyntaxError { }
+  { \msg_error:nn { piton } { syntax~error } }
+%    \end{macrocode}
+% 
 %    \begin{macrocode}
 \msg_new:nnn { piton } { unknown~file }
   {
@@ -5076,6 +5094,11 @@ languages['ocaml'] = ocaml
 %    \begin{macrocode}
 function piton.Parse(language,code)
   local t = languages[language] : match ( code ) 
+  if t == nil 
+  then 
+    tex.sprint("\\PitonSyntaxError")
+    return -- to exit in force the function
+  end 
   local left_stack = {}
   local right_stack = {}
   for _ , one_item in ipairs(t) 
