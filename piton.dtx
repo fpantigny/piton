@@ -15,8 +15,8 @@
 %
 % \fi
 % \iffalse
-\def\myfileversion{1.6a}
-\def\myfiledate{2023/07/08}
+\def\myfileversion{2.0}
+\def\myfiledate{2023/08/01}
 %
 %
 %<*batchfile> 
@@ -61,6 +61,8 @@ version 2005/12/01 or later.
 \parindent 0pt
 \skip\footins = 2\bigskipamount
 
+\def\CC{{C\nolinebreak[4]\hspace{-.05em}\raisebox{.4ex}{\tiny\bfseries ++}}}
+
 \PitonOptions{gobble=2}
 
 \EnableCrossrefs
@@ -80,8 +82,9 @@ version 2005/12/01 or later.
 % \maketitle
 %
 % \begin{abstract}
-% The package \pkg{piton} provides tools to typeset Python listings with
-% syntactic highlighting by using the Lua library LPEG. It requires LuaLaTeX.
+% The package \pkg{piton} provides tools to typeset computer listings in Python,
+% OCaml and C with syntactic highlighting by using the Lua library LPEG. It
+% requires LuaLaTeX.
 % \end{abstract}
 % 
 % 
@@ -91,12 +94,14 @@ version 2005/12/01 or later.
 %
 % The package \pkg{piton} uses the Lua library LPEG\footnote{LPEG is a
 % pattern-matching library for Lua, written in C, based on \emph{parsing
-% expression grammars}: \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} for
-% parsing Python listings and typeset them with syntactic highlighting. Since it
-% uses Lua code, it works with |lualatex| only (and won't work with the other
-% engines: |latex|, |pdflatex| and |xelatex|). It does not use external program
-% and the compilation does not require |--shell-escape|. The compilation is very
-% fast since all the parsing is done by the library LPEG, written in C.
+% expression grammars}:
+% \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} 
+% for parsing Python OCaml or C listings and typesets them with syntactic
+% highlighting. Since it uses Lua code, it works with |lualatex| only (and won't
+% work with the other engines: |latex|, |pdflatex| and |xelatex|). It does not
+% use external program and the compilation does not require |--shell-escape|.
+% The compilation is very fast since all the parsing is done by the library
+% LPEG, written in C.
 % 
 % \bigskip
 % Here is an example of code typeset by \pkg{piton}, with the environment |{Piton}|.
@@ -149,6 +154,22 @@ version 2005/12/01 or later.
 % another LaTeX engine (|latex|, |pdflatex|, |xelatex|,\dots ) is used, a
 % fatal error will be raised.
 % \end{itemize}
+%
+% \subsection{Choice of the computer language}
+%
+% In current version, the package \pkg{piton} supports three computer languages:
+% Python, OCaml and C (in fact \CC).
+%
+% \smallskip
+% By default, the language used is Python.
+%
+% \smallskip
+% It's possible to change the current language with the command |\PitonOptions|
+% and its key |language|: |\PitonOptions{language = C}|.
+%
+% \smallskip
+% In what follows, we will speak of Python, but the features described also
+% apply to the other languages.
 % 
 % \subsection{The tools provided to the user}
 % 
@@ -268,7 +289,7 @@ version 2005/12/01 or later.
 % current monospaced font. The package \pkg{piton} merely uses internally the
 % standard LaTeX command |\texttt|.
 %
-% \subsection{The command \textbackslash PitonOptions}
+% \subsection{The keys of the command \textbackslash PitonOptions}
 %
 %
 % \NewDocumentCommand{\Definition}{m}
@@ -279,7 +300,14 @@ version 2005/12/01 or later.
 % the current TeX group.\footnote{We remind that a LaTeX environment is, in
 % particular, a TeX group.}
 %
+% These keys may also be applied to an individual environment |{Piton}| (between
+% square brackets).
+%
 % \begin{itemize}
+% \item The key \Definition{language} speficies which computer language is
+% considered (that key is case-insensitive). Three values are allowed :
+% |Python|, |OCaml| and |C|. the initial value is |Python|.
+% 
 % \item The key \Definition{gobble} takes in as value a
 % positive integer~$n$: the first $n$ characters are discarded (before the
 % process of highlightning of the code) for each line of the environment
@@ -307,9 +335,7 @@ version 2005/12/01 or later.
 % \item With the key \Definition{all-line-numbers}, \emph{all} the lines are numbered,
 % including the empty ones.
 %
-% \item \colorbox{yellow!50}{\bfseries{New 1.5}}\par\nobreak
-%
-% The key \Definition{numbers-sep} is the horizontal distance between the
+% \item The key \Definition{numbers-sep} is the horizontal distance between the
 % numbers of lines (inserted by |line-numbers| of |all-line-numbers|) and the
 % beginning of the lines of code. The initial value is 0.7~em.
 %
@@ -348,11 +374,11 @@ version 2005/12/01 or later.
 % continuation ``|...|'') characteristic of the Python consoles with
 % \textsc{repl} (\emph{read-eval-print loop}).
 %
-% \item \colorbox{yellow!50}{\textbf{New 1.6}}\enskip The key |width| will fix
-% the width of the listing. That width applies to the colored backgrounds 
-% specified by |background-color| and |prompt-background-color| but also for the
-% automatic breaking of the lines (when required by |break-lines|:
-% cf.~\ref{line-breaks}, p.~\pageref{line-breaks}).
+% \item The key |width| will fix the width of the listing. That width applies to
+% the colored backgrounds specified by |background-color| and
+% |prompt-background-color| but also for the automatic breaking of the lines
+% (when required by |break-lines|: cf.~\ref{line-breaks},
+% p.~\pageref{line-breaks}).
 %
 % That key may take in as value a numeric value but also the special
 % value~|min|. With that value, the width will be computed from the maximal
@@ -383,54 +409,52 @@ version 2005/12/01 or later.
 % \end{itemize}
 %
 % \bigskip
-%
 % \begingroup
 % \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 % \begin{Verbatim}
-% ~emphase&\PitonOptions{line-numbers,auto-gobble,background-color = gray!15}@
-% \begin{Piton}
-%     from math import pi
-%     def arctan(x,n=10):
-%         """Compute the mathematical value of arctan(x)
-%
-%         n is the number of terms in the sum
-%         """
-%         if x < 0:
-%             return -arctan(-x) # recursive call
-%         elif x > 1: 
-%             return pi/2 - arctan(1/x) 
-%             #> (we have used that $\arctan(x)+\arctan(1/x)=\frac{\pi}{2}$ pour $x>0$)
-%         else 
-%             s = 0
-%             for k in range(n):
-%                 s += (-1)**k/(2*k+1)*x**(2*k+1)
-%             return s 
+% ~emphase&\begin{Piton}[language=C,line-numbers,auto-gobble,background-color = gray!15]@
+%     void bubbleSort(int arr[], int n) {
+%         int temp;
+%         int swapped;
+%         for (int i = 0; i < n-1; i++) {
+%             swapped = 0;
+%             for (int j = 0; j < n - i - 1; j++) {
+%                 if (arr[j] > arr[j + 1]) {
+%                     temp = arr[j];
+%                     arr[j] = arr[j + 1];
+%                     arr[j + 1] = temp;
+%                     swapped = 1; 
+%                 }
+%             }
+%             if (!swapped) break;
+%         }
+%     }   
 % \end{Piton}
 % \end{Verbatim}
 % \endgroup
 %
 % \begingroup
-% \PitonOptions{line-numbers,background-color = gray!15}
-%    \begin{Piton}
-% from math import pi
-%
-% def arctan(x,n=10):
-%     """Compute the mathematical value of arctan(x)
-%                                         
-%     n is the number of terms in the sum
-%     """
-%     if x < 0:
-%         return -arctan(-x) # recursive call
-%     elif x > 1: 
-%         return pi/2 - arctan(1/x) 
-%         #> (we have used that $\arctan(x)+\arctan(1/x)=\frac{\pi}{2}$ for $x>0$)
-%     else 
-%         s = 0
-%         for k in range(n):
-%             s += (-1)**k/(2*k+1)*x**(2*k+1)
-%         return s 
-%    \end{Piton}
+% \PitonOptions{language=C,line-numbers,gobble=6,background-color = gray!15}
+%     \begin{Piton}
+%     void bubbleSort(int arr[], int n) {
+%         int temp;
+%         int swapped;
+%         for (int i = 0; i < n-1; i++) {
+%             swapped = 0;
+%             for (int j = 0; j < n - i - 1; j++) {
+%                 if (arr[j] > arr[j + 1]) {
+%                     temp = arr[j];
+%                     arr[j] = arr[j + 1];
+%                     arr[j + 1] = temp;
+%                     swapped = 1; 
+%                 }
+%             }
+%             if (!swapped) break;
+%         }
+%     }   
+%     \end{Piton}
 % \endgroup
+%
 % 
 % \bigskip
 % The command |\PitonOptions| provides in fact several other keys which will be
@@ -499,57 +523,14 @@ version 2005/12/01 or later.
 % with arguments which may be present in the definition of the style
 % \texttt{\textsl{style}}. 
 %
-% \begin{table}[b]
-% \centering
-% \caption{Usage of the different styles}
-% \label{Semantic}
-% \begin{tabular}{@{}>{\ttfamily}l>{\RaggedRight\arraybackslash}p{9cm}@{}}
-% \toprule
-% \normalfont Style  & Usage \\
-% \midrule
-% Number & the numbers \\
-% String.Short & the short strings (between \texttt{'} or \verb|"|) \\
-% String.Long & the long strings (between \texttt{'''} or \verb|"""|) except the
-% documentation strings \\ 
-% String & that keys sets both |String.Short| and |String.Long| \\
-% String.Doc & the documentation strings (only between \texttt{"""} following
-% PEP~257) \\
-% String.Interpol & the syntactic elements of the fields of the f-strings (that
-% is to say the characters \texttt{\{} and \texttt{\}}) \\
-% Operator & the following operators : \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ \verb|@|\\
-% Operator.Word & the following operators : \texttt{in}, \texttt{is},
-% \texttt{and}, \texttt{or} and \texttt{not} \\ 
-% Name.Builtin & the predefined functions of Python \\
-% Name.Function & the name of the functions defined by the user, at the point of
-% their definition (that is to say after the keyword |def|) \\
-% Name.Decorator & the decorators (instructions beginning by \verb|@|) \\
-% Name.Namespace & the name of the modules (= external libraries) \\
-% Name.Class & the name of the classes at the point of their definition (that is
-% to say after the keyword |class|) \\
-% Exception & the names of the exceptions (eg: \texttt{SyntaxError}) \\
-% Comment & the comments beginning with \verb|#| \\
-% Comment.LaTeX & the comments beginning by \verb|#>|, which are composed in LaTeX by
-% \pkg{piton} (and simply called ``LaTeX comments'' in this document) \\
-% Keyword.Constant & |True|, |False| and |None| \\
-% Keyword & the following keywords :
-%           \ttfamily as, assert, break, case, continue, def, del,
-%           elif, else, except, exec, finally, for, from, 
-%           global, if, import, lambda, non local,
-%           pass, raise, return, try, while,
-%           with, yield, yield from.\\
-% \bottomrule 
-% \end{tabular}
-% \end{table}
-%
-%
-% \vspace{1cm} \colorbox{yellow!50}{\textbf{New 1.6}}\par\nobreak
+% \bigskip
 %
 % The extension \pkg{piton} provides a special style called~|UserFunction|. That
 % style applies to the names of the functions previously defined by the user via
 % an instruction Python \piton{def} in one of the previous listings. The initial
 % value of that style is empty, and, therefore, the names of the functions are
 % formatted as standard text (in black). However, it's possible to change the
-% value of that style, as any other style, with the command |\PitonSetStyle|.
+% value of that style, as any other style, with the command |\SetPitonStyle|.
 %
 % \medskip
 % In the following example, we fix as value for that style |UserFunction| the
@@ -559,7 +540,7 @@ version 2005/12/01 or later.
 % \begingroup
 %
 % \begin{Verbatim}
-% \PitonSetStyle{~emphase#UserFunction@ = \color[HTML]{CC00FF}}
+% \SetPitonStyle{~emphase#UserFunction@ = \color[HTML]{CC00FF}}
 % \end{Verbatim}
 %
 % \SetPitonStyle{UserFunction = \color[HTML]{CC00FF}}
@@ -608,13 +589,6 @@ version 2005/12/01 or later.
 % \bigskip
 % With the following instruction, a new environment |{Python}| will be
 % constructed with the same behaviour as |{Piton}|:
-%
-% {\color{gray}\verb|\NewPitonEnvironment{Python}{}{}{}|}
-%
-% \bigskip
-% If one wishes an environment |{Python}| with takes in as optional argument
-% (between square brackets) the keys of the command |\PitonOptions|, it's
-% possible to program as follows:
 %
 % {\color{gray}\verb|\NewPitonEnvironment{Python}{O{}}{\PitonOptions{#1}}{}|}
 % 
@@ -1130,12 +1104,12 @@ version 2005/12/01 or later.
 % By default, the listings produced by the environment |{Piton}| and the command
 % |\PitonInputFile| are not breakable.
 %
-% However, the command |\PitonOptions| provides the key |splittable| to allow such
-% breaks.
+% However, the command |\PitonOptions| provides the key \Definition{splittable}
+% to allow such breaks.
 %
 % \begin{itemize}
-% \item If the key |splittable| is used without any value, the listings are
-% breakable everywhere.
+% \item If the key |splittable| is used without any value, the
+% listings are breakable everywhere.
 % \item If the key |splittable| is used with a numeric value~$n$ (which must be
 % a non-negative integer number), the listings are breakable but no break will
 % occur within the first $n$ lines and within the last $n$ lines. Therefore,
@@ -1159,13 +1133,13 @@ version 2005/12/01 or later.
 % line. However, there are keys to allow such breaks (the possible breaking
 % points are the spaces, even the spaces in the Python strings).
 % \begin{itemize}
-% \item With the key |break-lines-in-piton|, the line breaks are allowed in the
-% command |\piton{...}| (but not in the command \verb+\piton|...|+, that is to say
-% the command |\piton| in verbatim mode). 
-% \item With the key |break-lines-in-Piton|, the line breaks are allowed in the
-% environment |{Piton}| (hence the capital letter |P| in the name) and in the
+% \item With the key \Definition{break-lines-in-piton}, the line breaks are
+% allowed in the command |\piton{...}| (but not in the command
+% \verb+\piton|...|+, that is to say the command |\piton| in verbatim mode). 
+% \item With the key \Definition{break-lines-in-Piton}, the line breaks are
+% allowed in the environment |{Piton}| (hence the capital letter |P| in the name) and in the
 % listings produced by |\PitonInputFile|.
-% \item The key |break-lines| is a conjonction of the two previous keys.
+% \item The key \Definition{break-lines} is a conjonction of the two previous keys.
 % \end{itemize}
 % 
 % \bigskip 
@@ -1173,18 +1147,19 @@ version 2005/12/01 or later.
 % on the line breaks allowed by |break-lines-in-Piton|.
 %
 % \begin{itemize}
-% \item With the key |indent-broken-lines|, the indentation of a broken line is
-% respected at carriage return.
+% \item With the key \Definition{indent-broken-lines}, the indentation of a
+% broken line is respected at carriage return.
 %
-% \item The key |end-of-broken-line| corresponds to the symbol placed at the end
-% of a broken line. The initial value is: |\hspace*{0.5em}\textbackslash|.
+% \item The key \Definition{end-of-broken-line} corresponds to the symbol placed
+% at the end of a broken line. The initial value is:
+% |\hspace*{0.5em}\textbackslash|.
 %
-% \item The key |continuation-symbol| corresponds to the symbol placed at each
-% carriage return. The initial value is: |+\;|.
+% \item The key \Definition{continuation-symbol} corresponds to the symbol
+% placed at each carriage return. The initial value is: |+\;|.
 %
-% \item The key |continuation-symbol-on-indentation| coresponds to the symbol
-% placed at each carriage return, on the position of the indentation (only when
-% the key |indent-broken-line| is in force). The initial value is:
+% \item The key \Definition{continuation-symbol-on-indentation} corresponds to
+% the symbol placed at each carriage return, on the position of the indentation
+% (only when the key |indent-broken-line| is in force). The initial value is:
 % |$\hookrightarrow\;$|.
 % \end{itemize}
 %
@@ -1646,6 +1621,184 @@ version 2005/12/01 or later.
 %
 % \bigskip
 % \clearpage
+% \section{The styles for the different computer languages}
+%
+% \label{Semantic}
+%
+%
+% \subsection{The language Python}
+%
+% In \pkg{piton}, the default language is Python. If necessary, it's possible to
+% come back to the language Python with |\PitonOptions{language=Python}|.
+%
+%
+% \vspace{1cm}
+%
+% \begin{center}
+% \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+%   \toprule
+%   \normalfont Style  & Use \\
+%   \midrule
+%   Number & the numbers \\
+%   String.Short & the short strings (entre \texttt{'} ou \texttt{"}) \\
+%   String.Long & the long strings (entre \texttt{'''} ou \texttt{"""}) excepted
+%                 the doc-strings (governed by |String.Doc|)\\
+%   String & that key fixes both |String.Short| et |String.Long| \\
+%   String.Doc & the doc-strings (only with |"""| following PEP~257) \\
+%   String.Interpol & the syntactic elements of the fields of the f-strings
+%   (that is to say the characters \texttt{\{} et \texttt{\}}); that style
+%   inherits for the styles |String.Short| and |String.Long| (according the kind
+%   of string where the interpolation appears) \\
+%   Interpol.Inside & the content of the interpolations in the f-strings (that
+%   is to say the elements between \texttt{\{} and~\texttt{\}}); if the final
+%   user has not set that key, those elements will be formatted by \pkg{piton}
+%   as done for any Python code. \\
+%   Operator & the following operators: \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ \verb|@| \\
+%   Operator.Word & the following operators: |in|, |is|, |and|, |or| et |not| \\
+%   Name.Builtin & almost all the functions predefined by Python \\
+%   Name.Decorator & the decorators (instructions beginning by \verb|@|) \\
+%   Name.Namespace & the name of the modules \\
+%   Name.Class & the name of the Python classes defined by the user \emph{at their point of definition} (with the keyword |class|) \\ 
+%   Name.Function & the name of the Python functions defined by the user \emph{at their
+%   point of definition} (with the keyword |def|) \\ 
+%   UserFunction & the name of the Python functions previously defined by the user
+%                  (the initial value of that parameter is empty and, hence, these
+%                  elements are drawn, by default, in the current color, usually black) \\
+%   Exception & les exceptions prédéfinies (ex.: \texttt{SyntaxError}) \\
+%   InitialValues & the initial values (and the preceding symbol |=|) of the
+%   optional arguments in the definitions of functions; if the final
+%   user has not set that key, those elements will be formatted by \pkg{piton}
+%   as done for any Python code. \\
+%   Comment & the comments beginning with \texttt{\#} \\
+%   Comment.LaTeX & the comments beginning with \texttt{\#>}, which are composed by
+%   \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
+%   Keyword.Constant & |True|, |False| et |None| \\
+%   Keyword & the following keywords:
+%             \ttfamily assert, break, case, continue, del,
+%             elif, else, except, exec, finally, for, from, 
+%             global, if, import, lambda, non local,
+%             pass, raise, return, try, while,
+%             with, yield et yield from.\\
+%   \bottomrule
+% \end{tabularx}
+% \end{center}
+%
+%
+% \newpage
+%
+% \subsection{The language OCaml}
+%
+% It's possible to switch to the language |OCaml| with |\PitonOptions{language = OCaml}|.
+%
+% \bigskip
+% It's also possible to set the language OCaml for an individual environment |{Piton}|. 
+% %
+% \begin{Verbatim}
+% \begin{Piton}~emphase#[language=OCaml]@
+% ...
+% \end{Piton}
+% \end{Verbatim}
+%
+%
+% \vspace{1cm}
+%
+%
+% \begin{center}
+% \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+%   \toprule
+%   \normalfont Style  & Use \\
+%   \midrule
+%   Number & the numbers \\
+%   String.Short & the characters (between \texttt{'}) \\
+%   String.Long & the strings, between |"| but also the \emph{quoted-strings} \\
+%   String & that key fixes both |String.Short| and |String.Long| \\
+%   Operator & les opérateurs, en particulier |+|, |-|, |/|, |*|, |@|, |!=|, |==|, |&&| \\
+%   Operator.Word & les opérateurs suivants : |and|, |asr|, |land|, |lor|, |lsl|, |lxor|, |mod| et |or| \\
+%   Name.Builtin & les fonctions |not|, |incr|, |decr|, |fst| et |snd| \\
+%   Name.Type & the name of a type of OCaml \\
+%   Name.Field & the name of a field of a module \\
+%   Name.Constructor & the name of the constructors of types (which begins by a capital) \\
+%   Name.Module & the name of the modules \\
+%   Name.Function & the name of the Python functions defined by the user \emph{at their
+%   point of definition} (with the keyword |let|) \\ 
+%   UserFunction & the name of the Python functions previously defined by the user
+%                  (the initial value of that parameter is empty and these
+%                  elements are drawn in the current color, usually black) \\
+%   Exception & the predefined exceptions (eg : |End_of_File|) \\
+%   TypeParameter &  the parameters of the type \\
+%   Comment & the comments, between |(*| et |*)|; these comments may be nested \\
+%   Keyword.Constant & |true| et |false| \\
+%   Keyword & the following keywords:
+%             |assert|, |as|, |begin|, |class|, |constraint|, |done|,
+%             |downto|, |do|, |else|, |end|, |exception|, |external|,
+%             |for|, |function|, |functor|, |fun| , |if| 
+%             |include|, |inherit|, |initializer|, |in| , |lazy|, |let|,
+%             |match|, |method|, |module|, |mutable|, |new|, |object|,
+%             |of|, |open|, |private|, |raise|, |rec|, |sig|,
+%             |struct|, |then|, |to|, |try|, |type|, 
+%             |value|, |val|, |virtual|, |when|, |while| and |with| \\
+%   \bottomrule
+% \end{tabularx}
+% \end{center}
+%
+% \newpage
+%
+% \subsection[The language C (and C++)]{The language C (and \CC)}
+%
+% 
+% It's possible to switch to the language |C| with |\PitonOptions{language = C}|.
+%
+% \bigskip
+% It's also possible to set the language C for an individual environment |{Piton}|. 
+% %
+% \begin{Verbatim}
+% \begin{Piton}~emphase#[language=C]@
+% ...
+% \end{Piton}
+% \end{Verbatim}
+%
+%
+% \vspace{1cm}
+%
+% \begin{center}
+% \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+% \toprule
+% \normalfont Style  & Use \\
+% \midrule
+% Number & the numbers \\
+% String.Long & the strings (between \texttt{"}) \\
+% String.Interpol &  the elements \texttt{\%d}, \texttt{\%i}, \texttt{\%f},
+% \texttt{\%c}, etc. in the strings; that style inherits from the style |String.Long| \\
+% Operator & the following operators : \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ \verb|@| \\
+% Name.Type & the following predefined types:
+%   |bool|, |char|, |char16_t|, |char32_t|, |double|, |float|, |int|, |int8_t|, |int16_t|, |int32_t|, 
+%   |int64_t|, |long|, |short|, |signed|, |unsigned|, |void| et |wchar_t| \\ 
+% Name.Builtin & the following predefined functions: |printf|, |scanf|, |malloc|, |sizeof| and |alignof|  \\
+%   Name.Class & le nom des classes au moment de leur définition, c'est-à-dire
+%   après le mot-clé \verb|class| \\
+%   Name.Function & the name of the Python functions defined by the user \emph{at their
+%   point of definition} (with the keyword |let|) \\ 
+%   UserFunction & the name of the Python functions previously defined by the user
+%                  (the initial value of that parameter is empty and these
+%                  elements are drawn in the current color, usually black) \\
+% Preproc & the instructions of the preprocessor (beginning par |#|) \\
+% Comment & the comments (beginning by \texttt{//} or between |/*| and |*/|) \\
+% Comment.LaTeX & the comments beginning by  \texttt{//>} which are composed by
+% \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
+% Keyword.Constant & |default|, |false|, |NULL|, |nullptr| and |true| \\
+% Keyword & the following keywords:
+% |alignas|, |asm|, |auto|, |break|, |case|, |catch|, |class|, 
+% |constexpr|, |const|, |continue|, |decltype|, |do|, |else|, |enum|,
+% |extern|, |for|, |goto|, |if|, |nexcept|, |private|, |public|, |register|, |restricted|, |try|, 
+% |return|, |static|, |static_assert|, |struct|, |switch|, |thread_local|, |throw|, 
+% |typedef|, |union|, |using|, |virtual|, |volatile| and |while|
+% \\
+% \bottomrule
+% \end{tabularx}
+% \end{center}
+%
+%
+% \newpage
 %
 % \section{Implementation}
 %
@@ -2554,7 +2707,8 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \keys_define:nn { PitonOptions }
   {
-    language         .str_set:N         = \l_@@_language_str ,
+    language         .code:n = 
+      \str_set:Nx \l_@@_language_str { \str_lowercase:n { #1 } } , 
     language         .value_required:n  = true ,
     gobble           .int_set:N         = \l_@@_gobble_int , 
     gobble           .value_required:n  = true ,
@@ -3086,15 +3240,19 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \bool_if:NTF \c_@@_beamer_bool
   {
-    \NewPitonEnvironment { Piton } { d < > }
+    \NewPitonEnvironment { Piton } { d < > O { } }
       { 
+        \PitonOptions { #2 } 
         \IfValueTF { #1 }
           { \begin { uncoverenv } < #1 > }
           { \begin { uncoverenv } }
       }
       { \end { uncoverenv } } 
   }
-  { \NewPitonEnvironment { Piton } { } { } { } }
+  { \NewPitonEnvironment { Piton } { O { } } 
+      { \PitonOptions { #1 } } 
+      { } 
+  }
 %    \end{macrocode}
 %
 %
@@ -3194,115 +3352,83 @@ version 2005/12/01 or later.
 % 
 % \medskip
 %    \begin{macrocode}
+\clist_new:N \g_@@_style_clist
+\clist_set:Nn \g_@@_styles_clist 
+  {
+    Comment ,
+    Comment.LaTeX ,
+    Exception ,
+    FormattingType ,    
+    Identifier ,
+    InitialValues ,
+    Interpol.Inside ,
+    Keyword ,
+    Keyword.Constant ,
+    Name.Builtin ,      
+    Name.Class ,
+    Name.Constructor ,
+    Name.Decorator ,
+    Name.Field ,
+    Name.Function ,
+    Name.Module ,
+    Name.Namespace ,
+    Name.Type ,
+    Number ,
+    Operator ,
+    Operator.Word ,
+    Preproc ,
+    Prompt ,
+    String.Doc ,
+    String.Interpol ,
+    String.Long ,
+    String.Short ,     
+    TypeParameter ,    
+    UserFunction 
+  }  
+
+\clist_map_inline:Nn \g_@@_styles_clist
+  {
+    \keys_define:nn { piton / Styles }
+      {
+        #1 .tl_set:c = pitonStyle #1 , 
+        #1 .value_required:n = true 
+      }
+  }
+
 \keys_define:nn { piton / Styles }
   {
-    String.Interpol   .tl_set:c = pitonStyle String.Interpol , 
-    String.Interpol   .value_required:n = true ,
-    FormattingType    .tl_set:c = pitonStyle FormattingType ,
-    FormattingType    .value_required:n = true ,
-    Dict.Value        .tl_set:c = pitonStyle Dict.Value ,
-    Dict.Value        .value_required:n = true ,
-    Name.Decorator    .tl_set:c = pitonStyle Name.Decorator ,
-    Name.Decorator    .value_required:n = true ,
-    Name.Field        .tl_set:c = pitonStyle Name.Field , 
-    Name.Field        .value_required:n = true ,
-    Name.Function     .tl_set:c = pitonStyle Name.Function ,
-    Name.Function     .value_required:n = true ,
-    UserFunction      .tl_set:c = pitonStyle UserFunction ,
-    UserFunction      .value_required:n = true ,
-    Keyword           .tl_set:c = pitonStyle Keyword ,
-    Keyword           .value_required:n = true ,
-    Keyword.Constant  .tl_set:c = pitonStyle Keyword.Constant ,
-    Keyword.constant  .value_required:n = true ,
-    String.Doc        .tl_set:c = pitonStyle String.Doc ,
-    String.Doc        .value_required:n = true ,
-    Interpol.Inside   .tl_set:c = pitonStyle Interpol.Inside ,
-    Interpol.Inside   .value_required:n = true ,
-    String.Long       .tl_set:c = pitonStyle String.Long ,
-    String.Long       .value_required:n = true ,
-    String.Short      .tl_set:c = pitonStyle String.Short ,
-    String.Short      .value_required:n = true ,
-    String            .meta:n = { String.Long = #1 , String.Short = #1 } ,
-    Comment.Math      .tl_set:c = pitonStyle Comment.Math , 
-    Comment.Math      .default:n = \@@_math_scantokens:n ,
-    Comment.Math      .initial:n = ,
-    Comment           .tl_set:c = pitonStyle Comment , 
-    Comment           .value_required:n = true ,
-    Name.Constructor  .tl_set:c = pitonStyle Name.Constructor , 
-    Name.Constructor  .value_required:n = true ,
-    InitialValues     .tl_set:c = pitonStyle InitialValues ,
-    InitialValues     .value_required:n = true ,
-    Number            .tl_set:c = pitonStyle Number , 
-    Number            .value_required:n = true ,
-    Name.Namespace    .tl_set:c = pitonStyle Name.Namespace , 
-    Name.Namespace    .value_required:n = true ,
-    Name.Module       .tl_set:c = pitonStyle Name.Module , 
-    Name.Module       .value_required:n = true ,
-    Name.Class        .tl_set:c = pitonStyle Name.Class , 
-    Name.Class        .value_required:n = true ,
-    Name.Builtin      .tl_set:c = pitonStyle Name.Builtin , 
-    Name.Builtin      .value_required:n = true ,
-    TypeParameter     .tl_set:c = pitonStyle TypeParameter , 
-    TypeParameter     .value_required:n = true ,
-    Name.Type         .tl_set:c = pitonStyle Name.Type , 
-    Name.Type         .value_required:n = true ,
-    Operator          .tl_set:c = pitonStyle Operator , 
-    Operator          .value_required:n = true ,
-    Operator.Word     .tl_set:c = pitonStyle Operator.Word , 
-    Operator.Word     .value_required:n = true ,
-    Exception         .tl_set:c = pitonStyle Exception ,
-    Exception         .value_required:n = true ,
-    Comment.LaTeX     .tl_set:c = pitonStyle Comment.LaTeX ,
-    Comment.LaTeX     .value_required:n = true ,
-    Identifier        .tl_set:c = pitonStyle Identifier ,
-    Comment.LaTeX     .value_required:n = true ,
-    ParseAgain.noCR   .tl_set:c = pitonStyle ParseAgain.noCR ,
-    ParseAgain.noCR   .value_required:n = true ,
-    ParseAgain        .tl_set:c = pitonStyle ParseAgain , 
-    ParseAgain        .value_required:n = true ,
-    Prompt            .tl_set:c = pitonStyle Prompt , 
-    Prompt            .value_required:n = true ,
-    unknown           .code:n = 
+    String          .meta:n = { String.Long = #1 , String.Short = #1 } ,
+    Comment.Math    .tl_set:c = pitonStyle Comment.Math , 
+    Comment.Math    .default:n = \@@_math_scantokens:n ,
+    Comment.Math    .initial:n = ,
+    ParseAgain      .tl_set:c = pitonStyle ParseAgain , 
+    ParseAgain      .value_required:n = true ,
+    ParseAgain.noCR .tl_set:c = pitonStyle ParseAgain.noCR , 
+    ParseAgain.noCR .value_required:n = true ,
+    unknown         .code:n = 
       \msg_error:nn { piton } { Unknown~key~for~SetPitonStyle }
   }
 %    \end{macrocode}
-% 
-% 
+%
 % \bigskip
+% We add the word |String| to the list of the styles because we will use that
+% list in the error message for an unknown key in |\SetPitonStyle|.
+%
 %    \begin{macrocode}
-\msg_new:nnn { piton } { Unknown~key~for~SetPitonStyle } 
-  {
-    The~style~'\l_keys_key_str'~is~unknown.\\
-    This~key~will~be~ignored.\\
-    The~available~styles~are~(in~alphabetic~order):~
-    Comment,~
-    Comment.LaTeX,~
-    Dict.Value,~
-    Exception,~
-    Identifier,~
-    InitialValues,~ 
-    Keyword,~
-    Keyword.Constant,~
-    Name.Builtin,~
-    Name.Class,~
-    Name.Constructor,~
-    Name.Decorator,~
-    Name.Field,~
-    Name.Function,~
-    Name.Module,~
-    Name.Namespace,~
-    UserFunction,~
-    Number,~
-    Operator,~
-    Operator.Word,~
-    Prompt,~
-    String,~
-    String.Doc,~
-    String.Long,~
-    String.Short,~and~
-    String.Interpol. 
-  }
+\clist_gput_left:Nn \g_@@_styles_clist { String }
 %    \end{macrocode}
+%
+% \bigskip
+% Of course, we sort that clist.
+%    \begin{macrocode}
+\clist_gsort:Nn \g_@@_styles_clist
+  { 
+    \str_compare:nNnTF { #1 } < { #2 } 
+      \sort_return_same:    
+      \sort_return_swapped:
+  } 
+%    \end{macrocode}
+% 
 %
 % \bigskip
 % \subsubsection{The initial styles}
@@ -3334,9 +3460,9 @@ version 2005/12/01 or later.
     Comment.LaTeX      = \normalfont \color[rgb]{.468,.532,.6} , 
     Name.Type          = \color[HTML]{336666} ,
     InitialValues      = \@@_piton:n ,
-    Dict.Value         = \@@_piton:n ,
     Interpol.Inside    = \color{black}\@@_piton:n ,
     TypeParameter      = \color[HTML]{336666} \itshape ,
+    Preproc            = \color[HTML]{AA6600} \slshape ,
     Identifier         = \@@_identifier:n , 
     UserFunction  = , 
     Prompt             = , 
@@ -3463,6 +3589,17 @@ version 2005/12/01 or later.
 % 
 % \bigskip
 % \subsubsection{The error messages of the package}
+% 
+% 
+%    \begin{macrocode}
+\msg_new:nnn { piton } { Unknown~key~for~SetPitonStyle } 
+  {
+    The~style~'\l_keys_key_str'~is~unknown.\\
+    This~key~will~be~ignored.\\
+    The~available~styles~are~(in~alphabetic~order):~
+    \clist_use:Nnnn \g_@@_styles_clist { ~and~ } { ,~ } { ~and~ }.
+  }
+%    \end{macrocode}
 %
 %   \begin{macrocode}
 \msg_new:nnn { piton } { syntax~error }
@@ -3814,7 +3951,71 @@ local Delim = Q ( S "[()]" )
 local VisualSpace = space * Lc "\\l_@@_space_tl" 
 %    \end{macrocode}
 % 
+% \bigskip
+% If the classe Beamer is used, some environemnts and commands of Beamer are
+% automatically detected in the listings of \pkg{piton}.
+%    \begin{macrocode}
+local Beamer = P ( false ) 
+local BeamerBeginEnvironments = P ( true ) 
+local BeamerEndEnvironments = P ( true ) 
+if piton_beamer 
+then
+% \bigskip
+% The following function will return a \textsc{lpeg} which will catch an
+% environment of Beamer (supported by \pkg{piton}), that is to say |{uncover}|,
+% |{only}|, etc.
+%    \begin{macrocode}
+  local BeamerNamesEnvironments =  
+    P "uncoverenv" + P "onlyenv" + P "visibleenv" + P "invisibleenv" 
+    + P "alertenv" + P "actionenv"
+  BeamerBeginEnvironments = 
+      ( space ^ 0 * 
+        L 
+          ( 
+            P "\\begin{" * BeamerNamesEnvironments * "}"
+            * ( P "<" * ( 1 - P ">" ) ^ 0 * P ">" ) ^ -1
+          )
+        * P "\r" 
+      ) ^ 0 
+  BeamerEndEnvironments = 
+      ( space ^ 0 * 
+        L ( P "\\end{" * BeamerNamesEnvironments * P "}" ) 
+        * P "\r" 
+      ) ^ 0 
+%    \end{macrocode}
 %
+% 
+% \bigskip
+% The following function will return a \textsc{lpeg} which will catch an
+% environment of Beamer (supported by \pkg{piton}), that is to say
+% |{uncoverenv}|, etc. The argument |lpeg| should be |MainLoopPython|,
+% |MainLoopC|, etc. 
+%    \begin{macrocode}
+  function OneBeamerEnvironment(name,lpeg)
+    return 
+        Ct ( Cc "Open" 
+              * C ( 
+                    P ( "\\begin{" .. name ..   "}" )
+                    * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 
+                  ) 
+             * Cc ( "\\end{" .. name ..  "}" )
+            ) 
+       * ( 
+           C ( ( 1 - P ( "\\end{" .. name .. "}" ) ) ^ 0 ) 
+           / ( function (s) return lpeg : match(s) end ) 
+         )
+       * P ( "\\end{" .. name ..  "}" ) * Ct ( Cc "Close" ) 
+  end 
+end
+%    \end{macrocode}
+% 
+% 
+%
+% \bigskip
+%    \begin{macrocode}
+local languages = { }
+%    \end{macrocode}
+% 
 % \bigskip
 % \subsubsection{The LPEG python}
 % 
@@ -3964,7 +4165,7 @@ local FromImport =
 % names of our \textsc{lpeg}, prefixes to distinguish the \textsc{lpeg} dealing
 % with that categories of strings, as presented in the following tabular.
 % \begin{center}
-% \begin{tabular}{ccc}
+% \begin{tabular}{@{}lcc@{}}
 % \toprule
 %         & |Single| & |Double| \\
 % \midrule
@@ -4069,7 +4270,7 @@ local ShortString = SingleShortString + DoubleShortString
 % \bigskip
 % \paragraph{Beamer}
 %
-% The following \textsc{lpeg} |balanced_braces| will be used for the (mandatory)
+% The following pattern |balanced_braces| will be used for the (mandatory)
 % argument of the commands |\only| and \emph{al.} of Beamer. It's necessary to
 % use a \emph{grammar} because that pattern mainly checks the correct nesting of
 % the delimiters (and it's known in the theory of formal languages that this
@@ -4087,43 +4288,6 @@ local balanced_braces =
            ) ^ 0 
     }
 %    \end{macrocode}
-% 
-%
-% \bigskip 
-% If Beamer is used (or if the key |beamer| is used at load-time), the following
-% LPEG will be redefined.
-%    \begin{macrocode}
-local Beamer = P ( false ) 
-local BeamerBeginEnvironments = P ( true ) 
-local BeamerEndEnvironments = P ( true ) 
-local BeamerNamesEnvironments =  
-  P "uncoverenv" + P "onlyenv" + P "visibleenv" + P "invisibleenv" 
-  + P "alertenv" + P "actionenv"
-%    \end{macrocode}
-%
-% 
-% \bigskip
-% The following function will return a \textsc{lpeg} which will catch an
-% environment of Beamer (supported by \pkg{piton}), that is to say |{uncover}|,
-% |{only}|, etc.
-%    \begin{macrocode}
-function OneBeamerEnvironment(name)
-  return 
-      Ct ( Cc "Open" 
-            * C ( 
-                  P ( "\\begin{" .. name ..   "}" )
-                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 
-                ) 
-           * Cc ( "\\end{" .. name ..  "}" )
-          ) 
-     * ( 
-         C ( ( 1 - P ( "\\end{" .. name .. "}" ) ) ^ 0 ) 
-         / ( function (s) return MainLoopPython:match(s) end ) 
-       )
-     * P ( "\\end{" .. name ..  "}" ) * Ct ( Cc "Close" ) 
-end 
-%    \end{macrocode}
-% 
 %
 % \bigskip
 %    \begin{macrocode}
@@ -4145,12 +4309,12 @@ then
          ) 
        * ( C ( balanced_braces ) / (function (s) return MainLoopPython:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
-    + OneBeamerEnvironment "uncoverenv" 
-    + OneBeamerEnvironment "onlyenv" 
-    + OneBeamerEnvironment "visibleenv" 
-    + OneBeamerEnvironment "invisibleenv" 
-    + OneBeamerEnvironment "alertenv" 
-    + OneBeamerEnvironment "actionenv" 
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoopPython ) 
+    + OneBeamerEnvironment ( "onlyenv" , MainLoopPython ) 
+    + OneBeamerEnvironment ( "visibleenv" , MainLoopPython )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoopPython ) 
+    + OneBeamerEnvironment ( "alertenv" , MainLoopPython ) 
+    + OneBeamerEnvironment ( "actionenv" , MainLoopPython ) 
     +
       L ( 
 %    \end{macrocode}
@@ -4167,7 +4331,7 @@ then
     +  
       L ( 
 %    \end{macrocode}
-% For |\\alt|, the specification of the overlays (between angular brackets) is mandatory.
+% For |\\temporal|, the specification of the overlays (between angular brackets) is mandatory.
 %    \begin{macrocode}
           ( P "\\temporal" )
           * P "<" * (1 - P ">") ^ 0 * P ">" 
@@ -4179,23 +4343,6 @@ then
       * L ( P "}{" )
       * K ( 'ParseAgain.noCR' , balanced_braces ) 
       * L ( P "}" )
-%    \end{macrocode}
-% Now for the environemnts.
-%    \begin{macrocode}
-  BeamerBeginEnvironments = 
-      ( space ^ 0 * 
-        L 
-          ( 
-            P "\\begin{" * BeamerNamesEnvironments * "}"
-            * ( P "<" * ( 1 - P ">") ^ 0 * P ">" ) ^ -1
-          )
-        * P "\r" 
-      ) ^ 0 
-  BeamerEndEnvironments = 
-      ( space ^ 0 * 
-        L ( P "\\end{" * BeamerNamesEnvironments * P "}" ) 
-        * P "\r" 
-      ) ^ 0 
 end
 %    \end{macrocode}
 %
@@ -4460,39 +4607,6 @@ local DefFunction =
 % catched as keyword by the \textsc{lpeg} |Keyword| (useful if, for example, the
 % final user wants to speak of the keyword \piton{def}).
 %
-% \bigskip
-% \paragraph{The dictionaries of Python}
-%
-% We have \textsc{lpeg} dealing with dictionaries of Python because, in
-% typesettings of explicit Python dictionaries, one may prefer to have all the
-% values formatted in black (in order to see more clearly the keys which are
-% usually Python strings). That's why we have a \pkg{piton} style |Dict.Value|.
-%
-% The initial value of that \pkg{piton} style is |\@@_piton:n|, which means that
-% the value of the entry of the dictionary is parsed once again by \pkg{piton}
-% (and nothing special is done for the dictionary). In the following example, we
-% have set the \pkg{piton} style |Dict.Value| to |\color{black}|:
-%
-% \medskip
-% \begingroup
-% \SetPitonStyle{Dict.Value = \color{black}}
-% \piton{mydict = { 'name' : 'Paul', 'sex' : 'male', 'age' : 31 } }
-% \endgroup
-%
-% \medskip
-% At this time, this mechanism works only for explicit dictionaries on a single line!
-%
-%    \begin{macrocode}
-local ItemDict = 
-  ShortString * SkipSpace * Q ( P ":" ) * K ( 'Dict.Value' , expression  ) 
-
-local ItemOfSet = SkipSpace * ( ItemDict + ShortString ) * SkipSpace 
-
-local Set = 
-  Q ( P "{" ) 
-  * ItemOfSet * ( Q ( P "," ) * ItemOfSet )  ^ 0 
-  * Q ( P "}" )
-%    \end{macrocode}
 %
 % \paragraph{Miscellaneous}
 % 
@@ -4502,7 +4616,7 @@ local ExceptionInConsole = Exception *  Q ( ( 1 - P "\r" ) ^ 0 ) * EOL
 % 
 % 
 % \bigskip
-% \paragraph{The main LPEG}
+% \paragraph{The main LPEG for the language Python}
 %
 % First, the main loop :
 %    \begin{macrocode}
@@ -4516,7 +4630,6 @@ local MainPython =
      + LongString 
      + Comment
      + ExceptionInConsole
-     + Set 
      + Delim
      + Operator
      + OperatorWord * ( Space + Punct + Delim + EOL + -1 ) 
@@ -4566,11 +4679,10 @@ python =
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-local languages = { }
 languages['python'] = python
 %    \end{macrocode}
 %
-% % \bigskip
+% \bigskip
 % \subsubsection{The LPEG ocaml}
 % 
 %    \begin{macrocode}
@@ -4592,7 +4704,7 @@ local Constructor = K ( 'Name.Constructor' , cap_identifier )
 local ModuleType = K ( 'Name.Type' , cap_identifier ) 
 %    \end{macrocode}
 %
-% The identifiers which begin with a lower case letter of an underscore are used 
+% The identifiers which begin with a lower case letter or an underscore are used 
 % elsewhere in OCaml.
 %    \begin{macrocode}
 local identifier = 
@@ -4681,11 +4793,11 @@ local Keyword =
   K ( 'Keyword' ,
       P "assert" + P "as" + P "begin" + P "class" + P "constraint" + P "done" 
   + P "downto" + P "do" + P "else" + P "end" + P "exception" + P "external" 
-  + P "false" + P "for" + P "function" + P "functor" + P "fun"  + P "if" 
+  + P "for" + P "function" + P "functor" + P "fun"  + P "if" 
   + P "include" + P "inherit" + P "initializer" + P "in"  + P "lazy" + P "let" 
   + P "match" + P "method" + P "module" + P "mutable" + P "new" + P "object" 
   + P "of" + P "open" + P "private" + P "raise" + P "rec" + P "sig" 
-  + P "struct" + P "then" + P "to" + P "true" + P "try" + P "type" 
+  + P "struct" + P "then" + P "to" + P "try" + P "type" 
   + P "value" + P "val" + P "virtual" + P "when" + P "while" + P "with" )
   + K ( 'Keyword.Constant' , P "true" + P "false" )  
 
@@ -4731,26 +4843,38 @@ local balanced_braces =
     }
 %    \end{macrocode}
 %
-% 
+%
+% \bigskip
 %    \begin{macrocode}
 if piton_beamer 
 then
   Beamer =
-      L  ( P "\\pause" * ( P "[" * (1 - P "]") ^ 0 * P "]" ) ^ -1 ) 
+      L ( P "\\pause" * ( P "[" * ( 1 - P "]" ) ^ 0 * P "]" ) ^ -1 ) 
     + 
-      (   P "\\uncover"   * Lc ( '\\@@_beamer_command:n{uncover}' ) 
-        + P "\\only"      * Lc ( '\\@@_beamer_command:n{only}' ) 
-        + P "\\alert"     * Lc ( '\\@@_beamer_command:n{alert}' ) 
-        + P "\\visible"   * Lc ( '\\@@_beamer_command:n{visible}' ) 
-        + P "\\invisible" * Lc ( '\\@@_beamer_command:n{invisible}' ) 
-        + P "\\action"    * Lc ( '\\@@_beamer_command:n{action}' ) 
-      ) 
-      *
-      L ( ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 * P "{" )
-      * K ( 'ParseAgain.noCR' , balanced_braces ) 
-      * L ( P "}" )
-    +  
+      Ct ( Cc "Open" 
+            * C ( 
+                  ( 
+                    P "\\uncover" + P "\\only" + P "\\alert" + P "\\visible"
+                    + P "\\invisible" + P "\\action" 
+                  ) 
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 
+                  * P "{" 
+                ) 
+            * Cc "}" 
+         ) 
+       * ( C ( balanced_braces ) / (function (s) return MainLoopOCaml:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" ) 
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoopOCaml ) 
+    + OneBeamerEnvironment ( "onlyenv" , MainLoopOCaml ) 
+    + OneBeamerEnvironment ( "visibleenv" , MainLoopOCaml )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoopOCaml ) 
+    + OneBeamerEnvironment ( "alertenv" , MainLoopOCaml ) 
+    + OneBeamerEnvironment ( "actionenv" , MainLoopOCaml ) 
+    +
       L ( 
+%    \end{macrocode}
+% For |\\alt|, the specification of the overlays (between angular brackets) is mandatory.
+%    \begin{macrocode}
           ( P "\\alt" )
           * P "<" * (1 - P ">") ^ 0 * P ">" 
           * P "{" 
@@ -4761,6 +4885,9 @@ then
       * L ( P "}" )
     +  
       L ( 
+%    \end{macrocode}
+% For |\\temporal|, the specification of the overlays (between angular brackets) is mandatory.
+%    \begin{macrocode}
           ( P "\\temporal" )
           * P "<" * (1 - P ">") ^ 0 * P ">" 
           * P "{" 
@@ -4771,22 +4898,9 @@ then
       * L ( P "}{" )
       * K ( 'ParseAgain.noCR' , balanced_braces ) 
       * L ( P "}" )
-  BeamerBeginEnvironments = 
-      ( space ^ 0 * 
-        L 
-          ( 
-            P "\\begin{" * BeamerNamesEnvironments * "}"
-            * ( P "<" * ( 1 - P ">") ^ 0 * P ">" ) ^ -1
-          )
-        * P "\r" 
-      ) ^ 0 
-  BeamerEndEnvironments = 
-      ( space ^ 0 * 
-        L ( P "\\end{" * BeamerNamesEnvironments * P "}" ) 
-        * P "\r" 
-      ) ^ 0 
 end
 %    \end{macrocode}
+%
 %
 % \bigskip
 % \paragraph{EOL}
@@ -4814,13 +4928,11 @@ local EOL =
   SpaceIndentation ^ 0
 %    \end{macrocode}
 %
-%
-%    \begin{macrocode}
 % 
-% \paragraph{The strings}
+% \paragraph{The strings en OCaml}
 % 
-% We need a pattern |string| without captures because it will be used within the
-% comments of OCaml.
+% We need a pattern |ocaml_string| without captures because it will be used
+% within the comments of OCaml.
 %    \begin{macrocode}
 local ocaml_string =
        Q ( P "\"" )
@@ -4887,7 +4999,7 @@ local QuotedString =
 % \paragraph{The comments in the OCaml listings}
 %
 % In OCaml, the delimiters for the comments are |(*| and |*)|. There are
-% unsymmetrical and, therefore, the comments may be nested. That's why we need a
+% unsymmetrical and OCaml allow those comments to be nested. That's why we need a
 % grammar.
 % 
 % In these comments, we embed the math comments (between |$| and |$|) and we
@@ -4961,7 +5073,7 @@ local DefFunction =
 %
 % 
 % \bigskip
-% \paragraph{The DefModule}
+% \paragraph{The DefModule}\par
 %
 % The following LPEG will be used in the definitions of modules but also in the
 % definitions of \emph{types} of modules.
@@ -5017,7 +5129,7 @@ local TypeParameter = K ( 'TypeParameter' , P "'" * alpha * # ( 1 - P "'" ) )
 %    \end{macrocode}
 % 
 % \bigskip
-% \paragraph{The main LPEG}
+% \paragraph{The main LPEG for the language OCaml}
 %
 % First, the main loop :
 %    \begin{macrocode}
@@ -5079,16 +5191,349 @@ ocaml =
 %    \begin{macrocode}
 languages['ocaml'] = ocaml
 %    \end{macrocode}
+%
+% \bigskip
+% \subsubsection{The LPEG language C}
+% 
+% \bigskip
+% Some strings of length 2 are explicit because we want the corresponding
+% ligatures available in some fonts such as \emph{Fira Code} to be active.
+%    \begin{macrocode}
+local Operator = 
+  K ( 'Operator' ,
+      P "!=" + P "==" + P "<<" + P ">>" + P "<=" + P ">=" 
+      + P "||" + P "&&" + S "-~+/*%=<>&.@|!" 
+    )
+
+local Keyword = 
+  K ( 'Keyword' ,
+      P "alignas" + P "asm" + P "auto" + P "break" + P "case" + P "catch"
+      + P "class" + P "const" + P "constexpr" + P "continue" 
+      + P "decltype" + P "do" + P "else" + P "enum" + P "extern" 
+      + P "for" + P "goto" + P "if" + P "nexcept" + P "private" + P "public" 
+      + P "register" + P "restricted" + P "return" + P "static" + P "static_assert" 
+      + P "struct" + P "switch" + P "thread_local" + P "throw" + P "try" 
+      + P "typedef" + P "union" + P "using" + P "virtual" + P "volatile" 
+      + P "while" 
+    )
+  + K ( 'Keyword.Constant' , 
+        P "default" + P "false" + P "NULL" + P "nullptr" + P "true" 
+      ) 
+
+local Builtin = 
+  K ( 'Name.Builtin' ,
+      P "alignof" + P "malloc" + P "printf" + P "scanf" + P "sizeof" 
+    )
+
+local Type = 
+  K ( 'Name.Type' ,
+      P "bool" + P "char" + P "char16_t" + P "char32_t" + P "double" 
+      + P "float" + P "int" + P "int8_t" + P "int16_t" + P "int32_t" 
+      + P "int64_t" + P "long" + P "short" + P "signed" + P "unsigned" 
+      + P "void" + P "wchar_t" 
+    )
+
+local DefFunction = 
+  Type 
+  * Space 
+  * K ( 'Name.Function.Internal' , identifier ) 
+  * SkipSpace 
+  * # P "("
+%    \end{macrocode}
+% We remind that the marker |#| of \textsc{lpeg} specifies that the pattern will be
+% detected but won't consume any character.
+%
+% \bigskip
+% The following \textsc{lpeg} |DefClass| will be used to detect the definition of a
+% new class (the name of that new class will be formatted with the \pkg{piton}
+% style |Name.Class|). 
+%
+% \smallskip
+% Example:\enskip \piton{class myclass:}
+%    \begin{macrocode}
+local DefClass = 
+  K ( 'Keyword' , P "class" ) * Space * K ( 'Name.Class' , identifier ) 
+%    \end{macrocode}
+% 
+% If the word |class| is not followed by a identifier, it will be catched as
+% keyword by the \textsc{lpeg} |Keyword| (useful if we want to type a
+% list of keywords).
+%
+% \bigskip
+% \paragraph{The strings of C}
+%
+%    \begin{macrocode}
+local String = 
+  WithStyle ( 'String.Long' ,
+      Q "\"" 
+      * ( VisualSpace 
+          + K ( 'String.Interpol' , 
+                P "%" * ( S "difcspxXou" + P "ld" + P "li" + P "hd" + P "hi" )
+              ) 
+          + Q ( ( P "\\\"" + 1 - S " \"" ) ^ 1 ) 
+        ) ^ 0 
+      * Q "\""
+    )
+%    \end{macrocode}
+% 
+% \bigskip
+% \paragraph{Beamer}
+%
+% The following \textsc{lpeg} |balanced_braces| will be used for the (mandatory)
+% argument of the commands |\only| and \emph{al.} of Beamer. It's necessary to
+% use a \emph{grammar} because that pattern mainly checks the correct nesting of
+% the delimiters (and it's known in the theory of formal languages that this
+% can't be done with regular expressions \emph{stricto sensu} only).
+%    \begin{macrocode}
+local balanced_braces =
+  P { "E" ,
+       E = 
+           (
+             P "{" * V "E" * P "}" 
+             + 
+             String  
+             + 
+             ( 1 - S "{}" ) 
+           ) ^ 0 
+    }
+%    \end{macrocode}
+%
+%
+% \bigskip
+%    \begin{macrocode}
+if piton_beamer 
+then
+  Beamer =
+      L ( P "\\pause" * ( P "[" * ( 1 - P "]" ) ^ 0 * P "]" ) ^ -1 ) 
+    + 
+      Ct ( Cc "Open" 
+            * C ( 
+                  ( 
+                    P "\\uncover" + P "\\only" + P "\\alert" + P "\\visible"
+                    + P "\\invisible" + P "\\action" 
+                  ) 
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 
+                  * P "{" 
+                ) 
+            * Cc "}" 
+         ) 
+       * ( C ( balanced_braces ) / (function (s) return MainLoopC:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" ) 
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoopC ) 
+    + OneBeamerEnvironment ( "onlyenv" , MainLoopC ) 
+    + OneBeamerEnvironment ( "visibleenv" , MainLoopC )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoopC ) 
+    + OneBeamerEnvironment ( "alertenv" , MainLoopC ) 
+    + OneBeamerEnvironment ( "actionenv" , MainLoopC ) 
+    +
+      L ( 
+%    \end{macrocode}
+% For |\\alt|, the specification of the overlays (between angular brackets) is mandatory.
+%    \begin{macrocode}
+          ( P "\\alt" )
+          * P "<" * (1 - P ">") ^ 0 * P ">" 
+          * P "{" 
+        )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}" )
+    +  
+      L ( 
+%    \end{macrocode}
+% For |\\temporal|, the specification of the overlays (between angular brackets) is mandatory.
+%    \begin{macrocode}
+          ( P "\\temporal" )
+          * P "<" * (1 - P ">") ^ 0 * P ">" 
+          * P "{" 
+        )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}" )
+end
+%    \end{macrocode}
+%
+% \bigskip
+% \paragraph{EOL}
+%
+% \bigskip
+% The following LPEG will detect the Python prompts when the user is typesetting
+% an interactive session of Python (directly or through |{pyconsole}| of
+% \pkg{pyluatex}). We have to detect that prompt twice. The first detection
+% (called \emph{hasty detection}) will be before the |\@@_begin_line:| because
+% you want to trigger a special background color for that row (and, after the
+% |\@@_begin_line:|, it's too late to change de background).
+%    \begin{macrocode}
+local PromptHastyDetection = ( # ( P ">>>" + P "..." ) * Lc ( '\\@@_prompt:' ) ) ^ -1 
+%    \end{macrocode}
+% We remind that the marker |#| of \textsc{lpeg} specifies that the pattern will be
+% detected but won't consume any character.
+%
+% \medskip
+% With the following \textsc{lpeg}, a style will actually be applied to the
+% prompt (for instance, it's possible to decide to discard these prompts).
+%    \begin{macrocode}
+local Prompt = K ( 'Prompt' , ( ( P ">>>" + P "..." ) * P " " ^ -1 ) ^ -1  ) 
+%    \end{macrocode}
+%    
+%
+%
+% \bigskip
+% The following \textsc{lpeg} |EOL| is for the end of lines.
+%    \begin{macrocode}
+local EOL = 
+  P "\r" 
+  *
+  (
+    ( space^0 * -1 )
+    + 
+%    \end{macrocode}
+% We recall that each line in the Python code we have to parse will be sent
+% back to LaTeX between a pair |\@@_begin_line:| --
+% |\@@_end_line:|\footnote{Remember that the \texttt{\textbackslash
+% @@\_end\_line:} must be explicit because it will be used as marker in order to
+% delimit the argument of the command \texttt{\textbackslash @@\_begin\_line:}}.
+%    \begin{macrocode}
+    Ct ( 
+         Cc "EOL"
+         * 
+         Ct (
+              Lc "\\@@_end_line:"
+              * BeamerEndEnvironments 
+              * BeamerBeginEnvironments 
+              * PromptHastyDetection
+              * Lc "\\@@_newline: \\@@_begin_line:"
+              * Prompt
+            )
+       )
+  ) 
+  *
+  SpaceIndentation ^ 0
+%    \end{macrocode}
+%
+% \bigskip
+% \paragraph{The directives of the preprocessor}
+%
+%    \begin{macrocode}
+local Preproc = 
+  K ( 'Preproc' , P "#" * (1 - P "\r" ) ^ 0  ) * ( EOL + -1 )
+%    \end{macrocode}
+% 
+%
+% \bigskip
+% \paragraph{The comments in the C listings}
+%
+% We define different \textsc{lpeg} dealing with comments in the C listings.
+%    \begin{macrocode}
+local CommentMath = 
+  P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
+
+local Comment = 
+  WithStyle ( 'Comment' ,
+     Q ( P "//" ) 
+     * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 ) 
+  * ( EOL + -1 )
+
+local LongComment = 
+  WithStyle ( 'Comment' , 
+               Q ( P "/*" ) 
+               * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0 
+               * Q ( P "*/" ) 
+            ) -- $
+%    \end{macrocode}
+%
+%
+% \bigskip
+% The following \textsc{lpeg} |CommentLaTeX| is for what is called in that
+% document the ``LaTeX comments''. Since the elements that will be catched must
+% be sent to LaTeX with standard LaTeX catcodes, we put the capture (done by
+% the function~|C|) in a table (by using~|Ct|, which is an alias for |lpeg.Ct|).
+%    \begin{macrocode}
+local CommentLaTeX =
+  P(piton.comment_latex) 
+  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces" 
+  * L ( ( 1 - P "\r" ) ^ 0 ) 
+  * Lc "}}" 
+  * ( EOL + -1 )  
+%    \end{macrocode}
+% 
+%
+%
+% 
+% \bigskip
+% \paragraph{The main LPEG for the language C}
+%
+% First, the main loop :
+%    \begin{macrocode}
+local MainC = 
+       EOL
+     + Space 
+     + Tab
+     + Escape 
+     + CommentLaTeX
+     + Beamer
+     + Preproc
+     + Comment + LongComment
+     + Delim
+     + Operator
+     + String
+     + Punct
+     + DefFunction
+     + DefClass 
+     + Type * ( Q ( "*" ) ^ -1 + Space + Punct + Delim + EOL + -1 ) 
+     + Keyword * ( Space + Punct + Delim + EOL + -1 ) 
+     + Builtin * ( Space + Punct + Delim + EOL + -1 ) 
+     + Identifier 
+     + Number
+     + Word
+%    \end{macrocode}
+%
+% Ici, il ne faut pas mettre |local| !
+%    \begin{macrocode}
+MainLoopC = 
+  (  ( space^1 * -1 ) 
+     + MainC
+  ) ^ 0 
+%    \end{macrocode}
+%
+% \bigskip
+% We recall that each line in the C code to parse will be sent back to
+% LaTeX between a pair |\@@_begin_line:| -- |\@@_end_line:|\footnote{Remember
+% that the \texttt{\textbackslash @@\_end\_line:} must be explicit because it
+% will be used as marker in order to delimit the argument of the command
+% \texttt{\textbackslash @@\_begin\_line:}}.
+%    \begin{macrocode}
+languageC =
+  Ct (
+       ( ( space - P "\r" ) ^0 * P "\r" ) ^ -1 
+       * BeamerBeginEnvironments 
+       * PromptHastyDetection
+       * Lc '\\@@_begin_line:'
+       * Prompt 
+       * SpaceIndentation ^ 0 
+       * MainLoopC
+       * -1 
+       * Lc '\\@@_end_line:' 
+     )
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+languages['c'] = languageC
+%    \end{macrocode}
+%
 % 
 % \bigskip
 % \subsubsection{The function Parse}
 %
 %
-% The function |Parse| is the main function of the package \pkg{piton}.
-% It parses its argument and sends back to LaTeX the code with interlaced
+% The function |Parse| is the main function of the package \pkg{piton}. It
+% parses its argument and sends back to LaTeX the code with interlaced
 % formatting LaTeX instructions. In fact, everything is done by the
-% \textsc{lpeg} |python| which returns as capture a Lua table containing
-% data to send to LaTeX.
+% \textsc{lpeg} corresponding to the considered language (|languages[language]|)
+% which returns as capture a Lua table containing data to send to LaTeX.
 % 
 % \bigskip
 %    \begin{macrocode}
@@ -5409,6 +5854,11 @@ end
 % repository:
 %
 % \verb|https://github.com/fpantigny/piton|
+%
+% \subsection*{Changes between versions 1.6 and 2.0}
+%
+% The extension \pkg{piton} nows supports the computer languages OCaml and C
+% (and, of course, Python).
 %
 % \subsection*{Changes between versions 1.5 and 1.6}
 %

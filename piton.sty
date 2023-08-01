@@ -18,8 +18,8 @@
 %% and version 1.3 or later is part of all distributions of
 %% LaTeX version 2005/12/01 or later.
 %% 
-\def\myfileversion{1.6a}
-\def\myfiledate{2023/07/08}
+\def\myfileversion{2.0}
+\def\myfiledate{2023/08/01}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -359,7 +359,8 @@
 \bool_new:N \l__piton_resume_bool
 \keys_define:nn { PitonOptions }
   {
-    language         .str_set:N         = \l__piton_language_str ,
+    language         .code:n =
+      \str_set:Nx \l__piton_language_str { \str_lowercase:n { #1 } } ,
     language         .value_required:n  = true ,
     gobble           .int_set:N         = \l__piton_gobble_int ,
     gobble           .value_required:n  = true ,
@@ -696,15 +697,19 @@
   }
 \bool_if:NTF \c__piton_beamer_bool
   {
-    \NewPitonEnvironment { Piton } { d < > }
+    \NewPitonEnvironment { Piton } { d < > O { } }
       {
+        \PitonOptions { #2 }
         \IfValueTF { #1 }
           { \begin { uncoverenv } < #1 > }
           { \begin { uncoverenv } }
       }
       { \end { uncoverenv } }
   }
-  { \NewPitonEnvironment { Piton } { } { } { } }
+  { \NewPitonEnvironment { Piton } { O { } }
+      { \PitonOptions { #1 } }
+      { }
+  }
 \NewDocumentCommand { \PitonInputFile } { d < > O { } m }
   {
     \file_if_exist:nTF { #3 }
@@ -753,108 +758,68 @@
 \NewDocumentCommand { \SetPitonStyle } { } { \keys_set:nn { piton / Styles } }
 \cs_new_protected:Npn \__piton_math_scantokens:n #1
   { \normalfont \scantextokens { $#1$ } }
+\clist_new:N \g__piton_style_clist
+\clist_set:Nn \g__piton_styles_clist
+  {
+    Comment ,
+    Comment.LaTeX ,
+    Exception ,
+    FormattingType ,
+    Identifier ,
+    InitialValues ,
+    Interpol.Inside ,
+    Keyword ,
+    Keyword.Constant ,
+    Name.Builtin ,
+    Name.Class ,
+    Name.Constructor ,
+    Name.Decorator ,
+    Name.Field ,
+    Name.Function ,
+    Name.Module ,
+    Name.Namespace ,
+    Name.Type ,
+    Number ,
+    Operator ,
+    Operator.Word ,
+    Preproc ,
+    Prompt ,
+    String.Doc ,
+    String.Interpol ,
+    String.Long ,
+    String.Short ,
+    TypeParameter ,
+    UserFunction
+  }
+
+\clist_map_inline:Nn \g__piton_styles_clist
+  {
+    \keys_define:nn { piton / Styles }
+      {
+        #1 .tl_set:c = pitonStyle #1 ,
+        #1 .value_required:n = true
+      }
+  }
+
 \keys_define:nn { piton / Styles }
   {
-    String.Interpol   .tl_set:c = pitonStyle String.Interpol ,
-    String.Interpol   .value_required:n = true ,
-    FormattingType    .tl_set:c = pitonStyle FormattingType ,
-    FormattingType    .value_required:n = true ,
-    Dict.Value        .tl_set:c = pitonStyle Dict.Value ,
-    Dict.Value        .value_required:n = true ,
-    Name.Decorator    .tl_set:c = pitonStyle Name.Decorator ,
-    Name.Decorator    .value_required:n = true ,
-    Name.Field        .tl_set:c = pitonStyle Name.Field ,
-    Name.Field        .value_required:n = true ,
-    Name.Function     .tl_set:c = pitonStyle Name.Function ,
-    Name.Function     .value_required:n = true ,
-    UserFunction      .tl_set:c = pitonStyle UserFunction ,
-    UserFunction      .value_required:n = true ,
-    Keyword           .tl_set:c = pitonStyle Keyword ,
-    Keyword           .value_required:n = true ,
-    Keyword.Constant  .tl_set:c = pitonStyle Keyword.Constant ,
-    Keyword.constant  .value_required:n = true ,
-    String.Doc        .tl_set:c = pitonStyle String.Doc ,
-    String.Doc        .value_required:n = true ,
-    Interpol.Inside   .tl_set:c = pitonStyle Interpol.Inside ,
-    Interpol.Inside   .value_required:n = true ,
-    String.Long       .tl_set:c = pitonStyle String.Long ,
-    String.Long       .value_required:n = true ,
-    String.Short      .tl_set:c = pitonStyle String.Short ,
-    String.Short      .value_required:n = true ,
-    String            .meta:n = { String.Long = #1 , String.Short = #1 } ,
-    Comment.Math      .tl_set:c = pitonStyle Comment.Math ,
-    Comment.Math      .default:n = \__piton_math_scantokens:n ,
-    Comment.Math      .initial:n = ,
-    Comment           .tl_set:c = pitonStyle Comment ,
-    Comment           .value_required:n = true ,
-    Name.Constructor  .tl_set:c = pitonStyle Name.Constructor ,
-    Name.Constructor  .value_required:n = true ,
-    InitialValues     .tl_set:c = pitonStyle InitialValues ,
-    InitialValues     .value_required:n = true ,
-    Number            .tl_set:c = pitonStyle Number ,
-    Number            .value_required:n = true ,
-    Name.Namespace    .tl_set:c = pitonStyle Name.Namespace ,
-    Name.Namespace    .value_required:n = true ,
-    Name.Module       .tl_set:c = pitonStyle Name.Module ,
-    Name.Module       .value_required:n = true ,
-    Name.Class        .tl_set:c = pitonStyle Name.Class ,
-    Name.Class        .value_required:n = true ,
-    Name.Builtin      .tl_set:c = pitonStyle Name.Builtin ,
-    Name.Builtin      .value_required:n = true ,
-    TypeParameter     .tl_set:c = pitonStyle TypeParameter ,
-    TypeParameter     .value_required:n = true ,
-    Name.Type         .tl_set:c = pitonStyle Name.Type ,
-    Name.Type         .value_required:n = true ,
-    Operator          .tl_set:c = pitonStyle Operator ,
-    Operator          .value_required:n = true ,
-    Operator.Word     .tl_set:c = pitonStyle Operator.Word ,
-    Operator.Word     .value_required:n = true ,
-    Exception         .tl_set:c = pitonStyle Exception ,
-    Exception         .value_required:n = true ,
-    Comment.LaTeX     .tl_set:c = pitonStyle Comment.LaTeX ,
-    Comment.LaTeX     .value_required:n = true ,
-    Identifier        .tl_set:c = pitonStyle Identifier ,
-    Comment.LaTeX     .value_required:n = true ,
-    ParseAgain.noCR   .tl_set:c = pitonStyle ParseAgain.noCR ,
-    ParseAgain.noCR   .value_required:n = true ,
-    ParseAgain        .tl_set:c = pitonStyle ParseAgain ,
-    ParseAgain        .value_required:n = true ,
-    Prompt            .tl_set:c = pitonStyle Prompt ,
-    Prompt            .value_required:n = true ,
-    unknown           .code:n =
+    String          .meta:n = { String.Long = #1 , String.Short = #1 } ,
+    Comment.Math    .tl_set:c = pitonStyle Comment.Math ,
+    Comment.Math    .default:n = \__piton_math_scantokens:n ,
+    Comment.Math    .initial:n = ,
+    ParseAgain      .tl_set:c = pitonStyle ParseAgain ,
+    ParseAgain      .value_required:n = true ,
+    ParseAgain.noCR .tl_set:c = pitonStyle ParseAgain.noCR ,
+    ParseAgain.noCR .value_required:n = true ,
+    unknown         .code:n =
       \msg_error:nn { piton } { Unknown~key~for~SetPitonStyle }
   }
-\msg_new:nnn { piton } { Unknown~key~for~SetPitonStyle }
+\clist_gput_left:Nn \g__piton_styles_clist { String }
+\clist_gsort:Nn \g__piton_styles_clist
   {
-    The~style~'\l_keys_key_str'~is~unknown.\\
-    This~key~will~be~ignored.\\
-    The~available~styles~are~(in~alphabetic~order):~
-    Comment,~
-    Comment.LaTeX,~
-    Dict.Value,~
-    Exception,~
-    Identifier,~
-    InitialValues,~
-    Keyword,~
-    Keyword.Constant,~
-    Name.Builtin,~
-    Name.Class,~
-    Name.Constructor,~
-    Name.Decorator,~
-    Name.Field,~
-    Name.Function,~
-    Name.Module,~
-    Name.Namespace,~
-    UserFunction,~
-    Number,~
-    Operator,~
-    Operator.Word,~
-    Prompt,~
-    String,~
-    String.Doc,~
-    String.Long,~
-    String.Short,~and~
-    String.Interpol.
+    \str_compare:nNnTF { #1 } < { #2 }
+      \sort_return_same:
+      \sort_return_swapped:
   }
 \SetPitonStyle
   {
@@ -879,9 +844,9 @@
     Comment.LaTeX      = \normalfont \color[rgb]{.468,.532,.6} ,
     Name.Type          = \color[HTML]{336666} ,
     InitialValues      = \__piton_piton:n ,
-    Dict.Value         = \__piton_piton:n ,
     Interpol.Inside    = \color{black}\__piton_piton:n ,
     TypeParameter      = \color[HTML]{336666} \itshape ,
+    Preproc            = \color[HTML]{AA6600} \slshape ,
     Identifier         = \__piton_identifier:n ,
     UserFunction  = ,
     Prompt             = ,
@@ -937,6 +902,13 @@
     There~is~an~environment~{Piton}~and~a~command~
     \token_to_str:N \piton\ but~there~is~no~environment~
     {piton}.~This~error~is~fatal.
+  }
+\msg_new:nnn { piton } { Unknown~key~for~SetPitonStyle }
+  {
+    The~style~'\l_keys_key_str'~is~unknown.\\
+    This~key~will~be~ignored.\\
+    The~available~styles~are~(in~alphabetic~order):~
+    \clist_use:Nnnn \g__piton_styles_clist { ~and~ } { ,~ } { ~and~ }.
   }
 \msg_new:nnn { piton } { syntax~error }
   {
@@ -1082,6 +1054,45 @@ local Tab = P "\t" * Lc ( '\\l__piton_tab_tl' )
 local SpaceIndentation = Lc ( '\\__piton_an_indentation_space:' ) * ( Q " " )
 local Delim = Q ( S "[()]" )
 local VisualSpace = space * Lc "\\l__piton_space_tl"
+local Beamer = P ( false )
+local BeamerBeginEnvironments = P ( true )
+local BeamerEndEnvironments = P ( true )
+if piton_beamer
+then
+  local BeamerNamesEnvironments =
+    P "uncoverenv" + P "onlyenv" + P "visibleenv" + P "invisibleenv"
+    + P "alertenv" + P "actionenv"
+  BeamerBeginEnvironments =
+      ( space ^ 0 *
+        L
+          (
+            P "\\begin{" * BeamerNamesEnvironments * "}"
+            * ( P "<" * ( 1 - P ">" ) ^ 0 * P ">" ) ^ -1
+          )
+        * P "\r"
+      ) ^ 0
+  BeamerEndEnvironments =
+      ( space ^ 0 *
+        L ( P "\\end{" * BeamerNamesEnvironments * P "}" )
+        * P "\r"
+      ) ^ 0
+  function OneBeamerEnvironment(name,lpeg)
+    return
+        Ct ( Cc "Open"
+              * C (
+                    P ( "\\begin{" .. name ..   "}" )
+                    * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
+                  )
+             * Cc ( "\\end{" .. name ..  "}" )
+            )
+       * (
+           C ( ( 1 - P ( "\\end{" .. name .. "}" ) ) ^ 0 )
+           / ( function (s) return lpeg : match(s) end )
+         )
+       * P ( "\\end{" .. name ..  "}" ) * Ct ( Cc "Close" )
+  end
+end
+local languages = { }
 local Operator =
   K ( 'Operator' ,
       P "!=" + P "<>" + P "==" + P "<<" + P ">>" + P "<=" + P ">=" + P ":="
@@ -1227,27 +1238,6 @@ local balanced_braces =
              ( 1 - S "{}" )
            ) ^ 0
     }
-local Beamer = P ( false )
-local BeamerBeginEnvironments = P ( true )
-local BeamerEndEnvironments = P ( true )
-local BeamerNamesEnvironments =
-  P "uncoverenv" + P "onlyenv" + P "visibleenv" + P "invisibleenv"
-  + P "alertenv" + P "actionenv"
-function OneBeamerEnvironment(name)
-  return
-      Ct ( Cc "Open"
-            * C (
-                  P ( "\\begin{" .. name ..   "}" )
-                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
-                )
-           * Cc ( "\\end{" .. name ..  "}" )
-          )
-     * (
-         C ( ( 1 - P ( "\\end{" .. name .. "}" ) ) ^ 0 )
-         / ( function (s) return MainLoopPython:match(s) end )
-       )
-     * P ( "\\end{" .. name ..  "}" ) * Ct ( Cc "Close" )
-end
 if piton_beamer
 then
   Beamer =
@@ -1266,12 +1256,12 @@ then
          )
        * ( C ( balanced_braces ) / (function (s) return MainLoopPython:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
-    + OneBeamerEnvironment "uncoverenv"
-    + OneBeamerEnvironment "onlyenv"
-    + OneBeamerEnvironment "visibleenv"
-    + OneBeamerEnvironment "invisibleenv"
-    + OneBeamerEnvironment "alertenv"
-    + OneBeamerEnvironment "actionenv"
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoopPython )
+    + OneBeamerEnvironment ( "onlyenv" , MainLoopPython )
+    + OneBeamerEnvironment ( "visibleenv" , MainLoopPython )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoopPython )
+    + OneBeamerEnvironment ( "alertenv" , MainLoopPython )
+    + OneBeamerEnvironment ( "actionenv" , MainLoopPython )
     +
       L (
           ( P "\\alt" )
@@ -1294,20 +1284,6 @@ then
       * L ( P "}{" )
       * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}" )
-  BeamerBeginEnvironments =
-      ( space ^ 0 *
-        L
-          (
-            P "\\begin{" * BeamerNamesEnvironments * "}"
-            * ( P "<" * ( 1 - P ">") ^ 0 * P ">" ) ^ -1
-          )
-        * P "\r"
-      ) ^ 0
-  BeamerEndEnvironments =
-      ( space ^ 0 *
-        L ( P "\\end{" * BeamerNamesEnvironments * P "}" )
-        * P "\r"
-      ) ^ 0
 end
 local PromptHastyDetection = ( # ( P ">>>" + P "..." ) * Lc ( '\\__piton_prompt:' ) ) ^ -1
 local Prompt = K ( 'Prompt' , ( ( P ">>>" + P "..." ) * P " " ^ -1 ) ^ -1  )
@@ -1444,15 +1420,6 @@ local DefFunction =
       * SkipSpace
       * StringDoc ^ 0 -- there may be additionnal docstrings
     ) ^ -1
-local ItemDict =
-  ShortString * SkipSpace * Q ( P ":" ) * K ( 'Dict.Value' , expression  )
-
-local ItemOfSet = SkipSpace * ( ItemDict + ShortString ) * SkipSpace
-
-local Set =
-  Q ( P "{" )
-  * ItemOfSet * ( Q ( P "," ) * ItemOfSet )  ^ 0
-  * Q ( P "}" )
 local ExceptionInConsole = Exception *  Q ( ( 1 - P "\r" ) ^ 0 ) * EOL
 local MainPython =
        EOL
@@ -1464,7 +1431,6 @@ local MainPython =
      + LongString
      + Comment
      + ExceptionInConsole
-     + Set
      + Delim
      + Operator
      + OperatorWord * ( Space + Punct + Delim + EOL + -1 )
@@ -1498,7 +1464,6 @@ python =
        * -1
        * Lc '\\__piton_end_line:'
      )
-local languages = { }
 languages['python'] = python
 local Delim = Q ( P "[|" + P "|]" + S "[()]" )
 local Punct = Q ( S ",:;!" )
@@ -1573,11 +1538,11 @@ local Keyword =
   K ( 'Keyword' ,
       P "assert" + P "as" + P "begin" + P "class" + P "constraint" + P "done"
   + P "downto" + P "do" + P "else" + P "end" + P "exception" + P "external"
-  + P "false" + P "for" + P "function" + P "functor" + P "fun"  + P "if"
+  + P "for" + P "function" + P "functor" + P "fun"  + P "if"
   + P "include" + P "inherit" + P "initializer" + P "in"  + P "lazy" + P "let"
   + P "match" + P "method" + P "module" + P "mutable" + P "new" + P "object"
   + P "of" + P "open" + P "private" + P "raise" + P "rec" + P "sig"
-  + P "struct" + P "then" + P "to" + P "true" + P "try" + P "type"
+  + P "struct" + P "then" + P "to" + P "try" + P "type"
   + P "value" + P "val" + P "virtual" + P "when" + P "while" + P "with" )
   + K ( 'Keyword.Constant' , P "true" + P "false" )
 
@@ -1605,19 +1570,27 @@ local balanced_braces =
 if piton_beamer
 then
   Beamer =
-      L  ( P "\\pause" * ( P "[" * (1 - P "]") ^ 0 * P "]" ) ^ -1 )
+      L ( P "\\pause" * ( P "[" * ( 1 - P "]" ) ^ 0 * P "]" ) ^ -1 )
     +
-      (   P "\\uncover"   * Lc ( '\\__piton_beamer_command:n{uncover}' )
-        + P "\\only"      * Lc ( '\\__piton_beamer_command:n{only}' )
-        + P "\\alert"     * Lc ( '\\__piton_beamer_command:n{alert}' )
-        + P "\\visible"   * Lc ( '\\__piton_beamer_command:n{visible}' )
-        + P "\\invisible" * Lc ( '\\__piton_beamer_command:n{invisible}' )
-        + P "\\action"    * Lc ( '\\__piton_beamer_command:n{action}' )
-      )
-      *
-      L ( ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 * P "{" )
-      * K ( 'ParseAgain.noCR' , balanced_braces )
-      * L ( P "}" )
+      Ct ( Cc "Open"
+            * C (
+                  (
+                    P "\\uncover" + P "\\only" + P "\\alert" + P "\\visible"
+                    + P "\\invisible" + P "\\action"
+                  )
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
+                  * P "{"
+                )
+            * Cc "}"
+         )
+       * ( C ( balanced_braces ) / (function (s) return MainLoopOCaml:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" )
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoopOCaml )
+    + OneBeamerEnvironment ( "onlyenv" , MainLoopOCaml )
+    + OneBeamerEnvironment ( "visibleenv" , MainLoopOCaml )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoopOCaml )
+    + OneBeamerEnvironment ( "alertenv" , MainLoopOCaml )
+    + OneBeamerEnvironment ( "actionenv" , MainLoopOCaml )
     +
       L (
           ( P "\\alt" )
@@ -1640,20 +1613,6 @@ then
       * L ( P "}{" )
       * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}" )
-  BeamerBeginEnvironments =
-      ( space ^ 0 *
-        L
-          (
-            P "\\begin{" * BeamerNamesEnvironments * "}"
-            * ( P "<" * ( 1 - P ">") ^ 0 * P ">" ) ^ -1
-          )
-        * P "\r"
-      ) ^ 0
-  BeamerEndEnvironments =
-      ( space ^ 0 *
-        L ( P "\\end{" * BeamerNamesEnvironments * P "}" )
-        * P "\r"
-      ) ^ 0
 end
 local EOL =
   P "\r"
@@ -1842,6 +1801,201 @@ ocaml =
        * Lc ( '\\__piton_end_line:' )
      )
 languages['ocaml'] = ocaml
+local Operator =
+  K ( 'Operator' ,
+      P "!=" + P "==" + P "<<" + P ">>" + P "<=" + P ">="
+      + P "||" + P "&&" + S "-~+/*%=<>&.@|!"
+    )
+
+local Keyword =
+  K ( 'Keyword' ,
+      P "alignas" + P "asm" + P "auto" + P "break" + P "case" + P "catch"
+      + P "class" + P "const" + P "constexpr" + P "continue"
+      + P "decltype" + P "do" + P "else" + P "enum" + P "extern"
+      + P "for" + P "goto" + P "if" + P "nexcept" + P "private" + P "public"
+      + P "register" + P "restricted" + P "return" + P "static" + P "static_assert"
+      + P "struct" + P "switch" + P "thread_local" + P "throw" + P "try"
+      + P "typedef" + P "union" + P "using" + P "virtual" + P "volatile"
+      + P "while"
+    )
+  + K ( 'Keyword.Constant' ,
+        P "default" + P "false" + P "NULL" + P "nullptr" + P "true"
+      )
+
+local Builtin =
+  K ( 'Name.Builtin' ,
+      P "alignof" + P "malloc" + P "printf" + P "scanf" + P "sizeof"
+    )
+
+local Type =
+  K ( 'Name.Type' ,
+      P "bool" + P "char" + P "char16_t" + P "char32_t" + P "double"
+      + P "float" + P "int" + P "int8_t" + P "int16_t" + P "int32_t"
+      + P "int64_t" + P "long" + P "short" + P "signed" + P "unsigned"
+      + P "void" + P "wchar_t"
+    )
+
+local DefFunction =
+  Type
+  * Space
+  * K ( 'Name.Function.Internal' , identifier )
+  * SkipSpace
+  * # P "("
+local DefClass =
+  K ( 'Keyword' , P "class" ) * Space * K ( 'Name.Class' , identifier )
+local String =
+  WithStyle ( 'String.Long' ,
+      Q "\""
+      * ( VisualSpace
+          + K ( 'String.Interpol' ,
+                P "%" * ( S "difcspxXou" + P "ld" + P "li" + P "hd" + P "hi" )
+              )
+          + Q ( ( P "\\\"" + 1 - S " \"" ) ^ 1 )
+        ) ^ 0
+      * Q "\""
+    )
+local balanced_braces =
+  P { "E" ,
+       E =
+           (
+             P "{" * V "E" * P "}"
+             +
+             String
+             +
+             ( 1 - S "{}" )
+           ) ^ 0
+    }
+if piton_beamer
+then
+  Beamer =
+      L ( P "\\pause" * ( P "[" * ( 1 - P "]" ) ^ 0 * P "]" ) ^ -1 )
+    +
+      Ct ( Cc "Open"
+            * C (
+                  (
+                    P "\\uncover" + P "\\only" + P "\\alert" + P "\\visible"
+                    + P "\\invisible" + P "\\action"
+                  )
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
+                  * P "{"
+                )
+            * Cc "}"
+         )
+       * ( C ( balanced_braces ) / (function (s) return MainLoopC:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" )
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoopC )
+    + OneBeamerEnvironment ( "onlyenv" , MainLoopC )
+    + OneBeamerEnvironment ( "visibleenv" , MainLoopC )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoopC )
+    + OneBeamerEnvironment ( "alertenv" , MainLoopC )
+    + OneBeamerEnvironment ( "actionenv" , MainLoopC )
+    +
+      L (
+          ( P "\\alt" )
+          * P "<" * (1 - P ">") ^ 0 * P ">"
+          * P "{"
+        )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}" )
+    +
+      L (
+          ( P "\\temporal" )
+          * P "<" * (1 - P ">") ^ 0 * P ">"
+          * P "{"
+        )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}" )
+end
+local PromptHastyDetection = ( # ( P ">>>" + P "..." ) * Lc ( '\\__piton_prompt:' ) ) ^ -1
+local Prompt = K ( 'Prompt' , ( ( P ">>>" + P "..." ) * P " " ^ -1 ) ^ -1  )
+local EOL =
+  P "\r"
+  *
+  (
+    ( space^0 * -1 )
+    +
+    Ct (
+         Cc "EOL"
+         *
+         Ct (
+              Lc "\\__piton_end_line:"
+              * BeamerEndEnvironments
+              * BeamerBeginEnvironments
+              * PromptHastyDetection
+              * Lc "\\__piton_newline: \\__piton_begin_line:"
+              * Prompt
+            )
+       )
+  )
+  *
+  SpaceIndentation ^ 0
+local Preproc =
+  K ( 'Preproc' , P "#" * (1 - P "\r" ) ^ 0  ) * ( EOL + -1 )
+local CommentMath =
+  P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
+
+local Comment =
+  WithStyle ( 'Comment' ,
+     Q ( P "//" )
+     * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 )
+  * ( EOL + -1 )
+
+local LongComment =
+  WithStyle ( 'Comment' ,
+               Q ( P "/*" )
+               * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0
+               * Q ( P "*/" )
+            ) -- $
+local CommentLaTeX =
+  P(piton.comment_latex)
+  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces"
+  * L ( ( 1 - P "\r" ) ^ 0 )
+  * Lc "}}"
+  * ( EOL + -1 )
+local MainC =
+       EOL
+     + Space
+     + Tab
+     + Escape
+     + CommentLaTeX
+     + Beamer
+     + Preproc
+     + Comment + LongComment
+     + Delim
+     + Operator
+     + String
+     + Punct
+     + DefFunction
+     + DefClass
+     + Type * ( Q ( "*" ) ^ -1 + Space + Punct + Delim + EOL + -1 )
+     + Keyword * ( Space + Punct + Delim + EOL + -1 )
+     + Builtin * ( Space + Punct + Delim + EOL + -1 )
+     + Identifier
+     + Number
+     + Word
+MainLoopC =
+  (  ( space^1 * -1 )
+     + MainC
+  ) ^ 0
+languageC =
+  Ct (
+       ( ( space - P "\r" ) ^0 * P "\r" ) ^ -1
+       * BeamerBeginEnvironments
+       * PromptHastyDetection
+       * Lc '\\__piton_begin_line:'
+       * Prompt
+       * SpaceIndentation ^ 0
+       * MainLoopC
+       * -1
+       * Lc '\\__piton_end_line:'
+     )
+languages['c'] = languageC
 function piton.Parse(language,code)
   local t = languages[language] : match ( code )
   if t == nil

@@ -59,13 +59,12 @@
   } 
 
 
-
-
 \NewDocumentCommand {\pkg} {m} {\textsf{#1}}
 \NewDocumentCommand {\cls} {m} {\textsf{#1}}
 
 \setlength{\parindent}{0pt}
 
+\def\CC{{C\nolinebreak[4]\hspace{-.05em}\raisebox{.4ex}{\tiny\bfseries ++}}}
 
 \begin{document}
 
@@ -81,8 +80,9 @@ version~\myfileversion\space de \pkg{piton}, à la date du~\myfiledate.}}
 \maketitle
 
 \begin{abstract}
-L'extension \pkg{piton} propose des outils pour composer du code Python avec une coloration syntaxique
-en utilisant la bibliothèque Lua LPEG. L'extension \pkg{piton} nécessite l'emploi de LuaLaTeX.
+L'extension \pkg{piton} propose des outils pour composer des codes informatiques en Python, OCaml et C avec une
+coloration syntaxique en utilisant la bibliothèque Lua LPEG. L'extension \pkg{piton} nécessite l'emploi de
+LuaLaTeX.
 \end{abstract}
 
 
@@ -91,11 +91,11 @@ en utilisant la bibliothèque Lua LPEG. L'extension \pkg{piton} nécessite l'emp
 
 L'extension \pkg{piton} utilise la librairie Lua nommée LPEG\footnote{LPEG est une librairie de capture de motifs
   (\emph{pattern-matching} en anglais) pour Lua, écrite en C, fondée sur les PEG (\emph{parsing expression
-    grammars}): \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} pour «parser» le code Python et le composer avec un
-coloriage syntaxique. Comme elle utilise du code Lua, elle fonctionne uniquement avec |lualatex| (et ne va pas
-fonctionner avec les autres moteurs de compilation LaTeX, que ce soit |latex|, |pdflatex| ou |xelatex|). Elle
-n'utilise aucun programme extérieur et la compilation ne requiert donc pas |--shell-escape|. La compilation est
-très rapide puisque tout le travail du parseur est fait par la librairie LPEG, écrite en C.
+    grammars}): \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} pour «parser» le code Python, OCaml ou C et le
+composer avec un coloriage syntaxique. Comme elle utilise du code Lua, elle fonctionne uniquement avec |lualatex|
+(et ne va pas fonctionner avec les autres moteurs de compilation LaTeX, que ce soit |latex|, |pdflatex| ou
+|xelatex|). Elle n'utilise aucun programme extérieur et la compilation ne requiert donc pas |--shell-escape|. La
+compilation est très rapide puisque tout le travail du parseur est fait par la librairie LPEG, écrite en C.
 
 \bigskip
 Voici un exemple de code Python composé avec l'environnement |{Piton}| proposé par \pkg{piton}.
@@ -130,7 +130,26 @@ fichier peut être placé dans le répertoire courant ou dans une arborescence |
 d'installer \pkg{piton} avec une distribution TeX comme MiKTeX, TeX~Live ou MacTeX.
 
 
+
 \section{Utilisation de l'extension}
+
+\subsection{Choix du langage}
+
+L'extension \pkg{piton} prend en charge trois langages informatiques : Python, OCaml et C, ou plutôt \CC.
+
+\smallskip
+Par défaut, le language est Python.
+
+\smallskip
+On peut changer de langage avec la clé |language| de |\PitonOptions| : 
+
+\smallskip
+|\PitonOptions{language = C}|
+
+\smallskip
+Dans la suite de ce document, on parlera de Python mais les fonctionnalités s'appliquent aussi aux autres langages.
+
+
 
 \subsection{Chargement de l'extension}
 
@@ -264,16 +283,22 @@ l'extension \pkg{piton}, il s'agit simplement de la fonte mono-chasse courante
 (\pkg{piton} utilise simplement en interne la commande LaTeX standard |\ttfamily|).
 
 
-\subsection{La commande \textbackslash PitonOptions}
+\subsection{Les clés de la commande \textbackslash PitonOptions}
 
 \NewDocumentCommand{\Definition}{m}
   {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily \vphantom{gl}#1}}}
 
 
 La commande |\PitonOptions| prend en argument une liste de couples \textsl{clé=valeur}. La portée des réglages
-effectués par cette commande est le groupe TeX courant.\footnote{On rappelle que tout environnement LaTeX est, en particulier, un groupe.}
+effectués par cette commande est le groupe TeX courant.\footnote{On rappelle que tout environnement LaTeX est, en
+  particulier, un groupe.}
+
+Ces clés peuvent aussi être appliquées à un environnement |{Piton}| individuel (entre crochets).
 
 \begin{itemize}
+\item La clé \Definition{language} spécifie le langage informatique considéré (la casse n'est pas prise en compte).
+Trois valeurs sont possibles : |Python|, |OCaml| et |C|. La valeur initiale est |Python|.
+
 \item La clé \Definition{gobble} prend comme valeur un entier positif $n$ : les $n$ premiers caractères de chaque
 ligne sont alors retirés (avant formatage du code) dans les environnements |{Piton}|. Ces $n$ caractères ne sont
 pas nécessairement des espaces.
@@ -294,9 +319,7 @@ les listings produits par la commande |\PitonInputFile|.
 
 \item Avec la clé \Definition{all-line-numbers}, \emph{toutes} les lignes sont numérotées, y compris les lignes vides.
 
-\item \colorbox{yellow!50}{\textbf{Nouveau 1.5}}\par\nobreak
-
-La clé \Definition{numbers-sep} est la distance horizontale entre les numéros de lignes (insérés par |line-numbers|
+\item La clé \Definition{numbers-sep} est la distance horizontale entre les numéros de lignes (insérés par |line-numbers|
 ou |all-line-numbers|) et les lignes du code informatique. La valeur initiale est 0.7~em.
 
 \item La clé \Definition{left-margin} fixe une marge sur la gauche. Cette clé peut être utile, en particulier, en
@@ -327,10 +350,9 @@ le prompt «|>>>|» (et sa continuation «|...|») caractéristique des consoles
 (\emph{read-eval-print loop}). Pour un exemple d'utilisation de cette clé, voir la partie \ref{pythonrepl}
 p.~\pageref{pythonrepl}.
 
-\item \colorbox{yellow!50}{\textbf{Nouveau 1.6}}\enskip La clé \Definition{width} fixe la largeur du listing
-produit. Cette largeur s'applique aux fonds colorés spécifiés par les clés |background-color| et
-|prompt-background-color| et également quand une coupure automatique des lignes est demandée par |break-lines|
-(cf.~\ref{line-breaks}, p.~\pageref{line-breaks}). 
+\item La clé \Definition{width} fixe la largeur du listing produit. Cette largeur s'applique aux fonds colorés
+spécifiés par les clés |background-color| et |prompt-background-color| et également quand une coupure automatique
+des lignes est demandée par |break-lines| (cf.~\ref{line-breaks}, p.~\pageref{line-breaks}).
 
 Cette clé peut prendre comme valeur une longueur explicite mais aussi la valeur spéciale~|min|. Avec cette valeur,
 la largeur sera calculée à partir de la largeur maximale des lignes de code. Attention : l'usage de cette valeur
@@ -361,52 +383,47 @@ intervenir sur ces espaces matérialisés, même si la clé |break-lines|\footno
 \begingroup
 \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 \begin{Verbatim}
-~emphase&\PitonOptions{line-numbers,auto-gobble,background-color = gray!15}@
-\begin{Piton}
-    from math import pi
-
-    def arctan(x,n=10):
-        """Calcule la valeur mathématique de arctan(x)
-
-        n est le nombre de termes de la somme
-        """
-        if x < 0:
-            return -arctan(-x) # appel récursif
-        elif x > 1: 
-            return pi/2 - arctan(1/x) 
-            #> (on a utilisé le fait que $\arctan(x)+\arctan(1/x)=\pi/2$ pour $x>0$)
-        else: 
-            s = 0
-            for k in range(n):
-                s += (-1)**k/(2*k+1)*x**(2*k+1)
-            return s 
+~emphase&\begin{Piton}[language=C,line-numbers,auto-gobble,background-color = gray!15]@
+    void bubbleSort(int arr[], int n) {
+        int temp;
+        int swapped;
+        for (int i = 0; i < n-1; i++) {
+            swapped = 0;
+            for (int j = 0; j < n - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                    swapped = 1; 
+                }
+            }
+            if (!swapped) break;
+        }
+    }   
 \end{Piton}
 \end{Verbatim}
 \endgroup
 
 
-\begingroup
-\PitonOptions{line-numbers,auto-gobble,background-color = gray!15}
-\begin{Piton}
-    from math import pi
-
-    def arctan(x,n=10):
-        """Compute the value of arctan(x)
-
-        n is the number of terms in the sum
-        """
-        if x < 0:
-            return -arctan(-x) # appel récursif
-        elif x > 1: 
-            return pi/2 - arctan(1/x) 
-            #> (on a utilisé le fait que $\arctan(x)+\arctan(1/x)=\pi/2$ pour $x>0$)
-        else: 
-            s = 0
-            for k in range(n):
-                s += (-1)**k/(2*k+1)*x**(2*k+1)
-            return s 
+\begin{Piton}[language=C,line-numbers,auto-gobble,background-color = gray!15]
+    void bubbleSort(int arr[], int n) {
+        int temp;
+        int swapped;
+        for (int i = 0; i < n-1; i++) {
+            swapped = 0;
+            for (int j = 0; j < n - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                    swapped = 1; 
+                }
+            }
+            if (!swapped) break;
+        }
+    }   
 \end{Piton}
-\endgroup
+
 
 
 
@@ -460,43 +477,6 @@ dans |piton.sty| sont inspirés par le style \pkg{manni} de Pygments.\footnote{V
   fond coloré dont la couleur est la couleur HTML |#F0F3F3|. Il est possible d'avoir la même couleur dans |{Piton}|
   avec l'instruction : |\PitonOptions{background-color = [HTML]{F0F3F3}}|}
 
-\begin{table}[htb]
-\centering
-\caption{Les styles proposés par \pkg{piton}}
-\label{Semantic}
-\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
-\toprule
-\normalfont Style  & Usage \\
-\midrule
-Number & les nombres \\
-String.Short & les chaînes de caractères courtes (entre \texttt{'} ou \texttt{"}) \\
-String.Long & les chaînes de caractères longues (entre \texttt{'''} ou \texttt{"""}) sauf les chaînes de
-              documentation \\
-String & cette clé fixe à la fois |String.Short| et |String.Long| \\
-String.Doc & les chaînes de documentation (seulement entre |"""| suivant PEP~257) \\
-String.Interpol & les éléments syntaxiques des champs des f-strings (c'est-à-dire les caractères \texttt{\{}et \texttt{\}}) \\
-Operator & les opérateurs suivants : \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ \verb|@| \\
-Operator.Word & les opérateurs suivants : |in|, |is|, |and|, |or| et |not| \\
-Name.Builtin & la plupart des fonctions prédéfinies par Python \\
-Name.Function & le nom des fonctions définies par l'utilisateur \emph{au moment de leur définition}, c'est-à-dire 
-                après le mot-clé \verb|def| \\ 
-Name.Decorator & les décorateurs (instructions débutant par \verb|@|) \\
-Name.Namespace & le nom des modules (= bibliothèques extérieures) \\
-Name.Class & le nom des classes au moment de leur définition, c'est-à-dire après le mot-clé \verb|class| \\
-Exception & le nom des exceptions prédéfinies (ex.: SyntaxError) \\
-Comment & les commentaires commençant par \texttt{\#} \\
-Comment.LaTeX & les commentaires commençant par \texttt{\#>} qui sont composés en LaTeX par \pkg{piton} (et
-                appelés simplement «commentaires LaTeX» dans ce document) \\
-Keyword.Constant & |True|, |False| et |None| \\
-Keyword & les mots-clés suivants :
-          \ttfamily assert, break, case, continue, del,
-          elif, else, except, exec, finally, for, from, 
-          global, if, import, lambda, non local,
-          pass, raise, return, try, while,
-          with, yield, yield from.\\
-\bottomrule
-\end{tabularx}
-\end{table}
 
 \bigskip
 La commande |\PitonStyle| prend en argument le nom d'un style et permet de récupérer la valeur (en tant que liste
@@ -511,13 +491,12 @@ La syntaxe |{\PitonStyle{|\textsl{\texttt{style}}|}{...}}| est nécessaire pour 
 semi-globales et des commandes à argument présentes dans la valeur courante du style \texttt{\textsl{style}}.
 
 
-\vspace{1cm} \colorbox{yellow!50}{\textbf{Nouveau 1.6}}\par\nobreak
-
-Il existe un style spécial nommé |UserFunction|. Ce style s'applique aux noms des fonctions précédemment définies
+\bigskip
+Il existe un style spécial nommé |UserFunction|. Ce style s'applique aux noms des fonctions précédemment définies 
 par l'utilisateur via une instruction Python \piton{def} dans l'un des listings précédents. La valeur initiale de
 ce style est nulle (=vide), ce qui fait que ces noms de fonctions sont formatés comme du texte courant (en noir).
 Néanmoins, il est possible de changer la valeur de ce style, comme tous les autres styles, avec la commande
-|\PitonSetStyle|.
+|\SetPitonStyle|.
 
 
 \medskip
@@ -527,7 +506,7 @@ Dans l'exemple suivant, on prend comme valeur de ce style |UserFunction| la vale
 \begingroup
 
 \begin{Verbatim}
-\PitonSetStyle{~emphase#UserFunction@ = \color[HTML]{CC00FF}}
+\SetPitonStyle{~emphase#UserFunction@ = \color[HTML]{CC00FF}}
 \end{Verbatim}
 
 \SetPitonStyle{UserFunction = \color[HTML]{CC00FF}}
@@ -554,7 +533,7 @@ par l'utilisateur (d'où le nom |UserFunction| pour ce style).
 
 \bigskip
 Bien sûr, la liste des noms de fonctions Python précédemment définies est gardée en mémoire de LuaLaTeX (de manière
-globale, c'est-à-dire indépendamment des groupes TeX). L'extension \pkg{piton} fournit une commande pour permet de
+globale, c'est-à-dire indépendamment des groupes TeX). L'extension \pkg{piton} fournit une commande qui permet de
 vider cette liste : c'est la commande |\PitonClearUserFunctions|.
 
 
@@ -572,13 +551,6 @@ commande classique |\NewDocumentEnvironment|.
 \bigskip
 Par exemple, avec l'instruction suivante, un nouvel environnement |{Python}| sera défini avec le même comportement
 que l'environnement |{Piton}|:
-
-{\color{gray}\verb|\NewPitonEnvironment{Python}{}{}{}|}
-
-
-\bigskip
-Si on souhaite un environnement |{Python}| qui prenne en argument optionnel entre crochets les clés de
-|\PitonOptions|, on peut écrire :
 
 {\color{gray}\verb|\NewPitonEnvironment{Python}{O{}}{\PitonOptions{#1}}{}|}
 
@@ -1080,7 +1052,7 @@ que la commande |\alert| s'appuie sur cet environnement |{alertenv}|).
 Par défaut les listings produits par l'environnement |{Piton}| et par la commande |\PitonInputFile| sont
 insécables.
 
-Néanmoins, la commande |\PitonOptions| propose la clé |splittable| pour autoriser de telles coupures.
+Néanmoins, la commande |\PitonOptions| propose la clé \Definition{splittable} pour autoriser de telles coupures.
 
 \begin{itemize}
 \item Si la clé |splittable| est utilisée sans valeur, les listings sont sécables n'importe où.
@@ -1107,30 +1079,31 @@ Par défaut, les éléments produits par \pkg{piton} ne peuvent pas être coupé
 néanmoins des clés pour autoriser de telles coupures (les points de coupure possibles sont les espaces, y compris
 les espaces dans les chaînes Python).
 \begin{itemize}
-\item Avec la clé |break-lines-in-piton|, les coupures de ligne sont autorisées dans la commande |\piton{...}|
-(mais pas dans la commande \verb+\piton|...|+, c'est-à-dire avec la syntaxe verbatim). 
+\item Avec la clé \Definition{break-lines-in-piton}, les coupures de ligne sont autorisées dans la commande
+|\piton{...}| (mais pas dans la commande \verb+\piton|...|+, c'est-à-dire avec la syntaxe verbatim). 
 
-\item Avec la clé |break-lines-in-Piton|, les coupures de ligne sont autorisées dans l'environnement |{Piton}|
-(d'où la lettre |P| capitale dans le nom) et les listings produits par |\PitonInputFile|.
+\item Avec la clé \Definition{break-lines-in-Piton}, les coupures de ligne sont autorisées dans l'environnement
+|{Piton}| (d'où la lettre |P| capitale dans le nom) et les listings produits par |\PitonInputFile|.
 
-\item La clé |break-lines| est la conjonction des deux clés précédentes.
+\item La clé \Definition{break-lines} est la conjonction des deux clés précédentes.
 \end{itemize}
 
 \medskip
 L'extension \pkg{piton} fournit aussi plusieurs clés pour contrôler l'apparence des coupures de ligne autorisées par |break-lines-in-Piton|.
 
 \begin{itemize}
-\item Avec la clé |indent-broken-lines|, l'indentation de la ligne coupée est respectée à chaque retour à la ligne.
+\item Avec la clé \Definition{indent-broken-lines}, l'indentation de la ligne coupée est respectée à chaque retour
+à la ligne. 
 
-\item La clé |end-of-broken-line| correspond au symbole placé à la fin d'une ligne coupée. Sa valeur initiale est : 
+\item La clé \Definition{end-of-broken-line} correspond au symbole placé à la fin d'une ligne coupée. Sa valeur initiale est : 
 |\hspace*{0.5em}\textbackslash|.
 
-\item La clé |continuation-symbol| correspond au symbole placé à chaque retour de ligne dans la  marge gauche. Sa 
-valeur initiale est : |+\;|.
+\item La clé \Definition{continuation-symbol} correspond au symbole placé à chaque retour de ligne dans la marge
+gauche. Sa valeur initiale est : |+\;|.
 
-\item La clé |continuation-symbol-on-indentation| correspond au symbole placé à chaque retour de ligne au niveau de
-l'indentation (uniquement dans le cas où la clé |indent-broken-lines| est active). Sa valeur initiale est :
-|$\hookrightarrow\;$|.
+\item La clé \Definition{continuation-symbol-on-indentation} correspond au symbole placé à chaque retour de ligne
+au niveau de l'indentation (uniquement dans le cas où la clé |indent-broken-lines| est active). Sa valeur initiale
+est : |$\hookrightarrow\;$|.
 \end{itemize}
 
 \bigskip
@@ -1745,6 +1718,175 @@ L'exemple précédent donne alors :
 \end{PitonREPL}
 
 
+\newpage
+
+\section{Les styles pour les différents langages informatiques}
+
+\label{Semantic}
+
+
+\subsection{Le langage Python}
+
+Le langage par défaut de l'extension \pkg{piton} est Python. Si besoin est, on peut revenir au langage Python avec
+|\PitonOptions{language=Python}|. 
+
+\vspace{1cm}
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+  \toprule
+  \normalfont Style  & Usage \\
+  \midrule
+  Number & les nombres \\
+  String.Short & les chaînes de caractères courtes (entre \texttt{'} ou \texttt{"}) \\
+  String.Long & les chaînes de caractères longues (entre \texttt{'''} ou \texttt{"""}) sauf les chaînes de
+                documentation (qui sont gérées par |String.Doc|)\\
+  String & cette clé fixe à la fois |String.Short| et |String.Long| \\
+  String.Doc & les chaînes de documentation (seulement entre |"""| suivant PEP~257) \\
+  String.Interpol & les éléments syntaxiques des champs des f-strings (c'est-à-dire les caractères \texttt{\{} et
+                    \texttt{\}}) ; ce style hérite des styles |String.Short| et |String.Long| (suivant la chaîne où
+                    apparaît l'interpolation)\\
+  Interpol.Inside & le contenu des interpolations dans les f-strings (c'est-à-dire les éléments qui se trouvent entre
+                    \texttt{\{} et~\texttt{\}} ; si l'utilisateur n'a pas fixé ce style, ces éléments sont analysés et formatés par \pkg{piton}
+                    au même titre que le reste du code. \\
+                    Operator & les opérateurs suivants : \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ \verb|@| \\
+  Operator.Word & les opérateurs suivants : |in|, |is|, |and|, |or| et |not| \\
+  Name.Builtin & la plupart des fonctions prédéfinies par Python \\
+  Name.Decorator & les décorateurs (instructions débutant par \verb|@|) \\
+  Name.Namespace & le nom des modules (= bibliothèques extérieures) \\
+  Name.Class & le nom des classes au moment de leur définition, c'est-à-dire après le mot-clé \verb|class| \\
+  UserFunction & le nom des fonctions précédemment définies par l'utilisateur (la valeur initiale de ce paramètre est
+                 vide et ces éléments sont affichés en noir --- ou plutôt dans la couleur courante) \\
+  Exception & les exceptions prédéfinies (ex.: \texttt{SyntaxError}) \\
+  InitialValues & les valeurs initiales (et le symbole |=| qui précède) des arguments optionnels dans les définitions
+                  de fonctions ; si l'utilisateur n'a pas fixé ce style, ces éléments sont analysés et formatés par \pkg{piton}
+                  au même titre que le reste du code.\\
+  Comment & les commentaires commençant par \texttt{\#} \\
+  Comment.LaTeX & les commentaires commençant par \texttt{\#>} qui sont composés par \pkg{piton} comme du code LaTeX (et
+                  appelés simplement «commentaires LaTeX» dans ce document) \\
+  Keyword.Constant & |True|, |False| et |None| \\
+  Keyword & les mots-clés suivants :
+            \ttfamily assert, break, case, continue, del,
+            elif, else, except, exec, finally, for, from, 
+            global, if, import, lambda, non local,
+            pass, raise, return, try, while,
+            with, yield et yield from.\\
+  \bottomrule
+\end{tabularx}
+\end{center}
+
+
+\newpage
+
+\subsection{Le langage OCaml}
+
+On peut basculer vers le langage |OCaml| avec |\PitonOptions{language = OCaml}|
+
+\bigskip
+On peut aussi choisir le langage |OCaml| pour un environnement |{Piton}| individuel :
+%
+\begin{Verbatim}
+\begin{Piton}~emphase#[language=OCaml]@
+...
+\end{Piton}
+\end{Verbatim}
+
+
+\vspace{1cm}
+
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+  \toprule
+  \normalfont Style  & Usage \\
+  \midrule
+  Number & les nombres \\
+  String.Short & les caractères (entre \texttt{'}) \\
+  String.Long & les chaînes de caractères, entre |"| mais aussi les \emph{quoted-strings} \\
+  String & cette clé fixe à la fois |String.Short| et |String.Long| \\
+  Operator & les opérateurs, en particulier |+|, |-|, |/|, |*|, |@|, |!=|, |==|, |&&| \\
+  Operator.Word & les opérateurs suivants : |and|, |asr|, |land|, |lor|, |lsl|, |lxor|, |mod| et |or| \\
+  Name.Builtin & les fonctions |not|, |incr|, |decr|, |fst| et |snd| \\
+  Name.Type & le nom des types OCaml \\
+  Name.Field & le nom d'un champ de module \\
+  Name.Constructor & le nom des constructeurs de types (qui débutent par une majuscule) \\
+  Name.Module & le nom des modules \\
+  Name.Function & le nom des fonctions définies par l'utilisateur \emph{au moment de leur définition} (après le
+                  mot-clé |let|) \\
+  UserFunction & le nom des fonctions précédemment définies par l'utilisateur 
+                 (la valeur initiale de ce paramètre est
+                 vide et ces éléments sont affichés en noir --- ou plutôt dans la couleur courante) \\
+  Exception & les exceptions prédéfinies (ex. : |End_of_File|) \\
+  TypeParameter & les paramétreurs de type \\
+  Comment & les commentaires, entre |(*| et |*)| ; ces commentaires peuvent être imbriqués \\
+  Keyword.Constant & |true| et |false| \\
+  Keyword & les mots-clés suivants :
+            |assert|, |as|, |begin|, |class|, |constraint|, |done|,
+            |downto|, |do|, |else|, |end|, |exception|, |external|,
+            |for|, |function|, |functor|, |fun| , |if| 
+            |include|, |inherit|, |initializer|, |in| , |lazy|, |let|,
+            |match|, |method|, |module|, |mutable|, |new|, |object|,
+            |of|, |open|, |private|, |raise|, |rec|, |sig|,
+            |struct|, |then|, |to|, |try|, |type|, 
+            |value|, |val|, |virtual|, |when|, |while| et |with| \\
+  \bottomrule
+\end{tabularx}
+\end{center}
+
+\newpage
+
+\subsection[Le langage C (et C++)]{Le langage C (et \CC)}
+
+
+On peut basculer vers le langage |C| avec |\PitonOptions{language = C}|
+
+\bigskip
+On peut aussi choisir le langage |C| pour un environnement |{Piton}| individuel :
+%
+\begin{Verbatim}
+\begin{Piton}~emphase#[language=C]@
+...
+\end{Piton}
+\end{Verbatim}
+
+
+\vspace{1cm}
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\normalfont Style  & Usage \\
+\midrule
+Number & les nombres \\
+String.Long & les chaînes de caractères (entre \texttt{"}) \\
+String.Interpol &  les éléments \texttt{\%d}, \texttt{\%i}, \texttt{\%f}, \texttt{\%c}, etc. dans les chaînes de
+                  caractères ; ce style hérite du style |String.Long| \\
+Operator & les opérateurs suivants : \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ \verb|@| \\
+Name.Type & les types prédéfinis suivants :
+  |bool|, |char|, |char16_t|, |char32_t|, |double|, |float|, |int|, |int8_t|, |int16_t|, |int32_t|, 
+  |int64_t|, |long|, |short|, |signed|, |unsigned|, |void| et |wchar_t| \\ 
+Name.Builtin & les fonctions prédéfinies suivantes : |printf|, |scanf|, |malloc|, |sizeof| et  |alignof|  \\
+  Name.Class & le nom des classes au moment de leur définition, c'est-à-dire après le mot-clé \verb|class| \\
+Name.Function & le nom des fonctions définies par l'utilisateur \emph{au moment de leur définition} \\
+UserFunction & le nom des fonctions précédemment définies par l'utilisateur (la valeur initiale de ce paramètre est
+               vide et ces éléments sont affichés en noir --- ou plutôt dans la couleur courante) \\
+Preproc & les instructions du préprocesseur (commençant par |#|) \\
+Comment & les commentaires (commençant par \texttt{//} ou entre |/*| et |*/|) \\
+Comment.LaTeX & les commentaires commençant par \texttt{//>} qui sont composés par \pkg{piton} comme du code LaTeX (et
+                appelés simplement «commentaires LaTeX» dans ce document) \\
+Keyword.Constant & |default|, |false|, |NULL|, |nullptr| et |true| \\
+Keyword & les mots-clés suivants :
+|alignas|, |asm|, |auto|, |break|, |case|, |catch|, |class|, 
+|constexpr|, |const|, |continue|, |decltype|, |do|, |else|, |enum|,
+|extern|, |for|, |goto|, |if|, |nexcept|, |private|, |public|, |register|, |restricted|, |try|, 
+|return|, |static|, |static_assert|, |struct|, |switch|, |thread_local|, |throw|, 
+|typedef|, |union|, |using|, |virtual|, |volatile| et |while|
+\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\newpage
 
 \section*{Autre documentation}
 
@@ -1769,5 +1911,7 @@ Le développement de l'extension \pkg{piton} se fait sur le dépôt GitHub suiva
 \verb|https://github.com/fpantigny/piton|
 
 \tableofcontents
+
+
 
 \end{document}
