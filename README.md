@@ -11,7 +11,7 @@ The LaTeX extension `piton` is distributed under the LPPL 1.3 license.
 
 ## Presentation
 
-The LaTeX package `piton` provides a command `\piton` and an environment `{Piton}` to typeset Python codes by using the Lua library LPEG. It requires the use of `lualatex`. It won't work with `xelatex` nor `pdflatex`. 
+The LaTeX package `piton` provides a command `\piton` and an environment `{Piton}` to typeset Python, OCaml or C++  codes by using the Lua library LPEG. It requires the use of `lualatex`. It won't work with `xelatex` nor `pdflatex`. 
 
 
 

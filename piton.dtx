@@ -15,8 +15,8 @@
 %
 % \fi
 % \iffalse
-\def\myfileversion{2.0}
-\def\myfiledate{2023/08/01}
+\def\myfileversion{2.0z}
+\def\myfiledate{2023/08/31}
 %
 %
 %<*batchfile> 
@@ -2197,7 +2197,20 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \tl_new:N \l_@@_prompt_bg_color_tl
 %    \end{macrocode}
-% 
+%
+% \medskip
+% The following parameters correspond to the keys |begin-range| and |end-range| of
+% the command |\PitonInputFile|.
+%    \begin{macrocode}
+\str_new:N \l_@@_begin_range_str
+\str_new:N \l_@@_end_range_str
+%    \end{macrocode}
+%
+% \medskip
+% The argument of |\PitonInputFile|.
+%    \begin{macrocode}
+\str_new:N \l_@@_file_name_str 
+%    \end{macrocode}
 %
 % \medskip
 % We will count the environments |{Piton}| (and, in fact, also the commands
@@ -2707,6 +2720,10 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \keys_define:nn { PitonOptions }
   {
+    range-prefix     .str_set:N          = \l_@@_range_prefix_str , 
+    range-prefix     .value_required:n  = true , 
+    range-suffix     .str_set:N          = \l_@@_range_suffix_str , 
+    range-suffix     .value_required:n  = true , 
     language         .code:n = 
       \str_set:Nx \l_@@_language_str { \str_lowercase:n { #1 } } , 
     language         .value_required:n  = true ,
@@ -3036,6 +3053,12 @@ version 2005/12/01 or later.
     first-line .value_required:n = true ,
     last-line .int_set:N = \l_@@_last_line_int , 
     last-line .value_required:n = true , 
+    begin-range .str_set:N = \l_@@_begin_range_str ,
+    begin-range .value_required:n = true ,
+    end-range .str_set:N = \l_@@_end_range_str ,
+    end-range .value_required:n = true ,
+    range .meta:n = { begin-range = #1 , end-range = #1 } ,
+    unknown .code:n = \msg_error:nn { piton } { unknown~key~for~PitonInputFile } 
   }
 %    \end{macrocode}
 %
@@ -3272,6 +3295,7 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_input_file:nnn #1 #2 #3
   {
+    \str_set:Nn \l_@@_file_name_str { #3 }
 %    \end{macrocode}
 % We recall that, if we are in Beamer, the command |\PitonInputFile| is
 % ``overlay-aware'' and that's why there is an optional argument between angular
@@ -3288,6 +3312,24 @@ version 2005/12/01 or later.
       \int_zero_new:N \l_@@_last_line_int 
       \int_set_eq:NN \l_@@_last_line_int \c_max_int
       \keys_set:nn { PitonInputFile } { #2 }
+      \bool_if:nTF
+        {
+          ( 
+            \int_compare_p:nNn \l_@@_first_line_int > 0 
+            || \int_compare_p:nNn \l_@@_last_line_int < \c_max_int 
+          )
+          && 
+          (
+            ! \str_if_empty_p:N \l_@@_begin_range_str
+            || ! \str_if_empty_p:N \l_@@_end_range_str
+          ) 
+        }
+        { 
+          \msg_error:nn { piton } { bad~range~specification } 
+          \int_zero:N \l_@@_first_line_int
+          \int_set_eq:NN \l_@@_last_line_int \c_max_int
+        }
+        { \str_if_empty:NF \l_@@_begin_range_str \@@_compute_range:n }
       \@@_pre_env:
       \mode_if_vertical:TF \mode_leave_vertical: \newline 
 %    \end{macrocode}
@@ -3295,7 +3337,7 @@ version 2005/12/01 or later.
 % stored by Lua in |\l_@@_nb_lines_int|. That information will be used to allow
 % or disallow page breaks.
 %    \begin{macrocode}
-      \lua_now:n { piton.CountLinesFile(token.scan_argument()) } { #3 }  
+      \lua_now:e { piton.CountLinesFile('\l_@@_file_name_str') } 
 %    \end{macrocode}
 % The first argument of the following function is the name of the Lua function
 % that will be applied to the second argument in order to count the number of lines.
@@ -3308,12 +3350,11 @@ version 2005/12/01 or later.
       \lua_now:e
         { 
           piton.ParseFile(
-           '\l_@@_language_str',
-           token.scan_argument() ,
+           '\l_@@_language_str' ,
+           '\l_@@_file_name_str' ,
            \int_use:N \l_@@_first_line_int , 
            \int_use:N \l_@@_last_line_int ) 
         } 
-        { #3 }
       \egroup 
       \bool_if:NT \c_@@_footnote_bool { \end { savenotes } } 
       \bool_if:NT \l_@@_width_min_bool \@@_width_to_aux:
@@ -3329,6 +3370,26 @@ version 2005/12/01 or later.
   }
 %    \end{macrocode}
 %
+% \bigskip
+% The following function takes in as argument the name of the file (provided to
+% |\PitonInputFile|) and computes the values of |\l_@@_first_line_int| and
+% |\l_@@_last_line_int|. \emph{That functions takes in its argument by
+% currification}. 
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_compute_range:n 
+  {
+    \lua_now:e
+      { 
+        piton.ComputeRange
+          (
+            '\l_@@_range_prefix_str\l_@@_begin_range_str\l_@@_range_suffix_str' ,
+            '\l_@@_range_prefix_str\l_@@_end_range_str\l_@@_range_suffix_str' ,
+            '\l_@@_file_name_str' 
+          ) 
+      } 
+  }
+%    \end{macrocode}
+% 
 % \bigskip
 % \subsubsection{The styles}
 % 
@@ -3601,6 +3662,30 @@ version 2005/12/01 or later.
   }
 %    \end{macrocode}
 %
+%    \begin{macrocode}
+\msg_new:nnnn { piton } { unknown~key~for~PitonInputFile } 
+  {
+    Unknown~key. \\
+    The~key~'\l_keys_key_str'~is~unknown~for~\token_to_str:N \PitonInputFile.~
+    It~will~be~ignored.\\
+    For~a~list~of~the~available~keys,~type~H~<return>.
+  }
+  {
+    The~available~keys~are~(in~alphabetic~order):~
+    begin-range,~end-range,~first-line,~last-line~and~range.
+  }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\msg_new:nnn { piton } { bad~range~specification } 
+  {
+    Incompatible~keys.\\
+    You~can't~specify~the~range~of~lines~to~include~by~using~both~
+    markers~and~explicit~number~of~lines.\\
+    Your~whole~file~'\l_@@_file_name_str'~will~be~included.
+  }
+%    \end{macrocode}
+% 
 %   \begin{macrocode}
 \msg_new:nnn { piton } { syntax~error }
   {
@@ -3612,6 +3697,23 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \NewDocumentCommand \PitonSyntaxError { }
   { \msg_error:nn { piton } { syntax~error } }
+%    \end{macrocode}
+%
+%
+%    \begin{macrocode}
+\msg_new:nnn { piton } { marker~not~found }
+  {
+    Marker~not~found.\\
+    The~marker~'\l_@@_begin_range_str'~provided~to~the~  
+    command~\token_to_str:N \PitonInputFile\ has~not~been~found.~
+    The~whole~file~'\l_@@_file_name_str'~will~be~inserted.
+  }
+%    \end{macrocode}
+%
+%
+%    \begin{macrocode}
+\NewDocumentCommand \PitonMarkerNotFound { }
+  { \msg_error:nn { piton } { marker~not~found } }
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
@@ -3639,7 +3741,7 @@ version 2005/12/01 or later.
     break-lines,~
     break-lines-in-piton,~
     break-lines-in-Piton,~
-    continuation-symbol,~
+    continuation-symbol,~ 
     continuation-symbol-on-indentation,~
     end-of-broken-line,~
     env-gobble,~
@@ -3650,6 +3752,8 @@ version 2005/12/01 or later.
     left-margin,~
     line-numbers,~
     prompt-background-color,~
+    range-prefix,~
+    range-suffix,~
     resume,~
     show-spaces,~
     show-spaces-in-strings,~
@@ -5830,6 +5934,38 @@ function piton.CountNonEmptyLinesFile(name)
       luatexbase.catcodetables.expl , 
       '\\int_set:Nn \\l_@@_nb_non_empty_lines_int {' .. count .. '}' )
 end 
+%    \end{macrocode}
+%
+% 
+% \bigskip
+% The following function stores in |\l_@@_first_line_int| and
+% |\l_@@_last_line_int| the numbers of lines of the file |file_name|
+% corresponding to the strings |pattern_start| and |pattern_end|.
+%    \begin{macrocode}
+function piton.ComputeRange(pattern_start,pattern_end,file_name)
+  local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( pattern_start )
+  local t = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( pattern_end )
+  local first_line = -1
+  local count = 0
+  for line in io.lines(file_name)
+  do if first_line == -1
+     then if string.sub(line,1,#s) == s 
+          then first_line = count 
+          end 
+     else if string.sub(line,1,#t) == t
+          then break 
+          end 
+     end 
+     count = count + 1 
+  end
+  if first_line == -1 
+  then tex.sprint("\\PitonMarkerNotFound")
+  end
+  tex.sprint( 
+      luatexbase.catcodetables.expl , 
+      '\\int_set:Nn \\l_@@_first_line_int {' .. first_line .. ' + 2 }' 
+      .. '\\int_set:Nn \\l_@@_last_line_int {' .. count .. ' }' )
+end
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
