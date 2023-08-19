@@ -15,10 +15,10 @@
 %
 % \fi
 % \iffalse
-\def\myfileversion{2.0z}
+\def\myfileversion{2.0zz}
 \def\myfiledate{2023/08/31}
 %
-%
+% 
 %<*batchfile> 
 \begingroup
 \input l3docstrip.tex
@@ -1947,7 +1947,18 @@ version 2005/12/01 or later.
 %
 % \bigskip
 %    \begin{macrocode}
-\msg_new:nnn { piton } { LuaLaTeX~mandatory }
+\cs_new_protected:Npn \@@_error:n { \msg_error:nn { piton } }
+\cs_new_protected:Npn \@@_warning:n { \msg_warning:nn { piton } }
+\cs_new_protected:Npn \@@_error:nn { \msg_error:nnn { piton } }
+\cs_new_protected:Npn \@@_error:nnn { \msg_error:nnnn { piton } }
+\cs_new_protected:Npn \@@_fatal:n { \msg_fatal:nn { piton } }
+\cs_new_protected:Npn \@@_fatal:nn { \msg_fatal:nnn { piton } }
+\cs_new_protected:Npn \@@_msg_new:nn { \msg_new:nnn { piton } }
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+\@@_msg_new:nn { LuaLaTeX~mandatory }
   { 
     LuaLaTeX~is~mandatory.\\
     The~package~'piton'~requires~the~engine~LuaLaTeX.\\
@@ -2005,12 +2016,12 @@ version 2005/12/01 or later.
     math-comments .default:n  = true ,
     beamer        .bool_set:N = \c_@@_beamer_bool ,
     beamer        .default:n = true , 
-    unknown .code:n = \msg_error:nn { piton } { unknown~key~for~package }
+    unknown .code:n = \@@_error:n { Unknown~key~for~package }
   }
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-\msg_new:nnn { piton } { unknown~key~for~package }
+\@@_msg_new:nn { Unknown~key~for~package }
   {
     Unknown~key.\\
     You~have~used~the~key~'\l_keys_key_str'~but~the~only~keys~available~here~
@@ -2058,7 +2069,7 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 %    \begin{macrocode}     
-\msg_new:nnn { piton } { xcolor~not~loaded }
+\@@_msg_new:nn { xcolor~not~loaded }
   {
     xcolor~not~loaded \\
     The~package~'xcolor'~is~required~by~'piton'.\\
@@ -2068,7 +2079,7 @@ version 2005/12/01 or later.
 % 
 %
 %    \begin{macrocode}
-\msg_new:nnn { piton } { footnote~with~footnotehyper~package }
+\@@_msg_new:nn { footnote~with~footnotehyper~package }
   { 
     Footnote~forbidden.\\
     You~can't~use~the~option~'footnote'~because~the~package~
@@ -2081,7 +2092,7 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-\msg_new:nnn { piton } { footnotehyper~with~footnote~package }
+\@@_msg_new:nn { footnotehyper~with~footnote~package }
   { 
     You~can't~use~the~option~'footnotehyper'~because~the~package~
     footnote~has~already~been~loaded.~
@@ -2130,6 +2141,8 @@ version 2005/12/01 or later.
 % The flag |\c_@@_footnote_bool| is raised and so, we will only have to test
 % |\c_@@_footnote_bool| in order to know if we have to insert an environment
 % |{savenotes}|.
+%
+%
 % 
 % \bigskip
 % \subsubsection{Parameters and technical definitions}
@@ -2142,6 +2155,14 @@ version 2005/12/01 or later.
 \str_set:Nn \l_@@_language_str { python }
 %    \end{macrocode}
 % 
+% \medskip
+% In order to have a better control over the keys.
+%    \begin{macrocode}
+\bool_new:N \l_@@_in_PitonOptions_bool 
+\bool_new:N \l_@@_in_PitonInputFile_bool 
+%    \end{macrocode}
+%
+% \medskip
 % We will compute (with Lua) the numbers of lines of the Python code and store
 % it in the following counter.
 %    \begin{macrocode}
@@ -2408,10 +2429,22 @@ version 2005/12/01 or later.
           } 
         \@esphack
      }
-     { \msg_error:nn { piton } { label~with~lines~numbers } }
+     { \@@_error:n { label~with~lines~numbers } }
   }
 %    \end{macrocode}
 %
+% \bigskip
+% The following commands corresponds to the keys |marker/beginning| and
+% |marker/end|. The values of that keys are functions that will be applied to
+% the ``\emph{range}'' specified by the final user in an individual
+% |\PitonInputFile|. They will construct the markers used to find textually in
+% the external file loaded by \pkg{piton} the part which must be included (and
+% formatted). 
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_marker_beginning:n #1 { }
+\cs_new_protected:Npn \@@_marker_end:n #1 { }
+%    \end{macrocode}
+% 
 % 
 % \bigskip
 % The following commands are a easy way to insert safely braces (|{| and |}|) in
@@ -2517,12 +2550,22 @@ version 2005/12/01 or later.
         \skip_horizontal:N \l_@@_left_margin_dim
         \bool_if:NT \l_@@_line_numbers_bool
           {
-            \bool_if:NF \l_@@_all_line_numbers_bool
-              { \tl_if_eq:nnF  { #1 } { \PitonStyle {Prompt}{} } } 
-%    \end{macrocode}
-% Remember that |\@@_print_number:| always uses |\hbox_overlap_left:n|.
-%    \begin{macrocode}
-              \@@_print_number:
+            \bool_if:nF
+              { 
+                \str_if_eq_p:nn { #1 } { \PitonStyle {Prompt}{} } 
+                && 
+                \l_@@_skip_empty_lines_bool 
+              }
+              { \int_gincr:N \g_@@_visual_line_int}
+
+            \bool_if:nT
+              { 
+                ! \str_if_eq_p:nn { #1 } { \PitonStyle {Prompt}{} } 
+                ||
+                ( ! \l_@@_skip_empty_lines_bool && \l_@@_label_empty_lines_bool ) 
+              }
+              \@@_print_number: 
+
           }
 %    \end{macrocode}
 % If there is a background, we must remind that there is a left margin of 0.5~em
@@ -2601,7 +2644,7 @@ version 2005/12/01 or later.
       { 
         \hbox_to_wd:nn \l_@@_line_width_dim 
 %    \end{macrocode}
-% We unpack the bock in order to free the potential |\hfill| springs present in
+% We unpack the block in order to free the potential |\hfill| springs present in
 % the LaTeX comments (cf. section~\ref{example-comments}, p.~\pageref{example-comments}).
 %    \begin{macrocode}
           { \hbox_unpack:N \l_tmpa_box \hfil } 
@@ -2700,17 +2743,54 @@ version 2005/12/01 or later.
 % \subsubsection{PitonOptions}
 %
 % \medskip
-% The following parameters correspond to the keys |line-numbers| and
-% |all-line-numbers|.
 %    \begin{macrocode}
 \bool_new:N \l_@@_line_numbers_bool 
-\bool_new:N \l_@@_all_line_numbers_bool 
+\bool_new:N \l_@@_skip_empty_lines_bool 
+\bool_set_true:N \l_@@_skip_empty_lines_bool 
+\bool_new:N \l_@@_line_numbers_absolute_bool
+\bool_new:N \l_@@_label_empty_lines_bool
+\bool_set_true:N \l_@@_label_empty_lines_bool 
+%    \end{macrocode}
+% The following counter will be the value of |start| (subkey de |line-numbers|). 
+%    \begin{macrocode}
+\int_new:N \l_@@_number_lines_start_int
 %    \end{macrocode}
 % 
 % \medskip
 % The following flag corresponds to the key |resume|.
 %    \begin{macrocode}
 \bool_new:N \l_@@_resume_bool 
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+\keys_define:nn { Piton / line-numbers }
+  {
+    start .int_set:N = \l_@@_number_lines_start_int ,
+    start .value_required:n = true ,
+
+    skip-empty-lines .bool_set:N = \l_@@_skip_empty_lines_bool ,
+    skip-empty-lines .default:n = true , 
+
+    label-empty-lines .bool_set:N = \l_@@_label_empty_lines_bool ,
+    label-empty-lines .default:n = true ,
+
+    absolute .code:n = 
+      \bool_lazy_or:nnTF
+        \l_@@_in_PitonInputFile_bool 
+        \l_@@_in_PitonOptions_bool 
+        { 
+          \bool_set_true:N \l_@@_line_numbers_absolute_bool 
+          \bool_set_false:N \l_@@_skip_empty_lines_bool 
+        } 
+        { \@@_error:n { absolute~in~environment } } ,
+    absolute .value_forbidden:n = true , 
+
+    resume .bool_set:N = \l_@@_resume_bool , 
+    resume .default:n = true ,
+  
+    unknown .code:n = \@@_error:n { Unknown~key~for~line-numbers } 
+  }
 %    \end{macrocode}
 % 
 % \bigskip
@@ -2720,10 +2800,7 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \keys_define:nn { PitonOptions }
   {
-    range-prefix     .str_set:N          = \l_@@_range_prefix_str , 
-    range-prefix     .value_required:n  = true , 
-    range-suffix     .str_set:N          = \l_@@_range_suffix_str , 
-    range-suffix     .value_required:n  = true , 
+    marker           .code:n = \keys_set:nn { Piton / marker } { #1 } , 
     language         .code:n = 
       \str_set:Nx \l_@@_language_str { \str_lowercase:n { #1 } } , 
     language         .value_required:n  = true ,
@@ -2735,14 +2812,69 @@ version 2005/12/01 or later.
     env-gobble       .value_forbidden:n = true ,
     tabs-auto-gobble .code:n            = \int_set:Nn \l_@@_gobble_int { -3 } , 
     tabs-auto-gobble .value_forbidden:n = true ,
-    line-numbers     .bool_set:N        = \l_@@_line_numbers_bool ,
-    line-numbers     .default:n         = true ,
+
+    line-numbers .code:n = 
+      \bool_set_true:N \l_@@_line_numbers_bool 
+      \tl_if_novalue:nF { #1 }
+        { 
+          \str_if_eq:nnTF { #1 } { false } 
+            { \bool_set_false:N \l_@@_line_numbers_bool } 
+            { \keys_set:nn { Piton / line-numbers } { #1 } } 
+        } ,
+
+    line-numbers/start .code:n = 
+      \bool_if:NTF \l_@@_in_PitonOptions_bool
+        { \@@_error:n { start~in~PitonOptions } }
+        {
+          \bool_set_true:N \l_@@_line_numbers_bool 
+          \int_set:Nn \l_@@_number_lines_start_int { #1 }  
+        } ,
+    line-numbers/start .value_required:n = true ,
+
+    line-numbers/skip-empty-lines .code:n = 
+      \bool_if:NF \l_@@_in_PitonOptions_bool
+        { \bool_set_true:N \l_@@_line_numbers_bool }
+      \str_if_eq:nnTF { #1 } { false }
+        { \bool_set_false:N \l_@@_skip_empty_lines_bool } 
+        { \bool_set_true:N \l_@@_skip_empty_lines_bool } ,
+    line-numbers/skip-empty-lines .default:n = true , 
+
+    line-numbers/label-empty-lines .code:n = 
+      \bool_if:NF \l_@@_in_PitonOptions_bool
+        { \bool_set_true:N \l_@@_line_numbers_bool }
+      \str_if_eq:nnTF { #1 } { false }
+        { \bool_set_false:N \l_@@_label_empty_lines_bool } 
+        { \bool_set_true:N \l_@@_label_empty_lines_bool } ,
+    line-numbers/label-empty-lines .default:n = true ,
+
+    line-numbers/absolute .code:n = 
+      \bool_if:NF \l_@@_in_PitonOptions_bool
+        { \bool_set_true:N \l_@@_line_numbers_bool }
+      \bool_if:NT \l_@@_in_PitonOptions_bool
+        { \bool_set_true:N \l_@@_line_numbers_absolute_bool }
+      \bool_if:NT \l_@@_in_PitonInputFile_bool 
+        { 
+          \bool_set_true:N \l_@@_line_numbers_absolute_bool 
+          \bool_set_false:N \l_@@_skip_empty_lines_bool 
+        }
+      \bool_lazy_or:nnF
+        \l_@@_in_PitonInputFile_bool 
+        \l_@@_in_PitonOptions_bool 
+        { \@@_error:n { absolute~in~environment } } ,
+
+    line-numbers/absolute .value_forbidden:n = true ,
+
+    line-numbers/resume .bool_set:N = \l_@@_resume_bool , 
+    line-numbers/resume .value_forbidden:n = true ,
+
+    resume .meta:n = line-numbers/resume , 
+
+    % obsolete 
     all-line-numbers .code:n = 
       \bool_set_true:N \l_@@_line_numbers_bool 
-      \bool_set_true:N \l_@@_all_line_numbers_bool ,
+      \bool_set_false:N \l_@@_skip_empty_lines_bool ,
     all-line-numbers .value_forbidden:n = true  ,
-    resume           .bool_set:N        = \l_@@_resume_bool ,
-    resume           .value_forbidden:n = true ,
+
     splittable       .int_set:N         = \l_@@_splittable_int ,
     splittable       .default:n         = 1 , 
     background-color .clist_set:N       = \l_@@_bg_color_clist ,
@@ -2794,17 +2926,35 @@ version 2005/12/01 or later.
     continuation-symbol-on-indentation .tl_set:N = \l_@@_csoi_tl ,
     continuation-symbol-on-indentation .value_required:n = true , 
     unknown          .code:n = 
-      \msg_error:nn { piton } { Unknown~key~for~PitonOptions }
+      \@@_error:n { Unknown~key~for~PitonOptions }
   }
+\keys_define:nn { }
+  { PitonOptions / marker .inherit:n = Piton / marker }
 %    \end{macrocode}
 %
-% 
 %  \bigskip
+%    \begin{macrocode}
+\keys_define:nn { Piton / marker }
+  {
+    beginning .code:n = \cs_set:Nn \@@_marker_beginning:n { #1 } ,   
+    beginning .value_required:n = true , 
+    end .code:n = \cs_set:Nn \@@_marker_end:n { #1 } ,   
+    end .value_required:n = true ,
+    include-line .bool_set:N = \l_@@_marker_include_line_bool ,
+    include-line .default:n = true ,
+  }
+%    \end{macrocode}
+% 
 % 
 % \bigskip
 % The argument of |\PitonOptions| is provided by curryfication.
 %    \begin{macrocode}
-\NewDocumentCommand \PitonOptions { } { \keys_set:nn { PitonOptions } }
+\NewDocumentCommand \PitonOptions { m } 
+  { 
+    \bool_set_true:N \l_@@_in_PitonOptions_bool
+    \keys_set:nn { PitonOptions } { #1 }
+    \bool_set_false:N \l_@@_in_PitonOptions_bool
+  }
 %    \end{macrocode}
 %
 % \bigskip
@@ -2823,10 +2973,13 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_print_number:
   {
-    \int_gincr:N \g_@@_visual_line_int
     \hbox_overlap_left:n
       { 
-        { \color { gray } \footnotesize \int_to_arabic:n \g_@@_visual_line_int }
+        { 
+          \color { gray } 
+          \footnotesize 
+          \int_to_arabic:n \g_@@_visual_line_int 
+        } 
         \skip_horizontal:N \l_@@_numbers_sep_dim  
       }
   }
@@ -3058,7 +3211,42 @@ version 2005/12/01 or later.
     end-range .str_set:N = \l_@@_end_range_str ,
     end-range .value_required:n = true ,
     range .meta:n = { begin-range = #1 , end-range = #1 } ,
-    unknown .code:n = \msg_error:nn { piton } { unknown~key~for~PitonInputFile } 
+
+    line-numbers .code:n = 
+      \bool_set_true:N \l_@@_line_numbers_bool 
+      \tl_if_novalue:nF { #1 }
+        { 
+          \str_if_eq:nnTF { #1 } { false } 
+            { \bool_set_false:N \l_@@_line_numbers_bool } 
+            { \keys_set:nn { Piton / line-numbers } { #1 } } 
+        } ,
+
+    line-numbers/start .code:n = 
+      \bool_set_true:N \l_@@_line_numbers_bool 
+      \int_set:Nn \l_@@_number_lines_start_int { #1 } , 
+    line-numbers/start .value_required:n = true ,
+
+    line-numbers/skip-empty-lines .code:n = 
+      \bool_set_true:N \l_@@_line_numbers_bool 
+      \str_if_eq:nnTF { #1 } { false }
+        { \bool_set_false:N \l_@@_skip_empty_lines_bool } 
+        { \bool_set_true:N \l_@@_skip_empty_lines_bool } ,
+    line-numbers/skip-empty-lines .default:n = true , 
+
+    line-numbers/label-empty-lines .code:n = 
+      \bool_set_true:N \l_@@_line_numbers_bool 
+      \str_if_eq:nnTF { #1 } { false }
+        { \bool_set_false:N \l_@@_label_empty_lines_bool } 
+        { \bool_set_true:N \l_@@_label_empty_lines_bool } ,
+    line-numbers/label-empty-lines .default:n = true ,
+
+    line-numbers/absolute .code:n = 
+      \bool_set_true:N \l_@@_line_numbers_bool 
+      \bool_set_false:N \l_@@_skip_empty_lines_bool 
+      \bool_set_true:N \l_@@_line_numbers_absolute_bool , 
+    line-numbers/abolute .value_forbidden:n = true ,
+
+    unknown .code:n = \@@_error:n { Unknown~key~for~PitonInputFile } 
   }
 %    \end{macrocode}
 %
@@ -3077,11 +3265,7 @@ version 2005/12/01 or later.
         \hbox_set:Nn \l_tmpa_box
           {
             \footnotesize
-            \bool_if:NTF \l_@@_all_line_numbers_bool
-              {
-                \int_to_arabic:n 
-                  { \g_@@_visual_line_int + \l_@@_nb_lines_int }  
-              }
+            \bool_if:NTF \l_@@_skip_empty_lines_bool
               {
                 \lua_now:n 
                   { piton.#1(token.scan_argument()) }
@@ -3089,6 +3273,10 @@ version 2005/12/01 or later.
                 \int_to_arabic:n 
                   { \g_@@_visual_line_int + \l_@@_nb_non_empty_lines_int }   
                }
+              {
+                \int_to_arabic:n 
+                  { \g_@@_visual_line_int + \l_@@_nb_lines_int }  
+              }
            }
          \dim_set:Nn \l_@@_left_margin_dim 
            { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
@@ -3234,6 +3422,8 @@ version 2005/12/01 or later.
       {
         #3 
         \@@_pre_env:
+        \int_compare:nNnT \l_@@_number_lines_start_int > 0 
+          { \int_gset:Nn \g_@@_visual_line_int { \l_@@_number_lines_start_int - 1 } }
         \group_begin:
         \tl_map_function:nN 
           { \ \\ \{ \} \$ \& \# \^ \_ \% \~ \^^I } 
@@ -3265,15 +3455,16 @@ version 2005/12/01 or later.
   {
     \NewPitonEnvironment { Piton } { d < > O { } }
       { 
-        \PitonOptions { #2 } 
+        \keys_set:nn { PitonOptions } { #2 } 
         \IfValueTF { #1 }
           { \begin { uncoverenv } < #1 > }
           { \begin { uncoverenv } }
       }
       { \end { uncoverenv } } 
   }
-  { \NewPitonEnvironment { Piton } { O { } } 
-      { \PitonOptions { #1 } } 
+  { 
+    \NewPitonEnvironment { Piton } { O { } } 
+      { \keys_set:nn { PitonOptions } { #1 } } 
       { } 
   }
 %    \end{macrocode}
@@ -3288,7 +3479,7 @@ version 2005/12/01 or later.
   {
     \file_if_exist:nTF { #3 }
       { \@@_input_file:nnn { #1 } { #2 } { #3 } }
-      { \msg_error:nnn { piton } { unknown~file } { #3 } } 
+      { \msg_error:nnn { piton } { Unknown~file } { #3 } } 
   }
 %    \end{macrocode}
 %
@@ -3305,32 +3496,55 @@ version 2005/12/01 or later.
       {
         \bool_if:NTF \c_@@_beamer_bool
           { \begin { uncoverenv } < #1 > }     
-          { \msg_error:nn { piton } { overlay~without~beamer } }
+          { \@@_error:n { overlay~without~beamer } }
       }
     \group_begin:
       \int_zero_new:N \l_@@_first_line_int
       \int_zero_new:N \l_@@_last_line_int 
       \int_set_eq:NN \l_@@_last_line_int \c_max_int
+      \bool_set_true:N \l_@@_in_PitonInputFile_bool
       \keys_set:nn { PitonInputFile } { #2 }
+      \bool_set_false:N \l_@@_in_PitonInputFile_bool
+      \bool_if:NT \l_@@_line_numbers_absolute_bool
+        { \bool_set_false:N \l_@@_skip_empty_lines_bool }
       \bool_if:nTF
         {
           ( 
             \int_compare_p:nNn \l_@@_first_line_int > 0 
             || \int_compare_p:nNn \l_@@_last_line_int < \c_max_int 
           )
-          && 
-          (
-            ! \str_if_empty_p:N \l_@@_begin_range_str
-            || ! \str_if_empty_p:N \l_@@_end_range_str
-          ) 
+          && ! \str_if_empty_p:N \l_@@_begin_range_str
         }
         { 
-          \msg_error:nn { piton } { bad~range~specification } 
+          \@@_error:n { bad~range~specification } 
           \int_zero:N \l_@@_first_line_int
           \int_set_eq:NN \l_@@_last_line_int \c_max_int
         }
-        { \str_if_empty:NF \l_@@_begin_range_str \@@_compute_range:n }
+        { 
+          \str_if_empty:NF \l_@@_begin_range_str 
+            { 
+              \@@_compute_range: 
+              \bool_if:NT \l_@@_marker_include_line_bool
+                {
+                  \int_decr:N \l_@@_first_line_int
+                  \int_incr:N \l_@@_last_line_int
+                }
+            }
+        }
       \@@_pre_env:
+      \bool_if:NT \l_@@_line_numbers_absolute_bool
+        { \int_gset:Nn \g_@@_visual_line_int { \l_@@_first_line_int - 1 } } 
+      \int_compare:nNnT \l_@@_number_lines_start_int > 0 
+        { 
+          \int_gset:Nn \g_@@_visual_line_int 
+            { \l_@@_number_lines_start_int - 1 } 
+        }
+%    \end{macrocode}
+% The following case arise when the code |line-numbers/absolute| is in force
+% without the use of a marked range.
+%    \begin{macrocode}
+      \int_compare:nNnT \g_@@_visual_line_int < 0 
+        { \int_gzero:N \g_@@_visual_line_int  }
       \mode_if_vertical:TF \mode_leave_vertical: \newline 
 %    \end{macrocode}
 % We count with Lua the number of lines of the argument. The result will be
@@ -3373,17 +3587,16 @@ version 2005/12/01 or later.
 % \bigskip
 % The following function takes in as argument the name of the file (provided to
 % |\PitonInputFile|) and computes the values of |\l_@@_first_line_int| and
-% |\l_@@_last_line_int|. \emph{That functions takes in its argument by
-% currification}. 
+% |\l_@@_last_line_int|. 
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_compute_range:n 
+\cs_new_protected:Npn \@@_compute_range: 
   {
     \lua_now:e
       { 
         piton.ComputeRange
           (
-            '\l_@@_range_prefix_str\l_@@_begin_range_str\l_@@_range_suffix_str' ,
-            '\l_@@_range_prefix_str\l_@@_end_range_str\l_@@_range_suffix_str' ,
+            '\@@_marker_beginning:n \l_@@_begin_range_str' ,
+            '\@@_marker_end:n \l_@@_end_range_str' ,
             '\l_@@_file_name_str' 
           ) 
       } 
@@ -3467,7 +3680,7 @@ version 2005/12/01 or later.
     ParseAgain.noCR .tl_set:c = pitonStyle ParseAgain.noCR , 
     ParseAgain.noCR .value_required:n = true ,
     unknown         .code:n = 
-      \msg_error:nn { piton } { Unknown~key~for~SetPitonStyle }
+      \@@_error:n { Unknown~key~for~SetPitonStyle }
   }
 %    \end{macrocode}
 %
@@ -3653,7 +3866,7 @@ version 2005/12/01 or later.
 % 
 % 
 %    \begin{macrocode}
-\msg_new:nnn { piton } { Unknown~key~for~SetPitonStyle } 
+\@@_msg_new:nn { Unknown~key~for~SetPitonStyle } 
   {
     The~style~'\l_keys_key_str'~is~unknown.\\
     This~key~will~be~ignored.\\
@@ -3663,21 +3876,53 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-\msg_new:nnnn { piton } { unknown~key~for~PitonInputFile } 
+\msg_new:nnnn { piton } { Unknown~key~for~PitonInputFile } 
   {
     Unknown~key. \\
-    The~key~'\l_keys_key_str'~is~unknown~for~\token_to_str:N \PitonInputFile.~
+    The~key~'\l_keys_key_str'~is~Unknown~for~\token_to_str:N \PitonInputFile.~
     It~will~be~ignored.\\
     For~a~list~of~the~available~keys,~type~H~<return>.
   }
   {
     The~available~keys~are~(in~alphabetic~order):~
-    begin-range,~end-range,~first-line,~last-line~and~range.
+    line-numbers~(several~subkeys),~begin-range,~end-range,~first-line,~
+    last-line~and~range. 
   }
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-\msg_new:nnn { piton } { bad~range~specification } 
+\@@_msg_new:nn { Unknown~key~for~line-numbers } 
+  { 
+    Unknown~key. \\
+    The~key~'line-numbers / \l_keys_key_str'~is~unknown.\\
+    The~available~keys~of~the~family~'line-numbers'~are~(in~
+    alphabetic~order):~
+    absolute,~label-empty-lines,~resume,~skip-empty-lines~and~start.\\
+    That~key~will~be~ignored.
+  }
+%    \end{macrocode}
+% 
+%    \begin{macrocode}
+\@@_msg_new:nn { start~in~PitonOptions }
+  {
+    Wrong~use~of~key\\
+    You~can't~use~'line-numbers/start'~in~
+    \token_to_str:N \PitonOptions.\\
+    That~key~will~be~ignored.
+  }
+%    \end{macrocode}
+% 
+%    \begin{macrocode}
+\@@_msg_new:nn { absolute~in~environment }
+  {
+    Wrong~use~of~key\\
+    You~can't~use~the~'absolute',~subkey~of~'line-numbers'~here.\\
+    That~key~will~be~ignored.
+  }
+%    \end{macrocode}
+% 
+%    \begin{macrocode}
+\@@_msg_new:nn { bad~range~specification } 
   {
     Incompatible~keys.\\
     You~can't~specify~the~range~of~lines~to~include~by~using~both~
@@ -3687,7 +3932,7 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 % 
 %   \begin{macrocode}
-\msg_new:nnn { piton } { syntax~error }
+\@@_msg_new:nn { syntax~error }
   {
     Your~code~is~not~syntactically~correct.\\
     It~won't~be~printed~in~the~PDF~file.
@@ -3696,12 +3941,12 @@ version 2005/12/01 or later.
 %
 %    \begin{macrocode}
 \NewDocumentCommand \PitonSyntaxError { }
-  { \msg_error:nn { piton } { syntax~error } }
+  { \@@_error:n { syntax~error } }
 %    \end{macrocode}
 %
 %
 %    \begin{macrocode}
-\msg_new:nnn { piton } { marker~not~found }
+\@@_msg_new:nn { marker~not~found }
   {
     Marker~not~found.\\
     The~marker~'\l_@@_begin_range_str'~provided~to~the~  
@@ -3712,12 +3957,12 @@ version 2005/12/01 or later.
 %
 %
 %    \begin{macrocode}
-\NewDocumentCommand \PitonMarkerNotFound { }
-  { \msg_error:nn { piton } { marker~not~found } }
+\NewDocumentCommand \PitonMarkerNotFound { } 
+  { \@@_error:n { marker~not~found } }
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
-\msg_new:nnn { piton } { unknown~file }
+\@@_msg_new:nn { Unknown~file }
   {
     Unknown~file. \\
     The~file~'#1'~is~unknown.\\
@@ -3729,7 +3974,7 @@ version 2005/12/01 or later.
 \msg_new:nnnn { piton } { Unknown~key~for~PitonOptions }
   { 
     Unknown~key. \\
-    The~key~'\l_keys_key_str'~is~unknown~for~\token_to_str:N \PitonOptions.~
+    The~key~'\l_keys_key_str'~is~Unknown~for~\token_to_str:N \PitonOptions.~
     It~will~be~ignored.\\
     For~a~list~of~the~available~keys,~type~H~<return>.
   }
@@ -3744,16 +3989,16 @@ version 2005/12/01 or later.
     continuation-symbol,~ 
     continuation-symbol-on-indentation,~
     end-of-broken-line,~
+    end-range,~
     env-gobble,~
     gobble,~
     identifiers,~
     indent-broken-lines,~
     language,~
     left-margin,~
-    line-numbers,~
+    line-numbers~(several~sub-keys),~
+    marker~(several sub-keys),~
     prompt-background-color,~
-    range-prefix,~
-    range-suffix,~
     resume,~
     show-spaces,~
     show-spaces-in-strings,~
@@ -3765,7 +4010,7 @@ version 2005/12/01 or later.
 %
 % \bigskip
 %    \begin{macrocode}
-\msg_new:nnn { piton } { label~with~lines~numbers } 
+\@@_msg_new:nn { label~with~lines~numbers } 
   {
     You~can't~use~the~command~\token_to_str:N \label\
     because~the~key~'line-numbers'~(or~'all-line-numbers')~
@@ -3776,7 +4021,7 @@ version 2005/12/01 or later.
 % 
 % \bigskip
 %    \begin{macrocode}
-\msg_new:nnn { piton } { cr~not~allowed }
+\@@_msg_new:nn { cr~not~allowed }
   {
     You~can't~put~any~carriage~return~in~the~argument~
     of~a~command~\c_backslash_str
@@ -3789,7 +4034,7 @@ version 2005/12/01 or later.
 %
 % \bigskip
 %    \begin{macrocode}
-\msg_new:nnn { piton } { overlay~without~beamer }
+\@@_msg_new:nn { overlay~without~beamer }
   {
     You~can't~use~an~argument~<...>~for~your~command~
     \token_to_str:N \PitonInputFile\ because~you~are~not~
@@ -3800,7 +4045,7 @@ version 2005/12/01 or later.
 %
 % \bigskip
 %    \begin{macrocode}
-\msg_new:nnn { Piton } { Python~error }
+\@@_msg_new:nn { Python~error }
   { A~Python~error~has~been~detected. }
 %    \end{macrocode}
 % 
