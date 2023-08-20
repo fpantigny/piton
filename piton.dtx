@@ -2450,10 +2450,8 @@ version 2005/12/01 or later.
 % The following commands are a easy way to insert safely braces (|{| and |}|) in
 % the TeX flow.
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_open_brace:
-  { \directlua { piton.open_brace() } }
-\cs_new_protected:Npn \@@_close_brace:
-  { \directlua { piton.close_brace() } }
+\cs_new_protected:Npn \@@_open_brace: { \directlua { piton.open_brace() } }
+\cs_new_protected:Npn \@@_close_brace: { \directlua { piton.close_brace() } }
 %    \end{macrocode}
 % 
 % \bigskip
@@ -2800,7 +2798,6 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \keys_define:nn { PitonOptions }
   {
-    marker           .code:n = \keys_set:nn { Piton / marker } { #1 } , 
     language         .code:n = 
       \str_set:Nx \l_@@_language_str { \str_lowercase:n { #1 } } , 
     language         .value_required:n  = true ,
@@ -2814,8 +2811,8 @@ version 2005/12/01 or later.
     tabs-auto-gobble .value_forbidden:n = true ,
 
     line-numbers .code:n = 
-      \bool_set_true:N \l_@@_line_numbers_bool 
-      \tl_if_novalue:nF { #1 }
+      \tl_if_novalue:nTF { #1 }
+        { \bool_set_true:N \l_@@_line_numbers_bool }
         { 
           \str_if_eq:nnTF { #1 } { false } 
             { \bool_set_false:N \l_@@_line_numbers_bool } 
@@ -2861,7 +2858,6 @@ version 2005/12/01 or later.
         \l_@@_in_PitonInputFile_bool 
         \l_@@_in_PitonOptions_bool 
         { \@@_error:n { absolute~in~environment } } ,
-
     line-numbers/absolute .value_forbidden:n = true ,
 
     line-numbers/resume .bool_set:N = \l_@@_resume_bool , 
@@ -2881,7 +2877,8 @@ version 2005/12/01 or later.
     background-color .value_required:n  = true ,
     prompt-background-color .tl_set:N         = \l_@@_prompt_bg_color_tl ,
     prompt-background-color .value_required:n = true ,
-    width            .code:n = 
+
+    width .code:n = 
       \str_if_eq:nnTF  { #1 } { min } 
         { 
           \bool_set_true:N \l_@@_width_min_bool 
@@ -2891,7 +2888,8 @@ version 2005/12/01 or later.
           \bool_set_false:N \l_@@_width_min_bool
           \dim_set:Nn \l_@@_width_dim { #1 } 
         } , 
-    width            .value_required:n  = true ,
+    width .value_required:n  = true ,
+
     left-margin      .code:n =
       \str_if_eq:nnTF { #1 } { auto }
         { 
@@ -2903,6 +2901,7 @@ version 2005/12/01 or later.
           \bool_set_false:N \l_@@_left_margin_auto_bool
         } ,
     left-margin      .value_required:n  = true ,
+
     numbers-sep      .dim_set:N         = \l_@@_numbers_sep_dim ,
     numbers-sep      .value_required:n  = true , 
     tab-size         .code:n            = \@@_set_tab_tl:n { #1 } ,
@@ -2925,13 +2924,17 @@ version 2005/12/01 or later.
     continuation-symbol .value_required:n = true , 
     continuation-symbol-on-indentation .tl_set:N = \l_@@_csoi_tl ,
     continuation-symbol-on-indentation .value_required:n = true , 
-    unknown          .code:n = 
-      \@@_error:n { Unknown~key~for~PitonOptions }
+    unknown .code:n = \@@_error:n { Unknown~key~for~PitonOptions } 
   }
+
 \keys_define:nn { }
   { PitonOptions / marker .inherit:n = Piton / marker }
+
+\keys_define:nn { PitonOptions }
+  { marker .code:n = \keys_set:nn { Piton / marker } { #1 } }
 %    \end{macrocode}
 %
+% 
 %  \bigskip
 %    \begin{macrocode}
 \keys_define:nn { Piton / marker }
@@ -2942,6 +2945,7 @@ version 2005/12/01 or later.
     end .value_required:n = true ,
     include-line .bool_set:N = \l_@@_marker_include_line_bool ,
     include-line .default:n = true ,
+    unknown .code:n = \@@_error:n { Unknown~key~for~marker } 
   }
 %    \end{macrocode}
 % 
@@ -3584,21 +3588,30 @@ version 2005/12/01 or later.
   }
 %    \end{macrocode}
 %
+% 
 % \bigskip
-% The following function takes in as argument the name of the file (provided to
-% |\PitonInputFile|) and computes the values of |\l_@@_first_line_int| and
-% |\l_@@_last_line_int|. 
+% The following command computes the values of |\l_@@_first_line_int| and
+% |\l_@@_last_line_int| when |\PitonInputFile| is used with textual markers. 
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_compute_range: 
   {
+%    \end{macrocode}
+% We store the markers in L3 strings (|str|) in order to do safely the following
+% replacement of |\#|.
+%    \begin{macrocode}
+    \str_set:Nx \l_tmpa_str { \@@_marker_beginning:n \l_@@_begin_range_str }
+    \str_set:Nx \l_tmpb_str { \@@_marker_end:n \l_@@_end_range_str }
+%    \end{macrocode}
+% We replace the sequences |\#| which may be present in the prefixes (and, more
+% unlikely, suffixes) added to the markers by the functions
+% |\@@_marker_beginning:n| and |\@@_marker_end:n|
+%    \begin{macrocode}
+    \exp_args:NnV \regex_replace_all:nnN { \\\# } \c_hash_str \l_tmpa_str
+    \exp_args:NnV \regex_replace_all:nnN { \\\# } \c_hash_str \l_tmpb_str
     \lua_now:e
       { 
         piton.ComputeRange
-          (
-            '\@@_marker_beginning:n \l_@@_begin_range_str' ,
-            '\@@_marker_end:n \l_@@_end_range_str' ,
-            '\l_@@_file_name_str' 
-          ) 
+          ( '\l_tmpa_str' , '\l_tmpb_str' , '\l_@@_file_name_str' ) 
       } 
   }
 %    \end{macrocode}
@@ -3699,7 +3712,7 @@ version 2005/12/01 or later.
   { 
     \str_compare:nNnTF { #1 } < { #2 } 
       \sort_return_same:    
-      \sort_return_swapped:
+      \sort_return_swapped:  
   } 
 %    \end{macrocode}
 % 
@@ -3879,7 +3892,7 @@ version 2005/12/01 or later.
 \msg_new:nnnn { piton } { Unknown~key~for~PitonInputFile } 
   {
     Unknown~key. \\
-    The~key~'\l_keys_key_str'~is~Unknown~for~\token_to_str:N \PitonInputFile.~
+    The~key~'\l_keys_key_str'~is~unknown~for~\token_to_str:N \PitonInputFile.~
     It~will~be~ignored.\\
     For~a~list~of~the~available~keys,~type~H~<return>.
   }
@@ -3901,13 +3914,23 @@ version 2005/12/01 or later.
     That~key~will~be~ignored.
   }
 %    \end{macrocode}
+%
+%    \begin{macrocode}
+\@@_msg_new:nn { Unknown~key~for~marker } 
+  { 
+    Unknown~key. \\
+    The~key~'line-numbers / \l_keys_key_str'~is~unknown.\\
+    The~available~keys~of~the~family~'marker~are~(in~
+    alphabetic~order):~ beginning,~end~and~include-line.\\
+    That~key~will~be~ignored.
+  }
+%    \end{macrocode}
 % 
 %    \begin{macrocode}
 \@@_msg_new:nn { start~in~PitonOptions }
   {
     Wrong~use~of~key\\
-    You~can't~use~'line-numbers/start'~in~
-    \token_to_str:N \PitonOptions.\\
+    You~can't~use~'line-numbers/start'~in~\token_to_str:N \PitonOptions.\\ 
     That~key~will~be~ignored.
   }
 %    \end{macrocode}
@@ -3974,7 +3997,7 @@ version 2005/12/01 or later.
 \msg_new:nnnn { piton } { Unknown~key~for~PitonOptions }
   { 
     Unknown~key. \\
-    The~key~'\l_keys_key_str'~is~Unknown~for~\token_to_str:N \PitonOptions.~
+    The~key~'\l_keys_key_str'~is~unknown~for~\token_to_str:N \PitonOptions.~
     It~will~be~ignored.\\
     For~a~list~of~the~available~keys,~type~H~<return>.
   }
@@ -3997,7 +4020,7 @@ version 2005/12/01 or later.
     language,~
     left-margin,~
     line-numbers~(several~sub-keys),~
-    marker~(several sub-keys),~
+    marker~(several~sub-keys),~
     prompt-background-color,~
     resume,~
     show-spaces,~
@@ -6185,11 +6208,11 @@ end
 % \bigskip
 % The following function stores in |\l_@@_first_line_int| and
 % |\l_@@_last_line_int| the numbers of lines of the file |file_name|
-% corresponding to the strings |pattern_start| and |pattern_end|.
+% corresponding to the strings |marker_beginning| and |marker_end|.
 %    \begin{macrocode}
-function piton.ComputeRange(pattern_start,pattern_end,file_name)
-  local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( pattern_start )
-  local t = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( pattern_end )
+function piton.ComputeRange(marker_beginning,marker_end,file_name)
+  local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( marker_beginning )
+  local t = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( marker_end )
   local first_line = -1
   local count = 0
   for line in io.lines(file_name)
