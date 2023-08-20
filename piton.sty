@@ -49,7 +49,7 @@
 \bool_new:N \c__piton_footnotehyper_bool
 \bool_new:N \c__piton_footnote_bool
 \bool_new:N \c__piton_math_comments_bool
-\bool_new:N \c__piton_beamer_bool
+\bool_new:N \g__piton_beamer_bool
 \keys_define:nn { piton / package }
   {
     footnote .bool_set:N = \c__piton_footnote_bool ,
@@ -60,7 +60,7 @@
     comment-latex .value_required:n = true ,
     math-comments .bool_set:N = \c__piton_math_comments_bool ,
     math-comments .default:n  = true ,
-    beamer        .bool_set:N = \c__piton_beamer_bool ,
+    beamer        .bool_set:N = \g__piton_beamer_bool ,
     beamer        .default:n = true ,
     unknown .code:n = \__piton_error:n { Unknown~key~for~package }
   }
@@ -84,8 +84,9 @@
   { \tl_head:V \c__piton_escape_inside_tl }
   { \tl_tail:V \c__piton_escape_inside_tl }
 \endgroup
-\@ifclassloaded { beamer } { \bool_set_true:N \c__piton_beamer_bool } { }
-\bool_if:NT \c__piton_beamer_bool { \lua_now:n { piton_beamer = true } }
+\@ifclassloaded { beamer } { \bool_gset_true:N \g__piton_beamer_bool } { }
+\@ifpackageloaded { beamerarticle } { \bool_gset_true:N \g__piton_beamer_bool } { }
+\bool_if:NT \g__piton_beamer_bool { \lua_now:n { piton_beamer = true } }
 \hook_gput_code:nnn { begindocument } { . }
   {
     \@ifpackageloaded { xcolor }
@@ -875,7 +876,7 @@
       { #4 }
     \AddToHook { env / #1 / begin } { \char_set_catcode_other:N \^^M }
   }
-\bool_if:NTF \c__piton_beamer_bool
+\bool_if:NTF \g__piton_beamer_bool
   {
     \NewPitonEnvironment { Piton } { d < > O { } }
       {
@@ -902,7 +903,7 @@
     \str_set:Nn \l__piton_file_name_str { #3 }
     \tl_if_novalue:nF { #1 }
       {
-        \bool_if:NTF \c__piton_beamer_bool
+        \bool_if:NTF \g__piton_beamer_bool
           { \begin { uncoverenv } < #1 > }
           { \__piton_error:n { overlay~without~beamer } }
       }
@@ -969,7 +970,7 @@
       \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
     \group_end:
     \tl_if_novalue:nF { #1 }
-      { \bool_if:NT \c__piton_beamer_bool { \end { uncoverenv } } }
+      { \bool_if:NT \g__piton_beamer_bool { \end { uncoverenv } } }
     \__piton_write_aux:
   }
 \cs_new_protected:Npn \__piton_compute_range:
