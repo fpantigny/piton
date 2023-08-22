@@ -1,4 +1,4 @@
-% \iffalse -*- coding: utf-8 ; -*- \fi \iffalse meta-comment
+%  \iffalse -*- coding: utf-8 ; -*- \fi \iffalse meta-comment
 %
 % Copyright (C) 2023 by F. Pantigny
 % -----------------------------------
@@ -56,7 +56,7 @@ version 2005/12/01 or later.
 \fvset{commandchars=\~\#\@,formatcom=\color{gray}}
 \captionsetup{labelfont = bf}
 \usepackage{ragged2e}
-\usepackage[footnotehyper,escape-inside=$$,math-comments]{piton} % $$
+\usepackage[footnotehyper,begin-escape=!,end-escape=!,math-comments]{piton} 
 
 \parindent 0pt
 \skip\footins = 2\bigskipamount
@@ -820,8 +820,8 @@ version 2005/12/01 or later.
 % composed in LaTeX mathematical mode (the other elements of the comment being
 % composed verbatim).
 %
-% That feature is activated by the key |math-comments| at load-time (that is to
-% say with the |\usepackage|).
+% That feature is activated by the key \Definition{math-comments} at load-time
+% (that is to say with the |\usepackage|).
 %
 % \medskip
 % In the following example, we assume that the key |math-comments| has been used
@@ -839,23 +839,23 @@ version 2005/12/01 or later.
 %     return x*x # compute $x^2$
 % \end{Piton}
 % 
-% \subsubsection{The mechanism ``escape-inside''}
+% \subsubsection{The mechanism ``escape''}
 %
 % It's also possible to overwrite the Python listings to insert LaTeX code
 % almost everywhere (but between lexical units, of course). By default,
-% \pkg{piton} does not fix any character for that kind of escape.
+% \pkg{piton} does not fix any delimiters for that kind of escape.
 %
-% In order to use this mechanism, it's necessary to specify two characters which
+% In order to use this mechanism, it's necessary to specify the delimiters which
 % will delimit the escape (one for the beginning and one for the end) by using
-% the key |escape-inside| at load-time (that is to say at the
-% |\begin{docuemnt}|). 
+% the keys \Definition{begin-escape} and \Definition{end-escape} at load-time
+% (that is to say at the |\usepackage{piton}|).
 %
 % \medskip
 % In the following example, we assume that the extension \pkg{piton} has been
 % loaded by the following instruction.
 %
 % \begin{Verbatim}
-% \usepackage[~emphase#escape-inside=$$@]{piton}
+% \usepackage[~emphase#begin-escape=!,end-escape=!@]{piton}
 % \end{Verbatim}
 %
 % \medskip
@@ -869,7 +869,7 @@ version 2005/12/01 or later.
 %     if n==0:
 %         return 1
 %     else:
-%         ~emphase#$\highLight{$@return n*fact(n-1)~emphase#$}$@
+%         ~emphase#!\highLight{!@return n*fact(n-1)~emphase#!}!@
 % \end{Piton}
 % \end{Verbatim}
 %
@@ -878,7 +878,7 @@ version 2005/12/01 or later.
 %     if n==0:
 %         return 1
 %     else:
-%         $\highLight{$return n*fact(n-1)$}$
+%         !\highLight{!return n*fact(n-1)!}!
 %    \end{Piton}
 %         
 % \bigskip
@@ -902,7 +902,7 @@ version 2005/12/01 or later.
 %     if n==0:
 %         return 1
 %     else:
-%         ~emphase#$\Yellow$@return n*fact(n-1)
+%         ~emphase#!\Yellow!@return n*fact(n-1)
 % \end{Piton}
 % \end{Verbatim}
 %
@@ -916,17 +916,17 @@ version 2005/12/01 or later.
 %     if n==0:
 %         return 1
 %     else:
-%         $\Yellow$return n*fact(n-1)
+%         !\Yellow!return n*fact(n-1)
 % \end{Piton}
 %
 %
 %
 % \bigskip
-% \emph{Caution} : The escape to LaTeX allowed by the characters of
-% |escape-inside| is not active in the strings nor in the Python comments
-% (however, it's possible to have a whole Python comment composed in LaTeX by
-% beginning it with |#>|; such comments are merely called ``LaTeX comments'' in
-% this document). 
+% \emph{Caution} : The escape to LaTeX allowed by the |begin-escape| and
+% |end-escape| is not active in the strings nor in the Python comments (however,
+% it's possible to have a whole Python comment composed in LaTeX by beginning it
+% with |#>|; such comments are merely called ``LaTeX comments'' in this
+% document).
 % 
 %
 % \subsection{Behaviour in the class Beamer}
@@ -1976,30 +1976,30 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 % \bigskip
-% The boolean |\c_@@_footnotehyper_bool| will indicate if the option
+% The boolean |\g_@@_footnotehyper_bool | will indicate if the option
 % |footnotehyper| is used.
 %    \begin{macrocode}
-\bool_new:N \c_@@_footnotehyper_bool
+\bool_new:N \g_@@_footnotehyper_bool
 %    \end{macrocode}
 %
 % \medskip
-% The boolean |\c_@@_footnote_bool| will indicate if the option |footnote| is
+% The boolean |\g_@@_footnote_bool| will indicate if the option |footnote| is
 % used, but quicky, it will also be set to |true| if the option |footnotehyper|
 % is used.
 %    \begin{macrocode}
-\bool_new:N \c_@@_footnote_bool
+\bool_new:N \g_@@_footnote_bool
 %    \end{macrocode}
 %
 % \medskip
 % The following boolean corresponds to the key |math-comments| (only at load-time).
 %    \begin{macrocode}
-\bool_new:N \c_@@_math_comments_bool
+\bool_new:N \g_@@_math_comments_bool
 %    \end{macrocode}
 %
 % \medskip
-% The following boolean corresponds to the key |beamer|. 
 %    \begin{macrocode}
 \bool_new:N \g_@@_beamer_bool
+\tl_new:N \g_@@_escape_inside_tl 
 %    \end{macrocode}
 % 
 % \bigskip
@@ -2007,16 +2007,31 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \keys_define:nn { piton / package }
   { 
-    footnote .bool_set:N = \c_@@_footnote_bool ,
-    footnotehyper .bool_set:N = \c_@@_footnotehyper_bool ,
-    escape-inside .tl_set:N = \c_@@_escape_inside_tl ,
-    escape-inside .initial:n = , 
+    footnote .bool_gset:N = \g_@@_footnote_bool ,
+    footnotehyper .bool_gset:N = \g_@@_footnotehyper_bool ,
+
+    begin-escape .code:n = \lua_now:n { piton.begin_escape = "#1" } ,
+    begin-escape .value_required:n = true , 
+    end-escape   .code:n = \lua_now:n { piton.end_escape = "#1" } ,
+    end-escape   .value_required:n = true ,
+
+    begin-escape-math .code:n = \lua_now:n { piton.begin_escape_math = "#1" } ,
+    begin-escape-math .value_required:n = true , 
+    end-escape-math   .code:n = \lua_now:n { piton.end_escape_math = "#1" } ,
+    end-escape-math   .value_required:n = true ,
+
+    % deprecated
+    escape-inside .tl_gset:N = \g_@@_escape_inside_tl ,
+
     comment-latex .code:n = { \lua_now:n { comment_latex = "#1" } } ,   
     comment-latex .value_required:n = true ,
-    math-comments .bool_set:N = \c_@@_math_comments_bool ,
+
+    math-comments .bool_gset:N = \g_@@_math_comments_bool ,
     math-comments .default:n  = true ,
-    beamer        .bool_set:N = \g_@@_beamer_bool ,
+
+    beamer        .bool_gset:N = \g_@@_beamer_bool ,
     beamer        .default:n = true , 
+
     unknown .code:n = \@@_error:n { Unknown~key~for~package }
   }
 %    \end{macrocode}
@@ -2026,10 +2041,15 @@ version 2005/12/01 or later.
   {
     Unknown~key.\\
     You~have~used~the~key~'\l_keys_key_str'~but~the~only~keys~available~here~
-    are~'beamer',~'comment-latex',~'escape-inside',~'footnote',~'footnotehyper'~and~ 
+    are~'beamer',~'begin-escape',~'begin-escape-math',~'comment-latex',~
+    'end-escape',~'end-escape-math',~~'footnote',~'footnotehyper'~and~ 
     'math-comments'.~Other~keys~are~available~in~\token_to_str:N \PitonOptions.\\
     That~key~will~be~ignored.
   }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\lua_now:n { piton = piton~or { } }
 %    \end{macrocode}
 %
 % \bigskip
@@ -2039,19 +2059,26 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 % \bigskip
+% We deal with the key |escape-inside| altough it is deprecated (replaced by
+% |begin-escape| and |end-escape|).
 %    \begin{macrocode}
-\begingroup
-\cs_new_protected:Npn \@@_set_escape_char:nn #1 #2 
+\tl_if_empty:NF \g_@@_escape_inside_tl
   {
-    \lua_now:n { piton_begin_escape = "#1" }
-    \lua_now:n { piton_end_escape = "#2" }
+    \begingroup
+    \cs_new_protected:Npn \@@_set_escape_char:nn #1 #2 
+      {
+        \lua_now:n { piton.begin_escape = "#1" }
+        \lua_now:n { piton.end_escape = "#2" }
+      }
+    \cs_generate_variant:Nn \@@_set_escape_char:nn { x x }
+    \@@_set_escape_char:xx 
+      { \tl_head:V \g_@@_escape_inside_tl }
+      { \tl_tail:V \g_@@_escape_inside_tl }
+    \endgroup
   }
-\cs_generate_variant:Nn \@@_set_escape_char:nn { x x }
-\@@_set_escape_char:xx 
-  { \tl_head:V \c_@@_escape_inside_tl }
-  { \tl_tail:V \c_@@_escape_inside_tl }
-\endgroup
 %    \end{macrocode}
+% 
+% 
 % 
 % \bigskip
 %    \begin{macrocode}
@@ -2107,14 +2134,14 @@ version 2005/12/01 or later.
 %
 % \medskip
 %    \begin{macrocode}
-\bool_if:NT \c_@@_footnote_bool 
+\bool_if:NT \g_@@_footnote_bool 
   { 
 %    \end{macrocode}
 % The class \cls{beamer} has its own system to extract footnotes and that's why
 % we have nothing to do if \cls{beamer} is used. 
 %    \begin{macrocode}
     \@ifclassloaded { beamer }
-      { \bool_set_false:N \c_@@_footnote_bool }
+      { \bool_gset_false:N \g_@@_footnote_bool }
       { 
         \@ifpackageloaded { footnotehyper }
           { \@@_error:n { footnote~with~footnotehyper~package } }
@@ -2124,24 +2151,24 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-\bool_if:NT \c_@@_footnotehyper_bool 
+\bool_if:NT \g_@@_footnotehyper_bool 
   { 
 %    \end{macrocode}
 % The class \cls{beamer} has its own system to extract footnotes and that's why
 % we have nothing to do if \cls{beamer} is used. 
 %    \begin{macrocode}
     \@ifclassloaded { beamer }
-      { \bool_set_false:N \c_@@_footnote_bool }
+      { \bool_gset_false:N \g_@@_footnote_bool }
       { 
         \@ifpackageloaded { footnote }
           { \@@_error:n { footnotehyper~with~footnote~package } }
           { \usepackage { footnotehyper } }
-        \bool_set_true:N \c_@@_footnote_bool 
+        \bool_gset_true:N \g_@@_footnote_bool 
       }
   }
 %    \end{macrocode}
-% The flag |\c_@@_footnote_bool| is raised and so, we will only have to test
-% |\c_@@_footnote_bool| in order to know if we have to insert an environment
+% The flag |\g_@@_footnote_bool| is raised and so, we will only have to test
+% |\g_@@_footnote_bool| in order to know if we have to insert an environment
 % |{savenotes}|.
 %
 %
@@ -2700,9 +2727,9 @@ version 2005/12/01 or later.
           { \l_@@_nb_lines_int - \g_@@_line_int } > \l_@@_splittable_int 
           {
             \egroup
-            \bool_if:NT \c_@@_footnote_bool { \end { savenotes } } 
+            \bool_if:NT \g_@@_footnote_bool { \end { savenotes } } 
             \par \mode_leave_vertical: % \newline
-            \bool_if:NT \c_@@_footnote_bool { \begin { savenotes } } 
+            \bool_if:NT \g_@@_footnote_bool { \begin { savenotes } } 
             \vtop \bgroup
           }
      }
@@ -2750,45 +2777,79 @@ version 2005/12/01 or later.
 \bool_new:N \l_@@_line_numbers_absolute_bool
 \bool_new:N \l_@@_label_empty_lines_bool
 \bool_set_true:N \l_@@_label_empty_lines_bool 
-%    \end{macrocode}
-% The following counter will be the value of |start| (subkey de |line-numbers|). 
-%    \begin{macrocode}
 \int_new:N \l_@@_number_lines_start_int
+\bool_new:N \l_@@_resume_bool 
 %    \end{macrocode}
 % 
-% \medskip
-% The following flag corresponds to the key |resume|.
+%
+%  \bigskip
 %    \begin{macrocode}
-\bool_new:N \l_@@_resume_bool 
+\keys_define:nn { PitonOptions / marker }
+  {
+    beginning .code:n = \cs_set:Nn \@@_marker_beginning:n { #1 } ,   
+    beginning .value_required:n = true , 
+    end .code:n = \cs_set:Nn \@@_marker_end:n { #1 } ,   
+    end .value_required:n = true ,
+    include-line .bool_set:N = \l_@@_marker_include_line_bool ,
+    include-line .default:n = true ,
+    unknown .code:n = \@@_error:n { Unknown~key~for~marker } 
+  }
 %    \end{macrocode}
 %
 % \bigskip
 %    \begin{macrocode}
-\keys_define:nn { Piton / line-numbers }
+\keys_define:nn { PitonOptions / line-numbers }
   {
-    start .int_set:N = \l_@@_number_lines_start_int ,
+    true .code:n = \bool_set_true:N \l_@@_line_numbers_bool , 
+    false .code:n = \bool_set_false:N \l_@@_line_numbers_bool , 
+
+    start .code:n = 
+      \bool_if:NTF \l_@@_in_PitonOptions_bool
+        { Invalid~key }
+        {
+          \bool_set_true:N \l_@@_line_numbers_bool 
+          \int_set:Nn \l_@@_number_lines_start_int { #1 }  
+        } ,
     start .value_required:n = true ,
 
-    skip-empty-lines .bool_set:N = \l_@@_skip_empty_lines_bool ,
+    skip-empty-lines .code:n = 
+      \bool_if:NF \l_@@_in_PitonOptions_bool
+        { \bool_set_true:N \l_@@_line_numbers_bool }
+      \str_if_eq:nnTF { #1 } { false }
+        { \bool_set_false:N \l_@@_skip_empty_lines_bool } 
+        { \bool_set_true:N \l_@@_skip_empty_lines_bool } ,
     skip-empty-lines .default:n = true , 
 
-    label-empty-lines .bool_set:N = \l_@@_label_empty_lines_bool ,
+    label-empty-lines .code:n = 
+      \bool_if:NF \l_@@_in_PitonOptions_bool
+        { \bool_set_true:N \l_@@_line_numbers_bool }
+      \str_if_eq:nnTF { #1 } { false }
+        { \bool_set_false:N \l_@@_label_empty_lines_bool } 
+        { \bool_set_true:N \l_@@_label_empty_lines_bool } ,
     label-empty-lines .default:n = true ,
 
     absolute .code:n = 
-      \bool_lazy_or:nnTF
-        \l_@@_in_PitonInputFile_bool 
-        \l_@@_in_PitonOptions_bool 
+      \bool_if:NF \l_@@_in_PitonOptions_bool
+        { \bool_set_true:N \l_@@_line_numbers_bool }
+      \bool_if:NT \l_@@_in_PitonOptions_bool
+        { \bool_set_true:N \l_@@_line_numbers_absolute_bool }
+      \bool_if:NT \l_@@_in_PitonInputFile_bool 
         { 
           \bool_set_true:N \l_@@_line_numbers_absolute_bool 
           \bool_set_false:N \l_@@_skip_empty_lines_bool 
-        } 
-        { \@@_error:n { absolute~in~environment } } ,
-    absolute .value_forbidden:n = true , 
+        }
+      \bool_lazy_or:nnF
+        \l_@@_in_PitonInputFile_bool 
+        \l_@@_in_PitonOptions_bool 
+        { \@@_error:n { Invalid~key } } ,
+    absolute .value_forbidden:n = true ,
 
-    resume .bool_set:N = \l_@@_resume_bool , 
-    resume .default:n = true ,
-  
+    resume .code:n = 
+      \bool_set_true:N \l_@@_resume_bool 
+      \bool_if:NF \l_@@_in_PitonOptions_bool 
+        { \bool_set_true:N \l_@@_line_numbers_bool } , 
+    resume .value_forbidden:n = true ,
+
     unknown .code:n = \@@_error:n { Unknown~key~for~line-numbers } 
   }
 %    \end{macrocode}
@@ -2811,63 +2872,20 @@ version 2005/12/01 or later.
     env-gobble       .value_forbidden:n = true ,
     tabs-auto-gobble .code:n            = \int_set:Nn \l_@@_gobble_int { -3 } , 
     tabs-auto-gobble .value_forbidden:n = true ,
-
-    line-numbers .code:n = 
-      \tl_if_novalue:nTF { #1 }
-        { \bool_set_true:N \l_@@_line_numbers_bool }
-        { 
-          \str_if_eq:nnTF { #1 } { false } 
-            { \bool_set_false:N \l_@@_line_numbers_bool } 
-            { \keys_set:nn { Piton / line-numbers } { #1 } } 
-        } ,
-
-    line-numbers/start .code:n = 
-      \bool_if:NTF \l_@@_in_PitonOptions_bool
-        { \@@_error:n { start~in~PitonOptions } }
-        {
-          \bool_set_true:N \l_@@_line_numbers_bool 
-          \int_set:Nn \l_@@_number_lines_start_int { #1 }  
-        } ,
-    line-numbers/start .value_required:n = true ,
-
-    line-numbers/skip-empty-lines .code:n = 
-      \bool_if:NF \l_@@_in_PitonOptions_bool
-        { \bool_set_true:N \l_@@_line_numbers_bool }
-      \str_if_eq:nnTF { #1 } { false }
-        { \bool_set_false:N \l_@@_skip_empty_lines_bool } 
-        { \bool_set_true:N \l_@@_skip_empty_lines_bool } ,
-    line-numbers/skip-empty-lines .default:n = true , 
-
-    line-numbers/label-empty-lines .code:n = 
-      \bool_if:NF \l_@@_in_PitonOptions_bool
-        { \bool_set_true:N \l_@@_line_numbers_bool }
-      \str_if_eq:nnTF { #1 } { false }
-        { \bool_set_false:N \l_@@_label_empty_lines_bool } 
-        { \bool_set_true:N \l_@@_label_empty_lines_bool } ,
-    line-numbers/label-empty-lines .default:n = true ,
-
-    line-numbers/absolute .code:n = 
-      \bool_if:NF \l_@@_in_PitonOptions_bool
-        { \bool_set_true:N \l_@@_line_numbers_bool }
-      \bool_if:NT \l_@@_in_PitonOptions_bool
-        { \bool_set_true:N \l_@@_line_numbers_absolute_bool }
-      \bool_if:NT \l_@@_in_PitonInputFile_bool 
-        { 
-          \bool_set_true:N \l_@@_line_numbers_absolute_bool 
-          \bool_set_false:N \l_@@_skip_empty_lines_bool 
-        }
-      \bool_lazy_or:nnF
+ 
+    marker .code:n = 
+      \bool_lazy_or:nnTF
         \l_@@_in_PitonInputFile_bool 
         \l_@@_in_PitonOptions_bool 
-        { \@@_error:n { absolute~in~environment } } ,
-    line-numbers/absolute .value_forbidden:n = true ,
+        { \keys_set:nn { PitonOptions / marker } { #1 } } 
+        { \@@_error:n { Invalid~key } } , 
+    marker .value_required:n = true , 
 
-    line-numbers/resume .bool_set:N = \l_@@_resume_bool , 
-    line-numbers/resume .value_forbidden:n = true ,
+    line-numbers .code:n = 
+       \keys_set:nn { PitonOptions / line-numbers } { #1 } ,
+    line-numbers .default:n = true , 
 
-    resume .meta:n = line-numbers/resume , 
-
-    % obsolete 
+    % the key all-line-numbers is deprecated
     all-line-numbers .code:n = 
       \bool_set_true:N \l_@@_line_numbers_bool 
       \bool_set_false:N \l_@@_skip_empty_lines_bool ,
@@ -2926,34 +2944,44 @@ version 2005/12/01 or later.
     continuation-symbol .value_required:n = true , 
     continuation-symbol-on-indentation .tl_set:N = \l_@@_csoi_tl ,
     continuation-symbol-on-indentation .value_required:n = true , 
+
+    first-line .code:n = 
+      \bool_if:NTF \l_@@_in_PitonInputFile_bool 
+        { \int_set:Nn \l_@@_first_line_int { #1 } }
+        { \@@_error:n { Invalid~key } } , 
+    first-line .value_required:n = true ,
+    last-line .code:n = 
+      \bool_if:NTF \l_@@_in_PitonInputFile_bool 
+        { \int_set:Nn \l_@@_last_line_int { #1 } }
+        { \@@_error:n { Invalid~key } } , 
+    last-line .value_required:n = true , 
+    begin-range .code:n = 
+      \bool_if:NTF \l_@@_in_PitonInputFile_bool 
+        { \str_set:Nn \l_@@_begin_range_str { #1 } }
+        { \@@_error:n { Invalid~key } } , 
+    begin-range .value_required:n = true ,
+    end-range .code:n = 
+      \bool_if:NTF \l_@@_in_PitonInputFile_bool 
+        { \str_set:Nn \l_@@_end_range_str { #1 } }
+        { \@@_error:n { Invalid~key } } , 
+    end-range .value_required:n = true ,
+    range .code:n = 
+      \bool_if:NTF \l_@@_in_PitonInputFile_bool 
+        { 
+          \str_set:Nn \l_@@_begin_range_str { #1 } 
+          \str_set:Nn \l_@@_end_range_str { #1 } 
+        }
+        { \@@_error:n { Invalid~key } } , 
+    range .value_required:n = true ,
+
+    resume .meta:n = line-numbers/resume , 
+
     unknown .code:n = \@@_error:n { Unknown~key~for~PitonOptions } 
   }
-
-\keys_define:nn { }
-  { PitonOptions / marker .inherit:n = Piton / marker }
-
-\keys_define:nn { PitonOptions }
-  { marker .code:n = \keys_set:nn { Piton / marker } { #1 } }
 %    \end{macrocode}
 %
-% 
-%  \bigskip
-%    \begin{macrocode}
-\keys_define:nn { Piton / marker }
-  {
-    beginning .code:n = \cs_set:Nn \@@_marker_beginning:n { #1 } ,   
-    beginning .value_required:n = true , 
-    end .code:n = \cs_set:Nn \@@_marker_end:n { #1 } ,   
-    end .value_required:n = true ,
-    include-line .bool_set:N = \l_@@_marker_include_line_bool ,
-    include-line .default:n = true ,
-    unknown .code:n = \@@_error:n { Unknown~key~for~marker } 
-  }
-%    \end{macrocode}
-% 
-% 
+%
 % \bigskip
-% The argument of |\PitonOptions| is provided by curryfication.
 %    \begin{macrocode}
 \NewDocumentCommand \PitonOptions { m } 
   { 
@@ -3204,58 +3232,6 @@ version 2005/12/01 or later.
   }
 %    \end{macrocode}
 % 
-% \bigskip
-%    \begin{macrocode}
-\keys_define:nn { PitonInputFile }
-  {
-    first-line .int_set:N = \l_@@_first_line_int ,  
-    first-line .value_required:n = true ,
-    last-line .int_set:N = \l_@@_last_line_int , 
-    last-line .value_required:n = true , 
-    begin-range .str_set:N = \l_@@_begin_range_str ,
-    begin-range .value_required:n = true ,
-    end-range .str_set:N = \l_@@_end_range_str ,
-    end-range .value_required:n = true ,
-    range .meta:n = { begin-range = #1 , end-range = #1 } ,
-
-    line-numbers .code:n = 
-      \bool_set_true:N \l_@@_line_numbers_bool 
-      \tl_if_novalue:nF { #1 }
-        { 
-          \str_if_eq:nnTF { #1 } { false } 
-            { \bool_set_false:N \l_@@_line_numbers_bool } 
-            { \keys_set:nn { Piton / line-numbers } { #1 } } 
-        } ,
-
-    line-numbers/start .code:n = 
-      \bool_set_true:N \l_@@_line_numbers_bool 
-      \int_set:Nn \l_@@_number_lines_start_int { #1 } , 
-    line-numbers/start .value_required:n = true ,
-
-    line-numbers/skip-empty-lines .code:n = 
-      \bool_set_true:N \l_@@_line_numbers_bool 
-      \str_if_eq:nnTF { #1 } { false }
-        { \bool_set_false:N \l_@@_skip_empty_lines_bool } 
-        { \bool_set_true:N \l_@@_skip_empty_lines_bool } ,
-    line-numbers/skip-empty-lines .default:n = true , 
-
-    line-numbers/label-empty-lines .code:n = 
-      \bool_set_true:N \l_@@_line_numbers_bool 
-      \str_if_eq:nnTF { #1 } { false }
-        { \bool_set_false:N \l_@@_label_empty_lines_bool } 
-        { \bool_set_true:N \l_@@_label_empty_lines_bool } ,
-    line-numbers/label-empty-lines .default:n = true ,
-
-    line-numbers/absolute .code:n = 
-      \bool_set_true:N \l_@@_line_numbers_bool 
-      \bool_set_false:N \l_@@_skip_empty_lines_bool 
-      \bool_set_true:N \l_@@_line_numbers_absolute_bool , 
-    line-numbers/abolute .value_forbidden:n = true ,
-
-    unknown .code:n = \@@_error:n { Unknown~key~for~PitonInputFile } 
-  }
-%    \end{macrocode}
-%
 %
 % \bigskip
 % If the final user has used both |left-margin=auto| and |line-numbers|, we have
@@ -3386,10 +3362,10 @@ version 2005/12/01 or later.
             \ttfamily
             \dim_zero:N \parskip % added 2023/07/06
 %    \end{macrocode}
-% |\c_@@_footnote_bool| is raised when the package \pkg{piton} has been load
+% |\g_@@_footnote_bool| is raised when the package \pkg{piton} has been load
 % with the key |footnote| \emph{or} the key |footnotehyper|.
 %    \begin{macrocode}
-            \bool_if:NT \c_@@_footnote_bool { \begin { savenotes } } 
+            \bool_if:NT \g_@@_footnote_bool { \begin { savenotes } } 
             \vtop \bgroup 
             \lua_now:e 
               { 
@@ -3403,7 +3379,7 @@ version 2005/12/01 or later.
               { ##1 }
             \vspace { 2.5 pt } 
             \egroup 
-            \bool_if:NT \c_@@_footnote_bool { \end { savenotes } } 
+            \bool_if:NT \g_@@_footnote_bool { \end { savenotes } } 
 %    \end{macrocode}
 % If the user has used the key |width| with the special value~|min|, we write on
 % the |aux| file the value of |\l_@@_line_width_dim| (largest width of the lines
@@ -3509,7 +3485,7 @@ version 2005/12/01 or later.
       \int_zero_new:N \l_@@_last_line_int 
       \int_set_eq:NN \l_@@_last_line_int \c_max_int
       \bool_set_true:N \l_@@_in_PitonInputFile_bool
-      \keys_set:nn { PitonInputFile } { #2 }
+      \keys_set:nn { PitonOptions } { #2 }
       \bool_set_false:N \l_@@_in_PitonInputFile_bool
       \bool_if:NT \l_@@_line_numbers_absolute_bool
         { \bool_set_false:N \l_@@_skip_empty_lines_bool }
@@ -3565,7 +3541,7 @@ version 2005/12/01 or later.
       \@@_compute_left_margin:nn { CountNonEmptyLinesFile } { #3 }
       \@@_compute_width:
       \ttfamily
-      \bool_if:NT \c_@@_footnote_bool { \begin { savenotes } } 
+      \bool_if:NT \g_@@_footnote_bool { \begin { savenotes } } 
       \vtop \bgroup 
       \lua_now:e
         { 
@@ -3576,7 +3552,7 @@ version 2005/12/01 or later.
            \int_use:N \l_@@_last_line_int ) 
         } 
       \egroup 
-      \bool_if:NT \c_@@_footnote_bool { \end { savenotes } } 
+      \bool_if:NT \g_@@_footnote_bool { \end { savenotes } } 
       \bool_if:NT \l_@@_width_min_bool \@@_width_to_aux:
     \group_end:
 %    \end{macrocode}
@@ -3769,7 +3745,7 @@ version 2005/12/01 or later.
 % However, maybe we will document in a future version the possibility to write
 % change the style \emph{locally} in a document)].
 %    \begin{macrocode}
-\bool_if:NT \c_@@_math_comments_bool { \SetPitonStyle { Comment.Math } }
+\bool_if:NT \g_@@_math_comments_bool { \SetPitonStyle { Comment.Math } }
 %    \end{macrocode}
 % 
 % \bigskip
@@ -3891,17 +3867,11 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-\msg_new:nnnn { piton } { Unknown~key~for~PitonInputFile } 
+\@@_msg_new:nn { Invalid~key }
   {
-    Unknown~key. \\
-    The~key~'\l_keys_key_str'~is~unknown~for~\token_to_str:N \PitonInputFile.~
-    It~will~be~ignored.\\
-    For~a~list~of~the~available~keys,~type~H~<return>.
-  }
-  {
-    The~available~keys~are~(in~alphabetic~order):~
-    line-numbers~(several~subkeys),~begin-range,~end-range,~first-line,~
-    last-line~and~range. 
+    Wrong~use~of~key.\\
+    You~can't~use~the~key~'\l_keys_key_str'~here.\\
+    That~key~will~be~ignored.
   }
 %    \end{macrocode}
 %
@@ -3912,7 +3882,8 @@ version 2005/12/01 or later.
     The~key~'line-numbers / \l_keys_key_str'~is~unknown.\\
     The~available~keys~of~the~family~'line-numbers'~are~(in~
     alphabetic~order):~
-    absolute,~label-empty-lines,~resume,~skip-empty-lines~and~start.\\
+    absolute,~false,~label-empty-lines,~resume,~skip-empty-lines,~
+    start~and~true.\\
     That~key~will~be~ignored.
   }
 %    \end{macrocode}
@@ -3921,30 +3892,14 @@ version 2005/12/01 or later.
 \@@_msg_new:nn { Unknown~key~for~marker } 
   { 
     Unknown~key. \\
-    The~key~'line-numbers / \l_keys_key_str'~is~unknown.\\
-    The~available~keys~of~the~family~'marker~are~(in~
+    The~key~'marker / \l_keys_key_str'~is~unknown.\\
+    The~available~keys~of~the~family~'marker'~are~(in~
     alphabetic~order):~ beginning,~end~and~include-line.\\
     That~key~will~be~ignored.
   }
 %    \end{macrocode}
 % 
-%    \begin{macrocode}
-\@@_msg_new:nn { start~in~PitonOptions }
-  {
-    Wrong~use~of~key\\
-    You~can't~use~'line-numbers/start'~in~\token_to_str:N \PitonOptions.\\ 
-    That~key~will~be~ignored.
-  }
-%    \end{macrocode}
 % 
-%    \begin{macrocode}
-\@@_msg_new:nn { absolute~in~environment }
-  {
-    Wrong~use~of~key\\
-    You~can't~use~the~'absolute',~subkey~of~'line-numbers'~here.\\
-    That~key~will~be~ignored.
-  }
-%    \end{macrocode}
 % 
 %    \begin{macrocode}
 \@@_msg_new:nn { bad~range~specification } 
@@ -4021,8 +3976,8 @@ version 2005/12/01 or later.
     indent-broken-lines,~
     language,~
     left-margin,~
-    line-numbers~(several~sub-keys),~
-    marker~(several~sub-keys),~
+    line-numbers/,~
+    marker/,~
     prompt-background-color,~
     resume,~
     show-spaces,~
@@ -4093,7 +4048,6 @@ version 2005/12/01 or later.
 % \medskip
 %    \begin{macrocode}
 \begin{luacode*}
-piton = piton or { }
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
@@ -4210,10 +4164,27 @@ end
 % alias for |lpeg.Ct|) without number of catcode table at the first component of
 % the table.
 %    \begin{macrocode}
-local Escape = 
-  P(piton_begin_escape)
-  * L ( ( 1 - P(piton_end_escape) ) ^ 1 ) 
-  * P(piton_end_escape)
+Escape = P ( false ) 
+if piton.begin_escape ~= nil
+then 
+  Escape = 
+    P(piton.begin_escape)
+    * L ( ( 1 - P(piton.end_escape) ) ^ 1 ) 
+    * P(piton.end_escape)
+end
+%    \end{macrocode}
+% 
+%    \begin{macrocode}
+EscapeMath = P ( false ) 
+if piton.begin_escape_math ~= nil
+then 
+  EscapeMath = 
+    P(piton.begin_escape_math)
+    * Lc ( "\\ensuremath{" ) 
+    * L ( ( 1 - P(piton.end_escape_math) ) ^ 1 )
+    * Lc ( "}" ) 
+    * P(piton.end_escape_math)
+end
 %    \end{macrocode}
 % 
 % \vspace{1cm}
@@ -4281,13 +4252,12 @@ local Number =
 %
 % \bigskip
 % We recall that |piton.begin_espace| and |piton_end_escape| are Lua strings
-% corresponding to the key |escape-inside|\footnote{The \pkg{piton} key
-% |escape-inside| is available at load-time only.}. Of course, if the final user
-% has not used the key |escape-inside|, these strings are empty.
+% corresponding to the keys |begin-escape| and |end-escape|. Of course, if the
+% final user has not used the key |escape-inside|, these strings are empty.
 %    \begin{macrocode}
 local Word
-if piton_begin_escape ~= ''
-then Word = Q ( ( ( 1 - space - P(piton_begin_escape) - P(piton_end_escape) ) 
+if piton.begin_escape ~= nil -- before : ''
+then Word = Q ( ( ( 1 - space - P(piton.begin_escape) - P(piton.end_escape) ) 
                    - S "'\"\r[()]" - digit ) ^ 1 )
 else Word = Q ( ( ( 1 - space ) - S "'\"\r[()]" - digit ) ^ 1 )
 end
@@ -4998,7 +4968,7 @@ local MainPython =
        EOL
      + Space 
      + Tab
-     + Escape 
+     + Escape + EscapeMath
      + CommentLaTeX
      + Beamer
      + LongString 
@@ -5511,7 +5481,7 @@ MainOCaml =
        EOL
      + Space 
      + Tab
-     + Escape 
+     + Escape + EscapeMath
      + Beamer 
      + TypeParameter
      + String + QuotedString + Char
@@ -5846,7 +5816,7 @@ local MainC =
        EOL
      + Space 
      + Tab
-     + Escape 
+     + Escape + EscapeMath 
      + CommentLaTeX
      + Beamer
      + Preproc

@@ -6,7 +6,7 @@
 \usepackage[french]{babel}
 \frenchsetup{og = « , fg = »}
 
-\usepackage[footnotehyper,escape-inside=$$,math-comments]{piton}
+\usepackage[footnotehyper,begin-escape=!,end-escape=!,math-comments]{piton}
 
 \usepackage[executable=python.exe]{pyluatex}
 
@@ -777,7 +777,7 @@ Il est possible de demander que, dans les commentaires Python normaux, c'est-à-
 |#>|), les éléments placés entre symboles \texttt{\$} soient composés en mode mathématique de LaTeX (le reste du
 commentaire restant composé en verbatim).
 
-La clé |math-comments|, qui n'est disponible qu'au chargement de \pkg{piton} (c'est-à-dire au moment du
+La clé \Definition{math-comments}, qui n'est disponible qu'au chargement de \pkg{piton} (c'est-à-dire au moment du 
 |\usepackage|), active ce comportement.
 
 \bigskip
@@ -796,20 +796,20 @@ def carré(x):
 \end{Piton}
 
 
-\subsubsection{Le mécanisme «espace-inside»}
+\subsubsection{Le mécanisme «espace»}
 
 Il est aussi possible de surcharger les listings Python pour y insérer du code LaTeX à peu près n'importe où (mais
 entre deux lexèmes, bien entendu). Cette fonctionnalité n'est pas activée par défaut par \pkg{piton}. Pour
-l'utiliser, il faut spécifier les deux caractères marquant l'échappement (le premier le commençant et le deuxième
-le terminant) en utilisant la clé |escape-inside| au chargement de \pkg{piton} (c'est-à-dire au moment du
-|\usepackage|). Les deux caractères peuvent être identiques.
+l'utiliser, il faut spécifier les deux délimiteurs marquant l'échappement (le premier le commençant et le deuxième
+le terminant) en utilisant les clés \Definition{begin-escape} et \Definition{end-escape} au chargement de
+\pkg{piton} (c'est-à-dire au moment du |\usepackage{piton}|). Les deux délimiteurs peuvent être identiques.
 
 
 \bigskip
 Dans l'exemple suivant, on suppose que l'extension \pkg{piton} a été chargée de la manière suivante :
 
 \begin{Verbatim}
-\usepackage[~emphase#escape-inside=$$@]{piton}
+\usepackage[~emphase#begin-escape=!,end-escape=!@]{piton}
 \end{Verbatim}
 
 \medskip
@@ -822,7 +822,7 @@ def fact(n):
     if n==0:
         return 1
     else:
-        ~emphase#$\highLight{$@return n*fact(n-1)~emphase#$}$@
+        ~emphase#!\highLight{!@return n*fact(n-1)~emphase#!}!@
 \end{Piton}
 \end{Verbatim}
 
@@ -831,7 +831,7 @@ def fact(n):
     if n==0:
         return 1
     else:
-        $\highLight{$return n*fact(n-1)$}$
+        !\highLight{!return n*fact(n-1)!}!
 \end{Piton}
 
 \bigskip
@@ -855,7 +855,7 @@ def fact(n):
     if n==0:
         return 1
     else:
-        ~emphase#$\Jaune$@return n*fact(n-1)
+        ~emphase#!\Jaune!@return n*fact(n-1)
 \end{Piton}
 \end{Verbatim}
 
@@ -869,16 +869,16 @@ def fact(n):
     if n==0:
         return 1
     else:
-        $\Jaune$return n*fact(n-1)
+        !\Jaune!return n*fact(n-1)
 \end{Piton}
 
 
 
 \bigskip
-\emph{Attention} : L'échappement vers LaTeX permis par les caractères de |escape-inside| n'est pas actif dans les
-chaînes de caractères ni dans les commentaires (pour avoir un commentaire entièrement en échappement vers LaTeX,
-c'est-à-dire ce qui est 
-appelé dans ce document «commentaire LaTeX», il suffit de le faire débuter par |#>|).
+\emph{Attention} : L'échappement vers LaTeX permis par les clés |begin-escape| et |end-escape| n'est pas actif dans
+les chaînes de caractères ni dans les commentaires (pour avoir un commentaire entièrement en échappement vers
+LaTeX, c'est-à-dire ce qui est appelé dans ce document «commentaire LaTeX», il suffit de le faire débuter par
+|#>|).
 
 
 

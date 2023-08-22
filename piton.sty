@@ -46,44 +46,65 @@
   }
 \sys_if_engine_luatex:F { \msg_critical:nn { piton } { LuaLaTeX~mandatory } }
 \RequirePackage { luatexbase }
-\bool_new:N \c__piton_footnotehyper_bool
-\bool_new:N \c__piton_footnote_bool
-\bool_new:N \c__piton_math_comments_bool
+\bool_new:N \g__piton_footnotehyper_bool
+\bool_new:N \g__piton_footnote_bool
+\bool_new:N \g__piton_math_comments_bool
 \bool_new:N \g__piton_beamer_bool
+\tl_new:N \g__piton_escape_inside_tl
 \keys_define:nn { piton / package }
   {
-    footnote .bool_set:N = \c__piton_footnote_bool ,
-    footnotehyper .bool_set:N = \c__piton_footnotehyper_bool ,
-    escape-inside .tl_set:N = \c__piton_escape_inside_tl ,
-    escape-inside .initial:n = ,
+    footnote .bool_gset:N = \g__piton_footnote_bool ,
+    footnotehyper .bool_gset:N = \g__piton_footnotehyper_bool ,
+
+    begin-escape .code:n = \lua_now:n { piton.begin_escape = "#1" } ,
+    begin-escape .value_required:n = true ,
+    end-escape   .code:n = \lua_now:n { piton.end_escape = "#1" } ,
+    end-escape   .value_required:n = true ,
+
+    begin-escape-math .code:n = \lua_now:n { piton.begin_escape_math = "#1" } ,
+    begin-escape-math .value_required:n = true ,
+    end-escape-math   .code:n = \lua_now:n { piton.end_escape_math = "#1" } ,
+    end-escape-math   .value_required:n = true ,
+
+    % deprecated
+    escape-inside .tl_gset:N = \g__piton_escape_inside_tl ,
+
     comment-latex .code:n = { \lua_now:n { comment_latex = "#1" } } ,
     comment-latex .value_required:n = true ,
-    math-comments .bool_set:N = \c__piton_math_comments_bool ,
+
+    math-comments .bool_gset:N = \g__piton_math_comments_bool ,
     math-comments .default:n  = true ,
-    beamer        .bool_set:N = \g__piton_beamer_bool ,
+
+    beamer        .bool_gset:N = \g__piton_beamer_bool ,
     beamer        .default:n = true ,
+
     unknown .code:n = \__piton_error:n { Unknown~key~for~package }
   }
 \__piton_msg_new:nn { Unknown~key~for~package }
   {
     Unknown~key.\\
     You~have~used~the~key~'\l_keys_key_str'~but~the~only~keys~available~here~
-    are~'beamer',~'comment-latex',~'escape-inside',~'footnote',~'footnotehyper'~and~
+    are~'beamer',~'begin-escape',~'begin-escape-math',~'comment-latex',~
+    'end-escape',~'end-escape-math',~~'footnote',~'footnotehyper'~and~
     'math-comments'.~Other~keys~are~available~in~\token_to_str:N \PitonOptions.\\
     That~key~will~be~ignored.
   }
+\lua_now:n { piton = piton~or { } }
 \ProcessKeysOptions { piton / package }
-\begingroup
-\cs_new_protected:Npn \__piton_set_escape_char:nn #1 #2
+\tl_if_empty:NF \g__piton_escape_inside_tl
   {
-    \lua_now:n { piton_begin_escape = "#1" }
-    \lua_now:n { piton_end_escape = "#2" }
+    \begingroup
+    \cs_new_protected:Npn \__piton_set_escape_char:nn #1 #2
+      {
+        \lua_now:n { piton.begin_escape = "#1" }
+        \lua_now:n { piton.end_escape = "#2" }
+      }
+    \cs_generate_variant:Nn \__piton_set_escape_char:nn { x x }
+    \__piton_set_escape_char:xx
+      { \tl_head:V \g__piton_escape_inside_tl }
+      { \tl_tail:V \g__piton_escape_inside_tl }
+    \endgroup
   }
-\cs_generate_variant:Nn \__piton_set_escape_char:nn { x x }
-\__piton_set_escape_char:xx
-  { \tl_head:V \c__piton_escape_inside_tl }
-  { \tl_tail:V \c__piton_escape_inside_tl }
-\endgroup
 \@ifclassloaded { beamer } { \bool_gset_true:N \g__piton_beamer_bool } { }
 \@ifpackageloaded { beamerarticle } { \bool_gset_true:N \g__piton_beamer_bool } { }
 \bool_if:NT \g__piton_beamer_bool { \lua_now:n { piton_beamer = true } }
@@ -118,25 +139,25 @@
     of~the~package~footnote.\\
     If~you~go~on,~the~package~footnotehyper~won't~be~loaded.
   }
-\bool_if:NT \c__piton_footnote_bool
+\bool_if:NT \g__piton_footnote_bool
   {
     \@ifclassloaded { beamer }
-      { \bool_set_false:N \c__piton_footnote_bool }
+      { \bool_gset_false:N \g__piton_footnote_bool }
       {
         \@ifpackageloaded { footnotehyper }
           { \__piton_error:n { footnote~with~footnotehyper~package } }
           { \usepackage { footnote } }
       }
   }
-\bool_if:NT \c__piton_footnotehyper_bool
+\bool_if:NT \g__piton_footnotehyper_bool
   {
     \@ifclassloaded { beamer }
-      { \bool_set_false:N \c__piton_footnote_bool }
+      { \bool_gset_false:N \g__piton_footnote_bool }
       {
         \@ifpackageloaded { footnote }
           { \__piton_error:n { footnotehyper~with~footnote~package } }
           { \usepackage { footnotehyper } }
-        \bool_set_true:N \c__piton_footnote_bool
+        \bool_gset_true:N \g__piton_footnote_bool
       }
   }
 \str_new:N \l__piton_language_str
@@ -347,9 +368,9 @@
           { \l__piton_nb_lines_int - \g__piton_line_int } > \l__piton_splittable_int
           {
             \egroup
-            \bool_if:NT \c__piton_footnote_bool { \end { savenotes } }
+            \bool_if:NT \g__piton_footnote_bool { \end { savenotes } }
             \par \mode_leave_vertical: % \newline
-            \bool_if:NT \c__piton_footnote_bool { \begin { savenotes } }
+            \bool_if:NT \g__piton_footnote_bool { \begin { savenotes } }
             \vtop \bgroup
           }
      }
@@ -388,30 +409,67 @@
 \bool_set_true:N \l__piton_label_empty_lines_bool
 \int_new:N \l__piton_number_lines_start_int
 \bool_new:N \l__piton_resume_bool
-\keys_define:nn { Piton / line-numbers }
+\keys_define:nn { PitonOptions / marker }
   {
-    start .int_set:N = \l__piton_number_lines_start_int ,
+    beginning .code:n = \cs_set:Nn \__piton_marker_beginning:n { #1 } ,
+    beginning .value_required:n = true ,
+    end .code:n = \cs_set:Nn \__piton_marker_end:n { #1 } ,
+    end .value_required:n = true ,
+    include-line .bool_set:N = \l__piton_marker_include_line_bool ,
+    include-line .default:n = true ,
+    unknown .code:n = \__piton_error:n { Unknown~key~for~marker }
+  }
+\keys_define:nn { PitonOptions / line-numbers }
+  {
+    true .code:n = \bool_set_true:N \l__piton_line_numbers_bool ,
+    false .code:n = \bool_set_false:N \l__piton_line_numbers_bool ,
+
+    start .code:n =
+      \bool_if:NTF \l__piton_in_PitonOptions_bool
+        { Invalid~key }
+        {
+          \bool_set_true:N \l__piton_line_numbers_bool
+          \int_set:Nn \l__piton_number_lines_start_int { #1 }
+        } ,
     start .value_required:n = true ,
 
-    skip-empty-lines .bool_set:N = \l__piton_skip_empty_lines_bool ,
+    skip-empty-lines .code:n =
+      \bool_if:NF \l__piton_in_PitonOptions_bool
+        { \bool_set_true:N \l__piton_line_numbers_bool }
+      \str_if_eq:nnTF { #1 } { false }
+        { \bool_set_false:N \l__piton_skip_empty_lines_bool }
+        { \bool_set_true:N \l__piton_skip_empty_lines_bool } ,
     skip-empty-lines .default:n = true ,
 
-    label-empty-lines .bool_set:N = \l__piton_label_empty_lines_bool ,
+    label-empty-lines .code:n =
+      \bool_if:NF \l__piton_in_PitonOptions_bool
+        { \bool_set_true:N \l__piton_line_numbers_bool }
+      \str_if_eq:nnTF { #1 } { false }
+        { \bool_set_false:N \l__piton_label_empty_lines_bool }
+        { \bool_set_true:N \l__piton_label_empty_lines_bool } ,
     label-empty-lines .default:n = true ,
 
     absolute .code:n =
-      \bool_lazy_or:nnTF
-        \l__piton_in_PitonInputFile_bool
-        \l__piton_in_PitonOptions_bool
+      \bool_if:NF \l__piton_in_PitonOptions_bool
+        { \bool_set_true:N \l__piton_line_numbers_bool }
+      \bool_if:NT \l__piton_in_PitonOptions_bool
+        { \bool_set_true:N \l__piton_line_numbers_absolute_bool }
+      \bool_if:NT \l__piton_in_PitonInputFile_bool
         {
           \bool_set_true:N \l__piton_line_numbers_absolute_bool
           \bool_set_false:N \l__piton_skip_empty_lines_bool
         }
-        { \__piton_error:n { absolute~in~environment } } ,
+      \bool_lazy_or:nnF
+        \l__piton_in_PitonInputFile_bool
+        \l__piton_in_PitonOptions_bool
+        { \__piton_error:n { Invalid~key } } ,
     absolute .value_forbidden:n = true ,
 
-    resume .bool_set:N = \l__piton_resume_bool ,
-    resume .default:n = true ,
+    resume .code:n =
+      \bool_set_true:N \l__piton_resume_bool
+      \bool_if:NF \l__piton_in_PitonOptions_bool
+        { \bool_set_true:N \l__piton_line_numbers_bool } ,
+    resume .value_forbidden:n = true ,
 
     unknown .code:n = \__piton_error:n { Unknown~key~for~line-numbers }
   }
@@ -429,62 +487,19 @@
     tabs-auto-gobble .code:n            = \int_set:Nn \l__piton_gobble_int { -3 } ,
     tabs-auto-gobble .value_forbidden:n = true ,
 
-    line-numbers .code:n =
-      \tl_if_novalue:nTF { #1 }
-        { \bool_set_true:N \l__piton_line_numbers_bool }
-        {
-          \str_if_eq:nnTF { #1 } { false }
-            { \bool_set_false:N \l__piton_line_numbers_bool }
-            { \keys_set:nn { Piton / line-numbers } { #1 } }
-        } ,
-
-    line-numbers/start .code:n =
-      \bool_if:NTF \l__piton_in_PitonOptions_bool
-        { \__piton_error:n { start~in~PitonOptions } }
-        {
-          \bool_set_true:N \l__piton_line_numbers_bool
-          \int_set:Nn \l__piton_number_lines_start_int { #1 }
-        } ,
-    line-numbers/start .value_required:n = true ,
-
-    line-numbers/skip-empty-lines .code:n =
-      \bool_if:NF \l__piton_in_PitonOptions_bool
-        { \bool_set_true:N \l__piton_line_numbers_bool }
-      \str_if_eq:nnTF { #1 } { false }
-        { \bool_set_false:N \l__piton_skip_empty_lines_bool }
-        { \bool_set_true:N \l__piton_skip_empty_lines_bool } ,
-    line-numbers/skip-empty-lines .default:n = true ,
-
-    line-numbers/label-empty-lines .code:n =
-      \bool_if:NF \l__piton_in_PitonOptions_bool
-        { \bool_set_true:N \l__piton_line_numbers_bool }
-      \str_if_eq:nnTF { #1 } { false }
-        { \bool_set_false:N \l__piton_label_empty_lines_bool }
-        { \bool_set_true:N \l__piton_label_empty_lines_bool } ,
-    line-numbers/label-empty-lines .default:n = true ,
-
-    line-numbers/absolute .code:n =
-      \bool_if:NF \l__piton_in_PitonOptions_bool
-        { \bool_set_true:N \l__piton_line_numbers_bool }
-      \bool_if:NT \l__piton_in_PitonOptions_bool
-        { \bool_set_true:N \l__piton_line_numbers_absolute_bool }
-      \bool_if:NT \l__piton_in_PitonInputFile_bool
-        {
-          \bool_set_true:N \l__piton_line_numbers_absolute_bool
-          \bool_set_false:N \l__piton_skip_empty_lines_bool
-        }
-      \bool_lazy_or:nnF
+    marker .code:n =
+      \bool_lazy_or:nnTF
         \l__piton_in_PitonInputFile_bool
         \l__piton_in_PitonOptions_bool
-        { \__piton_error:n { absolute~in~environment } } ,
-    line-numbers/absolute .value_forbidden:n = true ,
+        { \keys_set:nn { PitonOptions / marker } { #1 } }
+        { \__piton_error:n { Invalid~key } } ,
+    marker .value_required:n = true ,
 
-    line-numbers/resume .bool_set:N = \l__piton_resume_bool ,
-    line-numbers/resume .value_forbidden:n = true ,
+    line-numbers .code:n =
+       \keys_set:nn { PitonOptions / line-numbers } { #1 } ,
+    line-numbers .default:n = true ,
 
-    resume .meta:n = line-numbers/resume ,
-
-    % obsolete
+    % the key all-line-numbers is deprecated
     all-line-numbers .code:n =
       \bool_set_true:N \l__piton_line_numbers_bool
       \bool_set_false:N \l__piton_skip_empty_lines_bool ,
@@ -543,23 +558,39 @@
     continuation-symbol .value_required:n = true ,
     continuation-symbol-on-indentation .tl_set:N = \l__piton_csoi_tl ,
     continuation-symbol-on-indentation .value_required:n = true ,
+
+    first-line .code:n =
+      \bool_if:NTF \l__piton_in_PitonInputFile_bool
+        { \int_set:Nn \l__piton_first_line_int { #1 } }
+        { \__piton_error:n { Invalid~key } } ,
+    first-line .value_required:n = true ,
+    last-line .code:n =
+      \bool_if:NTF \l__piton_in_PitonInputFile_bool
+        { \int_set:Nn \l__piton_last_line_int { #1 } }
+        { \__piton_error:n { Invalid~key } } ,
+    last-line .value_required:n = true ,
+    begin-range .code:n =
+      \bool_if:NTF \l__piton_in_PitonInputFile_bool
+        { \str_set:Nn \l__piton_begin_range_str { #1 } }
+        { \__piton_error:n { Invalid~key } } ,
+    begin-range .value_required:n = true ,
+    end-range .code:n =
+      \bool_if:NTF \l__piton_in_PitonInputFile_bool
+        { \str_set:Nn \l__piton_end_range_str { #1 } }
+        { \__piton_error:n { Invalid~key } } ,
+    end-range .value_required:n = true ,
+    range .code:n =
+      \bool_if:NTF \l__piton_in_PitonInputFile_bool
+        {
+          \str_set:Nn \l__piton_begin_range_str { #1 }
+          \str_set:Nn \l__piton_end_range_str { #1 }
+        }
+        { \__piton_error:n { Invalid~key } } ,
+    range .value_required:n = true ,
+
+    resume .meta:n = line-numbers/resume ,
+
     unknown .code:n = \__piton_error:n { Unknown~key~for~PitonOptions }
-  }
-
-\keys_define:nn { }
-  { PitonOptions / marker .inherit:n = Piton / marker }
-
-\keys_define:nn { PitonOptions }
-  { marker .code:n = \keys_set:nn { Piton / marker } { #1 } }
-\keys_define:nn { Piton / marker }
-  {
-    beginning .code:n = \cs_set:Nn \__piton_marker_beginning:n { #1 } ,
-    beginning .value_required:n = true ,
-    end .code:n = \cs_set:Nn \__piton_marker_end:n { #1 } ,
-    end .value_required:n = true ,
-    include-line .bool_set:N = \l__piton_marker_include_line_bool ,
-    include-line .default:n = true ,
-    unknown .code:n = \__piton_error:n { Unknown~key~for~marker }
   }
 \NewDocumentCommand \PitonOptions { m }
   {
@@ -727,54 +758,6 @@
     \dim_zero:N \parindent
     \cs_set_eq:NN \label \__piton_label:n
   }
-\keys_define:nn { PitonInputFile }
-  {
-    first-line .int_set:N = \l__piton_first_line_int ,
-    first-line .value_required:n = true ,
-    last-line .int_set:N = \l__piton_last_line_int ,
-    last-line .value_required:n = true ,
-    begin-range .str_set:N = \l__piton_begin_range_str ,
-    begin-range .value_required:n = true ,
-    end-range .str_set:N = \l__piton_end_range_str ,
-    end-range .value_required:n = true ,
-    range .meta:n = { begin-range = #1 , end-range = #1 } ,
-
-    line-numbers .code:n =
-      \bool_set_true:N \l__piton_line_numbers_bool
-      \tl_if_novalue:nF { #1 }
-        {
-          \str_if_eq:nnTF { #1 } { false }
-            { \bool_set_false:N \l__piton_line_numbers_bool }
-            { \keys_set:nn { Piton / line-numbers } { #1 } }
-        } ,
-
-    line-numbers/start .code:n =
-      \bool_set_true:N \l__piton_line_numbers_bool
-      \int_set:Nn \l__piton_number_lines_start_int { #1 } ,
-    line-numbers/start .value_required:n = true ,
-
-    line-numbers/skip-empty-lines .code:n =
-      \bool_set_true:N \l__piton_line_numbers_bool
-      \str_if_eq:nnTF { #1 } { false }
-        { \bool_set_false:N \l__piton_skip_empty_lines_bool }
-        { \bool_set_true:N \l__piton_skip_empty_lines_bool } ,
-    line-numbers/skip-empty-lines .default:n = true ,
-
-    line-numbers/label-empty-lines .code:n =
-      \bool_set_true:N \l__piton_line_numbers_bool
-      \str_if_eq:nnTF { #1 } { false }
-        { \bool_set_false:N \l__piton_label_empty_lines_bool }
-        { \bool_set_true:N \l__piton_label_empty_lines_bool } ,
-    line-numbers/label-empty-lines .default:n = true ,
-
-    line-numbers/absolute .code:n =
-      \bool_set_true:N \l__piton_line_numbers_bool
-      \bool_set_false:N \l__piton_skip_empty_lines_bool
-      \bool_set_true:N \l__piton_line_numbers_absolute_bool ,
-    line-numbers/abolute .value_forbidden:n = true ,
-
-    unknown .code:n = \__piton_error:n { Unknown~key~for~PitonInputFile }
-  }
 \cs_new_protected:Npn \__piton_compute_left_margin:nn #1 #2
   {
     \bool_lazy_and:nnT \l__piton_left_margin_auto_bool \l__piton_line_numbers_bool
@@ -842,7 +825,7 @@
             \__piton_compute_width:
             \ttfamily
             \dim_zero:N \parskip % added 2023/07/06
-            \bool_if:NT \c__piton_footnote_bool { \begin { savenotes } }
+            \bool_if:NT \g__piton_footnote_bool { \begin { savenotes } }
             \vtop \bgroup
             \lua_now:e
               {
@@ -856,7 +839,7 @@
               { ##1 }
             \vspace { 2.5 pt }
             \egroup
-            \bool_if:NT \c__piton_footnote_bool { \end { savenotes } }
+            \bool_if:NT \g__piton_footnote_bool { \end { savenotes } }
             \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
             \end { #1 }
             \__piton_write_aux:
@@ -912,7 +895,7 @@
       \int_zero_new:N \l__piton_last_line_int
       \int_set_eq:NN \l__piton_last_line_int \c_max_int
       \bool_set_true:N \l__piton_in_PitonInputFile_bool
-      \keys_set:nn { PitonInputFile } { #2 }
+      \keys_set:nn { PitonOptions } { #2 }
       \bool_set_false:N \l__piton_in_PitonInputFile_bool
       \bool_if:NT \l__piton_line_numbers_absolute_bool
         { \bool_set_false:N \l__piton_skip_empty_lines_bool }
@@ -955,7 +938,7 @@
       \__piton_compute_left_margin:nn { CountNonEmptyLinesFile } { #3 }
       \__piton_compute_width:
       \ttfamily
-      \bool_if:NT \c__piton_footnote_bool { \begin { savenotes } }
+      \bool_if:NT \g__piton_footnote_bool { \begin { savenotes } }
       \vtop \bgroup
       \lua_now:e
         {
@@ -966,7 +949,7 @@
            \int_use:N \l__piton_last_line_int )
         }
       \egroup
-      \bool_if:NT \c__piton_footnote_bool { \end { savenotes } }
+      \bool_if:NT \g__piton_footnote_bool { \end { savenotes } }
       \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
     \group_end:
     \tl_if_novalue:nF { #1 }
@@ -1084,7 +1067,7 @@
     ParseAgain.noCR    = \__piton_piton_no_cr:n ,
     ParseAgain         = \__piton_piton:n ,
   }
-\bool_if:NT \c__piton_math_comments_bool { \SetPitonStyle { Comment.Math } }
+\bool_if:NT \g__piton_math_comments_bool { \SetPitonStyle { Comment.Math } }
 \cs_new_protected:Npn \__piton_identifier:n #1
   { \cs_if_exist_use:c { PitonIdentifier _ \l__piton_language_str _ #1 } { #1 } }
 \keys_define:nn { PitonOptions }
@@ -1141,17 +1124,11 @@
     The~available~styles~are~(in~alphabetic~order):~
     \clist_use:Nnnn \g__piton_styles_clist { ~and~ } { ,~ } { ~and~ }.
   }
-\msg_new:nnnn { piton } { Unknown~key~for~PitonInputFile }
+\__piton_msg_new:nn { Invalid~key }
   {
-    Unknown~key. \\
-    The~key~'\l_keys_key_str'~is~unknown~for~\token_to_str:N \PitonInputFile.~
-    It~will~be~ignored.\\
-    For~a~list~of~the~available~keys,~type~H~<return>.
-  }
-  {
-    The~available~keys~are~(in~alphabetic~order):~
-    line-numbers~(several~subkeys),~begin-range,~end-range,~first-line,~
-    last-line~and~range.
+    Wrong~use~of~key.\\
+    You~can't~use~the~key~'\l_keys_key_str'~here.\\
+    That~key~will~be~ignored.
   }
 \__piton_msg_new:nn { Unknown~key~for~line-numbers }
   {
@@ -1159,27 +1136,16 @@
     The~key~'line-numbers / \l_keys_key_str'~is~unknown.\\
     The~available~keys~of~the~family~'line-numbers'~are~(in~
     alphabetic~order):~
-    absolute,~label-empty-lines,~resume,~skip-empty-lines~and~start.\\
+    absolute,~false,~label-empty-lines,~resume,~skip-empty-lines,~
+    start~and~true.\\
     That~key~will~be~ignored.
   }
 \__piton_msg_new:nn { Unknown~key~for~marker }
   {
     Unknown~key. \\
-    The~key~'line-numbers / \l_keys_key_str'~is~unknown.\\
-    The~available~keys~of~the~family~'marker~are~(in~
+    The~key~'marker / \l_keys_key_str'~is~unknown.\\
+    The~available~keys~of~the~family~'marker'~are~(in~
     alphabetic~order):~ beginning,~end~and~include-line.\\
-    That~key~will~be~ignored.
-  }
-\__piton_msg_new:nn { start~in~PitonOptions }
-  {
-    Wrong~use~of~key\\
-    You~can't~use~'line-numbers/start'~in~\token_to_str:N \PitonOptions.\\
-    That~key~will~be~ignored.
-  }
-\__piton_msg_new:nn { absolute~in~environment }
-  {
-    Wrong~use~of~key\\
-    You~can't~use~the~'absolute',~subkey~of~'line-numbers'~here.\\
     That~key~will~be~ignored.
   }
 \__piton_msg_new:nn { bad~range~specification }
@@ -1236,8 +1202,8 @@
     indent-broken-lines,~
     language,~
     left-margin,~
-    line-numbers~(several~sub-keys),~
-    marker~(several~sub-keys),~
+    line-numbers/,~
+    marker/,~
     prompt-background-color,~
     resume,~
     show-spaces,~
@@ -1274,7 +1240,6 @@
 \ExplSyntaxOff
 \RequirePackage{luacode}
 \begin{luacode*}
-piton = piton or { }
 if piton.comment_latex == nil then piton.comment_latex = ">" end
 piton.comment_latex = "#" .. piton.comment_latex
 function piton.open_brace ()
@@ -1307,10 +1272,24 @@ local function WithStyle(style,pattern)
      * pattern
      * Ct ( Cc "Close" )
 end
-local Escape =
-  P(piton_begin_escape)
-  * L ( ( 1 - P(piton_end_escape) ) ^ 1 )
-  * P(piton_end_escape)
+Escape = P ( false )
+if piton.begin_escape ~= nil
+then
+  Escape =
+    P(piton.begin_escape)
+    * L ( ( 1 - P(piton.end_escape) ) ^ 1 )
+    * P(piton.end_escape)
+end
+EscapeMath = P ( false )
+if piton.begin_escape_math ~= nil
+then
+  EscapeMath =
+    P(piton.begin_escape_math)
+    * Lc ( "\\ensuremath{" )
+    * L ( ( 1 - P(piton.end_escape_math) ) ^ 1 )
+    * Lc ( "}" )
+    * P(piton.end_escape_math)
+end
 lpeg.locale(lpeg)
 local alpha, digit = lpeg.alpha, lpeg.digit
 local space = P " "
@@ -1329,8 +1308,8 @@ local Number =
       + digit^1
     )
 local Word
-if piton_begin_escape ~= ''
-then Word = Q ( ( ( 1 - space - P(piton_begin_escape) - P(piton_end_escape) )
+if piton.begin_escape ~= nil -- before : ''
+then Word = Q ( ( ( 1 - space - P(piton.begin_escape) - P(piton.end_escape) )
                    - S "'\"\r[()]" - digit ) ^ 1 )
 else Word = Q ( ( ( 1 - space ) - S "'\"\r[()]" - digit ) ^ 1 )
 end
@@ -1715,7 +1694,7 @@ local MainPython =
        EOL
      + Space
      + Tab
-     + Escape
+     + Escape + EscapeMath
      + CommentLaTeX
      + Beamer
      + LongString
@@ -2050,7 +2029,7 @@ MainOCaml =
        EOL
      + Space
      + Tab
-     + Escape
+     + Escape + EscapeMath
      + Beamer
      + TypeParameter
      + String + QuotedString + Char
@@ -2252,7 +2231,7 @@ local MainC =
        EOL
      + Space
      + Tab
-     + Escape
+     + Escape + EscapeMath
      + CommentLaTeX
      + Beamer
      + Preproc
