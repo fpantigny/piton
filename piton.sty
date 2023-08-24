@@ -450,10 +450,9 @@
     label-empty-lines .default:n = true ,
 
     absolute .code:n =
-      \bool_if:NF \l__piton_in_PitonOptions_bool
-        { \bool_set_true:N \l__piton_line_numbers_bool }
-      \bool_if:NT \l__piton_in_PitonOptions_bool
+      \bool_if:NTF \l__piton_in_PitonOptions_bool
         { \bool_set_true:N \l__piton_line_numbers_absolute_bool }
+        { \bool_set_true:N \l__piton_line_numbers_bool }
       \bool_if:NT \l__piton_in_PitonInputFile_bool
         {
           \bool_set_true:N \l__piton_line_numbers_absolute_bool
@@ -498,12 +497,6 @@
     line-numbers .code:n =
        \keys_set:nn { PitonOptions / line-numbers } { #1 } ,
     line-numbers .default:n = true ,
-
-    % the key all-line-numbers is deprecated
-    all-line-numbers .code:n =
-      \bool_set_true:N \l__piton_line_numbers_bool
-      \bool_set_false:N \l__piton_skip_empty_lines_bool ,
-    all-line-numbers .value_forbidden:n = true  ,
 
     splittable       .int_set:N         = \l__piton_splittable_int ,
     splittable       .default:n         = 1 ,
@@ -559,38 +552,45 @@
     continuation-symbol-on-indentation .tl_set:N = \l__piton_csoi_tl ,
     continuation-symbol-on-indentation .value_required:n = true ,
 
-    first-line .code:n =
-      \bool_if:NTF \l__piton_in_PitonInputFile_bool
-        { \int_set:Nn \l__piton_first_line_int { #1 } }
-        { \__piton_error:n { Invalid~key } } ,
+    first-line .code:n = \__piton_in_PitonInputFile:n
+      { \int_set:Nn \l__piton_first_line_int { #1 } } ,
     first-line .value_required:n = true ,
-    last-line .code:n =
-      \bool_if:NTF \l__piton_in_PitonInputFile_bool
-        { \int_set:Nn \l__piton_last_line_int { #1 } }
-        { \__piton_error:n { Invalid~key } } ,
+
+    last-line .code:n = \__piton_in_PitonInputFile:n
+      { \int_set:Nn \l__piton_last_line_int { #1 } } ,
     last-line .value_required:n = true ,
-    begin-range .code:n =
-      \bool_if:NTF \l__piton_in_PitonInputFile_bool
-        { \str_set:Nn \l__piton_begin_range_str { #1 } }
-        { \__piton_error:n { Invalid~key } } ,
+
+    begin-range .code:n = \__piton_in_PitonInputFile:n
+      { \str_set:Nn \l__piton_begin_range_str { #1 } } ,
     begin-range .value_required:n = true ,
-    end-range .code:n =
-      \bool_if:NTF \l__piton_in_PitonInputFile_bool
-        { \str_set:Nn \l__piton_end_range_str { #1 } }
-        { \__piton_error:n { Invalid~key } } ,
+
+    end-range .code:n = \__piton_in_PitonInputFile:n
+      { \str_set:Nn \l__piton_end_range_str { #1 } } ,
     end-range .value_required:n = true ,
-    range .code:n =
-      \bool_if:NTF \l__piton_in_PitonInputFile_bool
-        {
-          \str_set:Nn \l__piton_begin_range_str { #1 }
-          \str_set:Nn \l__piton_end_range_str { #1 }
-        }
-        { \__piton_error:n { Invalid~key } } ,
+
+    range .code:n = \__piton_in_PitonInputFile:n
+      {
+        \str_set:Nn \l__piton_begin_range_str { #1 }
+        \str_set:Nn \l__piton_end_range_str { #1 }
+      } ,
     range .value_required:n = true ,
 
     resume .meta:n = line-numbers/resume ,
 
-    unknown .code:n = \__piton_error:n { Unknown~key~for~PitonOptions }
+    unknown .code:n = \__piton_error:n { Unknown~key~for~PitonOptions } ,
+
+    % the key all-line-numbers is deprecated
+    all-line-numbers .code:n =
+      \bool_set_true:N \l__piton_line_numbers_bool
+      \bool_set_false:N \l__piton_skip_empty_lines_bool ,
+    all-line-numbers .value_forbidden:n = true
+
+  }
+\cs_new_protected:Npn \__piton_in_PitonInputFile:n #1
+  {
+    \bool_if:NTF \l__piton_in_PitonInputFile_bool
+      { #1 }
+      { \__piton_error:n { Invalid~key } }
   }
 \NewDocumentCommand \PitonOptions { m }
   {
@@ -896,7 +896,7 @@
       \int_set_eq:NN \l__piton_last_line_int \c_max_int
       \bool_set_true:N \l__piton_in_PitonInputFile_bool
       \keys_set:nn { PitonOptions } { #2 }
-      \bool_set_false:N \l__piton_in_PitonInputFile_bool
+      \bool_set_false:N \l__piton_in_PitonInputFile_bool % ?
       \bool_if:NT \l__piton_line_numbers_absolute_bool
         { \bool_set_false:N \l__piton_skip_empty_lines_bool }
       \bool_if:nTF
@@ -916,7 +916,9 @@
           \str_if_empty:NF \l__piton_begin_range_str
             {
               \__piton_compute_range:
-              \bool_if:NT \l__piton_marker_include_line_bool
+              \bool_lazy_or:nnT
+                \l__piton_marker_include_line_bool
+                { ! \str_if_eq_p:NN \l__piton_begin_range_str \l__piton_end_range_str }
                 {
                   \int_decr:N \l__piton_first_line_int
                   \int_incr:N \l__piton_last_line_int

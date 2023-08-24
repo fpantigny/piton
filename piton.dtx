@@ -2010,14 +2010,18 @@ version 2005/12/01 or later.
     footnote .bool_gset:N = \g_@@_footnote_bool ,
     footnotehyper .bool_gset:N = \g_@@_footnotehyper_bool ,
 
-    begin-escape .code:n = \lua_now:n { piton.begin_escape = "#1" } ,
+    begin-escape .code:n = 
+      \lua_now:e { piton.begin_escape = "\lua_escape:n{#1}" } ,
     begin-escape .value_required:n = true , 
-    end-escape   .code:n = \lua_now:n { piton.end_escape = "#1" } ,
+    end-escape   .code:n = 
+      \lua_now:e { piton.end_escape = "\lua_escape:n{#1}" } ,
     end-escape   .value_required:n = true ,
 
-    begin-escape-math .code:n = \lua_now:n { piton.begin_escape_math = "#1" } ,
+    begin-escape-math .code:n = 
+      \lua_now:e { piton.begin_escape_math = "\lua_escape:n{#1}" } ,
     begin-escape-math .value_required:n = true , 
-    end-escape-math   .code:n = \lua_now:n { piton.end_escape_math = "#1" } ,
+    end-escape-math   .code:n = 
+      \lua_now:e { piton.end_escape_math = "\lua_escape:n{#1}" } ,
     end-escape-math   .value_required:n = true ,
 
     % deprecated
@@ -2829,10 +2833,9 @@ version 2005/12/01 or later.
     label-empty-lines .default:n = true ,
 
     absolute .code:n = 
-      \bool_if:NF \l_@@_in_PitonOptions_bool
-        { \bool_set_true:N \l_@@_line_numbers_bool }
-      \bool_if:NT \l_@@_in_PitonOptions_bool
+      \bool_if:NTF \l_@@_in_PitonOptions_bool
         { \bool_set_true:N \l_@@_line_numbers_absolute_bool }
+        { \bool_set_true:N \l_@@_line_numbers_bool }
       \bool_if:NT \l_@@_in_PitonInputFile_bool 
         { 
           \bool_set_true:N \l_@@_line_numbers_absolute_bool 
@@ -2884,12 +2887,6 @@ version 2005/12/01 or later.
     line-numbers .code:n = 
        \keys_set:nn { PitonOptions / line-numbers } { #1 } ,
     line-numbers .default:n = true , 
-
-    % the key all-line-numbers is deprecated
-    all-line-numbers .code:n = 
-      \bool_set_true:N \l_@@_line_numbers_bool 
-      \bool_set_false:N \l_@@_skip_empty_lines_bool ,
-    all-line-numbers .value_forbidden:n = true  ,
 
     splittable       .int_set:N         = \l_@@_splittable_int ,
     splittable       .default:n         = 1 , 
@@ -2945,41 +2942,52 @@ version 2005/12/01 or later.
     continuation-symbol-on-indentation .tl_set:N = \l_@@_csoi_tl ,
     continuation-symbol-on-indentation .value_required:n = true , 
 
-    first-line .code:n = 
-      \bool_if:NTF \l_@@_in_PitonInputFile_bool 
-        { \int_set:Nn \l_@@_first_line_int { #1 } }
-        { \@@_error:n { Invalid~key } } , 
+    first-line .code:n = \@@_in_PitonInputFile:n 
+      { \int_set:Nn \l_@@_first_line_int { #1 } } ,
     first-line .value_required:n = true ,
-    last-line .code:n = 
-      \bool_if:NTF \l_@@_in_PitonInputFile_bool 
-        { \int_set:Nn \l_@@_last_line_int { #1 } }
-        { \@@_error:n { Invalid~key } } , 
+
+    last-line .code:n = \@@_in_PitonInputFile:n 
+      { \int_set:Nn \l_@@_last_line_int { #1 } } ,
     last-line .value_required:n = true , 
-    begin-range .code:n = 
-      \bool_if:NTF \l_@@_in_PitonInputFile_bool 
-        { \str_set:Nn \l_@@_begin_range_str { #1 } }
-        { \@@_error:n { Invalid~key } } , 
+
+    begin-range .code:n = \@@_in_PitonInputFile:n 
+      { \str_set:Nn \l_@@_begin_range_str { #1 } } ,
     begin-range .value_required:n = true ,
-    end-range .code:n = 
-      \bool_if:NTF \l_@@_in_PitonInputFile_bool 
-        { \str_set:Nn \l_@@_end_range_str { #1 } }
-        { \@@_error:n { Invalid~key } } , 
+
+    end-range .code:n = \@@_in_PitonInputFile:n 
+      { \str_set:Nn \l_@@_end_range_str { #1 } } ,
     end-range .value_required:n = true ,
-    range .code:n = 
-      \bool_if:NTF \l_@@_in_PitonInputFile_bool 
-        { 
-          \str_set:Nn \l_@@_begin_range_str { #1 } 
-          \str_set:Nn \l_@@_end_range_str { #1 } 
-        }
-        { \@@_error:n { Invalid~key } } , 
+
+    range .code:n = \@@_in_PitonInputFile:n 
+      { 
+        \str_set:Nn \l_@@_begin_range_str { #1 } 
+        \str_set:Nn \l_@@_end_range_str { #1 } 
+      } ,
     range .value_required:n = true ,
 
     resume .meta:n = line-numbers/resume , 
 
-    unknown .code:n = \@@_error:n { Unknown~key~for~PitonOptions } 
+    unknown .code:n = \@@_error:n { Unknown~key~for~PitonOptions } ,
+
+    % the key all-line-numbers is deprecated
+    all-line-numbers .code:n = 
+      \bool_set_true:N \l_@@_line_numbers_bool 
+      \bool_set_false:N \l_@@_skip_empty_lines_bool ,
+    all-line-numbers .value_forbidden:n = true  
+
   }
 %    \end{macrocode}
 %
+% \bigskip
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_in_PitonInputFile:n #1
+  {
+    \bool_if:NTF \l_@@_in_PitonInputFile_bool 
+      { #1 }
+      { \@@_error:n { Invalid~key } } 
+  }
+%    \end{macrocode}
+% 
 %
 % \bigskip
 %    \begin{macrocode}
@@ -3486,7 +3494,7 @@ version 2005/12/01 or later.
       \int_set_eq:NN \l_@@_last_line_int \c_max_int
       \bool_set_true:N \l_@@_in_PitonInputFile_bool
       \keys_set:nn { PitonOptions } { #2 }
-      \bool_set_false:N \l_@@_in_PitonInputFile_bool
+      \bool_set_false:N \l_@@_in_PitonInputFile_bool % ?
       \bool_if:NT \l_@@_line_numbers_absolute_bool
         { \bool_set_false:N \l_@@_skip_empty_lines_bool }
       \bool_if:nTF
@@ -3506,7 +3514,9 @@ version 2005/12/01 or later.
           \str_if_empty:NF \l_@@_begin_range_str 
             { 
               \@@_compute_range: 
-              \bool_if:NT \l_@@_marker_include_line_bool
+              \bool_lazy_or:nnT 
+                \l_@@_marker_include_line_bool
+                { ! \str_if_eq_p:NN \l_@@_begin_range_str \l_@@_end_range_str } 
                 {
                   \int_decr:N \l_@@_first_line_int
                   \int_incr:N \l_@@_last_line_int
