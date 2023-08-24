@@ -1,6 +1,6 @@
 %  \iffalse -*- coding: utf-8 ; -*- \fi \iffalse meta-comment
 %
-% Copyright (C) 2023 by F. Pantigny
+% Copyright (C) 2022-2023 by F. Pantigny
 % -----------------------------------
 %
 % This file may be distributed and/or modified under the
@@ -15,6 +15,9 @@
 %
 % \fi
 % \iffalse
+\def\myfileversion{2.0zz}
+\def\myfiledate{2023/08/31}
+%
 % 
 %<*batchfile> 
 \begingroup
@@ -42,13 +45,7 @@ version 2005/12/01 or later.
 %</batchfile>
 %
 %<@@=piton>
-%<*STY>
-\def\myfileversion{2.0zz}
-\def\myfiledate{2023/08/31}
-%</STY>
 %<*driver>
-\def\myfileversion{2.0zz}
-\def\myfiledate{2023/08/31}
 \documentclass{l3doc}
 \usepackage{geometry}
 \geometry{left=2.8cm,right=2.8cm,top=2.5cm,bottom=2.5cm,papersize={21cm,29.7cm}}
@@ -71,7 +68,6 @@ version 2005/12/01 or later.
 \EnableCrossrefs
 
 \begin{document}
-
 \DocInput{piton.dtx}
 \end{document}
 %</driver>
@@ -132,16 +128,16 @@ version 2005/12/01 or later.
 %         return s 
 %    \end{Piton}
 % 
+%
+% \bigskip
+% The package \pkg{piton} is entirely contained in the file
+% |piton.sty|. This file may be put in the current directory or in a
+% |texmf| tree. However, the best is to install \pkg{piton} with a TeX
+% distribution such as MiKTeX, TeX Live or MacTeX.
 % 
-% \section{Installation}
-% 
-% The package \pkg{piton} is contained in two files: |piton.sty| and |piton.lua|
-% (the LaTeX file |piton.sty| loaded by |\usepackage| will load the Lua file
-% |piton.lua|). Both files must be in a repertory where LaTeX will be able to
-% find them, for instance in a |texmf| tree. However, the best is to install
-% \pkg{piton} with a TeX distribution such as MiKTeX, TeX Live or MacTeX.
 % 
 % \section{Use of the package}
+%
 %
 % \subsection{Loading the package}
 % 
@@ -1807,7 +1803,7 @@ version 2005/12/01 or later.
 %
 % \section{Implementation}
 %
-% \medskip
+% % \medskip
 % The development of the extension \pkg{piton} is done on the following GitHub
 % depot:
 %
@@ -1941,7 +1937,6 @@ version 2005/12/01 or later.
 %
 % \subsubsection{Declaration of the package}
 %    \begin{macrocode}
-%<*STY>
 \NeedsTeXFormat{LaTeX2e}
 \RequirePackage{l3keys2e}
 \ProvidesExplPackage
@@ -1979,25 +1974,9 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \RequirePackage { luatexbase } 
 %    \end{macrocode}
-% 
-% \bigskip
-%    \begin{macrocode}
-\@@_msg_new:nn { piton.lua~not~found }
-  { 
-    The~file~'piton.lua'~can't~be~found.\\ 
-    The package~'piton'~won't be loaded.
-  }
-%    \end{macrocode}
 %
 % \bigskip
-%    \begin{macrocode}
-\file_if_exist:nF { piton.lua }
-  { \msg_critical:nn { piton } { piton.lua~not~found} }
-%    \end{macrocode}
-%
-%
-% \bigskip
-% The boolean |\g_@@_footnotehyper_bool| will indicate if the option
+% The boolean |\g_@@_footnotehyper_bool | will indicate if the option
 % |footnotehyper| is used.
 %    \begin{macrocode}
 \bool_new:N \g_@@_footnotehyper_bool
@@ -4059,21 +4038,15 @@ version 2005/12/01 or later.
 \@@_msg_new:nn { Python~error }
   { A~Python~error~has~been~detected. }
 %    \end{macrocode}
-%
-% \bigskip
-% \subsubsection{We load piton.lua}
-%
-%
-% \bigskip
-%    \begin{macrocode}
-\hook_gput_code:nnn { begindocument } { . }
-  { \lua_now:e { require("piton.lua") } }
-%</STY>
-%    \end{macrocode}
 % 
 % \bigskip
 % \subsection{The Lua part of the implementation}
 %
+% \bigskip
+%    \begin{macrocode}
+\ExplSyntaxOff
+\RequirePackage{luacode}
+%    \end{macrocode}
 % 
 %
 % \bigskip
@@ -4082,9 +4055,12 @@ version 2005/12/01 or later.
 % block. All the global functions (used by the L3 parts of the implementation)
 % will be put in a Lua table |piton|.
 %
+% \medskip
+%    \begin{macrocode}
+\begin{luacode*}
+%    \end{macrocode}
 % 
 %    \begin{macrocode}
-%<*LUA>
 if piton.comment_latex == nil then piton.comment_latex = ">" end 
 piton.comment_latex = "#" .. piton.comment_latex 
 %    \end{macrocode}
@@ -6240,9 +6216,11 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
       '\\int_set:Nn \\l_@@_first_line_int {' .. first_line .. ' + 2 }' 
       .. '\\int_set:Nn \\l_@@_last_line_int {' .. count .. ' }' )
 end
-%</LUA>
 %    \end{macrocode}
 % 
+%    \begin{macrocode}
+\end{luacode*}
+%    \end{macrocode}
 %
 % 
 % \vspace{1cm}

@@ -123,10 +123,12 @@ def arctan(x,n=10):
 \end{Piton}
 
 
-\bigskip
 
-L'extension LaTeX \pkg{piton} est entièrement contenue dans le fichier |piton.sty|. Ce
-fichier peut être placé dans le répertoire courant ou dans une arborescence |texmf|. Le mieux reste néanmoins
+\section{Installation}
+
+L'extension \pkg{piton} est composée de deux fichiers : |piton.sty| et |piton.lua| (le fichier LaTeX |piton.sty|
+chargé par |\usepackage| va à son tour charger le fichier |piton.lua|). Les deux fichiers doivent être présents
+dans un répertoire où LaTeX pourra les trouver, de préférence dans une arborescence |texmf|. Le mieux reste néanmoins
 d'installer \pkg{piton} avec une distribution TeX comme MiKTeX, TeX~Live ou MacTeX.
 
 

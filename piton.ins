@@ -30,13 +30,16 @@ and version 1.3 or later is part of all distributions of
 LaTeX version 2005/12/01 or later.
 
 \endpreamble
-\generate{\file{piton.sty}{\from{piton.dtx}{package}}}
+\generate{\file{piton.sty}{\from{piton.dtx}{STY}}}
+\nopreamble
+\nopostamble
+\generate{\file{piton.lua}{\from{piton.dtx}{LUA}}}
 \Msg{*********************************************************}
 \Msg{*}
 \Msg{* To finish the installation you have to move the}
 \Msg{* following files into a directory searched by TeX:}
 \Msg{*}
-\Msg{* \space\space piton.sty}
+\Msg{* \space\space piton.sty, piton.lua}
 \Msg{*}
 \Msg{* To produce the documentation run the file piton.dtx}
 \Msg{* through LuaLaTeX.}
