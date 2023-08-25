@@ -6,7 +6,8 @@
 \usepackage[french]{babel}
 \frenchsetup{og = « , fg = »}
 
-\usepackage[footnotehyper,begin-escape=!,end-escape=!,math-comments]{piton}
+\usepackage[footnotehyper]{piton}
+\PitonOptions{math-comments,begin-escape=!,end-escape=!}
 
 \usepackage[executable=python.exe]{pyluatex}
 
@@ -189,9 +190,6 @@ environnements similaires à |{Piton}| en utilisant la commande |\NewPitonEnviro
 
 \item La commande \colorbox{gray!20}{\ttfamily \textbackslash PitonInputFile} doit être utilisée pour insérer et
 composer un fichier extérieur.
-
-Cette commande prend en argument optionnel entre crochets deux clés |first-line| et |last-line| qui permettent de
-n'insérer que la partie du fichier comprise entre les lignes correspondantes.
 \end{itemize}
 
 
@@ -314,26 +312,57 @@ c'est-à-dire celle qui contient le |\end{Piton}| et détermine si cette ligne n
 valeur de~$n$. Le nom de cette clé vient de \emph{environment gobble}: le nombre d'espaces à retirer ne dépend que
 de la position des délimiteurs |\begin{Piton}| et |\end{Piton}| de l'environnement.
 
-\item Avec la clé \Definition{line-numbers}, les lignes \emph{non vides} (et toutes les lignes des
-\emph{docstrings}, y compris celles qui sont vides) sont numérotées dans les environnements \verb|{Piton}| et dans
-les listings produits par la commande |\PitonInputFile|.
+\item La clé \Definition{line-numbers} active la numérotation des lignes (en débordement à gauche) dans les
+environnements \verb|{Piton}| et dans les listings produits par la commande |\PitonInputFile|.
 
-\item Avec la clé \Definition{all-line-numbers}, \emph{toutes} les lignes sont numérotées, y compris les lignes vides.
+\colorbox{yellow!50}{\textbf{Nouveau 2.1}}\enskip Cette clé propose en fait plusieurs sous-clés.
+\begin{itemize}
+\item La clé \Definition{line-numbers/skip-empty-lines} demande que les lignes vides soient considérées comme non existantes en
+ce qui concerne la numérotation des lignes (si la clé \verb|/absolute| est active, la clé \verb|/skip-empty-lines|
+n'a pas d'effet dans \verb|\PitonInputFile|). La valeur initiale de cette clé est \verb|true| (et non
+\verb|false|).\footnote{Avec le language Python, les lignes vides des \emph{docstrings} sont prises en compte.}
 
-\item La clé \Definition{numbers-sep} est la distance horizontale entre les numéros de lignes (insérés par |line-numbers|
-ou |all-line-numbers|) et les lignes du code informatique. La valeur initiale est 0.7~em.
+\item La clé \Definition{line/numbers/label-empty-lines} demande que les labels (c'est-à-dire les numéros) des lignes vides
+soient affichés. Si la clé \verb|/skip-empty-lines| est active, la clé \verb|/label-empty-lines| est sans effet. La
+valeur initiale de cette clé est \verb|true|.
+
+\item La clé \Definition{line-numbers/absolute} demande, pour les listings générés par \verb|\PitonInputFile|, que les numéros de
+lignes affichés soient absolus (c'est-à-dire ceux du fichier d'origine). Elle n'a d'intérêt que si on insère qu'une
+partie du fichier (cf. part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}). La clé |/absolute| est sans effet dans les environnements \verb|{Piton}|.
+
+\item La clé \Definition{line-numbers/resume} reprend la numérotation là où elle avait été laissée au dernier listing. En fait,
+la clé \verb|line-numbers/resume| a un alias, qui est \verb|resume| tout court. 
+
+\item La clé \Definition{line-numbers/start} impose que la numérotation commence à ce numéro. Elle n'est pas disponible dans
+\verb|\PitonOptions|. 
+
+\item La clé \Definition{sep} est la distance horizontale entre les numéros de lignes (insérés par |line-numbers|)
+et les lignes du code informatique. La valeur initiale est 0.7~em.
+\end{itemize}
+
+Pour la commmodité, un dispositif de factorisation du préfixe |line-numbers| est disponible, c'est-à-dire que l'on
+peut écrire :
+
+\begin{Verbatim}
+\PitonOptions
+  {
+    line-numbers = 
+      { 
+        skip-empty-lines = false ,
+        label-empty-lines = false ,
+        sep = 1 em
+      }
+  }
+\end{Verbatim}
+
 
 \item La clé \Definition{left-margin} fixe une marge sur la gauche. Cette clé peut être utile, en particulier, en
-conjonction avec l'une des clés |line-numbers| et |all-line-numbers| si on ne souhaite pas que les numéros de ligne
-soient dans une position en débordement sur la gauche.
+conjonction avec la clé |line-numbers| si on ne souhaite pas que les numéros de ligne soient dans une position en
+débordement sur la gauche.
 
 Il est possible de donner à la clé |left-margin| la valeur spéciale~|auto|. Avec cette valeur, une marge est
-insérée automatiquement pour les numéros de ligne quand l'une des clés |line-numbers| ou |all-line-numbers| est
-utilisée. Voir un exemple à la partie \ref{example-numbering} p.~\pageref{example-numbering}.
-
-\item Avec la clé \Definition{resume}, le compteur de lignes n'est pas remis à zéro comme il l'est normalement au
-début d'un environnement |{Piton}| ou bien au début d'un listing produit par |\PitonInputFile|. Cela permet de
-poursuivre la numérotation d'un environnement à l'autre.
+insérée automatiquement pour les numéros de ligne quand la clé |line-numbers| est utilisée. Voir un exemple à la
+partie \ref{example-numbering} p.~\pageref{example-numbering}.
 
 \item La clé \Definition{background-color} fixe la couleur de fond des environnements |{Piton}| et des listings
 produits par |\PitonInputFile| (ce fond a une largeur que l'on peut fixer avec la clé |width| décrite ci-dessous).
@@ -590,6 +619,222 @@ def carré(x):
 \section{Fonctionnalités avancées}
 
 
+\subsection{Coupure des pages et des lignes}
+
+\label{breakable}
+
+\subsubsection{Coupure des pages}
+
+Par défaut les listings produits par l'environnement |{Piton}| et par la commande |\PitonInputFile| sont
+insécables.
+
+Néanmoins, la commande |\PitonOptions| propose la clé \Definition{splittable} pour autoriser de telles coupures.
+
+\begin{itemize}
+\item Si la clé |splittable| est utilisée sans valeur, les listings sont sécables n'importe où.
+
+\item Si la clé |splittable| est utilisée avec une valeur numérique $n$ (qui doit être un entier naturel non nul),
+alors les listings seront sécables mais aucune coupure ne pourra avoir lieu entre les $n$~premières lignes, ni
+entre les $n$~dernières. De ce fait, |splittable=1| est équivalent à |splittable|.
+\end{itemize}
+
+\medskip
+\emph{Remarque}\par\nobreak
+
+Même avec une couleur de fond (fixée avec |background-color|), les sauts de page sont possibles, à partir du moment
+où la clé |splittable| est utilisée.\footnote{Avec la clé |splittable|, un environnement |{Piton}| est sécable même dans un environnement de
+  \pkg{tcolorbox} (à partir du moment où la clé |breakable| de \pkg{tcolorbox} est utilisée). On précise cela parce
+  que, en revanche, un environnement de \pkg{tcolorbox} inclus dans un autre environnement de \pkg{tcolorbox} n'est
+  pas sécable, même quand les deux utilisent la clé |breakable|.}
+
+\subsubsection{Coupure des lignes}
+
+\label{line-breaks}
+
+Par défaut, les éléments produits par \pkg{piton} ne peuvent pas être coupés par une fin de ligne. Il existe
+néanmoins des clés pour autoriser de telles coupures (les points de coupure possibles sont les espaces, y compris
+les espaces dans les chaînes Python).
+\begin{itemize}
+\item Avec la clé \Definition{break-lines-in-piton}, les coupures de ligne sont autorisées dans la commande
+|\piton{...}| (mais pas dans la commande \verb+\piton|...|+, c'est-à-dire avec la syntaxe verbatim). 
+
+\item Avec la clé \Definition{break-lines-in-Piton}, les coupures de ligne sont autorisées dans l'environnement
+|{Piton}| (d'où la lettre |P| capitale dans le nom) et les listings produits par |\PitonInputFile|.
+
+\item La clé \Definition{break-lines} est la conjonction des deux clés précédentes.
+\end{itemize}
+
+\medskip
+L'extension \pkg{piton} fournit aussi plusieurs clés pour contrôler l'apparence des coupures de ligne autorisées par |break-lines-in-Piton|.
+
+\begin{itemize}
+\item Avec la clé \Definition{indent-broken-lines}, l'indentation de la ligne coupée est respectée à chaque retour
+à la ligne. 
+
+\item La clé \Definition{end-of-broken-line} correspond au symbole placé à la fin d'une ligne coupée. Sa valeur initiale est : 
+|\hspace*{0.5em}\textbackslash|.
+
+\item La clé \Definition{continuation-symbol} correspond au symbole placé à chaque retour de ligne dans la marge
+gauche. Sa valeur initiale est : |+\;| (la commande |\;| insère un petit espace horizontal). 
+
+\item La clé \Definition{continuation-symbol-on-indentation} correspond au symbole placé à chaque retour de ligne
+au niveau de l'indentation (uniquement dans le cas où la clé |indent-broken-lines| est active). Sa valeur initiale
+est : |$\hookrightarrow\;$|.
+\end{itemize}
+
+\bigskip
+Le code suivant a été composé avec le réglage suivant :  
+
+\begin{Verbatim}
+\PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
+\end{Verbatim}
+
+\begin{center}
+\PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
+\begin{Piton}
+def dict_of_liste(liste):
+    """Convertit une liste de subrs et de descriptions de glyphes en dictionnaire"""
+    dict = {}
+    for liste_lettre in liste:
+        if (liste_lettre[0][0:3] == 'dup'): # si c'est un subr
+            nom = liste_lettre[0][4:-3]
+            print("On traite le subr de numéro " + nom)
+        else:
+            nom = liste_lettre[0][1:-3] # si c'est un glyphe
+            print("On traite le glyphe du caractère " + nom)
+        dict[nom] = [traite_ligne_Postscript(k) for k in liste_lettre[1:-1]]
+    return dict
+\end{Piton}
+\end{center}
+
+
+\bigskip
+\subsection{Insertion d'une partie d'un fichier}
+
+\label{part-of-a-file}
+
+La commande |\PitonInputFile| permet d'insérer (avec formatage) le contenu d'un fichier. En fait, il existe des
+mécanismes permettant de n'insérer qu'une partie du fichier en question.
+\begin{itemize}
+\item On peut spécifier la partie à insérer par les numéros de lignes (dans le fichier d'origine).
+\item \colorbox{yellow!50}{\textbf{Nouveau 2.1}}\enskip On peut aussi spécifier la partie à insérer par des marqueurs textuels.
+\end{itemize}
+Dans les deux cas, si on souhaite numéroter les lignes avec les numéros des lignes du fichier d'origine, il
+convient d'utiliser la clé |line-numbers/absolute|.
+
+\subsubsection{Avec les numéros de lignes absolus}
+
+La commande |\PitonInputFile| propose les clés \Definition{first-line} et \Definition{last-line} pour n'insérer que
+la partie du fichier comprise entre les lignes correspondantes. Ne pas confondre avec la clé |line-numbers/start|
+qui demande un numérotage des lignes commençant à la valeur donnée à cette clé (en un sens |line-numbers/start|
+concerne la sortie alors que |first-line| et |last-line| concernent l'entrée).
+
+
+\subsubsection{Avec des marqueurs textuels}
+
+\colorbox{yellow!50}{\textbf{Nouveau 2.1}}
+
+Pour utiliser cette technique, il convient d'abord de spécifier le format des marqueurs marquant le début et la fin
+de la partie du fichier à inclure. Cela se fait avec les deux clés \Definition{marker/beginning} et
+\Definition{marker/end} (usuellement dans la commande |\PitonOptions|). 
+
+\medskip
+Prenons d'abord un exemple.
+
+\medskip
+Supposons que le fichier à inclure contienne des solutions à des exercices de programmation sur le modèle suivant :  
+
+\begin{Verbatim}[formatcom=\small\color{gray}]
+~#[Exercice 1] Version itérative
+def fibo(n):
+    if n==0: return 0 
+    else:
+        u=0
+        v=1
+        for i in range(n-1):
+            w = u+v
+            u = v
+            v = w
+        return v
+~#<Exercice 1>
+\end{Verbatim}
+
+Les marqueurs de début de début et de fin sont les chaînes |#[Exercice 1]| et |#<Exercice 1>|. La chaîne
+«|Exercice 1|» sera appelée le \emph{label} de l'exercice (ou de la partie du fichier à inclure).
+
+Pour spécifier des marqueurs de cette sorte dans \pkg{piton}, on utilisera les clés |marker/beginning| et |marker/end|
+de la manière suivante (le caractère |#| des commentaires de Python doit être inséré sous la forme échappée |\#|). 
+
+\begin{Verbatim}
+\PitonOptions{ ~emphase#marker/beginning@ = \~#[~#1] , ~emphase#marker/end@ = \~#<~#1> } 
+\end{Verbatim}
+
+Comme on le voit, |marker/beginning| est une expression correspondant à la fonction mathématique qui, au nom du
+label (par exemple |Exercice 1|), associe le marqueur de début (dans l'exemple |#[Exercice 1]|). La chaîne |#1|
+correspond aux occurrences de l'argument de cette fonction (c'est la syntaxe habituelle de TeX). De même pour
+|marker/end|.
+
+
+\bigskip
+Pour insérer une partie marquée d'un fichier, il suffit alors d'utiliser la clé \Definition{range} de
+|\PitonInputFile|. 
+
+\smallskip
+\begin{Verbatim}
+\PitonInputFile[~emphase#range = Exercice 1@]{~textsl#nom_du_fichier@}
+\end{Verbatim}
+
+\medskip
+\begin{Piton}
+def fibo(n):
+    if n==0: return 0 
+    else:
+        u=0
+        v=1
+        for i in range(n-1):
+            w = u+v
+            u = v
+            v = w
+        return v
+\end{Piton}
+
+\vspace{1cm}
+La clé \Definition{marker/include-line} demande que les lignes contenant les marqueurs soient également insérées.
+
+\begin{Verbatim}
+\PitonInputFile[~emphase#marker/include-lines@,range = Exercice 1]{~textsl#nom_du_fichier@}
+\end{Verbatim}
+
+\begin{Piton}
+#[Exercice 1] Version itérative
+def fibo(n):
+    if n==0: return 0 
+    else:
+        u=0
+        v=1
+        for i in range(n-1):
+            w = u+v
+            u = v
+            v = w
+        return v
+#<Exercice 1>
+\end{Piton}
+
+
+\bigskip
+Il existe en fait aussi les clés \Definition{begin-range} et \Definition{end-range} pour insérer plusieurs
+contenus marqués simultanément. 
+
+Par exemple, pour insérer les solutions des exercices 3 à 5, on pourra écrire (à condition que le fichier soit
+structuré correctement!):
+
+\begin{Verbatim}
+\PitonInputFile[~emphase#begin-range = Exercice 3, end-range = Exercice 5@]{~textsl#nom_du_fichier@}
+\end{Verbatim}
+
+
+
+
 \subsection{Mise en évidence d'identificateurs}
 
 On peut demander le changement de formatage de certains identificateurs avec la clé |identifiers| de
@@ -732,12 +977,12 @@ Il y a deux outils pour personnaliser ces commentaires.
 
 \begin{itemize}
 \item Il est possible de changer le marquage syntaxique utilisé (qui vaut initialement~|#>|). Pour ce faire, il
-existe une clé |comment-latex|, disponible seulement au chargement de \pkg{piton} (c'est-à-dire au moment du
-|\usepackage|), qui permet de choisir les caractères qui (précédés par~|#|) serviront de marqueur syntaxique.
+existe une clé |comment-latex|, disponible uniquement dans le préambule du document, qui permet de choisir les
+caractères qui (précédés par~|#|) serviront de marqueur syntaxique.
 
-Par exemple, avec le chargement suivant :
+Par exemple, avec le réglage suivant (fait dans le préambule du document) :
 
-\quad \verb|\usepackage[comment-latex = LaTeX]{piton}|
+\verb|\PitonOptions{comment-latex = LaTeX}|
 
 les commentaires LaTeX commenceront par~|#LaTeX|.
 
@@ -764,11 +1009,11 @@ p.~\pageref{example-comments}.
 
 
 \bigskip 
-Si l'utilisateur a demandé l'affichage des numéros de ligne avec |line-numbers| ou |all-line-numbers|, il est
-possible de faire référence à ce numéro de ligne avec la commande |\label| placée dans un commentaire
-LaTeX.\footnote{Cette fonctionnalité est implémentée en redéfinissant, dans les environnements |{Piton}|, la
-  commande |\label|. Il peut donc y avoir des incompatibilités avec les extensions qui redéfinissent (globalement)
-  cette commande |\label| (comme \pkg{varioref}, \pkg{refcheck}, \pkg{showlabels}, etc.)}
+Si l'utilisateur a demandé l'affichage des numéros de ligne avec |line-numbers|, il est possible de faire référence
+à ce numéro de ligne avec la commande |\label| placée dans un commentaire LaTeX.\footnote{Cette fonctionnalité est
+  implémentée en redéfinissant, dans les environnements |{Piton}|, la commande |\label|. Il peut donc y avoir des
+  incompatibilités avec les extensions qui redéfinissent (globalement) cette commande |\label| (comme
+  \pkg{varioref}, \pkg{refcheck}, \pkg{showlabels}, etc.)}
 
 
 
@@ -779,11 +1024,11 @@ Il est possible de demander que, dans les commentaires Python normaux, c'est-à-
 |#>|), les éléments placés entre symboles \texttt{\$} soient composés en mode mathématique de LaTeX (le reste du
 commentaire restant composé en verbatim).
 
-La clé \Definition{math-comments}, qui n'est disponible qu'au chargement de \pkg{piton} (c'est-à-dire au moment du 
-|\usepackage|), active ce comportement.
+La clé \Definition{math-comments} (qui ne peut être activée que dans le préambule du document) active ce
+comportement.
 
 \bigskip
-Dans l'exemple suivant, on suppose que la clé |math-comments| a été utilisée au chargement de \pkg{piton}.
+Dans l'exemple suivant, on suppose que |\PitonOptions{math-comments}| a été utilisé dans le préambule du document.
 
 \begin{Verbatim}
 \begin{Piton}
@@ -798,20 +1043,20 @@ def carré(x):
 \end{Piton}
 
 
-\subsubsection{Le mécanisme «espace»}
+\subsubsection{Le mécanisme «escape»}
 
 Il est aussi possible de surcharger les listings Python pour y insérer du code LaTeX à peu près n'importe où (mais
 entre deux lexèmes, bien entendu). Cette fonctionnalité n'est pas activée par défaut par \pkg{piton}. Pour
 l'utiliser, il faut spécifier les deux délimiteurs marquant l'échappement (le premier le commençant et le deuxième
-le terminant) en utilisant les clés \Definition{begin-escape} et \Definition{end-escape} au chargement de
-\pkg{piton} (c'est-à-dire au moment du |\usepackage{piton}|). Les deux délimiteurs peuvent être identiques.
+le terminant) en utilisant les clés \Definition{begin-escape} et \Definition{end-escape} (qui ne sont accessibles
+que dans le préambule du document). Les deux délimiteurs peuvent être identiques.
 
 
 \bigskip
-Dans l'exemple suivant, on suppose que l'extension \pkg{piton} a été chargée de la manière suivante :
+Dans l'exemple suivant, on suppose que le préambule du document contient l'instruction :
 
 \begin{Verbatim}
-\usepackage[~emphase#begin-escape=!,end-escape=!@]{piton}
+\PitonOptions{~emphase#begin-escape=!,end-escape=!@}
 \end{Verbatim}
 
 \medskip
@@ -1045,94 +1290,6 @@ que la commande |\alert| s'appuie sur cet environnement |{alertenv}|).
 
 
 \bigskip
-\subsection{Coupure des pages et des lignes}
-
-\label{breakable}
-
-\subsubsection{Coupure des pages}
-
-Par défaut les listings produits par l'environnement |{Piton}| et par la commande |\PitonInputFile| sont
-insécables.
-
-Néanmoins, la commande |\PitonOptions| propose la clé \Definition{splittable} pour autoriser de telles coupures.
-
-\begin{itemize}
-\item Si la clé |splittable| est utilisée sans valeur, les listings sont sécables n'importe où.
-
-\item Si la clé |splittable| est utilisée avec une valeur numérique $n$ (qui doit être un entier naturel non nul),
-alors les listings seront sécables mais aucune coupure ne pourra avoir lieu entre les $n$~premières lignes, ni
-entre les $n$~dernières. De ce fait, |splittable=1| est équivalent à |splittable|.
-\end{itemize}
-
-\medskip
-\emph{Remarque}\par\nobreak
-
-Même avec une couleur de fond (fixée avec |background-color|), les sauts de page sont possibles, à partir du moment
-où la clé |splittable| est utilisée.\footnote{Avec la clé |splittable|, un environnement |{Piton}| est sécable même dans un environnement de
-  \pkg{tcolorbox} (à partir du moment où la clé |breakable| de \pkg{tcolorbox} est utilisée). On précise cela parce
-  que, en revanche, un environnement de \pkg{tcolorbox} inclus dans un autre environnement de \pkg{tcolorbox} n'est
-  pas sécable, même quand les deux utilisent la clé |breakable|.}
-
-\subsubsection{Coupure des lignes}
-
-\label{line-breaks}
-
-Par défaut, les éléments produits par \pkg{piton} ne peuvent pas être coupés par une fin de ligne. Il existe
-néanmoins des clés pour autoriser de telles coupures (les points de coupure possibles sont les espaces, y compris
-les espaces dans les chaînes Python).
-\begin{itemize}
-\item Avec la clé \Definition{break-lines-in-piton}, les coupures de ligne sont autorisées dans la commande
-|\piton{...}| (mais pas dans la commande \verb+\piton|...|+, c'est-à-dire avec la syntaxe verbatim). 
-
-\item Avec la clé \Definition{break-lines-in-Piton}, les coupures de ligne sont autorisées dans l'environnement
-|{Piton}| (d'où la lettre |P| capitale dans le nom) et les listings produits par |\PitonInputFile|.
-
-\item La clé \Definition{break-lines} est la conjonction des deux clés précédentes.
-\end{itemize}
-
-\medskip
-L'extension \pkg{piton} fournit aussi plusieurs clés pour contrôler l'apparence des coupures de ligne autorisées par |break-lines-in-Piton|.
-
-\begin{itemize}
-\item Avec la clé \Definition{indent-broken-lines}, l'indentation de la ligne coupée est respectée à chaque retour
-à la ligne. 
-
-\item La clé \Definition{end-of-broken-line} correspond au symbole placé à la fin d'une ligne coupée. Sa valeur initiale est : 
-|\hspace*{0.5em}\textbackslash|.
-
-\item La clé \Definition{continuation-symbol} correspond au symbole placé à chaque retour de ligne dans la marge
-gauche. Sa valeur initiale est : |+\;|.
-
-\item La clé \Definition{continuation-symbol-on-indentation} correspond au symbole placé à chaque retour de ligne
-au niveau de l'indentation (uniquement dans le cas où la clé |indent-broken-lines| est active). Sa valeur initiale
-est : |$\hookrightarrow\;$|.
-\end{itemize}
-
-\bigskip
-Le code suivant a été composé avec le réglage suivant :  
-
-\begin{Verbatim}
-\PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
-\end{Verbatim}
-
-\begin{center}
-\PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
-\begin{Piton}
-def dict_of_liste(liste):
-    """Convertit une liste de subrs et de descriptions de glyphes en dictionnaire"""
-    dict = {}
-    for liste_lettre in liste:
-        if (liste_lettre[0][0:3] == 'dup'): # si c'est un subr
-            nom = liste_lettre[0][4:-3]
-            print("On traite le subr de numéro " + nom)
-        else:
-            nom = liste_lettre[0][1:-3] # si c'est un glyphe
-            print("On traite le glyphe du caractère " + nom)
-        dict[nom] = [traite_ligne_Postscript(k) for k in liste_lettre[1:-1]]
-    return dict
-\end{Piton}
-\end{center}
-
 
 
 \bigskip
@@ -1188,7 +1345,7 @@ des caractères U+0009 au lieu de caractères U+0020 (espaces).
 
 \label{example-numbering}
 
-On rappelle que l'on peut demander la numérotation des lignes des listings avec la clé |line-numbers| ou la clé |all-line-numbers|.
+On rappelle que l'on peut demander la numérotation des lignes des listings avec la clé |line-numbers|.
 
 Par défaut, les numéros de ligne sont composés par \pkg{piton} en débordement à gauche (en utilisant en interne la commande |\llap| de LaTeX).
 

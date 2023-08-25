@@ -24,9 +24,9 @@ For a manual installation:
 * put the files `piton.ins` and `piton.dtx` in the same directory; 
 * run `latex piton.ins` in that directory.
 
-The file `piton.sty` will be generated.
+The files `piton.sty` and `piton.lua` will be generated.
 
-The file `piton.sty` is the only file necessary to use the extension `piton`. 
-You have to put it in the same directory as your document or (best) in a `texmf` tree. 
+These files `piton.sty` and `piton.lua` are the only files necessary to use the extension `piton`. 
+You have to put them in the same directory as your document or (best) in a `texmf` tree. 
 
 

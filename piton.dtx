@@ -59,7 +59,8 @@ version 2005/12/01 or later.
 \fvset{commandchars=\~\#\@,formatcom=\color{gray}}
 \captionsetup{labelfont = bf}
 \usepackage{ragged2e}
-\usepackage[footnotehyper,begin-escape=!,end-escape=!,math-comments]{piton} 
+\usepackage[footnotehyper]{piton} 
+\PitonOptions{begin-escape=!,end-escape=!,math-comments}
 
 \parindent 0pt
 \skip\footins = 2\bigskipamount
@@ -331,32 +332,63 @@ version 2005/12/01 or later.
 % gobble is set by the position of the commands |\begin{Piton}| and
 % |\end{Piton}| which delimit the current environment.
 %
-% \item With the key \Definition{line-numbers}, the \emph{non empty} lines (and
-% all the lines of the \emph{docstrings}, even the empty ones) are numbered in
-% the environments |{Piton}| and in the listings resulting from the use of
+% \item The key \Definition{line-numbers} activates the line numbering. in the
+% environments |{Piton}| and in the listings resulting from the use of
 % |\PitonInputFile|.
 % 
-% \item With the key \Definition{all-line-numbers}, \emph{all} the lines are numbered,
-% including the empty ones.
+% \colorbox{yellow!50}{\textbf{New 2.1}}\enskip In fact, the key |line-numbers| has
+% several subkeys.
+% \begin{itemize}
+% \item With the key \Definition{line-numbers/skip-empty-lines}, the empty lines
+% are considered as non existent for the line numbering (if the key |/absolute|
+% is in force, the key |/skip-empty-lines| is no-op in |\PitonInputFile|). The
+% initial value of that key is |true| (and not |false|).\footnote{For the
+% language Python, the empty lines in the docstrings are taken into account (by
+% design).}
+% \item With the key \Definition{line-numbers/label-empty-lines}, the labels
+% (that is to say the numbers) of the empty lines are displayed. If the key
+% |/skip-empty-line| is in force, the clé |/label-empty-lines| is no-op. The
+% initial value of that key is~|true|.
+% \item With the key \Definition{line-numbers/absolute}, in the listings
+% generated in |\PitonInputFile|, the numbers of the lines displayed are
+% \emph{absolute} (that is to say: they are the numbers of the lines in the
+% file). That key may be useful when |\PitonInputFile| is used to insert only a
+% part of the file (cf. part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}).
+% The key |/absolute| is no-op in the environments |{Piton}|.
+% \item The key \Definition{line-numbers/start} requires that the line numbering
+% begins to the value of the key. That key is not available in |\PitonOptions|.
+% \item With the key \Definition{line-numbers/resume}, the counter of lines is
+% not set to zero at the beginning of each environment |{Piton}| or use of
+% |\PitonInputFile| as it is otherwise. That allows a numbering of the lines
+% across several environments.
+% \item The key \Definition{line-numbers/sep} is the horizontal distance between
+% the numbers of lines (inserted by |line-numbers|) and the beginning of the
+% lines of code. The initial value is 0.7~em.
+% \end{itemize}
 %
-% \item The key \Definition{numbers-sep} is the horizontal distance between the
-% numbers of lines (inserted by |line-numbers| of |all-line-numbers|) and the
-% beginning of the lines of code. The initial value is 0.7~em.
+% For convenience, a mechanism of factorisation of the prefix |line-numbers| is
+% provided. That means that it is possible, for instance, to write:
+% \begin{Verbatim}
+% \PitonOptions
+%   {
+%     line-numbers = 
+%       { 
+%         skip-empty-lines = false ,
+%         label-empty-lines = false ,
+%         sep = 1 em
+%       }
+%   }
+% \end{Verbatim}
 %
-% \item With the key \Definition{resume}, the counter of lines is not set to zero
-% at the beginning of each environment |{Piton}| or use of |\PitonInputFile| as
-% it is otherwise. That allows a numbering of the lines across several
-% environments.
 %
 % \item The key \Definition{left-margin} corresponds to a margin on the left.
-% That key may be useful in conjonction with the key |line-numbers| or the key
-% |line-all-numbers| if one does not want the numbers in an overlapping position
-% on the left.
+% That key may be useful in conjonction with the key |line-numbers| if one does
+% not want the numbers in an overlapping position on the left.
 %
 % It's possible to use the key |left-margin| with the value |auto|. With that
-% value, if the key |line-numbers| or the key |all-line-numbers| is used, a
-% margin will be automatically inserted to fit the numbers of lines. See an
-% example part \ref{example-numbering} on page~\pageref{example-numbering}.
+% value, if the key |line-numbers| is in force, a margin will be automatically
+% inserted to fit the numbers of lines. See an example part
+% \ref{example-numbering} on page~\pageref{example-numbering}.
 %
 % \item The key \Definition{background-color} sets the background color of the
 % environments |{Piton}| and the listings produced by |\PitonInputFile| (it's
@@ -378,8 +410,8 @@ version 2005/12/01 or later.
 % continuation ``|...|'') characteristic of the Python consoles with
 % \textsc{repl} (\emph{read-eval-print loop}).
 %
-% \item The key |width| will fix the width of the listing. That width applies to
-% the colored backgrounds specified by |background-color| and
+% \item The key \Definition{width} will fix the width of the listing. That width
+% applies to the colored backgrounds specified by |background-color| and
 % |prompt-background-color| but also for the automatic breaking of the lines
 % (when required by |break-lines|: cf.~\ref{line-breaks},
 % p.~\pageref{line-breaks}).
@@ -631,6 +663,240 @@ version 2005/12/01 or later.
 %
 % \section{Advanced features}
 %
+% \subsection{Page breaks and line breaks}
+%
+% \label{breakable}
+%
+% \subsubsection{Page breaks}
+%
+% By default, the listings produced by the environment |{Piton}| and the command
+% |\PitonInputFile| are not breakable.
+%
+% However, the command |\PitonOptions| provides the key \Definition{splittable}
+% to allow such breaks.
+%
+% \begin{itemize}
+% \item If the key |splittable| is used without any value, the
+% listings are breakable everywhere.
+% \item If the key |splittable| is used with a numeric value~$n$ (which must be
+% a non-negative integer number), the listings are breakable but no break will
+% occur within the first $n$ lines and within the last $n$ lines. Therefore,
+% |splittable=1| is equivalent to |splittable|.
+% \end{itemize}
+%
+% \medskip
+% Even with a background color (set by the key |background-color|), the pages
+% breaks are allowed, as soon as the key |splittable| is in force.\footnote{With
+% the key |splittable|, the environments \texttt{\{Piton\}} are breakable, even
+% within a (breakable) environment of \pkg{tcolorbox}. Remind that an
+% environment of \pkg{tcolorbox} included in another environment of
+% \pkg{tcolorbox} is \emph{not} breakable, even when both environments use the
+% key |breakable| of \pkg{tcolorbox}.}
+% 
+% \subsubsection{Line breaks}
+% 
+% \label{line-breaks}
+% 
+% By default, the elements produced by \pkg{piton} can't be broken by an end on
+% line. However, there are keys to allow such breaks (the possible breaking
+% points are the spaces, even the spaces in the Python strings).
+% \begin{itemize}
+% \item With the key \Definition{break-lines-in-piton}, the line breaks are
+% allowed in the command |\piton{...}| (but not in the command
+% \verb+\piton|...|+, that is to say the command |\piton| in verbatim mode). 
+% \item With the key \Definition{break-lines-in-Piton}, the line breaks are
+% allowed in the environment |{Piton}| (hence the capital letter |P| in the name) and in the
+% listings produced by |\PitonInputFile|.
+% \item The key \Definition{break-lines} is a conjonction of the two previous keys.
+% \end{itemize}
+% 
+% \bigskip 
+% The package \pkg{piton} provides also several keys to control the appearance
+% on the line breaks allowed by |break-lines-in-Piton|.
+%
+% \begin{itemize}
+% \item With the key \Definition{indent-broken-lines}, the indentation of a
+% broken line is respected at carriage return.
+%
+% \item The key \Definition{end-of-broken-line} corresponds to the symbol placed
+% at the end of a broken line. The initial value is:
+% |\hspace*{0.5em}\textbackslash|.
+%
+% \item The key \Definition{continuation-symbol} corresponds to the symbol
+% placed at each carriage return. The initial value is: |+\;| (the command |\;|
+% inserts a small horizontal space).
+%
+% \item The key \Definition{continuation-symbol-on-indentation} corresponds to
+% the symbol placed at each carriage return, on the position of the indentation
+% (only when the key |indent-broken-line| is in force). The initial value is:
+% |$\hookrightarrow\;$|.
+% \end{itemize}
+%
+%
+% \bigskip
+% The following code has been composed with the following tuning:
+%
+% \begin{Verbatim}
+% \PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
+% \end{Verbatim}
+%
+% \begin{center}
+% \PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
+% \begin{Piton}
+% def dict_of_list(l):
+%     """Converts a list of subrs and descriptions of glyphs in a dictionary"""
+%     our_dict = {}
+%     for list_letter in l:
+%         if (list_letter[0][0:3] == 'dup'): # if it's a subr
+%             name = list_letter[0][4:-3]
+%             print("We treat the subr of number " + name)
+%         else:
+%             name = list_letter[0][1:-3] # if it's a glyph
+%             print("We treat the glyph of number " + name)
+%         our_dict[name] = [treat_Postscript_line(k) for k in list_letter[1:-1]]
+%     return dict
+% \end{Piton}
+% \end{center}
+%
+%
+% \bigskip
+% \subsection{Insertion of a part of a file}
+%
+% \label{part-of-a-file}
+%
+% The command |\PitonInputFile| inserts (with formating) the content of a file.
+% In fact, it's possible to insert only \emph{a part} of that file. Two
+% mechanisms are provided in this aim.
+% \begin{itemize}
+% \item It's possible to specify the part that we want to insert by the numbers
+% of the lines (in the original file).
+% \item \colorbox{yellow!50}{\textbf{New 2.1}}\enskip It's also possible to
+% specify the part to insert with textual markers.
+% \end{itemize}
+% In both cases, if we want to number the lines with the numbers of the
+% lines in the file, we have to use the key |line-numbers/absolute|.
+%
+% \subsubsection{With line numbers}
+%
+% The command |\PitonInputFile| supports the keys \Definition{first-line} and
+% \Definition{last-line} in order to insert only the part of file between the
+% corresponding lines. Not to be confused with the key |line-numbers/start|
+% which fixes the first line number for the line numbering. In a sens,
+% |line-numbers/start| deals with the output whereas |first-line| and
+% |last-line| deal with the input.
+%
+% \subsubsection{With textual markers}
+%
+% \colorbox{yellow!50}{\textbf{New 2.1}}
+%
+% In order to use that feature, we first have to specify the format of the
+% markers (for the beginning and the end of the part to include) with the keys
+% \Definition{marker-beginning} and \Definition{marker-end} (usually with the
+% command |\PitonOptions|). 
+%
+%
+% \medskip
+% Let us take a practical example.
+%
+% \medskip
+% We assume that the file to include contains solutions to exercises of
+% programmation on the following model.
+%
+% \begin{Verbatim}[formatcom=\small\color{gray}]
+% ~#[Exercise 1] Iterative version
+% def fibo(n):
+%     if n==0: return 0 
+%     else:
+%         u=0
+%         v=1
+%         for i in range(n-1):
+%             w = u+v
+%             u = v
+%             v = w
+%         return v
+% ~#<Exercise 1>
+% \end{Verbatim}
+%
+% The markers of the beginning and the end are the strings |#[Exercise 1]| and
+% |#<Exercise 1>|. The string ``|Exercise 1|'' will be called the \emph{label}
+% of the exercise (or of the part of the file to be included).
+%
+% In order to specify such markers in \pkg{piton}, we will use the keys
+% |marker/beginning| and |marker/end| with the following instruction (the
+% character |#| of the comments of Python must be inserted with the protected
+% form |\#|). 
+%
+% \begin{Verbatim}
+% \PitonOptions{ ~emphase#marker/beginning@ = \~#[~#1] , ~emphase#marker/end@ = \~#<~#1> } 
+% \end{Verbatim}
+%
+% As one can see, |marker/beginning| is an expression corresponding to the
+% mathematical function which transforms the label (here |Exercise 1|) into the
+% the beginning marker (in the example |#[Exercise 1]|). The string |#1|
+% corresponds to the occurrences of the argument of that function, which the
+% classical syntax in TeX. Idem for |marker/end|.
+%
+% \bigskip 
+% Now, you only have to use the key \Definition{range} of |\PitonInputFile| to
+% insert a marked content of the file.
+%
+% \smallskip
+% \begin{Verbatim}
+% \PitonInputFile[~emphase#range = Exercise 1@]{~textsl#file_name@}
+% \end{Verbatim}
+%
+% \medskip
+% \begin{Piton}
+% def fibo(n):
+%     if n==0: return 0 
+%     else:
+%         u=0
+%         v=1
+%         for i in range(n-1):
+%             w = u+v
+%             u = v
+%             v = w
+%         return v
+% \end{Piton}
+%
+% \vspace{1cm}
+% The key \Definition{marker/include-line} requires the insertion of the lines
+% containing the markers.
+%
+% \begin{Verbatim}
+% \PitonInputFile[~emphase#marker/include-lines@,range = Exercise 1]{~textsl#file_name@}
+% \end{Verbatim}
+%
+% \begin{Piton}
+% #[Exercise 1] Iterative version
+% def fibo(n):
+%     if n==0: return 0 
+%     else:
+%         u=0
+%         v=1
+%         for i in range(n-1):
+%             w = u+v
+%             u = v
+%             v = w
+%         return v
+% #<Exercise 1>
+% \end{Piton}
+%
+%
+% \bigskip
+% In fact, there exist also the keys \Definition{begin-range} and
+% \Definition{end-range} to insert several marked contents at the same time.
+%
+% For example, in order to insert the solutions of the exercises~3 to~5, we will
+% write (if the file has the correct structure!):
+%
+%
+% \begin{Verbatim}
+% \PitonInputFile[~emphase#begin-range = Exercise 3, end-range = Exercise 5@]{~textsl#file_name@}
+% \end{Verbatim}
+%
+%
+%
 % \subsection{Highlighting some identifiers}
 %
 % It's possible to require a changement of formating for some identifiers with
@@ -643,17 +909,17 @@ version 2005/12/01 or later.
 % instructions}| }|
 %
 % \begin{itemize}
-% \item \textsl{\ttfamily names} is a (comma-separated) list of identifiers
+% \item \textsl{\ttfamily names} is a (comma-separated) list of identifier
 % names; 
 %
 % \item \textsl{\ttfamily instructions} is a list of LaTeX instructions of the
-% same type that \pkg{piton} ``styles'' previously presented (cf~\ref{styles}
+% same type as \pkg{piton} ``styles'' previously presented (cf~\ref{styles}
 % p.~\pageref{styles}). 
 % \end{itemize}
 %
 % \emph{Caution}: Only the identifiers may be concerned by that key. The
 % keywords and the built-in functions won't be affected, even if their name is
-% in the list |\textsl{\ttfamily names}|.
+% in the list \textsl{\ttfamily names}.
 % 
 % \begin{Verbatim}
 % \PitonOptions 
@@ -776,13 +1042,13 @@ version 2005/12/01 or later.
 %
 % \begin{itemize}
 % \item It's possible to change the syntatic mark (which, by default, is |#>|).
-% For this purpose, there is a key |comment-latex| available at load-time (that
-% is to say at the |\usepackage|) which allows to choice the characters which,
+% For this purpose, there is a key |comment-latex| available only in the
+% preamble of the document, allows to choice the characters which,
 % preceded by |#|, will be the syntatic marker.
 %
-% For example, with the following loading:
+% For example, if the preamble contains the following instruction:
 % 
-% \quad \verb|\usepackage[comment-latex = LaTeX]{piton}|
+% \quad \verb|\PitonOptions{comment-latex = LaTeX}|
 %
 % the LaTeX comments will begin by |#LaTeX|.
 %
@@ -808,14 +1074,14 @@ version 2005/12/01 or later.
 % \end{itemize}
 %
 % \bigskip
-% If the user has required line numbers in the left margin (with the
-% key |line-numbers| or the key |all-line-numbers| of |\PitonOptions|), it's
-% possible to refer to a number of line with the command |\label| used in a
-% LaTeX comment.\footnote{That feature is implemented by using a redefinition of
-% the standard command \texttt{\textbackslash label} in the environments
-% \texttt{\{Piton\}}. Therefore, incompatibilities may occur with extensions
-% which redefine (globally) that command \texttt{\textbackslash label} (for
-% example: \pkg{varioref}, \pkg{refcheck}, \pkg{showlabels}, etc.)}
+% If the user has required line numbers in the left margin (with the key
+% |line-numbers| of |\PitonOptions|), it's possible to refer to a number of line
+% with the command |\label| used in a LaTeX comment.\footnote{That feature is
+% implemented by using a redefinition of the standard command
+% \texttt{\textbackslash label} in the environments \texttt{\{Piton\}}.
+% Therefore, incompatibilities may occur with extensions which redefine
+% (globally) that command \texttt{\textbackslash label} (for example:
+% \pkg{varioref}, \pkg{refcheck}, \pkg{showlabels}, etc.)}
 %
 % \subsubsection{The key ``math-comments''}
 %
@@ -824,13 +1090,13 @@ version 2005/12/01 or later.
 % composed in LaTeX mathematical mode (the other elements of the comment being
 % composed verbatim).
 %
-% That feature is activated by the key \Definition{math-comments} at load-time
-% (that is to say with the |\usepackage|).
+% That feature is activated by the key \Definition{math-comments}, which is
+% available only in the preamble of the document.
 %
 % \medskip
-% In the following example, we assume that the key |math-comments| has been used
-% when loading \pkg{piton}.
-%
+% Here is a example, where we have assumed that the preamble of the document
+% contains the instruction |\PitonOptions{math-comment}|:
+% 
 % \begin{Verbatim}
 % \begin{Piton}
 % def square(x):
@@ -851,15 +1117,15 @@ version 2005/12/01 or later.
 %
 % In order to use this mechanism, it's necessary to specify the delimiters which
 % will delimit the escape (one for the beginning and one for the end) by using
-% the keys \Definition{begin-escape} and \Definition{end-escape} at load-time
-% (that is to say at the |\usepackage{piton}|).
+% the keys \Definition{begin-escape} and \Definition{end-escape}, available only
+% in the preamble of the document.
 %
 % \medskip
-% In the following example, we assume that the extension \pkg{piton} has been
-% loaded by the following instruction.
+% In the following example, we assume that the preamble of the document contains
+% the following instruction:
 %
 % \begin{Verbatim}
-% \usepackage[~emphase#begin-escape=!,end-escape=!@]{piton}
+% \PitonOptions{~emphase#begin-escape=!,end-escape=!@}
 % \end{Verbatim}
 %
 % \medskip
@@ -1100,99 +1366,6 @@ version 2005/12/01 or later.
 % environments |{Piton}| (we recall that the command |\alert| relies upon that
 % environment |{alertenv}|).
 %
-% \subsection{Page breaks and line breaks}
-%
-% \label{breakable}
-%
-% \subsubsection{Page breaks}
-%
-% By default, the listings produced by the environment |{Piton}| and the command
-% |\PitonInputFile| are not breakable.
-%
-% However, the command |\PitonOptions| provides the key \Definition{splittable}
-% to allow such breaks.
-%
-% \begin{itemize}
-% \item If the key |splittable| is used without any value, the
-% listings are breakable everywhere.
-% \item If the key |splittable| is used with a numeric value~$n$ (which must be
-% a non-negative integer number), the listings are breakable but no break will
-% occur within the first $n$ lines and within the last $n$ lines. Therefore,
-% |splittable=1| is equivalent to |splittable|.
-% \end{itemize}
-%
-% \medskip
-% Even with a background color (set by the key |background-color|), the pages
-% breaks are allowed, as soon as the key |splittable| is in force.\footnote{With
-% the key |splittable|, the environments \texttt{\{Piton\}} are breakable, even
-% within a (breakable) environment of \pkg{tcolorbox}. Remind that an
-% environment of \pkg{tcolorbox} included in another environment of
-% \pkg{tcolorbox} is \emph{not} breakable, even when both environments use the
-% key |breakable| of \pkg{tcolorbox}.}
-% 
-% \subsubsection{Line breaks}
-% 
-% \label{line-breaks}
-% 
-% By default, the elements produced by \pkg{piton} can't be broken by an end on
-% line. However, there are keys to allow such breaks (the possible breaking
-% points are the spaces, even the spaces in the Python strings).
-% \begin{itemize}
-% \item With the key \Definition{break-lines-in-piton}, the line breaks are
-% allowed in the command |\piton{...}| (but not in the command
-% \verb+\piton|...|+, that is to say the command |\piton| in verbatim mode). 
-% \item With the key \Definition{break-lines-in-Piton}, the line breaks are
-% allowed in the environment |{Piton}| (hence the capital letter |P| in the name) and in the
-% listings produced by |\PitonInputFile|.
-% \item The key \Definition{break-lines} is a conjonction of the two previous keys.
-% \end{itemize}
-% 
-% \bigskip 
-% The package \pkg{piton} provides also several keys to control the appearance
-% on the line breaks allowed by |break-lines-in-Piton|.
-%
-% \begin{itemize}
-% \item With the key \Definition{indent-broken-lines}, the indentation of a
-% broken line is respected at carriage return.
-%
-% \item The key \Definition{end-of-broken-line} corresponds to the symbol placed
-% at the end of a broken line. The initial value is:
-% |\hspace*{0.5em}\textbackslash|.
-%
-% \item The key \Definition{continuation-symbol} corresponds to the symbol
-% placed at each carriage return. The initial value is: |+\;|.
-%
-% \item The key \Definition{continuation-symbol-on-indentation} corresponds to
-% the symbol placed at each carriage return, on the position of the indentation
-% (only when the key |indent-broken-line| is in force). The initial value is:
-% |$\hookrightarrow\;$|.
-% \end{itemize}
-%
-%
-% \bigskip
-% The following code has been composed with the following tuning:
-%
-% \begin{Verbatim}
-% \PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
-% \end{Verbatim}
-%
-% \begin{center}
-% \PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
-% \begin{Piton}
-% def dict_of_list(l):
-%     """Converts a list of subrs and descriptions of glyphs in a dictionary"""
-%     our_dict = {}
-%     for list_letter in l:
-%         if (list_letter[0][0:3] == 'dup'): # if it's a subr
-%             name = list_letter[0][4:-3]
-%             print("We treat the subr of number " + name)
-%         else:
-%             name = list_letter[0][1:-3] # if it's a glyph
-%             print("We treat the glyph of number " + name)
-%         our_dict[name] = [treat_Postscript_line(k) for k in list_letter[1:-1]]
-%     return dict
-% \end{Piton}
-% \end{center}
 % 
 % \subsection{Footnotes in the environments of piton}
 % 
@@ -1252,7 +1425,7 @@ version 2005/12/01 or later.
 % \label{example-numbering}
 %
 % We remind that it's possible to have an automatic numbering of the lines in
-% the Python listings by using the key |line-numbers| or the key |all-line-numbers|.
+% the Python listings by using the key |line-numbers|.
 %
 % By default, the numbers of the lines are composed by \pkg{piton} in an
 % overlapping position on the left (by using internally the command |\llap| of LaTeX).
@@ -1992,7 +2165,7 @@ version 2005/12/01 or later.
 % \bigskip
 %    \begin{macrocode}
 \file_if_exist:nF { piton.lua }
-  { \msg_critical:nn { piton } { piton.lua~not~found} }
+  { \msg_critical:nn { piton } { piton.lua~not~found } }
 %    \end{macrocode}
 %
 %
@@ -2031,51 +2204,50 @@ version 2005/12/01 or later.
     footnote .bool_gset:N = \g_@@_footnote_bool ,
     footnotehyper .bool_gset:N = \g_@@_footnotehyper_bool ,
 
-    begin-escape .code:n = 
-      \lua_now:e { piton.begin_escape = "\lua_escape:n{#1}" } ,
-    begin-escape .value_required:n = true , 
-    end-escape   .code:n = 
-      \lua_now:e { piton.end_escape = "\lua_escape:n{#1}" } ,
-    end-escape   .value_required:n = true ,
-
-    begin-escape-math .code:n = 
-      \lua_now:e { piton.begin_escape_math = "\lua_escape:n{#1}" } ,
-    begin-escape-math .value_required:n = true , 
-    end-escape-math   .code:n = 
-      \lua_now:e { piton.end_escape_math = "\lua_escape:n{#1}" } ,
-    end-escape-math   .value_required:n = true ,
-
-    % deprecated
-    escape-inside .tl_gset:N = \g_@@_escape_inside_tl ,
-
-    comment-latex .code:n = { \lua_now:n { comment_latex = "#1" } } ,   
-    comment-latex .value_required:n = true ,
-
-    math-comments .bool_gset:N = \g_@@_math_comments_bool ,
-    math-comments .default:n  = true ,
-
-    beamer        .bool_gset:N = \g_@@_beamer_bool ,
-    beamer        .default:n = true , 
+    beamer .bool_gset:N = \g_@@_beamer_bool ,
+    beamer .default:n = true , 
+  
+    escape-inside .code:n = \@@_error:n { key-escape-inside-deleted } , 
+    math-comments .code:n = \@@_error:n { moved~to~preamble } , 
+    comment-latex .code:n = \@@_error:n { moved~to~preamble } , 
 
     unknown .code:n = \@@_error:n { Unknown~key~for~package }
   }
 %    \end{macrocode}
 %
+% \bigskip
+%    \begin{macrocode}
+\@@_msg_new:nn { key-escape-inside-deleted }
+  {
+    The~key~'escape-inside'~has~been~deleted.~You~must~now~use~
+    the~keys~'begin-escape'~and~'end-escape'~in~
+    \token_to_str:N \PitonOptions.\\
+    That~key~will~be~ignored.
+  }
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+\@@_msg_new:nn { moved~to~preamble }
+  {
+    The~key~'\l_keys_key_str'~*must*~now~be~used~with~
+    \token_to_str:N \PitonOptions`in~the~preamble~of~your~
+    document.\\
+    That~key~will~be~ignored.
+  }
+%    \end{macrocode}
+% 
 %    \begin{macrocode}
 \@@_msg_new:nn { Unknown~key~for~package }
   {
     Unknown~key.\\
     You~have~used~the~key~'\l_keys_key_str'~but~the~only~keys~available~here~
-    are~'beamer',~'begin-escape',~'begin-escape-math',~'comment-latex',~
-    'end-escape',~'end-escape-math',~~'footnote',~'footnotehyper'~and~ 
-    'math-comments'.~Other~keys~are~available~in~\token_to_str:N \PitonOptions.\\
+    are~'beamer',~'footnote',~'footnotehyper'.~Other~keys~are~available~in~
+    \token_to_str:N \PitonOptions.\\ 
     That~key~will~be~ignored.
   }
 %    \end{macrocode}
 %
-%    \begin{macrocode}
-\lua_now:n { piton = piton~or { } }
-%    \end{macrocode}
 %
 % \bigskip
 % We process the options provided by the user at load-time.
@@ -2083,27 +2255,6 @@ version 2005/12/01 or later.
 \ProcessKeysOptions { piton / package }
 %    \end{macrocode}
 %
-% \bigskip
-% We deal with the key |escape-inside| altough it is deprecated (replaced by
-% |begin-escape| and |end-escape|).
-%    \begin{macrocode}
-\tl_if_empty:NF \g_@@_escape_inside_tl
-  {
-    \begingroup
-    \cs_new_protected:Npn \@@_set_escape_char:nn #1 #2 
-      {
-        \lua_now:n { piton.begin_escape = "#1" }
-        \lua_now:n { piton.end_escape = "#2" }
-      }
-    \cs_generate_variant:Nn \@@_set_escape_char:nn { x x }
-    \@@_set_escape_char:xx 
-      { \tl_head:V \g_@@_escape_inside_tl }
-      { \tl_tail:V \g_@@_escape_inside_tl }
-    \endgroup
-  }
-%    \end{macrocode}
-% 
-% 
 % 
 % \bigskip
 %    \begin{macrocode}
@@ -2196,7 +2347,10 @@ version 2005/12/01 or later.
 % |\g_@@_footnote_bool| in order to know if we have to insert an environment
 % |{savenotes}|.
 %
-%
+% \bigskip
+%    \begin{macrocode}
+\lua_now:n { piton = piton~or { } }
+%    \end{macrocode}
 % 
 % \bigskip
 % \subsubsection{Parameters and technical definitions}
@@ -2217,6 +2371,12 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 % \medskip
+% The following flag will be raised in the |\AtBeginDocument|.
+%    \begin{macrocode}
+\bool_new:N \g_@@_in_document_bool
+%    \end{macrocode}
+% 
+% \medskip
 % We will compute (with Lua) the numbers of lines of the Python code and store
 % it in the following counter.
 %    \begin{macrocode}
@@ -2236,7 +2396,7 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 % 
 % \medskip
-% The following token list will contains the (potential) informations to write
+% The following token list will contain the (potential) informations to write
 % on the |aux| (to be used in the next compilation).
 %    \begin{macrocode}
 \tl_new:N \g_@@_aux_tl
@@ -2815,8 +2975,8 @@ version 2005/12/01 or later.
     beginning .value_required:n = true , 
     end .code:n = \cs_set:Nn \@@_marker_end:n { #1 } ,   
     end .value_required:n = true ,
-    include-line .bool_set:N = \l_@@_marker_include_line_bool ,
-    include-line .default:n = true ,
+    include-lines .bool_set:N = \l_@@_marker_include_lines_bool ,
+    include-lines .default:n = true ,
     unknown .code:n = \@@_error:n { Unknown~key~for~marker } 
   }
 %    \end{macrocode}
@@ -2874,6 +3034,9 @@ version 2005/12/01 or later.
         { \bool_set_true:N \l_@@_line_numbers_bool } , 
     resume .value_forbidden:n = true ,
 
+    sep .dim_set:N = \l_@@_numbers_sep_dim ,
+    sep .value_required:n = true , 
+
     unknown .code:n = \@@_error:n { Unknown~key~for~line-numbers } 
   }
 %    \end{macrocode}
@@ -2885,6 +3048,41 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \keys_define:nn { PitonOptions }
   {
+%    \end{macrocode}
+% First, we put keys that should be avalaible only in the preamble.
+%    \begin{macrocode}
+    begin-escape .code:n = 
+      \lua_now:e { piton.begin_escape = "\lua_escape:n{#1}" } ,
+    begin-escape .value_required:n = true , 
+    begin-escape .usage:n = preamble , 
+
+    end-escape   .code:n = 
+      \lua_now:e { piton.end_escape = "\lua_escape:n{#1}" } ,
+    end-escape   .value_required:n = true ,
+    end-escape .usage:n = preamble ,
+
+    begin-escape-math .code:n = 
+      \lua_now:e { piton.begin_escape_math = "\lua_escape:n{#1}" } ,
+    begin-escape-math .value_required:n = true , 
+    begin-escape-math .usage:n = preamble ,
+
+    end-escape-math .code:n = 
+      \lua_now:e { piton.end_escape_math = "\lua_escape:n{#1}" } ,
+    end-escape-math .value_required:n = true ,
+    end-escape-math .usage:n = preamble ,
+
+    comment-latex .code:n = \lua_now:n { comment_latex = "#1" } ,   
+    comment-latex .value_required:n = true ,
+    comment-latex .usage:n = preamble ,
+
+    math-comments .bool_set:N = \g_@@_math_comments_bool ,
+    math-comments .default:n  = true ,
+    math-comments .usage:n = preamble , 
+%    \end{macrocode}
+% 
+% \bigskip
+% Now, general keys.
+%    \begin{macrocode}
     language         .code:n = 
       \str_set:Nx \l_@@_language_str { \str_lowercase:n { #1 } } , 
     language         .value_required:n  = true ,
@@ -2906,8 +3104,9 @@ version 2005/12/01 or later.
     marker .value_required:n = true , 
 
     line-numbers .code:n = 
-       \keys_set:nn { PitonOptions / line-numbers } { #1 } ,
+      \keys_set:nn { PitonOptions / line-numbers } { #1 } ,
     line-numbers .default:n = true , 
+
 
     splittable       .int_set:N         = \l_@@_splittable_int ,
     splittable       .default:n         = 1 , 
@@ -2940,8 +3139,6 @@ version 2005/12/01 or later.
         } ,
     left-margin      .value_required:n  = true ,
 
-    numbers-sep      .dim_set:N         = \l_@@_numbers_sep_dim ,
-    numbers-sep      .value_required:n  = true , 
     tab-size         .code:n            = \@@_set_tab_tl:n { #1 } ,
     tab-size         .value_required:n  = true , 
     show-spaces      .bool_set:N        = \l_@@_show_spaces_bool , 
@@ -2990,12 +3187,15 @@ version 2005/12/01 or later.
 
     unknown .code:n = \@@_error:n { Unknown~key~for~PitonOptions } ,
 
-    % the key all-line-numbers is deprecated
+    % deprecated
     all-line-numbers .code:n = 
       \bool_set_true:N \l_@@_line_numbers_bool 
       \bool_set_false:N \l_@@_skip_empty_lines_bool ,
-    all-line-numbers .value_forbidden:n = true  
+    all-line-numbers .value_forbidden:n = true ,
 
+    % deprecated
+    numbers-sep .dim_set:N = \l_@@_numbers_sep_dim ,
+    numbers-sep .value_required:n = true 
   }
 %    \end{macrocode}
 %
@@ -3020,13 +3220,19 @@ version 2005/12/01 or later.
   }
 %    \end{macrocode}
 %
+%
+% \bigskip
+%    \begin{macrocode}
+\hook_gput_code:nnn { begindocument } { . }
+  { \bool_gset_true:N \g_@@_in_document_bool }
+%    \end{macrocode}
+% 
 % \bigskip
 % \subsubsection{The numbers of the lines}
 %
 % \medskip
 % The following counter will be used to count the lines in the code when the
-% user requires the numbers of the lines to be printed (with |line-numbers| or
-% |all-line-numbers|). 
+% user requires the numbers of the lines to be printed (with |line-numbers|).
 %
 %    \begin{macrocode}
 \int_new:N \g_@@_visual_line_int 
@@ -3536,7 +3742,7 @@ version 2005/12/01 or later.
             { 
               \@@_compute_range: 
               \bool_lazy_or:nnT 
-                \l_@@_marker_include_line_bool
+                \l_@@_marker_include_lines_bool
                 { ! \str_if_eq_p:NN \l_@@_begin_range_str \l_@@_end_range_str } 
                 {
                   \int_decr:N \l_@@_first_line_int
@@ -3914,7 +4120,7 @@ version 2005/12/01 or later.
     The~available~keys~of~the~family~'line-numbers'~are~(in~
     alphabetic~order):~
     absolute,~false,~label-empty-lines,~resume,~skip-empty-lines,~
-    start~and~true.\\
+    sep,~start~and~true.\\
     That~key~will~be~ignored.
   }
 %    \end{macrocode}
@@ -3925,7 +4131,7 @@ version 2005/12/01 or later.
     Unknown~key. \\
     The~key~'marker / \l_keys_key_str'~is~unknown.\\
     The~available~keys~of~the~family~'marker'~are~(in~
-    alphabetic~order):~ beginning,~end~and~include-line.\\
+    alphabetic~order):~ beginning,~end~and~include-lines.\\
     That~key~will~be~ignored.
   }
 %    \end{macrocode}
@@ -3991,7 +4197,6 @@ version 2005/12/01 or later.
   }
   {
     The~available~keys~are~(in~alphabetic~order):~
-    all-line-numbers,~
     auto-gobble,~
     background-color,~
     break-lines,~
@@ -4024,8 +4229,7 @@ version 2005/12/01 or later.
 \@@_msg_new:nn { label~with~lines~numbers } 
   {
     You~can't~use~the~command~\token_to_str:N \label\
-    because~the~key~'line-numbers'~(or~'all-line-numbers')~
-    is~not~active.\\
+    because~the~key~'line-numbers'~is~not~active.\\
     If~you~go~on,~that~command~will~ignored.
   }
 %    \end{macrocode}
@@ -4135,7 +4339,7 @@ end
 % with standard LaTeX catcodes for all the characters: the elements captured
 % will be formatted as normal LaTeX codes. It's suitable for the ``LaTeX
 % comments'' in the environments |{Piton}| and the elements beetween 
-% ``|escape-inside|''. That function won't be much used.
+% |begin-escape| and |end-escape|. That function won't be much used.
 %    \begin{macrocode}
 local function L(pattern)
   return Ct ( C ( pattern ) ) 
@@ -4189,14 +4393,11 @@ end
 % 
 % \bigskip
 % The following \textsc{lpeg} catches the Python chunks which are in LaTeX
-% escapes (and that chunks will be considered as normal LaTeX constructions). We
-% recall that |piton.begin_espace| and |piton_end_escape| are Lua strings
-% corresponding to the key |escape-inside|\footnote{The \pkg{piton} key
-% |escape-inside| is available at load-time only.}. Since the elements that will
-% be catched must be sent to LaTeX with standard LaTeX catcodes, we put the
-% capture (done by the function |C|) in a table (by using |Ct|, which is an
-% alias for |lpeg.Ct|) without number of catcode table at the first component of
-% the table.
+% escapes (and that chunks will be considered as normal LaTeX constructions).
+% Since the elements that will be catched must be sent to LaTeX with standard
+% LaTeX catcodes, we put the capture (done by the function |C|) in a table (by
+% using |Ct|, which is an alias for |lpeg.Ct|) without number of catcode table
+% at the first component of the table.
 %    \begin{macrocode}
 Escape = P ( false ) 
 if piton.begin_escape ~= nil
@@ -4286,8 +4487,7 @@ local Number =
 %
 % \bigskip
 % We recall that |piton.begin_espace| and |piton_end_escape| are Lua strings
-% corresponding to the keys |begin-escape| and |end-escape|. Of course, if the
-% final user has not used the key |escape-inside|, these strings are empty.
+% corresponding to the keys |begin-escape| and |end-escape|. 
 %    \begin{macrocode}
 local Word
 if piton.begin_escape ~= nil -- before : ''

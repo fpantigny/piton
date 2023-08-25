@@ -52,7 +52,7 @@
     The package~'piton'~won't be loaded.
   }
 \file_if_exist:nF { piton.lua }
-  { \msg_critical:nn { piton } { piton.lua~not~found} }
+  { \msg_critical:nn { piton } { piton.lua~not~found } }
 \bool_new:N \g__piton_footnotehyper_bool
 \bool_new:N \g__piton_footnote_bool
 \bool_new:N \g__piton_math_comments_bool
@@ -63,59 +63,38 @@
     footnote .bool_gset:N = \g__piton_footnote_bool ,
     footnotehyper .bool_gset:N = \g__piton_footnotehyper_bool ,
 
-    begin-escape .code:n =
-      \lua_now:e { piton.begin_escape = "\lua_escape:n{#1}" } ,
-    begin-escape .value_required:n = true ,
-    end-escape   .code:n =
-      \lua_now:e { piton.end_escape = "\lua_escape:n{#1}" } ,
-    end-escape   .value_required:n = true ,
+    beamer .bool_gset:N = \g__piton_beamer_bool ,
+    beamer .default:n = true ,
 
-    begin-escape-math .code:n =
-      \lua_now:e { piton.begin_escape_math = "\lua_escape:n{#1}" } ,
-    begin-escape-math .value_required:n = true ,
-    end-escape-math   .code:n =
-      \lua_now:e { piton.end_escape_math = "\lua_escape:n{#1}" } ,
-    end-escape-math   .value_required:n = true ,
-
-    % deprecated
-    escape-inside .tl_gset:N = \g__piton_escape_inside_tl ,
-
-    comment-latex .code:n = { \lua_now:n { comment_latex = "#1" } } ,
-    comment-latex .value_required:n = true ,
-
-    math-comments .bool_gset:N = \g__piton_math_comments_bool ,
-    math-comments .default:n  = true ,
-
-    beamer        .bool_gset:N = \g__piton_beamer_bool ,
-    beamer        .default:n = true ,
+    escape-inside .code:n = \__piton_error:n { key-escape-inside-deleted } ,
+    math-comments .code:n = \__piton_error:n { moved~to~preamble } ,
+    comment-latex .code:n = \__piton_error:n { moved~to~preamble } ,
 
     unknown .code:n = \__piton_error:n { Unknown~key~for~package }
+  }
+\__piton_msg_new:nn { key-escape-inside-deleted }
+  {
+    The~key~'escape-inside'~has~been~deleted.~You~must~now~use~
+    the~keys~'begin-escape'~and~'end-escape'~in~
+    \token_to_str:N \PitonOptions.\\
+    That~key~will~be~ignored.
+  }
+\__piton_msg_new:nn { moved~to~preamble }
+  {
+    The~key~'\l_keys_key_str'~*must*~now~be~used~with~
+    \token_to_str:N \PitonOptions`in~the~preamble~of~your~
+    document.\\
+    That~key~will~be~ignored.
   }
 \__piton_msg_new:nn { Unknown~key~for~package }
   {
     Unknown~key.\\
     You~have~used~the~key~'\l_keys_key_str'~but~the~only~keys~available~here~
-    are~'beamer',~'begin-escape',~'begin-escape-math',~'comment-latex',~
-    'end-escape',~'end-escape-math',~~'footnote',~'footnotehyper'~and~
-    'math-comments'.~Other~keys~are~available~in~\token_to_str:N \PitonOptions.\\
+    are~'beamer',~'footnote',~'footnotehyper'.~Other~keys~are~available~in~
+    \token_to_str:N \PitonOptions.\\
     That~key~will~be~ignored.
   }
-\lua_now:n { piton = piton~or { } }
 \ProcessKeysOptions { piton / package }
-\tl_if_empty:NF \g__piton_escape_inside_tl
-  {
-    \begingroup
-    \cs_new_protected:Npn \__piton_set_escape_char:nn #1 #2
-      {
-        \lua_now:n { piton.begin_escape = "#1" }
-        \lua_now:n { piton.end_escape = "#2" }
-      }
-    \cs_generate_variant:Nn \__piton_set_escape_char:nn { x x }
-    \__piton_set_escape_char:xx
-      { \tl_head:V \g__piton_escape_inside_tl }
-      { \tl_tail:V \g__piton_escape_inside_tl }
-    \endgroup
-  }
 \@ifclassloaded { beamer } { \bool_gset_true:N \g__piton_beamer_bool } { }
 \@ifpackageloaded { beamerarticle } { \bool_gset_true:N \g__piton_beamer_bool } { }
 \bool_if:NT \g__piton_beamer_bool { \lua_now:n { piton_beamer = true } }
@@ -171,10 +150,12 @@
         \bool_gset_true:N \g__piton_footnote_bool
       }
   }
+\lua_now:n { piton = piton~or { } }
 \str_new:N \l__piton_language_str
 \str_set:Nn \l__piton_language_str { python }
 \bool_new:N \l__piton_in_PitonOptions_bool
 \bool_new:N \l__piton_in_PitonInputFile_bool
+\bool_new:N \g__piton_in_document_bool
 \int_new:N \l__piton_nb_lines_int
 \int_new:N \l__piton_nb_non_empty_lines_int
 \int_new:N \g__piton_line_int
@@ -426,8 +407,8 @@
     beginning .value_required:n = true ,
     end .code:n = \cs_set:Nn \__piton_marker_end:n { #1 } ,
     end .value_required:n = true ,
-    include-line .bool_set:N = \l__piton_marker_include_line_bool ,
-    include-line .default:n = true ,
+    include-lines .bool_set:N = \l__piton_marker_include_lines_bool ,
+    include-lines .default:n = true ,
     unknown .code:n = \__piton_error:n { Unknown~key~for~marker }
   }
 \keys_define:nn { PitonOptions / line-numbers }
@@ -481,10 +462,40 @@
         { \bool_set_true:N \l__piton_line_numbers_bool } ,
     resume .value_forbidden:n = true ,
 
+    sep .dim_set:N = \l__piton_numbers_sep_dim ,
+    sep .value_required:n = true ,
+
     unknown .code:n = \__piton_error:n { Unknown~key~for~line-numbers }
   }
 \keys_define:nn { PitonOptions }
   {
+    begin-escape .code:n =
+      \lua_now:e { piton.begin_escape = "\lua_escape:n{#1}" } ,
+    begin-escape .value_required:n = true ,
+    begin-escape .usage:n = preamble ,
+
+    end-escape   .code:n =
+      \lua_now:e { piton.end_escape = "\lua_escape:n{#1}" } ,
+    end-escape   .value_required:n = true ,
+    end-escape .usage:n = preamble ,
+
+    begin-escape-math .code:n =
+      \lua_now:e { piton.begin_escape_math = "\lua_escape:n{#1}" } ,
+    begin-escape-math .value_required:n = true ,
+    begin-escape-math .usage:n = preamble ,
+
+    end-escape-math .code:n =
+      \lua_now:e { piton.end_escape_math = "\lua_escape:n{#1}" } ,
+    end-escape-math .value_required:n = true ,
+    end-escape-math .usage:n = preamble ,
+
+    comment-latex .code:n = \lua_now:n { comment_latex = "#1" } ,
+    comment-latex .value_required:n = true ,
+    comment-latex .usage:n = preamble ,
+
+    math-comments .bool_set:N = \g__piton_math_comments_bool ,
+    math-comments .default:n  = true ,
+    math-comments .usage:n = preamble ,
     language         .code:n =
       \str_set:Nx \l__piton_language_str { \str_lowercase:n { #1 } } ,
     language         .value_required:n  = true ,
@@ -506,7 +517,7 @@
     marker .value_required:n = true ,
 
     line-numbers .code:n =
-       \keys_set:nn { PitonOptions / line-numbers } { #1 } ,
+      \keys_set:nn { PitonOptions / line-numbers } { #1 } ,
     line-numbers .default:n = true ,
 
     splittable       .int_set:N         = \l__piton_splittable_int ,
@@ -540,8 +551,6 @@
         } ,
     left-margin      .value_required:n  = true ,
 
-    numbers-sep      .dim_set:N         = \l__piton_numbers_sep_dim ,
-    numbers-sep      .value_required:n  = true ,
     tab-size         .code:n            = \__piton_set_tab_tl:n { #1 } ,
     tab-size         .value_required:n  = true ,
     show-spaces      .bool_set:N        = \l__piton_show_spaces_bool ,
@@ -590,12 +599,15 @@
 
     unknown .code:n = \__piton_error:n { Unknown~key~for~PitonOptions } ,
 
-    % the key all-line-numbers is deprecated
+    % deprecated
     all-line-numbers .code:n =
       \bool_set_true:N \l__piton_line_numbers_bool
       \bool_set_false:N \l__piton_skip_empty_lines_bool ,
-    all-line-numbers .value_forbidden:n = true
+    all-line-numbers .value_forbidden:n = true ,
 
+    % deprecated
+    numbers-sep .dim_set:N = \l__piton_numbers_sep_dim ,
+    numbers-sep .value_required:n = true
   }
 \cs_new_protected:Npn \__piton_in_PitonInputFile:n #1
   {
@@ -609,6 +621,8 @@
     \keys_set:nn { PitonOptions } { #1 }
     \bool_set_false:N \l__piton_in_PitonOptions_bool
   }
+\hook_gput_code:nnn { begindocument } { . }
+  { \bool_gset_true:N \g__piton_in_document_bool }
 \int_new:N \g__piton_visual_line_int
 \cs_new_protected:Npn \__piton_print_number:
   {
@@ -928,7 +942,7 @@
             {
               \__piton_compute_range:
               \bool_lazy_or:nnT
-                \l__piton_marker_include_line_bool
+                \l__piton_marker_include_lines_bool
                 { ! \str_if_eq_p:NN \l__piton_begin_range_str \l__piton_end_range_str }
                 {
                   \int_decr:N \l__piton_first_line_int
@@ -1150,7 +1164,7 @@
     The~available~keys~of~the~family~'line-numbers'~are~(in~
     alphabetic~order):~
     absolute,~false,~label-empty-lines,~resume,~skip-empty-lines,~
-    start~and~true.\\
+    sep,~start~and~true.\\
     That~key~will~be~ignored.
   }
 \__piton_msg_new:nn { Unknown~key~for~marker }
@@ -1158,7 +1172,7 @@
     Unknown~key. \\
     The~key~'marker / \l_keys_key_str'~is~unknown.\\
     The~available~keys~of~the~family~'marker'~are~(in~
-    alphabetic~order):~ beginning,~end~and~include-line.\\
+    alphabetic~order):~ beginning,~end~and~include-lines.\\
     That~key~will~be~ignored.
   }
 \__piton_msg_new:nn { bad~range~specification }
@@ -1199,7 +1213,6 @@
   }
   {
     The~available~keys~are~(in~alphabetic~order):~
-    all-line-numbers,~
     auto-gobble,~
     background-color,~
     break-lines,~
@@ -1228,8 +1241,7 @@
 \__piton_msg_new:nn { label~with~lines~numbers }
   {
     You~can't~use~the~command~\token_to_str:N \label\
-    because~the~key~'line-numbers'~(or~'all-line-numbers')~
-    is~not~active.\\
+    because~the~key~'line-numbers'~is~not~active.\\
     If~you~go~on,~that~command~will~ignored.
   }
 \__piton_msg_new:nn { cr~not~allowed }
