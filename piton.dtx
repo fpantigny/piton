@@ -44,11 +44,11 @@ version 2005/12/01 or later.
 %<@@=piton>
 %<*STY>
 \def\myfileversion{2.1}
-\def\myfiledate{2023/08/31}
+\def\myfiledate{2023/08/26}
 %</STY>
 %<*driver>
-\def\myfileversion{2.0zz}
-\def\myfiledate{2023/08/31}
+\def\myfileversion{2.1}
+\def\myfiledate{2023/08/26}
 \documentclass{l3doc}
 \usepackage{geometry}
 \geometry{left=2.8cm,right=2.8cm,top=2.5cm,bottom=2.5cm,papersize={21cm,29.7cm}}
@@ -206,11 +206,10 @@ version 2005/12/01 or later.
 % cf.~\ref{NewPitonEnvironment} p.~\pageref{NewPitonEnvironment}.
 %
 % \item The command \colorbox{gray!20}{\ttfamily\textbackslash PitonInputFile}
-% is used to insert and typeset a whole external file.
+% is used to insert and typeset a external file.
 %
-% That command takes in as optional argument (between square brackets) two keys
-% |first-line| and |last-line|: only the part between the corresponding lines
-% will be inserted.
+% It's possible to insert only a part of the file: cf.
+% part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}. 
 % \end{itemize}
 %
 % \subsection{The syntax of the command \textbackslash piton}
@@ -1082,14 +1081,13 @@ version 2005/12/01 or later.
 % \end{itemize}
 %
 % \bigskip
-% If the user has required line numbers in the left margin (with the key
-% |line-numbers| of |\PitonOptions|), it's possible to refer to a number of line
-% with the command |\label| used in a LaTeX comment.\footnote{That feature is
-% implemented by using a redefinition of the standard command
-% \texttt{\textbackslash label} in the environments \texttt{\{Piton\}}.
-% Therefore, incompatibilities may occur with extensions which redefine
-% (globally) that command \texttt{\textbackslash label} (for example:
-% \pkg{varioref}, \pkg{refcheck}, \pkg{showlabels}, etc.)}
+% If the user has required line numbers (with the key |line-numbers|), it's
+% possible to refer to a number of line with the command |\label| used in a
+% LaTeX comment.\footnote{That feature is implemented by using a redefinition of
+% the standard command \texttt{\textbackslash label} in the environments
+% \texttt{\{Piton\}}. Therefore, incompatibilities may occur with extensions
+% which redefine (globally) that command \texttt{\textbackslash label} (for
+% example: \pkg{varioref}, \pkg{refcheck}, \pkg{showlabels}, etc.)}
 %
 % \subsubsection{The key ``math-comments''}
 %
@@ -6552,6 +6550,22 @@ end
 % repository:
 %
 % \verb|https://github.com/fpantigny/piton|
+%
+% \subsection*{Changes between versions 2.0 and 2.1}
+%
+% The key |line-numbers| has now subkeys |line-numbers/skip-empty-lines|,
+% |line-numbers/label-empty-lines|, etc. 
+%
+% The key |all-line-numbers| is deprecated: use
+% |line-numbers/skip-empty-lines=false|. 
+%
+% New system to import, with |\PitonInputFile|, only a part (of the file)
+% delimited by textual markers. 
+%
+% New keys |begin-escape|, |end-escape|, |begin-escape-math| and |end-escape-math|.
+%
+% The key |escape-inside| is deprecated: use |begin-escape| and |end-escape|.
+%
 %
 % \subsection*{Changes between versions 1.6 and 2.0}
 %
