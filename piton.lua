@@ -1205,19 +1205,24 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
   local t = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( marker_end )
   local first_line = -1
   local count = 0
+  local last_found = false
   for line in io.lines(file_name)
   do if first_line == -1
      then if string.sub(line,1,#s) == s
           then first_line = count
           end
      else if string.sub(line,1,#t) == t
-          then break
+          then last_found = true
+               break
           end
      end
      count = count + 1
   end
   if first_line == -1
-  then tex.sprint("\\PitonMarkerNotFound")
+  then tex.sprint("\\PitonBeginMarkerNotFound")
+  else if last_found == false
+       then tex.sprint("\\PitonEndMarkerNotFound")
+       end
   end
   tex.sprint(
       luatexbase.catcodetables.expl ,

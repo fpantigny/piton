@@ -7,7 +7,17 @@
 \frenchsetup{og = « , fg = »}
 
 \usepackage[footnotehyper]{piton}
-\PitonOptions{math-comments,begin-escape=!,end-escape=!}
+\PitonOptions
+  { 
+    splittable = 4 ,
+    math-comments,
+    begin-escape = ! ,
+    end-escape = ! ,
+    begin-escape-math = \( , 
+    end-escape-math = \) 
+  }
+
+
 
 \usepackage[executable=python.exe]{pyluatex}
 
@@ -69,7 +79,7 @@
 
 \begin{document}
 
-\PitonOptions{splittable = 4}
+
 
 \VerbatimFootnotes
 
@@ -1128,6 +1138,66 @@ LaTeX, c'est-à-dire ce qui est appelé dans ce document «commentaire LaTeX», 
 |#>|).
 
 
+\subsubsection{Le mécanisme «escape-math»}
+
+Le mécanisme «|escape-math|» est très similaire au mécanisme «|escape|» puisque la seule différence est que les
+éléments en échappement LaTeX y sont composés en mode mathématique.
+
+On active ce mécanisme avec les clés \Definition{begin-escape-math} et \Definition{end-escape-math} (qui ne sont
+accessibles que dans le préambule du document).
+
+\medskip
+Malgré la proximité technique, les usages du mécanisme «|escape-math|» sont en fait assez différents de ceux du
+mécanisme «|escape|». En effet, comme le contenu en échappement est composé en mode mathématique, il est en
+particulier composé dans un groupe TeX et ne pourra donc pas servir à changer le formatage d'autres unités lexicales.
+
+\medskip
+Dans les langages où le caractère \verb|$| ne joue pas un rôle syntaxique important, on peut assez naturellement
+vouloir activer le mécanisme «|escape-math|» avec le caractère \verb|$|:
+\begin{Verbatim}
+\PitonOptions{~emphase#begin-escape-math=$,end-escape-math=$@}
+\end{Verbatim}
+Remarquer que le caractère \verb|$| ne doit \emph{pas} être protégé par une contre-oblique.
+
+\bigskip
+Néanmoins, il est sans doute plus prudent d'utiliser |\(| et |\)|.
+\begin{Verbatim}
+\PitonOptions{~emphase#begin-escape-math=\(,end-escape-math=\)@}
+\end{Verbatim}
+
+\bigskip
+Voici un exemple d'utilisation typique :
+
+\medskip
+\begin{Verbatim}
+\begin{Piton}[line-numbers]
+def arctan(x,n=10):
+    if ~emphase#\(x < 0\)@ :
+        return ~emphase#\(-\arctan(-x)\)@ 
+    elif ~emphase#\(x > 1\)@ : 
+        return ~emphase#\(\pi/2 - \arctan(1/x)\)@ 
+    else: 
+        s = ~emphase#\(0\)@
+        for ~emphase#\(k\)@ in range(~emphase#\(n\)@): s += ~emphase#\(\smash{\frac{(-1)^k}{2k+1} x^{2k+1}}\)@
+        return s
+\end{Piton}
+\end{Verbatim}
+
+
+\bigskip
+
+\begin{Piton}[line-numbers]
+def arctan(x,n=10):
+    if \(x < 0\) :
+        return \(-\arctan(-x)\) 
+    elif \(x > 1\) : 
+        return \(\pi/2 - \arctan(1/x)\) 
+    else: 
+        s = \(0\)
+        for \(k\) in range(\(n\)): s += \(\smash{\frac{(-1)^k}{2k+1} x^{2k+1}}\)
+        return s
+\end{Piton}
+
 
 
 \subsection{Comportement dans la classe Beamer}
@@ -1180,7 +1250,7 @@ les listings composés par la commande |\PitonInputFile|, même si c'est sans do
   dans un «commentaire LaTeX», c'est-à-dire en écrivant |#> \pause|. Ainsi, si le code Python est copié, il est
   interprétable par Python.} ;
 \item un argument obligatoire : |\action|, |\alert|, |\invisible|, |\only|, |\uncover| et |\visible| ;
-\item deux arguments obligatoire : |\alt| ; 
+\item deux arguments obligatoires : |\alt| ; 
 \item trois arguments obligatoires : |\temporal|.
 \end{itemize}
 

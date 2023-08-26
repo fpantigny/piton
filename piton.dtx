@@ -43,7 +43,7 @@ version 2005/12/01 or later.
 %
 %<@@=piton>
 %<*STY>
-\def\myfileversion{2.0zz}
+\def\myfileversion{2.1}
 \def\myfiledate{2023/08/31}
 %</STY>
 %<*driver>
@@ -60,7 +60,15 @@ version 2005/12/01 or later.
 \captionsetup{labelfont = bf}
 \usepackage{ragged2e}
 \usepackage[footnotehyper]{piton} 
-\PitonOptions{begin-escape=!,end-escape=!,math-comments}
+\PitonOptions
+  { 
+    splittable = 4 ,
+    math-comments,
+    begin-escape = ! ,
+    end-escape = ! ,
+    begin-escape-math = \( , 
+    end-escape-math = \) 
+  }
 
 \parindent 0pt
 \skip\footins = 2\bigskipamount
@@ -1197,6 +1205,70 @@ version 2005/12/01 or later.
 % it's possible to have a whole Python comment composed in LaTeX by beginning it
 % with |#>|; such comments are merely called ``LaTeX comments'' in this
 % document).
+% 
+%
+% \subsubsection{The mechanism ``escape-math''}
+% 
+% The mechanism ``|escape-math|'' is very similar to the mechanism ``|escape|''
+% since the only difference is that the elements sent to LaTeX are composed in
+% the math mode of LaTeX.
+%
+% This mechanism is activated with the keys \Definition{begin-escape-math} and
+% \Definition{end-escape-math} (which are available only in the preamble of the
+% document). 
+%
+% Despite the technical similarity, the use of the the mechanism
+% ``|escape-math|'' is in fact rather different from that of the mechanism
+% ``|escape|''. Indeed, since the elements are composed in a mathématical mode
+% of LaTeX, they are, in particular, composed within a TeX group and therefore,
+% they can't be used to change the formatting of other lexical units.
+%
+% In the langages where the character \verb|$| does not play a important role,
+% it's possible to activate that mechanism ``|escape-math|'' with the character
+% \verb|$|:
+% \begin{Verbatim}
+% \PitonOptions{~emphase#begin-escape-math=$,end-escape-math=$@}
+% \end{Verbatim}
+% Remark that the character \verb|$| must \emph{not} be protected by a backslash.
+%
+% \bigskip
+% However, it's probably more prudent to use |\(| et |\)|.
+% \begin{Verbatim}
+% \PitonOptions{~emphase#begin-escape-math=\(,end-escape-math=\)@}
+% \end{Verbatim}
+% 
+% \bigskip
+% Here is an example of utilisation.
+%
+% \medskip
+% \begin{Verbatim}
+% \begin{Piton}[line-numbers]
+% def arctan(x,n=10):
+%     if ~emphase#\(x < 0\)@ :
+%         return ~emphase#\(-\arctan(-x)\)@ 
+%     elif ~emphase#\(x > 1\)@ : 
+%         return ~emphase#\(\pi/2 - \arctan(1/x)\)@ 
+%     else: 
+%         s = ~emphase#\(0\)@
+%         for ~emphase#\(k\)@ in range(~emphase#\(n\)@): s += ~emphase#\(\smash{\frac{(-1)^k}{2k+1} x^{2k+1}}\)@
+%         return s
+% \end{Piton}
+% \end{Verbatim}
+%
+%
+% \bigskip
+%
+% \begin{Piton}[line-numbers]
+% def arctan(x,n=10):
+%     if \(x < 0\) :
+%         return \(-\arctan(-x)\) 
+%     elif \(x > 1\) : 
+%         return \(\pi/2 - \arctan(1/x)\) 
+%     else: 
+%         s = \(0\)
+%         for \(k\) in range(\(n\)): s += \(\smash{\frac{(-1)^k}{2k+1} x^{2k+1}}\)
+%         return s
+% \end{Piton}
 % 
 %
 % \subsection{Behaviour in the class Beamer}
@@ -3721,7 +3793,6 @@ version 2005/12/01 or later.
       \int_set_eq:NN \l_@@_last_line_int \c_max_int
       \bool_set_true:N \l_@@_in_PitonInputFile_bool
       \keys_set:nn { PitonOptions } { #2 }
-      \bool_set_false:N \l_@@_in_PitonInputFile_bool % ?
       \bool_if:NT \l_@@_line_numbers_absolute_bool
         { \bool_set_false:N \l_@@_skip_empty_lines_bool }
       \bool_if:nTF
@@ -4163,19 +4234,33 @@ version 2005/12/01 or later.
 %
 %
 %    \begin{macrocode}
-\@@_msg_new:nn { marker~not~found }
+\@@_msg_new:nn { begin~marker~not~found }
   {
     Marker~not~found.\\
-    The~marker~'\l_@@_begin_range_str'~provided~to~the~  
+    The~range~'\l_@@_begin_range_str'~provided~to~the~  
     command~\token_to_str:N \PitonInputFile\ has~not~been~found.~
     The~whole~file~'\l_@@_file_name_str'~will~be~inserted.
   }
 %    \end{macrocode}
 %
+% 
+%    \begin{macrocode}
+\@@_msg_new:nn { end~marker~not~found }
+  {
+    Marker~not~found.\\
+    The~marker~of~end~of~the~range~'\l_@@_end_range_str'~
+    provided~to~the~command~\token_to_str:N \PitonInputFile\ 
+    has~not~been~found.~The~file~'\l_@@_file_name_str'~will~
+    be~inserted~till~the~end.
+  }
+%    \end{macrocode}
+% 
 %
 %    \begin{macrocode}
-\NewDocumentCommand \PitonMarkerNotFound { } 
-  { \@@_error:n { marker~not~found } }
+\NewDocumentCommand \PitonBeginMarkerNotFound { } 
+  { \@@_error:n { begin~marker~not~found } }
+\NewDocumentCommand \PitonEndMarkerNotFound { } 
+  { \@@_error:n { end~marker~not~found } }
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
@@ -6421,19 +6506,24 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
   local t = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( marker_end )
   local first_line = -1
   local count = 0
+  local last_found = false
   for line in io.lines(file_name)
   do if first_line == -1
      then if string.sub(line,1,#s) == s 
           then first_line = count 
           end 
      else if string.sub(line,1,#t) == t
-          then break 
+          then last_found = true 
+               break 
           end 
      end 
      count = count + 1 
   end
   if first_line == -1 
-  then tex.sprint("\\PitonMarkerNotFound")
+  then tex.sprint("\\PitonBeginMarkerNotFound")
+  else if last_found == false
+       then tex.sprint("\\PitonEndMarkerNotFound")
+       end
   end
   tex.sprint( 
       luatexbase.catcodetables.expl , 
