@@ -4543,7 +4543,7 @@ local identifier = letter * alphanum ^ 0
 % On the other hand, the \textsc{lpeg} |Identifier| (with a capital) also returns
 % a \emph{capture}.
 %    \begin{macrocode}
-local Identifier = K ( 'Identifier' , identifier)
+local Identifier = K ( 'Identifier' , identifier )
 %    \end{macrocode}
 %
 % \bigskip
@@ -5860,6 +5860,8 @@ languages['ocaml'] = ocaml
 % Some strings of length 2 are explicit because we want the corresponding
 % ligatures available in some fonts such as \emph{Fira Code} to be active.
 %    \begin{macrocode}
+local identifier = letter * alphanum ^ 0
+
 local Operator = 
   K ( 'Operator' ,
       P "!=" + P "==" + P "<<" + P ">>" + P "<=" + P ">=" 
@@ -6020,29 +6022,7 @@ end
 % \bigskip
 % \paragraph{EOL}
 %
-% \bigskip
-% The following LPEG will detect the Python prompts when the user is typesetting
-% an interactive session of Python (directly or through |{pyconsole}| of
-% \pkg{pyluatex}). We have to detect that prompt twice. The first detection
-% (called \emph{hasty detection}) will be before the |\@@_begin_line:| because
-% you want to trigger a special background color for that row (and, after the
-% |\@@_begin_line:|, it's too late to change de background).
-%    \begin{macrocode}
-local PromptHastyDetection = ( # ( P ">>>" + P "..." ) * Lc ( '\\@@_prompt:' ) ) ^ -1 
-%    \end{macrocode}
-% We remind that the marker |#| of \textsc{lpeg} specifies that the pattern will be
-% detected but won't consume any character.
 %
-% \medskip
-% With the following \textsc{lpeg}, a style will actually be applied to the
-% prompt (for instance, it's possible to decide to discard these prompts).
-%    \begin{macrocode}
-local Prompt = K ( 'Prompt' , ( ( P ">>>" + P "..." ) * P " " ^ -1 ) ^ -1  ) 
-%    \end{macrocode}
-%    
-%
-%
-% \bigskip
 % The following \textsc{lpeg} |EOL| is for the end of lines.
 %    \begin{macrocode}
 local EOL = 
@@ -6171,9 +6151,7 @@ languageC =
   Ct (
        ( ( space - P "\r" ) ^0 * P "\r" ) ^ -1 
        * BeamerBeginEnvironments 
-       * PromptHastyDetection
        * Lc '\\@@_begin_line:'
-       * Prompt 
        * SpaceIndentation ^ 0 
        * MainLoopC
        * -1 
@@ -6185,6 +6163,282 @@ languageC =
 languages['c'] = languageC
 %    \end{macrocode}
 %
+%
+% \bigskip
+% \subsubsection{The LPEG language SQL}
+% 
+% \bigskip
+% In the identifiers, we will be able to catch those contening spaces, that is
+% to say like |"last name"|. 
+%    \begin{macrocode}
+local identifier = 
+  letter * alphanum ^ 0 
+  + P '"' * ( ( alphanum + space - P '"' ) ^ 1 ) * P '"' 
+
+local Operator = 
+  K ( 'Operator' ,
+      P "=" + P "!=" + P "<>" + P ">=" + P ">" + P "<=" + P "<" 
+    )
+%    \end{macrocode}
+% In SQL, the keywords are case-insensitive. That's why we have a little
+% complication. We will catch the keywords with the identifiers and, then,
+% distinguish the keywords with a Lua function.
+%    \begin{macrocode}
+local function Set (list)
+  local set = {}
+  for _, l in ipairs(list) do set[l] = true end
+  return set
+end
+
+local set_keywords = Set
+ { 
+   "ADD" , "AFTER" , "ALTER" , "AND" , "AS" , "ASC" , "BETWEEN" , "BY" , "CHANGE" ,
+   "COLUMN" , "CREATE" , "CROSS JOIN" , "DELETE" , "DESC" , "DISTINCT" , 
+   "DROP" , "FROM" , "GROUP" , "HAVING" , "IN" , "INNER" , "INSERT" , "INTO" , "IS" , 
+   "JOIN" , "LIKE" , "LIMIT" , "MERGE" , "NOT" , "NULL" , "ON" , "OR" , 
+   "ORDER" , "OVER" , "SELECT" , "SET" , "TABLE" , "THEN" , "TRUNCATE" , 
+   "UNION" , "UPDATE" , "VALUES" , "WHEN" , "WHERE" , "WITH"
+ }
+%    \end{macrocode}
+%
+% The \textsc{lpeg} |Identifer| will catch the identifiers (of the tables or the
+% fields) but also the keywords of SQL. 
+%    \begin{macrocode}
+local Identifier = 
+  C ( identifier ) /
+  ( 
+    function (s) 
+      if set_keywords[string.upper(s)] -- the keywords are case-insensitive in SQL
+%    \end{macrocode}
+% Remind that, in Lua, it's possible to return \emph{several} values. 
+%    \begin{macrocode}
+      then return { "{\\PitonStyle{Keyword}{" } ,
+                  { luatexbase.catcodetables.other , s } ,
+                  { "}}" }
+      else return { "{\\PitonStyle{Identifier}{" } ,
+                  { luatexbase.catcodetables.other , s } ,
+                  { "}}" }
+      end 
+    end
+  ) 
+%    \end{macrocode}
+% 
+% \bigskip
+% \paragraph{The strings of SQL}
+%
+%    \begin{macrocode}
+local String = 
+  K ( 'String.Long' , P "'" * ( 1 - P "'" ) ^ 1 * P "'" ) 
+%    \end{macrocode}
+% 
+% \bigskip
+% \paragraph{Beamer}
+%
+% The following \textsc{lpeg} |balanced_braces| will be used for the (mandatory)
+% argument of the commands |\only| and \emph{al.} of Beamer. It's necessary to
+% use a \emph{grammar} because that pattern mainly checks the correct nesting of
+% the delimiters (and it's known in the theory of formal languages that this
+% can't be done with regular expressions \emph{stricto sensu} only).
+%    \begin{macrocode}
+local balanced_braces =
+  P { "E" ,
+       E = 
+           (
+             P "{" * V "E" * P "}" 
+             + 
+             String  
+             + 
+             ( 1 - S "{}" ) 
+           ) ^ 0 
+    }
+%    \end{macrocode}
+%
+%
+% \bigskip
+%    \begin{macrocode}
+if piton_beamer 
+then
+  Beamer =
+      L ( P "\\pause" * ( P "[" * ( 1 - P "]" ) ^ 0 * P "]" ) ^ -1 ) 
+    + 
+      Ct ( Cc "Open" 
+            * C ( 
+                  ( 
+                    P "\\uncover" + P "\\only" + P "\\alert" + P "\\visible"
+                    + P "\\invisible" + P "\\action" 
+                  ) 
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 
+                  * P "{" 
+                ) 
+            * Cc "}" 
+         ) 
+       * ( C ( balanced_braces ) / (function (s) return MainLoopSQL:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" ) 
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoopSQL ) 
+    + OneBeamerEnvironment ( "onlyenv" , MainLoopSQL ) 
+    + OneBeamerEnvironment ( "visibleenv" , MainLoopSQL )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoopSQL ) 
+    + OneBeamerEnvironment ( "alertenv" , MainLoopSQL ) 
+    + OneBeamerEnvironment ( "actionenv" , MainLoopSQL ) 
+    +
+      L ( 
+%    \end{macrocode}
+% For |\\alt|, the specification of the overlays (between angular brackets) is mandatory.
+%    \begin{macrocode}
+          ( P "\\alt" )
+          * P "<" * (1 - P ">") ^ 0 * P ">" 
+          * P "{" 
+        )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}" )
+    +  
+      L ( 
+%    \end{macrocode}
+% For |\\temporal|, the specification of the overlays (between angular brackets) is mandatory.
+%    \begin{macrocode}
+          ( P "\\temporal" )
+          * P "<" * (1 - P ">") ^ 0 * P ">" 
+          * P "{" 
+        )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}" )
+end
+%    \end{macrocode}
+%
+% \bigskip
+% \paragraph{EOL}
+%
+% \bigskip
+% The following \textsc{lpeg} |EOL| is for the end of lines.
+%    \begin{macrocode}
+local EOL = 
+  P "\r" 
+  *
+  (
+    ( space^0 * -1 )
+    + 
+%    \end{macrocode}
+% We recall that each line in the SQL code we have to parse will be sent
+% back to LaTeX between a pair |\@@_begin_line:| --
+% |\@@_end_line:|\footnote{Remember that the \texttt{\textbackslash
+% @@\_end\_line:} must be explicit because it will be used as marker in order to
+% delimit the argument of the command \texttt{\textbackslash @@\_begin\_line:}}.
+%    \begin{macrocode}
+    Ct ( 
+         Cc "EOL"
+         * 
+         Ct (
+              Lc "\\@@_end_line:"
+              * BeamerEndEnvironments 
+              * BeamerBeginEnvironments 
+              * Lc "\\@@_newline: \\@@_begin_line:"
+            )
+       )
+  ) 
+  *
+  SpaceIndentation ^ 0
+%    \end{macrocode}
+%
+% 
+%
+% \bigskip
+% \paragraph{The comments in the SQL listings}
+%
+% We define different \textsc{lpeg} dealing with comments in the SQL listings.
+%    \begin{macrocode}
+local CommentMath = 
+  P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
+
+local Comment = 
+  WithStyle ( 'Comment' ,
+     Q ( P "--" )  -- syntax of SQL92
+     * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 ) 
+  * ( EOL + -1 )
+
+local LongComment = 
+  WithStyle ( 'Comment' , 
+               Q ( P "/*" ) 
+               * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0 
+               * Q ( P "*/" ) 
+            ) -- $
+%    \end{macrocode}
+%
+%
+% \bigskip
+% The following \textsc{lpeg} |CommentLaTeX| is for what is called in that
+% document the ``LaTeX comments''. Since the elements that will be catched must
+% be sent to LaTeX with standard LaTeX catcodes, we put the capture (done by
+% the function~|C|) in a table (by using~|Ct|, which is an alias for |lpeg.Ct|).
+%    \begin{macrocode}
+local CommentLaTeX =
+  P(piton.comment_latex) 
+  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces" 
+  * L ( ( 1 - P "\r" ) ^ 0 ) 
+  * Lc "}}" 
+  * ( EOL + -1 )  
+%    \end{macrocode}
+% 
+%
+%
+% 
+% \bigskip
+% \paragraph{The main LPEG for the language SQL}
+%
+% First, the main loop :
+%    \begin{macrocode}
+local MainSQL = 
+       EOL
+     + Space 
+     + Tab
+     + Escape + EscapeMath 
+     + CommentLaTeX
+     + Beamer
+     + Comment + LongComment
+     + Delim
+     + Operator
+     + String
+     + Punct
+     + Identifier * ( Space + Punct + Delim + EOL + -1 )  
+     + Number
+     + Word
+%    \end{macrocode}
+%
+% Ici, il ne faut pas mettre |local| !
+%    \begin{macrocode}
+MainLoopSQL = 
+  (  ( space^1 * -1 ) 
+     + MainSQL
+  ) ^ 0 
+%    \end{macrocode}
+%
+% \bigskip
+% We recall that each line in the C code to parse will be sent back to
+% LaTeX between a pair |\@@_begin_line:| -- |\@@_end_line:|\footnote{Remember
+% that the \texttt{\textbackslash @@\_end\_line:} must be explicit because it
+% will be used as marker in order to delimit the argument of the command
+% \texttt{\textbackslash @@\_begin\_line:}}.
+%    \begin{macrocode}
+languageSQL =
+  Ct (
+       ( ( space - P "\r" ) ^ 0 * P "\r" ) ^ -1 
+       * BeamerBeginEnvironments 
+       * Lc '\\@@_begin_line:'
+       * SpaceIndentation ^ 0 
+       * MainLoopSQL
+       * -1 
+       * Lc '\\@@_end_line:' 
+     )
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+languages['sql'] = languageSQL
+%    \end{macrocode}
 % 
 % \bigskip
 % \subsubsection{The function Parse}

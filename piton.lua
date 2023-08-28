@@ -60,7 +60,7 @@ local letter = alpha + P "_"
 
 local alphanum = letter + digit
 local identifier = letter * alphanum ^ 0
-local Identifier = K ( 'Identifier' , identifier)
+local Identifier = K ( 'Identifier' , identifier )
 local Number =
   K ( 'Number' ,
       ( digit^1 * P "." * digit^0 + digit^0 * P "." * digit^1 + digit^1 )
@@ -830,6 +830,8 @@ ocaml =
        * Lc ( '\\__piton_end_line:' )
      )
 languages['ocaml'] = ocaml
+local identifier = letter * alphanum ^ 0
+
 local Operator =
   K ( 'Operator' ,
       P "!=" + P "==" + P "<<" + P ">>" + P "<=" + P ">="
@@ -941,8 +943,6 @@ then
       * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}" )
 end
-local PromptHastyDetection = ( # ( P ">>>" + P "..." ) * Lc ( '\\__piton_prompt:' ) ) ^ -1
-local Prompt = K ( 'Prompt' , ( ( P ">>>" + P "..." ) * P " " ^ -1 ) ^ -1  )
 local EOL =
   P "\r"
   *
@@ -1016,15 +1016,180 @@ languageC =
   Ct (
        ( ( space - P "\r" ) ^0 * P "\r" ) ^ -1
        * BeamerBeginEnvironments
-       * PromptHastyDetection
        * Lc '\\__piton_begin_line:'
-       * Prompt
        * SpaceIndentation ^ 0
        * MainLoopC
        * -1
        * Lc '\\__piton_end_line:'
      )
 languages['c'] = languageC
+local identifier =
+  letter * alphanum ^ 0
+  + P '"' * ( ( alphanum + space - P '"' ) ^ 1 ) * P '"'
+
+local Operator =
+  K ( 'Operator' ,
+      P "=" + P "!=" + P "<>" + P ">=" + P ">" + P "<=" + P "<"
+    )
+local function Set (list)
+  local set = {}
+  for _, l in ipairs(list) do set[l] = true end
+  return set
+end
+
+local set_keywords = Set
+ {
+   "ADD" , "AFTER" , "ALTER" , "AND" , "AS" , "ASC" , "BETWEEN" , "BY" , "CHANGE" ,
+   "COLUMN" , "CREATE" , "CROSS JOIN" , "DELETE" , "DESC" , "DISTINCT" ,
+   "DROP" , "FROM" , "GROUP" , "HAVING" , "IN" , "INNER" , "INSERT" , "INTO" , "IS" ,
+   "JOIN" , "LIKE" , "LIMIT" , "MERGE" , "NOT" , "NULL" , "ON" , "OR" ,
+   "ORDER" , "OVER" , "SELECT" , "SET" , "TABLE" , "THEN" , "TRUNCATE" ,
+   "UNION" , "UPDATE" , "VALUES" , "WHEN" , "WHERE" , "WITH"
+ }
+local Identifier =
+  C ( identifier ) /
+  (
+    function (s)
+      if set_keywords[string.upper(s)] -- the keywords are case-insensitive in SQL
+      then return { "{\\PitonStyle{Keyword}{" } ,
+                  { luatexbase.catcodetables.other , s } ,
+                  { "}}" }
+      else return { "{\\PitonStyle{Identifier}{" } ,
+                  { luatexbase.catcodetables.other , s } ,
+                  { "}}" }
+      end
+    end
+  )
+local String =
+  K ( 'String.Long' , P "'" * ( 1 - P "'" ) ^ 1 * P "'" )
+local balanced_braces =
+  P { "E" ,
+       E =
+           (
+             P "{" * V "E" * P "}"
+             +
+             String
+             +
+             ( 1 - S "{}" )
+           ) ^ 0
+    }
+if piton_beamer
+then
+  Beamer =
+      L ( P "\\pause" * ( P "[" * ( 1 - P "]" ) ^ 0 * P "]" ) ^ -1 )
+    +
+      Ct ( Cc "Open"
+            * C (
+                  (
+                    P "\\uncover" + P "\\only" + P "\\alert" + P "\\visible"
+                    + P "\\invisible" + P "\\action"
+                  )
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
+                  * P "{"
+                )
+            * Cc "}"
+         )
+       * ( C ( balanced_braces ) / (function (s) return MainLoopSQL:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" )
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoopSQL )
+    + OneBeamerEnvironment ( "onlyenv" , MainLoopSQL )
+    + OneBeamerEnvironment ( "visibleenv" , MainLoopSQL )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoopSQL )
+    + OneBeamerEnvironment ( "alertenv" , MainLoopSQL )
+    + OneBeamerEnvironment ( "actionenv" , MainLoopSQL )
+    +
+      L (
+          ( P "\\alt" )
+          * P "<" * (1 - P ">") ^ 0 * P ">"
+          * P "{"
+        )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}" )
+    +
+      L (
+          ( P "\\temporal" )
+          * P "<" * (1 - P ">") ^ 0 * P ">"
+          * P "{"
+        )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}" )
+end
+local EOL =
+  P "\r"
+  *
+  (
+    ( space^0 * -1 )
+    +
+    Ct (
+         Cc "EOL"
+         *
+         Ct (
+              Lc "\\__piton_end_line:"
+              * BeamerEndEnvironments
+              * BeamerBeginEnvironments
+              * Lc "\\__piton_newline: \\__piton_begin_line:"
+            )
+       )
+  )
+  *
+  SpaceIndentation ^ 0
+local CommentMath =
+  P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
+
+local Comment =
+  WithStyle ( 'Comment' ,
+     Q ( P "--" )  -- syntax of SQL92
+     * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 )
+  * ( EOL + -1 )
+
+local LongComment =
+  WithStyle ( 'Comment' ,
+               Q ( P "/*" )
+               * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0
+               * Q ( P "*/" )
+            ) -- $
+local CommentLaTeX =
+  P(piton.comment_latex)
+  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces"
+  * L ( ( 1 - P "\r" ) ^ 0 )
+  * Lc "}}"
+  * ( EOL + -1 )
+local MainSQL =
+       EOL
+     + Space
+     + Tab
+     + Escape + EscapeMath
+     + CommentLaTeX
+     + Beamer
+     + Comment + LongComment
+     + Delim
+     + Operator
+     + String
+     + Punct
+     + Identifier * ( Space + Punct + Delim + EOL + -1 )
+     + Number
+     + Word
+MainLoopSQL =
+  (  ( space^1 * -1 )
+     + MainSQL
+  ) ^ 0
+languageSQL =
+  Ct (
+       ( ( space - P "\r" ) ^ 0 * P "\r" ) ^ -1
+       * BeamerBeginEnvironments
+       * Lc '\\__piton_begin_line:'
+       * SpaceIndentation ^ 0
+       * MainLoopSQL
+       * -1
+       * Lc '\\__piton_end_line:'
+     )
+languages['sql'] = languageSQL
 function piton.Parse(language,code)
   local t = languages[language] : match ( code )
   if t == nil
