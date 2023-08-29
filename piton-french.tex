@@ -201,7 +201,11 @@ environnements similaires à |{Piton}| en utilisant la commande |\NewPitonEnviro
 \item La commande \colorbox{gray!20}{\ttfamily \textbackslash PitonInputFile} doit être utilisée pour insérer et
 composer un fichier extérieur.
 
-Il est possible de n'insérer qu'une partie du fichier : cf. partie~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}.
+Il est possible de n'insérer qu'une partie du fichier : cf. partie~\ref{part-of-a-file},
+p.~\pageref{part-of-a-file}.
+
+\colorbox{yellow!50}{\textbf{Nouveau 2.2}}\enskip La clé |path| de la commande |\PitonOptions| permet de spécifier
+un chemin de recherche pour le fichier à inclure.
 \end{itemize}
 
 
@@ -309,6 +313,9 @@ Ces clés peuvent aussi être appliquées à un environnement |{Piton}| individu
 \begin{itemize}
 \item La clé \Definition{language} spécifie le langage informatique considéré (la casse n'est pas prise en compte).
 Trois valeurs sont possibles : |Python|, |OCaml| et |C|. La valeur initiale est |Python|.
+
+\item La clé \Definition{path} indique un chemin où seront cherchés prioritairement les fichiers inclus par
+|\PitonInputFile|. 
 
 \item La clé \Definition{gobble} prend comme valeur un entier positif $n$ : les $n$ premiers caractères de chaque
 ligne sont alors retirés (avant formatage du code) dans les environnements |{Piton}|. Ces $n$ caractères ne sont

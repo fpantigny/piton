@@ -19,7 +19,7 @@
 %% LaTeX version 2005/12/01 or later.
 %% 
 \def\myfileversion{2.1}
-\def\myfiledate{2023/08/26}
+\def\myfiledate{2023/08/29}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -153,6 +153,7 @@
 \lua_now:n { piton = piton~or { } }
 \str_new:N \l__piton_language_str
 \str_set:Nn \l__piton_language_str { python }
+\tl_new:N \l__piton_path_tl
 \bool_new:N \l__piton_in_PitonOptions_bool
 \bool_new:N \l__piton_in_PitonInputFile_bool
 \bool_new:N \g__piton_in_document_bool
@@ -166,7 +167,7 @@
 \tl_new:N \l__piton_prompt_bg_color_tl
 \str_new:N \l__piton_begin_range_str
 \str_new:N \l__piton_end_range_str
-\str_new:N \l__piton_file_name_str
+\tl_new:N \l__piton_file_name_tl
 \int_new:N \g__piton_env_int
 \bool_new:N \l__piton_show_spaces_bool
 \bool_new:N \l__piton_break_lines_in_Piton_bool
@@ -499,6 +500,8 @@
     language         .code:n =
       \str_set:Nx \l__piton_language_str { \str_lowercase:n { #1 } } ,
     language         .value_required:n  = true ,
+    path             .tl_set:N          = \l__piton_path_tl ,
+    path             .value_required:n  = true ,
     gobble           .int_set:N         = \l__piton_gobble_int ,
     gobble           .value_required:n  = true ,
     auto-gobble      .code:n            = \int_set:Nn \l__piton_gobble_int { -1 } ,
@@ -807,6 +810,7 @@
            { \box_wd:N \l_tmpa_box + \l__piton_numbers_sep_dim + 0.1 em }
        }
   }
+\cs_generate_variant:Nn \__piton_compute_left_margin:nn { n V }
 \cs_new_protected:Npn \__piton_compute_width:
   {
     \dim_compare:nNnTF \l__piton_line_width_dim = \c_zero_dim
@@ -902,13 +906,15 @@
   }
 \NewDocumentCommand { \PitonInputFile } { d < > O { } m }
   {
-    \file_if_exist:nTF { #3 }
-      { \__piton_input_file:nnn { #1 } { #2 } { #3 } }
+    \group_begin:
+    \seq_put_right:NV \l_file_search_path_seq \l__piton_path_tl
+    \file_get_full_name:nNTF { #3 } \l__piton_file_name_tl
+      { \__piton_input_file:nn { #1 } { #2 } }
       { \msg_error:nnn { piton } { Unknown~file } { #3 } }
+    \group_end:
   }
-\cs_new_protected:Npn \__piton_input_file:nnn #1 #2 #3
+\cs_new_protected:Npn \__piton_input_file:nn #1 #2
   {
-    \str_set:Nn \l__piton_file_name_str { #3 }
     \tl_if_novalue:nF { #1 }
       {
         \bool_if:NTF \g__piton_beamer_bool
@@ -960,8 +966,8 @@
       \int_compare:nNnT \g__piton_visual_line_int < 0
         { \int_gzero:N \g__piton_visual_line_int  }
       \mode_if_vertical:TF \mode_leave_vertical: \newline
-      \lua_now:e { piton.CountLinesFile('\l__piton_file_name_str') }
-      \__piton_compute_left_margin:nn { CountNonEmptyLinesFile } { #3 }
+      \lua_now:e { piton.CountLinesFile('\l__piton_file_name_tl') }
+      \__piton_compute_left_margin:nV { CountNonEmptyLinesFile } \l__piton_file_name_tl
       \__piton_compute_width:
       \ttfamily
       \bool_if:NT \g__piton_footnote_bool { \begin { savenotes } }
@@ -970,7 +976,7 @@
         {
           piton.ParseFile(
            '\l__piton_language_str' ,
-           '\l__piton_file_name_str' ,
+           '\l__piton_file_name_tl' ,
            \int_use:N \l__piton_first_line_int ,
            \int_use:N \l__piton_last_line_int )
         }
@@ -991,7 +997,7 @@
     \lua_now:e
       {
         piton.ComputeRange
-          ( '\l_tmpa_str' , '\l_tmpb_str' , '\l__piton_file_name_str' )
+          ( '\l_tmpa_str' , '\l_tmpb_str' , '\l__piton_file_name_tl' )
       }
   }
 \NewDocumentCommand { \PitonStyle } { m } { \use:c { pitonStyle #1 } }
@@ -1179,7 +1185,7 @@
     Incompatible~keys.\\
     You~can't~specify~the~range~of~lines~to~include~by~using~both~
     markers~and~explicit~number~of~lines.\\
-    Your~whole~file~'\l__piton_file_name_str'~will~be~included.
+    Your~whole~file~'\l__piton_file_name_tl'~will~be~included.
   }
 \__piton_msg_new:nn { syntax~error }
   {
@@ -1193,14 +1199,14 @@
     Marker~not~found.\\
     The~range~'\l__piton_begin_range_str'~provided~to~the~
     command~\token_to_str:N \PitonInputFile\ has~not~been~found.~
-    The~whole~file~'\l__piton_file_name_str'~will~be~inserted.
+    The~whole~file~'\l__piton_file_name_tl'~will~be~inserted.
   }
 \__piton_msg_new:nn { end~marker~not~found }
   {
     Marker~not~found.\\
     The~marker~of~end~of~the~range~'\l__piton_end_range_str'~
     provided~to~the~command~\token_to_str:N \PitonInputFile\
-    has~not~been~found.~The~file~'\l__piton_file_name_str'~will~
+    has~not~been~found.~The~file~'\l__piton_file_name_tl'~will~
     be~inserted~till~the~end.
   }
 \NewDocumentCommand \PitonBeginMarkerNotFound { }
@@ -1239,6 +1245,7 @@
     left-margin,~
     line-numbers/,~
     marker/,~
+    path,~
     prompt-background-color,~
     resume,~
     show-spaces,~

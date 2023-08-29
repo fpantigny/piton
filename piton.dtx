@@ -44,11 +44,11 @@ version 2005/12/01 or later.
 %<@@=piton>
 %<*STY>
 \def\myfileversion{2.1}
-\def\myfiledate{2023/08/26}
+\def\myfiledate{2023/08/29}
 %</STY>
 %<*driver>
 \def\myfileversion{2.1}
-\def\myfiledate{2023/08/26}
+\def\myfiledate{2023/08/29}
 \documentclass{l3doc}
 \usepackage{geometry}
 \geometry{left=2.8cm,right=2.8cm,top=2.5cm,bottom=2.5cm,papersize={21cm,29.7cm}}
@@ -210,6 +210,10 @@ version 2005/12/01 or later.
 %
 % It's possible to insert only a part of the file: cf.
 % part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}. 
+%
+% \colorbox{yellow!50}{\textbf{New 2.2}}\enskip The key |path| of the command
+% |\PitonOptions| specifies a path where the files included by |\PitonInputFile|
+% will be searched.
 % \end{itemize}
 %
 % \subsection{The syntax of the command \textbackslash piton}
@@ -319,6 +323,9 @@ version 2005/12/01 or later.
 % \item The key \Definition{language} speficies which computer language is
 % considered (that key is case-insensitive). Three values are allowed :
 % |Python|, |OCaml| and |C|. the initial value is |Python|.
+% 
+% \item The key |path| specifies a path where the files included by
+% |\PitonInputFile| will be searched.
 % 
 % \item The key \Definition{gobble} takes in as value a
 % positive integer~$n$: the first $n$ characters are discarded (before the
@@ -1597,7 +1604,7 @@ version 2005/12/01 or later.
 %     if x < 0:
 %         return -arctan(-x) #> recursive call
 %     elif x > 1: 
-%         return pi/2 - arctan(1/x) #> anoother recursive call 
+%         return pi/2 - arctan(1/x) #> another recursive call 
 %     else: 
 %         s = 0
 %         for k in range(n):
@@ -2434,6 +2441,12 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 % 
 % \medskip
+%    \begin{macrocode}
+\tl_new:N \l_@@_path_tl
+%    \end{macrocode}
+% 
+% 
+% \medskip
 % In order to have a better control over the keys.
 %    \begin{macrocode}
 \bool_new:N \l_@@_in_PitonOptions_bool 
@@ -2514,7 +2527,7 @@ version 2005/12/01 or later.
 % \medskip
 % The argument of |\PitonInputFile|.
 %    \begin{macrocode}
-\str_new:N \l_@@_file_name_str 
+\tl_new:N \l_@@_file_name_tl 
 %    \end{macrocode}
 %
 % \medskip
@@ -3156,6 +3169,8 @@ version 2005/12/01 or later.
     language         .code:n = 
       \str_set:Nx \l_@@_language_str { \str_lowercase:n { #1 } } , 
     language         .value_required:n  = true ,
+    path             .tl_set:N          = \l_@@_path_tl , 
+    path             .value_required:n  = true , 
     gobble           .int_set:N         = \l_@@_gobble_int , 
     gobble           .value_required:n  = true ,
     auto-gobble      .code:n            = \int_set:Nn \l_@@_gobble_int { -1 } , 
@@ -3569,6 +3584,7 @@ version 2005/12/01 or later.
            { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
        }
   }
+\cs_generate_variant:Nn \@@_compute_left_margin:nn { n V }
 %    \end{macrocode}
 % 
 %
@@ -3764,16 +3780,18 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
 \NewDocumentCommand { \PitonInputFile } { d < > O { } m }
   {
-    \file_if_exist:nTF { #3 }
-      { \@@_input_file:nnn { #1 } { #2 } { #3 } }
+    \group_begin:
+    \seq_put_right:NV \l_file_search_path_seq \l_@@_path_tl
+    \file_get_full_name:nNTF { #3 } \l_@@_file_name_tl 
+      { \@@_input_file:nn { #1 } { #2 } }
       { \msg_error:nnn { piton } { Unknown~file } { #3 } } 
+    \group_end:
   }
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_input_file:nnn #1 #2 #3
+\cs_new_protected:Npn \@@_input_file:nn #1 #2 
   {
-    \str_set:Nn \l_@@_file_name_str { #3 }
 %    \end{macrocode}
 % We recall that, if we are in Beamer, the command |\PitonInputFile| is
 % ``overlay-aware'' and that's why there is an optional argument between angular
@@ -3839,12 +3857,12 @@ version 2005/12/01 or later.
 % stored by Lua in |\l_@@_nb_lines_int|. That information will be used to allow
 % or disallow page breaks.
 %    \begin{macrocode}
-      \lua_now:e { piton.CountLinesFile('\l_@@_file_name_str') } 
+      \lua_now:e { piton.CountLinesFile('\l_@@_file_name_tl') } 
 %    \end{macrocode}
 % The first argument of the following function is the name of the Lua function
 % that will be applied to the second argument in order to count the number of lines.
 %    \begin{macrocode}
-      \@@_compute_left_margin:nn { CountNonEmptyLinesFile } { #3 }
+      \@@_compute_left_margin:nV { CountNonEmptyLinesFile } \l_@@_file_name_tl
       \@@_compute_width:
       \ttfamily
       \bool_if:NT \g_@@_footnote_bool { \begin { savenotes } } 
@@ -3853,7 +3871,7 @@ version 2005/12/01 or later.
         { 
           piton.ParseFile(
            '\l_@@_language_str' ,
-           '\l_@@_file_name_str' ,
+           '\l_@@_file_name_tl' ,
            \int_use:N \l_@@_first_line_int , 
            \int_use:N \l_@@_last_line_int ) 
         } 
@@ -3895,7 +3913,7 @@ version 2005/12/01 or later.
     \lua_now:e
       { 
         piton.ComputeRange
-          ( '\l_tmpa_str' , '\l_tmpb_str' , '\l_@@_file_name_str' ) 
+          ( '\l_tmpa_str' , '\l_tmpb_str' , '\l_@@_file_name_tl' ) 
       } 
   }
 %    \end{macrocode}
@@ -4213,7 +4231,7 @@ version 2005/12/01 or later.
     Incompatible~keys.\\
     You~can't~specify~the~range~of~lines~to~include~by~using~both~
     markers~and~explicit~number~of~lines.\\
-    Your~whole~file~'\l_@@_file_name_str'~will~be~included.
+    Your~whole~file~'\l_@@_file_name_tl'~will~be~included.
   }
 %    \end{macrocode}
 % 
@@ -4237,7 +4255,7 @@ version 2005/12/01 or later.
     Marker~not~found.\\
     The~range~'\l_@@_begin_range_str'~provided~to~the~  
     command~\token_to_str:N \PitonInputFile\ has~not~been~found.~
-    The~whole~file~'\l_@@_file_name_str'~will~be~inserted.
+    The~whole~file~'\l_@@_file_name_tl'~will~be~inserted.
   }
 %    \end{macrocode}
 %
@@ -4248,7 +4266,7 @@ version 2005/12/01 or later.
     Marker~not~found.\\
     The~marker~of~end~of~the~range~'\l_@@_end_range_str'~
     provided~to~the~command~\token_to_str:N \PitonInputFile\ 
-    has~not~been~found.~The~file~'\l_@@_file_name_str'~will~
+    has~not~been~found.~The~file~'\l_@@_file_name_tl'~will~
     be~inserted~till~the~end.
   }
 %    \end{macrocode}
@@ -4297,6 +4315,7 @@ version 2005/12/01 or later.
     left-margin,~
     line-numbers/,~
     marker/,~
+    path,~
     prompt-background-color,~
     resume,~
     show-spaces,~
@@ -5308,7 +5327,7 @@ local MainPython =
      + Word
 %    \end{macrocode}
 %
-% Ici, il ne faut pas mettre |local| !
+% Here, we must not put |local|!
 %    \begin{macrocode}
 MainLoopPython = 
   (  ( space^1 * -1 ) 
@@ -6132,7 +6151,7 @@ local MainC =
      + Word
 %    \end{macrocode}
 %
-% Ici, il ne faut pas mettre |local| !
+% Here, we must not put |local|!
 %    \begin{macrocode}
 MainLoopC = 
   (  ( space^1 * -1 ) 
@@ -6409,7 +6428,7 @@ local MainSQL =
      + Word
 %    \end{macrocode}
 %
-% Ici, il ne faut pas mettre |local| !
+% Here, we must not put |local|!
 %    \begin{macrocode}
 MainLoopSQL = 
   (  ( space^1 * -1 ) 
@@ -6804,6 +6823,10 @@ end
 % repository:
 %
 % \verb|https://github.com/fpantigny/piton|
+%
+% \subsection*{Changes between versions 2.1 and 2.2}
+%
+% New key |path| for |\PitonOptions|.
 %
 % \subsection*{Changes between versions 2.0 and 2.1}
 %
