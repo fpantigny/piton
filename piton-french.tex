@@ -205,7 +205,8 @@ Il est possible de n'insérer qu'une partie du fichier : cf. partie~\ref{part-of
 p.~\pageref{part-of-a-file}.
 
 \colorbox{yellow!50}{\textbf{Nouveau 2.2}}\enskip La clé |path| de la commande |\PitonOptions| permet de spécifier
-un chemin de recherche pour le fichier à inclure.
+un chemin de recherche pour le fichier à inclure. En fait, on peut spécifier plusieurs chemins, séparés par des
+virgules. 
 \end{itemize}
 
 
@@ -315,7 +316,7 @@ Ces clés peuvent aussi être appliquées à un environnement |{Piton}| individu
 Trois valeurs sont possibles : |Python|, |OCaml| et |C|. La valeur initiale est |Python|.
 
 \item La clé \Definition{path} indique un chemin où seront cherchés prioritairement les fichiers inclus par
-|\PitonInputFile|. 
+|\PitonInputFile|. En fait, on peut spécifier plusieurs chemins, séparés par des virgules.
 
 \item La clé \Definition{gobble} prend comme valeur un entier positif $n$ : les $n$ premiers caractères de chaque
 ligne sont alors retirés (avant formatage du code) dans les environnements |{Piton}|. Ces $n$ caractères ne sont

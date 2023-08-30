@@ -213,7 +213,8 @@ version 2005/12/01 or later.
 %
 % \colorbox{yellow!50}{\textbf{New 2.2}}\enskip The key |path| of the command
 % |\PitonOptions| specifies a path where the files included by |\PitonInputFile|
-% will be searched.
+% will be searched. In fact, it's possible to specify a comma-separated list of
+% paths. 
 % \end{itemize}
 %
 % \subsection{The syntax of the command \textbackslash piton}
@@ -325,7 +326,8 @@ version 2005/12/01 or later.
 % |Python|, |OCaml| and |C|. the initial value is |Python|.
 % 
 % \item The key |path| specifies a path where the files included by
-% |\PitonInputFile| will be searched.
+% |\PitonInputFile| will be searched. In fact, it's possible to specify a
+% comma-separated list of paths.
 % 
 % \item The key \Definition{gobble} takes in as value a
 % positive integer~$n$: the first $n$ characters are discarded (before the
@@ -2442,7 +2444,7 @@ version 2005/12/01 or later.
 % 
 % \medskip
 %    \begin{macrocode}
-\tl_new:N \l_@@_path_tl
+\tl_new:N \l_@@_path_seq
 %    \end{macrocode}
 % 
 % 
@@ -3169,7 +3171,8 @@ version 2005/12/01 or later.
     language         .code:n = 
       \str_set:Nx \l_@@_language_str { \str_lowercase:n { #1 } } , 
     language         .value_required:n  = true ,
-    path             .tl_set:N          = \l_@@_path_tl , 
+    path             .code:n = 
+      \seq_set_from_clist:Nn \l_@@_path_seq { #1 } , 
     path             .value_required:n  = true , 
     gobble           .int_set:N         = \l_@@_gobble_int , 
     gobble           .value_required:n  = true ,
@@ -3781,7 +3784,7 @@ version 2005/12/01 or later.
 \NewDocumentCommand { \PitonInputFile } { d < > O { } m }
   {
     \group_begin:
-    \seq_put_right:NV \l_file_search_path_seq \l_@@_path_tl
+    \seq_set_eq:NN \l_file_search_path_seq \l_@@_path_seq
     \file_get_full_name:nNTF { #3 } \l_@@_file_name_tl 
       { \@@_input_file:nn { #1 } { #2 } }
       { \msg_error:nnn { piton } { Unknown~file } { #3 } } 
