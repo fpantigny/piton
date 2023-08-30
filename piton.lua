@@ -1024,12 +1024,12 @@ languageC =
      )
 languages['c'] = languageC
 local identifier =
-  letter * alphanum ^ 0
+  letter * ( alphanum + P "-" ) ^ 0
   + P '"' * ( ( alphanum + space - P '"' ) ^ 1 ) * P '"'
 
 local Operator =
   K ( 'Operator' ,
-      P "=" + P "!=" + P "<>" + P ">=" + P ">" + P "<=" + P "<"
+      P "=" + P "!=" + P "<>" + P ">=" + P ">" + P "<=" + P "<"  + S "*+/"
     )
 local function Set (list)
   local set = {}
@@ -1042,22 +1042,34 @@ local set_keywords = Set
    "ADD" , "AFTER" , "ALTER" , "AND" , "AS" , "ASC" , "BETWEEN" , "BY" , "CHANGE" ,
    "COLUMN" , "CREATE" , "CROSS JOIN" , "DELETE" , "DESC" , "DISTINCT" ,
    "DROP" , "FROM" , "GROUP" , "HAVING" , "IN" , "INNER" , "INSERT" , "INTO" , "IS" ,
-   "JOIN" , "LIKE" , "LIMIT" , "MERGE" , "NOT" , "NULL" , "ON" , "OR" ,
-   "ORDER" , "OVER" , "SELECT" , "SET" , "TABLE" , "THEN" , "TRUNCATE" ,
+   "JOIN" , "LEFT" , "LIKE" , "LIMIT" , "MERGE" , "NOT" , "NULL" , "ON" , "OR" ,
+   "ORDER" , "OVER" , "RIGHT" , "SELECT" , "SET" , "TABLE" , "THEN" , "TRUNCATE" ,
    "UNION" , "UPDATE" , "VALUES" , "WHEN" , "WHERE" , "WITH"
+ }
+
+local set_builtins = Set
+ {
+   "AVG" , "COUNT" , "CHAR_LENGHT" , "CONCAT" , "CURDATE" , "CURRENT_DATE" ,
+   "DATE_FORMAT" , "DAY" , "LOWER" , "LTRIM" , "MAX" , "MIN" , "MONTH" , "NOW" ,
+   "RANK" , "ROUND" , "RTRIM" , "SUBSTRING" , "SUM" , "UPPER" , "YEAR"
  }
 local Identifier =
   C ( identifier ) /
   (
     function (s)
-      if set_keywords[string.upper(s)] -- the keywords are case-insensitive in SQL
-      then return { "{\\PitonStyle{Keyword}{" } ,
-                  { luatexbase.catcodetables.other , s } ,
-                  { "}}" }
-      else return { "{\\PitonStyle{Identifier}{" } ,
-                  { luatexbase.catcodetables.other , s } ,
-                  { "}}" }
-      end
+        if set_keywords[string.upper(s)] -- the keywords are case-insensitive in SQL
+        then return { "{\\PitonStyle{Keyword}{" } ,
+                    { luatexbase.catcodetables.other , s } ,
+                    { "}}" }
+        else if set_builtins[string.upper(s)]
+             then return { "{\\PitonStyle{Name.Builtin}{" } ,
+                         { luatexbase.catcodetables.other , s } ,
+                         { "}}" }
+             else return { "{\\PitonStyle{Name.Field}{" } ,
+                         { luatexbase.catcodetables.other , s } ,
+                         { "}}" }
+             end
+        end
     end
   )
 local String =
@@ -1160,6 +1172,65 @@ local CommentLaTeX =
   * L ( ( 1 - P "\r" ) ^ 0 )
   * Lc "}}"
   * ( EOL + -1 )
+local function LuaKeyword ( name )
+return
+   Lc ( "{\\PitonStyle{Keyword}{" )
+   * Q ( Cmt (
+               C ( identifier ) ,
+               function(s,i,a) return string.upper(a) == name end
+             )
+       )
+   * Lc ( "}}" )
+end
+local OneField =
+  (
+    Q ( P "(" * ( 1 - P ")" ) ^ 0 * P ")" )
+    +
+    K ( 'Name.Table' , identifier )
+      * Q ( P "." )
+      * K ( 'Name.Field' , identifier )
+    +
+    K ( 'Name.Field' , identifier )
+  )
+  * (
+      Space * LuaKeyword ( "AS" ) * Space * K ( 'Name.Field' , identifier )
+    ) ^ -1
+  * ( Space * ( LuaKeyword ( "ASC" ) + LuaKeyword ( "DESC" ) ) ) ^ -1
+
+local OneTable =
+     K ( 'Name.Table' , identifier )
+   * (
+       Space
+       * LuaKeyword ( "AS" )
+       * Space
+       * K ( 'Name.Table' , identifier )
+     ) ^ -1
+
+local From =
+     LuaKeyword ( "FROM" )
+   * Space
+   * OneTable * ( SkipSpace * Q ( P "," ) * SkipSpace * OneTable ) ^ 0
+
+local Join =
+     LuaKeyword ( "JOIN" )
+   * Space
+   * OneTable
+
+local Like =
+  LuaKeyword ( "LIKE" )
+   * Space
+   * K ( 'String.Long' ,
+         P "'" * ( 1 - P "'" ) ^ 1 * P "'"
+         + P '"' * ( 1 - P '"' ) ^ 1 * P '"' )
+
+local Into = LuaKeyword ( "INTO" ) * Space * OneTable
+
+local Update = LuaKeyword ( "UPDATE" ) * Space * OneTable
+
+local TableField =
+     K ( 'Name.Table' , identifier )
+     * Q ( P "." )
+     * K ( 'Name.Field' , identifier )
 local MainSQL =
        EOL
      + Space
@@ -1172,7 +1243,8 @@ local MainSQL =
      + Operator
      + String
      + Punct
-     + Identifier * ( Space + Punct + Delim + EOL + -1 )
+     + From + Join + Like + Into + Update
+     + ( TableField + Identifier ) * ( Space + Operator + Punct + Delim + EOL + -1 )
      + Number
      + Word
 MainLoopSQL =
