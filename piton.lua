@@ -1039,8 +1039,8 @@ end
 
 local set_keywords = Set
  {
-   "ADD" , "AFTER" , "ALTER" , "AND" , "AS" , "ASC" , "BETWEEN" , "BY" , "CHANGE" ,
-   "COLUMN" , "CREATE" , "CROSS JOIN" , "DELETE" , "DESC" , "DISTINCT" ,
+   "ADD" , "AFTER" , "ALL" , "ALTER" , "AND" , "AS" , "ASC" , "BETWEEN" , "BY" ,
+   "CHANGE" , "COLUMN" , "CREATE" , "CROSS JOIN" , "DELETE" , "DESC" , "DISTINCT" ,
    "DROP" , "FROM" , "GROUP" , "HAVING" , "IN" , "INNER" , "INSERT" , "INTO" , "IS" ,
    "JOIN" , "LEFT" , "LIKE" , "LIMIT" , "MERGE" , "NOT" , "NULL" , "ON" , "OR" ,
    "ORDER" , "OVER" , "RIGHT" , "SELECT" , "SET" , "TABLE" , "THEN" , "TRUNCATE" ,
@@ -1182,6 +1182,11 @@ return
        )
    * Lc ( "}}" )
 end
+local TableField =
+     K ( 'Name.Table' , identifier )
+     * Q ( P "." )
+     * K ( 'Name.Field' , identifier )
+
 local OneField =
   (
     Q ( P "(" * ( 1 - P ")" ) ^ 0 * P ")" )
@@ -1206,31 +1211,12 @@ local OneTable =
        * K ( 'Name.Table' , identifier )
      ) ^ -1
 
-local From =
+local WeCatchTableNames =
      LuaKeyword ( "FROM" )
-   * Space
+   * ( Space + EOL )
    * OneTable * ( SkipSpace * Q ( P "," ) * SkipSpace * OneTable ) ^ 0
-
-local Join =
-     LuaKeyword ( "JOIN" )
-   * Space
-   * OneTable
-
-local Like =
-  LuaKeyword ( "LIKE" )
-   * Space
-   * K ( 'String.Long' ,
-         P "'" * ( 1 - P "'" ) ^ 1 * P "'"
-         + P '"' * ( 1 - P '"' ) ^ 1 * P '"' )
-
-local Into = LuaKeyword ( "INTO" ) * Space * OneTable
-
-local Update = LuaKeyword ( "UPDATE" ) * Space * OneTable
-
-local TableField =
-     K ( 'Name.Table' , identifier )
-     * Q ( P "." )
-     * K ( 'Name.Field' , identifier )
+  + ( LuaKeyword ( "JOIN" ) + LuaKeyword ( "INTO" ) + LuaKeyword ( "UPDATE" ) )
+    * ( Space + EOL ) * OneTable
 local MainSQL =
        EOL
      + Space
@@ -1243,7 +1229,7 @@ local MainSQL =
      + Operator
      + String
      + Punct
-     + From + Join + Like + Into + Update
+     + WeCatchTableNames
      + ( TableField + Identifier ) * ( Space + Operator + Punct + Delim + EOL + -1 )
      + Number
      + Word

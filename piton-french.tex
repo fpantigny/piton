@@ -91,8 +91,8 @@ version~\myfileversion\space de \pkg{piton}, à la date du~\myfiledate.}}
 \maketitle
 
 \begin{abstract}
-L'extension \pkg{piton} propose des outils pour composer des codes informatiques en Python, OCaml et C avec une
-coloration syntaxique en utilisant la bibliothèque Lua LPEG. L'extension \pkg{piton} nécessite l'emploi de
+L'extension \pkg{piton} propose des outils pour composer des codes informatiques en Python, OCaml, C et SQL avec
+une coloration syntaxique en utilisant la bibliothèque Lua LPEG. L'extension \pkg{piton} nécessite l'emploi de
 LuaLaTeX.
 \end{abstract}
 
@@ -102,7 +102,7 @@ LuaLaTeX.
 
 L'extension \pkg{piton} utilise la librairie Lua nommée LPEG\footnote{LPEG est une librairie de capture de motifs
   (\emph{pattern-matching} en anglais) pour Lua, écrite en C, fondée sur les PEG (\emph{parsing expression
-    grammars}): \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} pour «parser» le code Python, OCaml ou C et le
+    grammars}): \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} pour «parser» le code Python, OCaml, C ou SQL et le
 composer avec un coloriage syntaxique. Comme elle utilise du code Lua, elle fonctionne uniquement avec |lualatex|
 (et ne va pas fonctionner avec les autres moteurs de compilation LaTeX, que ce soit |latex|, |pdflatex| ou
 |xelatex|). Elle n'utilise aucun programme extérieur et la compilation ne requiert donc pas |--shell-escape|. La
@@ -148,7 +148,7 @@ d'installer \pkg{piton} avec une distribution TeX comme MiKTeX, TeX~Live ou MacT
 
 \subsection{Choix du langage}
 
-L'extension \pkg{piton} prend en charge trois langages informatiques : Python, OCaml et C, ou plutôt \CC.
+L'extension \pkg{piton} prend en charge quatre langages informatiques : Python, OCaml, SQL et C, ou plutôt \CC.
 
 \smallskip
 Par défaut, le language est Python.
@@ -313,7 +313,7 @@ Ces clés peuvent aussi être appliquées à un environnement |{Piton}| individu
 
 \begin{itemize}
 \item La clé \Definition{language} spécifie le langage informatique considéré (la casse n'est pas prise en compte).
-Trois valeurs sont possibles : |Python|, |OCaml| et |C|. La valeur initiale est |Python|.
+Quatre valeurs sont possibles : |Python|, |OCaml|, |C| et |SQL|. La valeur initiale est |Python|.
 
 \item La clé \Definition{path} indique un chemin où seront cherchés prioritairement les fichiers inclus par
 |\PitonInputFile|. En fait, on peut spécifier plusieurs chemins, séparés par des virgules.
@@ -858,7 +858,8 @@ structuré correctement!):
 \subsection{Mise en évidence d'identificateurs}
 
 On peut demander le changement de formatage de certains identificateurs avec la clé |identifiers| de
-|\PitonOptions|.  
+|\PitonOptions|.\footnote{Cette fonctionnalité n'est pas disponible avec le langage SQL car, en SQL, il n'y a pas
+  d'identificateurs (il n'y a que des noms de tables et des noms de champs).}
 
 \smallskip
 Cette clé prend en argument une valeur au format suivant : 
@@ -2031,6 +2032,10 @@ On peut aussi choisir le langage |OCaml| pour un environnement |{Piton}| individ
 \end{Verbatim}
 
 
+\bigskip
+L'option est aussi disponible pour |\PitonInputFile| : |\PitonInputFile[language=OCaml]{...}|
+
+
 \vspace{1cm}
 
 
@@ -2088,6 +2093,8 @@ On peut aussi choisir le langage |C| pour un environnement |{Piton}| individuel 
 \end{Piton}
 \end{Verbatim}
 
+\bigskip
+L'option est aussi disponible pour |\PitonInputFile| : |\PitonInputFile[language=C]{...}|
 
 \vspace{1cm}
 
@@ -2124,6 +2131,59 @@ Keyword & les mots-clés suivants :
 \bottomrule
 \end{tabularx}
 \end{center}
+
+
+\newpage
+
+\subsection{Le langage SQL}
+
+On peut basculer vers le langage |SQL| avec |\PitonOptions{language = SQL}|
+
+\bigskip
+On peut aussi choisir le langage |SQL| pour un environnement |{Piton}| individuel :
+%
+\begin{Verbatim}
+\begin{Piton}~emphase#[language=SQL]@
+...
+\end{Piton}
+\end{Verbatim}
+
+\bigskip
+L'option est aussi disponible pour |\PitonInputFile| : |\PitonInputFile[language=SQL]{...}|
+
+
+\vspace{1cm}
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\normalfont Style  & Usage \\
+\midrule
+Number & les nombres \\
+String.Long & les chaînes de caractères (entre \texttt{'} et non entre \texttt{"} car les éléments entre \texttt{"}
+              sont des noms de champs et formatés avec |Name.Field|) \\
+Operator & les opérateurs suivants : 
+\texttt{= != <> >= > < <= * + / } \\
+Name.Table & les noms des tables \\
+Name.Field & les noms des champs des tables \\
+Name.Builtin & les fonctions prédéfinies suivantes (leur nom n'est \emph{pas} sensible à la casse) : 
+   |avg|, |count|, |char_lenght|, |concat|, |curdate|, |current_date|,
+   |date_format|, |day|, |lower|, |ltrim|, |max|, |min|, |month|, |now|,
+   |rank|, |round|, |rtrim|, |substring|, |sum|, |upper| et |year|. \\
+Comment & les commentaires (débutant par |--| ou bien entre |/*| et |*/|) \\
+Comment.LaTeX & les commentaires commençant par \texttt{-->} qui sont composés par \pkg{piton} comme du code LaTeX (et
+                appelés simplement «commentaires LaTeX» dans ce document) \\
+Keyword & les mots-clés suivants (leur nom n'est \emph{pas} sensible à la casse) :
+   |add|, |after|, |all|, |alter|, |and|, |as|, |asc|, |between|, |by|,
+   |change|, |column|, |create|, |cross join|, |delete|, |desc|, |distinct|, 
+   |drop|, |from|, |group|, |having|, |in|, |inner|, |insert|, |into|, |is|, 
+   |join|, |left|, |like|, |limit|, |merge|, |not|, |null|, |on|, |or|, 
+   |order|, |over|, |right|, |select|, |set|, |table|, |then|, |truncate|, 
+   |union|, |update|, |values|, |when|, |where| et |with|. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
 
 \newpage
 

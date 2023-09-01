@@ -44,11 +44,11 @@ version 2005/12/01 or later.
 %<@@=piton>
 %<*STY>
 \def\myfileversion{2.1}
-\def\myfiledate{2023/08/29}
+\def\myfiledate{2023/09/01}
 %</STY>
 %<*driver>
 \def\myfileversion{2.1}
-\def\myfiledate{2023/08/29}
+\def\myfiledate{2023/09/01}
 \documentclass{l3doc}
 \usepackage{geometry}
 \geometry{left=2.8cm,right=2.8cm,top=2.5cm,bottom=2.5cm,papersize={21cm,29.7cm}}
@@ -96,7 +96,7 @@ version 2005/12/01 or later.
 %
 % \begin{abstract}
 % The package \pkg{piton} provides tools to typeset computer listings in Python,
-% OCaml and C with syntactic highlighting by using the Lua library LPEG. It
+% OCaml, C and SQL with syntactic highlighting by using the Lua library LPEG. It
 % requires LuaLaTeX.
 % \end{abstract}
 % 
@@ -109,7 +109,7 @@ version 2005/12/01 or later.
 % pattern-matching library for Lua, written in C, based on \emph{parsing
 % expression grammars}:
 % \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} 
-% for parsing Python OCaml or C listings and typesets them with syntactic
+% for parsing Python, OCaml, C or SQL listings and typesets them with syntactic
 % highlighting. Since it uses Lua code, it works with |lualatex| only (and won't
 % work with the other engines: |latex|, |pdflatex| and |xelatex|). It does not
 % use external program and the compilation does not require |--shell-escape|.
@@ -170,8 +170,8 @@ version 2005/12/01 or later.
 %
 % \subsection{Choice of the computer language}
 %
-% In current version, the package \pkg{piton} supports three computer languages:
-% Python, OCaml and C (in fact \CC).
+% In current version, the package \pkg{piton} supports four computer languages:
+% Python, OCaml, SQL and C (in fact \CC).
 %
 % \smallskip
 % By default, the language used is Python.
@@ -322,8 +322,8 @@ version 2005/12/01 or later.
 %
 % \begin{itemize}
 % \item The key \Definition{language} speficies which computer language is
-% considered (that key is case-insensitive). Three values are allowed :
-% |Python|, |OCaml| and |C|. the initial value is |Python|.
+% considered (that key is case-insensitive). Four values are allowed :
+% |Python|, |OCaml|, |C| and |SQL|. The initial value is |Python|.
 % 
 % \item The key |path| specifies a path where the files included by
 % |\PitonInputFile| will be searched. In fact, it's possible to specify a
@@ -916,7 +916,9 @@ version 2005/12/01 or later.
 % \subsection{Highlighting some identifiers}
 %
 % It's possible to require a changement of formating for some identifiers with
-% the key |identifiers| of |\PitonOptions|.
+% the key |identifiers| of |\PitonOptions|.\footnote{This feature is not
+% available for the language SQL because, in SQL, there is no identifiers :
+% there are only names of fields and names of tables.}
 %
 % \smallskip
 % That key takes in as argument a value of the following format:
@@ -1956,6 +1958,8 @@ version 2005/12/01 or later.
 % \end{Piton}
 % \end{Verbatim}
 %
+% \bigskip
+% The option exists also for |\PitonInputFile| : |\PitonInputFile[language=OCaml]{...}|
 %
 % \vspace{1cm}
 %
@@ -2014,6 +2018,8 @@ version 2005/12/01 or later.
 % \end{Piton}
 % \end{Verbatim}
 %
+% \bigskip
+% The option exists also for |\PitonInputFile| : |\PitonInputFile[language=C]{...}|
 %
 % \vspace{1cm}
 %
@@ -2050,6 +2056,57 @@ version 2005/12/01 or later.
 % |return|, |static|, |static_assert|, |struct|, |switch|, |thread_local|, |throw|, 
 % |typedef|, |union|, |using|, |virtual|, |volatile| and |while|
 % \\
+% \bottomrule
+% \end{tabularx}
+% \end{center}
+%
+% \newpage
+%
+% \subsection{The language SQL}
+%
+% 
+% It's possible to switch to the language |SQL| with |\PitonOptions{language = SQL}|.
+%
+% \bigskip
+% It's also possible to set the language SQL for an individual environment |{Piton}|. 
+% %
+% \begin{Verbatim}
+% \begin{Piton}~emphase#[language=SQL]@
+% ...
+% \end{Piton}
+% \end{Verbatim}
+%
+% \bigskip
+% The option exists also for |\PitonInputFile| : |\PitonInputFile[language=SQL]{...}|
+%
+%
+% \vspace{1cm}
+%
+% \begin{center}
+% \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+% \toprule
+% \normalfont Style  & Use \\
+% \midrule
+% Number & the numbers \\
+% String.Long & the strings (between \texttt{'} and not \texttt{"} because the
+% elements between \texttt{"} are names of fields and formatted with |Name.Field|) \\
+% Operator & the following operators : \texttt{= != <> >= > < <= * + / } \\
+% Name.Table & the names of the tables \\
+% Name.Field & the names of the fields of the tables \\
+% Name.Builtin & the following built-in functions (their names are \emph{not} case-sensitive): 
+%    |avg|, |count|, |char_lenght|, |concat|, |curdate|, |current_date|,
+%    |date_format|, |day|, |lower|, |ltrim|, |max|, |min|, |month|, |now|,
+%    |rank|, |round|, |rtrim|, |substring|, |sum|, |upper| and |year|. \\
+% Comment & the comments (beginning by \texttt{--} or between |/*| and |*/|) \\
+% Comment.LaTeX & the comments beginning by  \texttt{-->} which are composed by
+% \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
+% Keyword & the following keywords (their names are \emph{not} case-sensitive):
+% |add|, |after|, |all|, |alter|, |and|, |as|, |asc|, |between|, |by|,
+% |change|, |column|, |create|, |cross join|, |delete|, |desc|, |distinct|, 
+% |drop|, |from|, |group|, |having|, |in|, |inner|, |insert|, |into|, |is|, 
+% |join|, |left|, |like|, |limit|, |merge|, |not|, |null|, |on|, |or|, 
+% |order|, |over|, |right|, |select|, |set|, |table|, |then|, |truncate|, 
+% |union|, |update|, |values|, |when|, |where| and |with|. \\
 % \bottomrule
 % \end{tabularx}
 % \end{center}
@@ -3927,7 +3984,7 @@ version 2005/12/01 or later.
 % \medskip
 % The following command is fundamental: it will be used by the Lua code.
 %    \begin{macrocode}
-\NewDocumentCommand { \PitonStyle } { m } { \use:c { pitonStyle #1 } }
+\NewDocumentCommand { \PitonStyle } { m } { \use:c { pitonStyle _ #1 } }
 %    \end{macrocode}
 %
 % \medskip
@@ -3983,7 +4040,7 @@ version 2005/12/01 or later.
   {
     \keys_define:nn { piton / Styles }
       {
-        #1 .tl_set:c = pitonStyle #1 , 
+        #1 .tl_set:c = pitonStyle _ #1 , 
         #1 .value_required:n = true 
       }
   }
@@ -4044,7 +4101,7 @@ version 2005/12/01 or later.
     Name.Constructor   = \color[HTML]{006000} \bfseries , 
     Name.Field         = \color[HTML]{AA6600} , 
     Name.Module        = \color[HTML]{0060A0} \bfseries ,
-    Name.Table         = \color[HTML]{336666} ,
+    Name.Table         = \color[HTML]{309030} ,
     Number             = \color[HTML]{FF6600} ,
     Operator           = \color[HTML]{555555} ,
     Operator.Word      = \bfseries ,
@@ -6207,7 +6264,8 @@ local Operator =
 %    \end{macrocode}
 % In SQL, the keywords are case-insensitive. That's why we have a little
 % complication. We will catch the keywords with the identifiers and, then,
-% distinguish the keywords with a Lua function.
+% distinguish the keywords with a Lua function. However, some keywords will be
+% catched in special LPEG because we want to detect the names of the SQL tables.
 %    \begin{macrocode}
 local function Set (list)
   local set = {}
@@ -6233,8 +6291,9 @@ local set_builtins = Set
  }
 %    \end{macrocode}
 %
-% The \textsc{lpeg} |Identifer| will catch the identifiers of the fields 
-% but also the keywords and the built-in functions of SQL.
+% The \textsc{lpeg} |Identifer| will catch the identifiers of the fields  
+% but also the keywords and the built-in functions of SQL. If will \emph{not}
+% catch the names of the SQL tables.
 %    \begin{macrocode}
 local Identifier = 
   C ( identifier ) /
@@ -6442,6 +6501,11 @@ end
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
+local TableField = 
+     K ( 'Name.Table' , identifier ) 
+     * Q ( P "." ) 
+     * K ( 'Name.Field' , identifier ) 
+
 local OneField = 
   ( 
     Q ( P "(" * ( 1 - P ")" ) ^ 0 * P ")" )
@@ -6457,7 +6521,6 @@ local OneField =
     ) ^ -1
   * ( Space * ( LuaKeyword ( "ASC" ) + LuaKeyword ( "DESC" ) ) ) ^ -1
 
-
 local OneTable = 
      K ( 'Name.Table' , identifier ) 
    * ( 
@@ -6467,31 +6530,15 @@ local OneTable =
        * K ( 'Name.Table' , identifier ) 
      ) ^ -1 
 
-local From = 
+local WeCatchTableNames = 
      LuaKeyword ( "FROM" ) 
-   * Space
+   * ( Space + EOL ) 
    * OneTable * ( SkipSpace * Q ( P "," ) * SkipSpace * OneTable ) ^ 0 
-
-local Join =
-     LuaKeyword ( "JOIN" ) 
-   * Space 
-   * OneTable 
-
-local Like = 
-  LuaKeyword ( "LIKE" ) 
-   * Space 
-   * K ( 'String.Long' , 
-         P "'" * ( 1 - P "'" ) ^ 1 * P "'"
-         + P '"' * ( 1 - P '"' ) ^ 1 * P '"' ) 
-
-local Into = LuaKeyword ( "INTO" ) * Space * OneTable 
-
-local Update = LuaKeyword ( "UPDATE" ) * Space * OneTable 
-
-local TableField = 
-     K ( 'Name.Table' , identifier ) 
-     * Q ( P "." ) 
-     * K ( 'Name.Field' , identifier ) 
+  + ( 
+      LuaKeyword ( "JOIN" ) + LuaKeyword ( "INTO" ) + LuaKeyword ( "UPDATE" ) 
+      + LuaKeyword ( "TABLE" ) 
+    ) 
+    * ( Space + EOL ) * OneTable 
 %    \end{macrocode}
 % 
 %
@@ -6509,7 +6556,7 @@ local MainSQL =
      + Operator
      + String
      + Punct
-     + From + Join + Like + Into + Update 
+     + WeCatchTableNames
      + ( TableField + Identifier ) * ( Space + Operator + Punct + Delim + EOL + -1 )  
      + Number
      + Word
