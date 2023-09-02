@@ -1215,7 +1215,10 @@ local WeCatchTableNames =
      LuaKeyword ( "FROM" )
    * ( Space + EOL )
    * OneTable * ( SkipSpace * Q ( P "," ) * SkipSpace * OneTable ) ^ 0
-  + ( LuaKeyword ( "JOIN" ) + LuaKeyword ( "INTO" ) + LuaKeyword ( "UPDATE" ) )
+  + (
+      LuaKeyword ( "JOIN" ) + LuaKeyword ( "INTO" ) + LuaKeyword ( "UPDATE" )
+      + LuaKeyword ( "TABLE" )
+    )
     * ( Space + EOL ) * OneTable
 local MainSQL =
        EOL

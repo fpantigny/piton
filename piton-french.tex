@@ -347,7 +347,7 @@ soient affichés. Si la clé \verb|/skip-empty-lines| est active, la clé \verb|
 valeur initiale de cette clé est \verb|true|.
 
 \item La clé \Definition{line-numbers/absolute} demande, pour les listings générés par \verb|\PitonInputFile|, que les numéros de
-lignes affichés soient absolus (c'est-à-dire ceux du fichier d'origine). Elle n'a d'intérêt que si on insère qu'une
+lignes affichés soient absolus (c'est-à-dire ceux du fichier d'origine). Elle n'a d'intérêt que si on n'insère qu'une
 partie du fichier (cf. part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}). La clé |/absolute| est sans effet dans les environnements \verb|{Piton}|.
 
 \item La clé \Definition{line-numbers/resume} reprend la numérotation là où elle avait été laissée au dernier listing. En fait,
@@ -423,9 +423,9 @@ caractère U+2423 doit être présent dans la fonte mono-chasse utilisée.\footn
 Exemple : \piton{my_string = 'Très bonne réponse'}
 \endgroup
 
-\smallskip
-Avec la clé \Definition{show-spaces}, tous les espaces sont matérialisés (et aucune coupure de ligne ne peut plus
-intervenir sur ces espaces matérialisés, même si la clé |break-lines|\footnote{cf. \ref{line-breaks} p.~\pageref{line-breaks}.} est active).
+\item Avec la clé \Definition{show-spaces}, tous les espaces sont matérialisés (et aucune coupure de ligne ne peut
+plus intervenir sur ces espaces matérialisés, même si la clé |break-lines|\footnote{cf. \ref{line-breaks}
+  p.~\pageref{line-breaks}.} est active).
 \end{itemize}
 
 \bigskip
@@ -582,9 +582,14 @@ par l'utilisateur (d'où le nom |UserFunction| pour ce style).
 \PitonClearUserFunctions
 
 \bigskip
+\begingroup \small
 Bien sûr, la liste des noms de fonctions Python précédemment définies est gardée en mémoire de LuaLaTeX (de manière
 globale, c'est-à-dire indépendamment des groupes TeX). L'extension \pkg{piton} fournit une commande qui permet de
-vider cette liste : c'est la commande |\PitonClearUserFunctions|.
+vider cette liste : c'est la commande |\PitonClearUserFunctions|. Quand elle est utilisée sans argument, cette
+commande s'applique à tous les languages informatiques utilisées par l'utilisateur mais on peut spécifier en
+argument optionnel (entre crochets) une liste de languages informatiques auquels elle s'appliquera.\footnote{On
+  rappelle que, dans \pkg{piton}, les noms des langages informatiques ne sont pas sensibles à la casse. }
+\endgroup
 
 
 \subsection{Définition de nouveaux environnements}

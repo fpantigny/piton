@@ -618,10 +618,18 @@ version 2005/12/01 or later.
 % \PitonClearUserFunctions
 %
 % \bigskip
+% \begingroup
+% \small
 % Of course, the list of the names of Python functions previously défined is
 % kept in the memory of LuaLaTeX (in a global way, that is to say independtly of
 % the TeX groups). The extension \pkg{piton} provides a command to clear that
-% list : it's the command |\PitonClearUserFunctions|.
+% list : it's the command |\PitonClearUserFunctions|. When it is used without
+% argument, that command is applied to all the informatic languages used by the
+% user but it's also possible to use it with an optional argument (between
+% square brackets) which is a list of informatic languages to which the command
+% will be applied.\footnote{We remind that, in \pkg{piton}, the name of the
+% informatic languages are case-insensitive.}\par
+% \endgroup
 % 
 % \subsection{Creation of new environments}
 %
@@ -2714,6 +2722,18 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 % \medskip
+% Be careful. The following sequence |\g_@@_languages_seq| is not the list of
+% the languages supported by \pkg{piton}. It's the list of the languages for
+% which at least a user function has been defined. We need that sequence only
+% for the command |\PitonClearUserFunctions| when it is used without its
+% optional argument: it must clear all the list of languages for which at least
+% a user function has been defined.
+%    \begin{macrocode}
+\seq_new:N \g_@@_languages_seq 
+%    \end{macrocode}
+% 
+%
+% \medskip
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_set_tab_tl:n #1
   { 
@@ -3984,13 +4004,23 @@ version 2005/12/01 or later.
 % \medskip
 % The following command is fundamental: it will be used by the Lua code.
 %    \begin{macrocode}
-\NewDocumentCommand { \PitonStyle } { m } { \use:c { pitonStyle _ #1 } }
+\NewDocumentCommand { \PitonStyle } { m } 
+  { 
+    \cs_if_exist_use:cF { pitonStyle _ \l_@@_language_str  _ #1 }
+      { \use:c { pitonStyle _ #1 } }
+  }
 %    \end{macrocode}
 %
 % \medskip
-% The following command takes in its argument by curryfication.
 %    \begin{macrocode}
-\NewDocumentCommand { \SetPitonStyle } { } { \keys_set:nn { piton / Styles } } 
+\NewDocumentCommand { \SetPitonStyle } { O { } m } 
+  { 
+    \str_set:Nx \l_@@_SetPitonStyle_option_str { \str_lowercase:n { #1 } }
+    \str_if_eq:VnT \l_@@_SetPitonStyle_option_str { current-language }
+      { \str_set_eq:NN \l_@@_SetPitonStyle_option_str \l_@@_language_str }
+    \keys_set:nn { piton / Styles } { #2 } 
+    \str_clear:N \l_@@_SetPitonStyle_option_str 
+  } 
 %    \end{macrocode}
 % 
 % \medskip
@@ -4036,12 +4066,20 @@ version 2005/12/01 or later.
     UserFunction 
   }  
 
-\clist_map_inline:Nn \g_@@_styles_clist
+\clist_map_inline:Nn \g_@@_styles_clist  
   {
     \keys_define:nn { piton / Styles }
       {
-        #1 .tl_set:c = pitonStyle _ #1 , 
-        #1 .value_required:n = true 
+        #1 .value_required:n = true ,
+        #1 .code:n = 
+         \tl_set:cn 
+           {
+             pitonStyle _
+             \str_if_empty:NF \l_@@_SetPitonStyle_option_str 
+               { \l_@@_SetPitonStyle_option_str _ }
+             #1
+           }
+           { ##1 }
       }
   }
 
@@ -4115,7 +4153,7 @@ version 2005/12/01 or later.
     TypeParameter      = \color[HTML]{336666} \itshape ,
     Preproc            = \color[HTML]{AA6600} \slshape ,
     Identifier         = \@@_identifier:n , 
-    UserFunction  = , 
+    UserFunction       = , 
     Prompt             = , 
     ParseAgain.noCR    = \@@_piton_no_cr:n , 
     ParseAgain         = \@@_piton:n ,
@@ -4183,7 +4221,7 @@ version 2005/12/01 or later.
 % that name. We define now that style (you define it directly and you short-cut
 % the function |\SetPitonStyle|). 
 %    \begin{macrocode}
-\cs_new_protected:cpn { pitonStyle Name.Function.Internal } #1
+\cs_new_protected:cpn { pitonStyle _ Name.Function.Internal } #1
   { 
 %    \end{macrocode}
 % First, the element is composed in the TeX flow with the style |Name.Function|
@@ -4206,12 +4244,50 @@ version 2005/12/01 or later.
     \seq_if_exist:cF { g_@@_functions _ \l_@@_language_str _ seq }
       { \seq_new:c { g_@@_functions _ \l_@@_language_str _ seq } }
     \seq_gput_right:cn { g_@@_functions _ \l_@@_language_str _ seq } { #1 }
+%    \end{macrocode}
+% We update |\g_@@_languages_seq| which is used only by the command
+% |\PitonClearUserFunctions| when it's used without its optional argument.
+%    \begin{macrocode}
+    \seq_if_in:NVF \g_@@_languages_seq \l_@@_language_str 
+      { \seq_gput_left:NV \g_@@_languages_seq \l_@@_language_str }
   }
 %    \end{macrocode}
 %
 % \bigskip
 %    \begin{macrocode}
-\NewDocumentCommand \PitonClearUserFunctions { ! O { \l_@@_language_str }  } 
+\NewDocumentCommand \PitonClearUserFunctions { ! o } 
+  { 
+    \tl_if_novalue:nTF { #1 }
+%    \end{macrocode}
+% If the command is used without its optional argument, we will deleted the
+% user language for all the informatic languages.
+%    \begin{macrocode}
+      { \@@_clear_all_functions: }
+      { \@@_clear_list_functions:n { #1 } }
+  }
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_clear_list_functions:n #1
+  {
+    \clist_set:Nn \l_tmpa_clist { #1 }
+    \clist_map_function:NN \l_tmpa_clist \@@_clear_functions_i:n 
+    \clist_map_inline:nn { #1 }
+      { \seq_gremove_all:Nn \g_@@_languages_seq { ##1 } }
+  }
+%    \end{macrocode}
+% 
+% \bigskip
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_clear_functions_i:n #1
+  { \exp_args:Nx \@@_clear_functions_ii:n { \str_lowercase:n { #1 } } }
+%    \end{macrocode}
+% 
+% The following command clears the list of the user-defined functions for the
+% language provided in argument (mandatory in lower case). 
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_clear_functions_ii:n #1 
   {
     \seq_if_exist:cT { g_@@_functions _ #1 _ seq }
       {
@@ -4221,13 +4297,33 @@ version 2005/12/01 or later.
       }
   }
 %    \end{macrocode}
+%  
+% \bigskip
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_clear_functions:n #1 
+  {
+    \@@_clear_functions_i:n { #1 }
+    \seq_gremove_all:Nn \g_@@_languages_seq { #1 }
+  }
+%    \end{macrocode}
+% 
+% \bigskip
+% The following command clears all the user-defined functions for all the
+% informatic languages.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_clear_all_functions:
+  { 
+    \seq_map_function:NN \g_@@_languages_seq \@@_clear_functions_i:n 
+    \seq_gclear:N \g_@@_languages_seq
+  }
+%    \end{macrocode}
 % 
 % \bigskip
 % \subsubsection{Security}
 %
 %     \begin{macrocode}
 \AddToHook { env / piton / begin } 
-   { \msg_fatal:nn { piton } { No~environment~piton } }
+  { \msg_fatal:nn { piton } { No~environment~piton } }
 
 \msg_new:nnn { piton } { No~environment~piton }
   { 

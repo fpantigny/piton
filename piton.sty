@@ -19,7 +19,7 @@
 %% LaTeX version 2005/12/01 or later.
 %% 
 \def\myfileversion{2.1}
-\def\myfiledate{2023/08/29}
+\def\myfiledate{2023/09/01}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -188,6 +188,7 @@
 \dim_new:N \l__piton_numbers_sep_dim
 \dim_set:Nn \l__piton_numbers_sep_dim { 0.7 em }
 \tl_new:N \l__piton_tab_tl
+\seq_new:N \g__piton_languages_seq
 \cs_new_protected:Npn \__piton_set_tab_tl:n #1
   {
     \tl_clear:N \l__piton_tab_tl
@@ -1001,8 +1002,19 @@
           ( '\l_tmpa_str' , '\l_tmpb_str' , '\l__piton_file_name_tl' )
       }
   }
-\NewDocumentCommand { \PitonStyle } { m } { \use:c { pitonStyle #1 } }
-\NewDocumentCommand { \SetPitonStyle } { } { \keys_set:nn { piton / Styles } }
+\NewDocumentCommand { \PitonStyle } { m }
+  {
+    \cs_if_exist_use:cF { pitonStyle _ \l__piton_language_str  _ #1 }
+      { \use:c { pitonStyle _ #1 } }
+  }
+\NewDocumentCommand { \SetPitonStyle } { O { } m }
+  {
+    \str_set:Nx \l__piton_SetPitonStyle_option_str { \str_lowercase:n { #1 } }
+    \str_if_eq:VnT \l__piton_SetPitonStyle_option_str { current-language }
+      { \str_set_eq:NN \l__piton_SetPitonStyle_option_str \l__piton_language_str }
+    \keys_set:nn { piton / Styles } { #2 }
+    \str_clear:N \l__piton_SetPitonStyle_option_str
+  }
 \cs_new_protected:Npn \__piton_math_scantokens:n #1
   { \normalfont \scantextokens { $#1$ } }
 \clist_new:N \g__piton_style_clist
@@ -1044,8 +1056,16 @@
   {
     \keys_define:nn { piton / Styles }
       {
-        #1 .tl_set:c = pitonStyle #1 ,
-        #1 .value_required:n = true
+        #1 .value_required:n = true ,
+        #1 .code:n =
+         \tl_set:cn
+           {
+             pitonStyle _
+             \str_if_empty:NF \l__piton_SetPitonStyle_option_str
+               { \l__piton_SetPitonStyle_option_str _ }
+             #1
+           }
+           { ##1 }
       }
   }
 
@@ -1097,7 +1117,7 @@
     TypeParameter      = \color[HTML]{336666} \itshape ,
     Preproc            = \color[HTML]{AA6600} \slshape ,
     Identifier         = \__piton_identifier:n ,
-    UserFunction  = ,
+    UserFunction       = ,
     Prompt             = ,
     ParseAgain.noCR    = \__piton_piton_no_cr:n ,
     ParseAgain         = \__piton_piton:n ,
@@ -1124,7 +1144,7 @@
           \l__piton_style_tl
       }
   }
-\cs_new_protected:cpn { pitonStyle Name.Function.Internal } #1
+\cs_new_protected:cpn { pitonStyle _ Name.Function.Internal } #1
   {
     { \PitonStyle { Name.Function } { #1 } }
     \cs_gset_protected:cpn { PitonIdentifier _ \l__piton_language_str _ #1 }
@@ -1132,8 +1152,25 @@
     \seq_if_exist:cF { g__piton_functions _ \l__piton_language_str _ seq }
       { \seq_new:c { g__piton_functions _ \l__piton_language_str _ seq } }
     \seq_gput_right:cn { g__piton_functions _ \l__piton_language_str _ seq } { #1 }
+    \seq_if_in:NVF \g__piton_languages_seq \l__piton_language_str
+      { \seq_gput_left:NV \g__piton_languages_seq \l__piton_language_str }
   }
-\NewDocumentCommand \PitonClearUserFunctions { ! O { \l__piton_language_str }  }
+\NewDocumentCommand \PitonClearUserFunctions { ! o }
+  {
+    \tl_if_novalue:nTF { #1 }
+      { \__piton_clear_all_functions: }
+      { \__piton_clear_list_functions:n { #1 } }
+  }
+\cs_new_protected:Npn \__piton_clear_list_functions:n #1
+  {
+    \clist_set:Nn \l_tmpa_clist { #1 }
+    \clist_map_function:NN \l_tmpa_clist \__piton_clear_functions_i:n
+    \clist_map_inline:nn { #1 }
+      { \seq_gremove_all:Nn \g__piton_languages_seq { ##1 } }
+  }
+\cs_new_protected:Npn \__piton_clear_functions_i:n #1
+  { \exp_args:Nx \__piton_clear_functions_ii:n { \str_lowercase:n { #1 } } }
+\cs_new_protected:Npn \__piton_clear_functions_ii:n #1
   {
     \seq_if_exist:cT { g__piton_functions _ #1 _ seq }
       {
@@ -1142,8 +1179,18 @@
         \seq_gclear:c { g__piton_functions _ #1 _ seq }
       }
   }
+\cs_new_protected:Npn \__piton_clear_functions:n #1
+  {
+    \__piton_clear_functions_i:n { #1 }
+    \seq_gremove_all:Nn \g__piton_languages_seq { #1 }
+  }
+\cs_new_protected:Npn \__piton_clear_all_functions:
+  {
+    \seq_map_function:NN \g__piton_languages_seq \__piton_clear_functions_i:n
+    \seq_gclear:N \g__piton_languages_seq
+  }
 \AddToHook { env / piton / begin }
-   { \msg_fatal:nn { piton } { No~environment~piton } }
+  { \msg_fatal:nn { piton } { No~environment~piton } }
 
 \msg_new:nnn { piton } { No~environment~piton }
   {
