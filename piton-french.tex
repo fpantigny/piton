@@ -486,6 +486,8 @@ pages et des lignes p.~\pageref{breakable}).
 
 \label{styles}
 
+\subsubsection{Notion de style}
+
 L'extension \pkg{piton} fournit la commande |\SetPitonStyle| pour personnaliser les différents styles utilisés pour
 formater les éléments syntaxiques des listings Python. Ces personnalisations ont une portée qui correspond au
 groupe TeX courant.\footnote{On rappelle que tout environnement LaTeX est, en particulier, un groupe.}
@@ -521,11 +523,9 @@ Avec ce réglage, on obtient : \piton{def cube(x) : return x * x * x }
 
 
 \bigskip
-Les différents styles sont décrits dans la table \ref{Semantic}. Les réglages initiaux effectués par \pkg{piton}
-dans |piton.sty| sont inspirés par le style \pkg{manni} de Pygments.\footnote{Voir
-  \url{https://pygments.org/styles/}. À remarquer que, par défaut, Pygments propose pour le style \pkg{manni} un
-  fond coloré dont la couleur est la couleur HTML |#F0F3F3|. Il est possible d'avoir la même couleur dans |{Piton}|
-  avec l'instruction : |\PitonOptions{background-color = [HTML]{F0F3F3}}|}
+L'usage des différents styles suivant le langage informatique considéré est décrit dans la partie \ref{Semantic}, à
+partir de la page \pageref{Semantic}. 
+
 
 
 \bigskip
@@ -541,12 +541,50 @@ La syntaxe |{\PitonStyle{|\textsl{\texttt{style}}|}{...}}| est nécessaire pour 
 semi-globales et des commandes à argument présentes dans la valeur courante du style \texttt{\textsl{style}}.
 
 
+\subsubsection{Styles locaux et globaux}
+
+Un style peut être défini de manière globale avec la commande |\SetPitonStyle|. Cela veut dire qu'il s'appliquera
+par défaut à tous les langages informatiques qui utilisent ce style.
+
+\medskip
+Par exemple, avec la commande 
+\begin{Verbatim}
+\SetPitonStyle{Comment = \color{gray}}
+\end{Verbatim}
+tous les commentaires (que ce soit en Python, en C, en OCaml, etc.) seront composés en gris.
+
 \bigskip
-Il existe un style spécial nommé |UserFunction|. Ce style s'applique aux noms des fonctions précédemment définies 
-par l'utilisateur via une instruction Python \piton{def} dans l'un des listings précédents. La valeur initiale de
-ce style est nulle (=vide), ce qui fait que ces noms de fonctions sont formatés comme du texte courant (en noir).
-Néanmoins, il est possible de changer la valeur de ce style, comme tous les autres styles, avec la commande
-|\SetPitonStyle|.
+\colorbox{yellow!50}{\textbf{Nouveau 2.2}}\enskip Mais il est aussi possible de définir un style localement pour un
+certain langage informatique en passant le nom du langage en argument optionnel (entre crochets) de la commande
+|\SetPitonStyle|.\footnote{On rappelle que, dans \pkg{piton}, les noms des langages informatiques ne sont pas
+  sensibles à la casse.}
+
+\medskip
+Par exemple, avec la commande 
+\begin{Verbatim}
+\SetPitonStyle~emphase#[SQL]@{Keywords = \color[HTML]{006699} \bfseries \MakeUppercase}
+\end{Verbatim}
+les mots-clés dans les listings SQL seront composés en lettres capitales, même s'ils s'apparaissent en minuscules
+dans le fichier source LaTeX (on rappelle que, en SQL, les mot-clés ne sont pas sensibles à la casse et donc forcer
+leur mise en minuscule peut être envisagé).
+
+\medskip
+Comme on s'en doute, si un langage informatique utilise un certain style et que ce style n'est pas défini
+localement pour ce langage, c'est la version globale qui est utilisée. Cette notion de globalité n'a pas de
+rapport à la notion de liaison locale de TeX (notion de groupe TeX).
+
+\medskip
+Les styles fournis par défaut par \pkg{piton} sont tous définis globalement.
+
+\bigskip
+\subsubsection{Le style UserFunction}
+
+\bigskip
+Il existe un style spécial nommé |UserFunction|. Ce style s'applique aux noms des fonctions précédemment définies
+par l'utilisateur (par exemple, avec le langage Python, ces noms de fonctions sont ceux qui apparaissent après le
+mot-clé \piton{def} dans un listing Python précédent). La valeur initiale de ce style est nulle (=vide), ce qui
+fait que ces noms de fonctions sont formatés comme du texte courant (en noir). Néanmoins, il est possible de
+changer la valeur de ce style, comme tous les autres styles, avec la commande |\SetPitonStyle|.
 
 
 \medskip
@@ -579,17 +617,18 @@ def passe(v):
 Comme on le voit, le nom |transpose| a été mis en évidence comme étant le nom d'une fonction définie précédemment
 par l'utilisateur (d'où le nom |UserFunction| pour ce style).
 
-\PitonClearUserFunctions
+\PitonClearUserFunctions[Python]
 
 \bigskip
-\begingroup \small
+\begin{small}
 Bien sûr, la liste des noms de fonctions Python précédemment définies est gardée en mémoire de LuaLaTeX (de manière
 globale, c'est-à-dire indépendamment des groupes TeX). L'extension \pkg{piton} fournit une commande qui permet de
 vider cette liste : c'est la commande |\PitonClearUserFunctions|. Quand elle est utilisée sans argument, cette
 commande s'applique à tous les languages informatiques utilisées par l'utilisateur mais on peut spécifier en
 argument optionnel (entre crochets) une liste de languages informatiques auquels elle s'appliquera.\footnote{On
   rappelle que, dans \pkg{piton}, les noms des langages informatiques ne sont pas sensibles à la casse. }
-\endgroup
+\end{small}
+
 
 
 \subsection{Définition de nouveaux environnements}
@@ -598,7 +637,8 @@ argument optionnel (entre crochets) une liste de languages informatiques auquels
 
 Comme l'environnement |{Piton}| a besoin d'absorber son contenu d'une manière spéciale (à peu près comme du texte
 verbatim), il n'est pas possible de définir de nouveaux environnements directement au-dessus de l'environnement
-|{Piton}| avec les commandes classiques |\newenvironment| et |\NewDocumentEnvironment|.
+|{Piton}| avec les commandes classiques |\newenvironment| (de LaTeX standard) et |\NewDocumentEnvironment| (de
+LaTeX3). 
 
 C'est pourquoi \pkg{piton} propose une commande |\NewPitonEnvironment|. Cette commande a la même syntaxe que la
 commande classique |\NewDocumentEnvironment|.
@@ -1975,7 +2015,16 @@ L'exemple précédent donne alors :
 Le langage par défaut de l'extension \pkg{piton} est Python. Si besoin est, on peut revenir au langage Python avec
 |\PitonOptions{language=Python}|. 
 
+\bigskip
+
+Les réglages initiaux effectués par \pkg{piton} dans |piton.sty| sont inspirés par le style \pkg{manni} de Pygments
+tel qu'il est appliqué au language Python par Pygments.\footnote{Voir \url{https://pygments.org/styles/}. À
+  remarquer que, par défaut, Pygments propose pour le style \pkg{manni} un fond coloré dont la couleur est la
+  couleur HTML |#F0F3F3|. Il est possible d'avoir la même couleur dans |{Piton}| avec l'instruction :
+  |\PitonOptions{background-color = [HTML]{F0F3F3}}|}
+
 \vspace{1cm}
+
 
 \begin{center}
 \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}

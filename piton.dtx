@@ -43,12 +43,12 @@ version 2005/12/01 or later.
 %
 %<@@=piton>
 %<*STY>
-\def\myfileversion{2.1}
-\def\myfiledate{2023/09/01}
+\def\myfileversion{2.2}
+\def\myfiledate{2023/09/05}
 %</STY>
 %<*driver>
-\def\myfileversion{2.1}
-\def\myfiledate{2023/09/01}
+\def\myfileversion{2.2}
+\def\myfiledate{2023/09/05}
 \documentclass{l3doc}
 \usepackage{geometry}
 \geometry{left=2.8cm,right=2.8cm,top=2.5cm,bottom=2.5cm,papersize={21cm,29.7cm}}
@@ -517,6 +517,8 @@ version 2005/12/01 or later.
 %
 % \label{styles}
 %
+% \subsubsection{Notion of style}
+%
 % The package \pkg{piton} provides the command |\SetPitonStyle| to customize the
 % different styles used to format the syntactic elements of the Python listings.
 % The customizations done by that command are limited to the current TeX
@@ -556,10 +558,10 @@ version 2005/12/01 or later.
 % \endgroup
 % 
 % \bigskip
-% The different styles are described in the table \ref{Semantic}. The initial
-% settings done by \pkg{piton} in |piton.sty| are inspired by the style
-% \pkg{manni} de Pygments.\footnote{See:
-% \url{https://pygments.org/styles/}. Remark that, by default, Pygments provides for its style \pkg{manni} a colored background whose color is the HTML color \texttt{\#F0F3F3}. It's possible to have the same color in \texttt{\{Pion\}} with the instruction \texttt{\textbackslash PitonOptions\{background-color = [HTML]\{F0F3F3\}\}}.}
+% The different styles, and their use by \pkg{piton} in the different languages
+% which it supports (Python, OCaml, C and SQL), are described in the part
+% \ref{Semantic}, starting at the page \pageref{Semantic}. 
+% 
 %
 % \bigskip
 % The command |\PitonStyle| takes in as argument the name of a style and allows
@@ -576,17 +578,59 @@ version 2005/12/01 or later.
 % \texttt{\textsl{style}}. 
 %
 % \bigskip
+% \subsubsection{Global styles and local styles}
 %
+% A style may be defined globally with the command |\SetPitonStyle|. That means
+% that it will apply to all the informatic languages that use that style.
+%
+% \bigskip
+% For example, with the command
+% \begin{Verbatim}
+% \SetPitonStyle{Comment = \color{gray}}
+% \end{Verbatim}
+% all the comments will be composed in gray in all the listings, whatever
+% informatic language they use (Python, C, OCaml, etc.).
+% 
+% \bigskip
+% \colorbox{yellow!50}{\textbf{New 2.2}}\enskip But it's also possible to define
+% a style locally for a given informatic langage by providing the name of that
+% language as optional argument (between square brackets) to the command
+% |\SetPitonStyle|.\footnote{We recall, that, in the package \pkg{piton}, the
+% names of the informatic languages are case-insensitive.}
+%
+% \bigskip
+% For example, with the command
+% \begin{Verbatim}
+% \SetPitonStyle~emphase#[SQL]@{Keywords = \color[HTML]{006699} \bfseries \MakeUppercase}
+% \end{Verbatim}
+% the keywords in the SQL listings will be composed in capital letters, even if
+% they appear in lower case in the LaTeX source (we recall that, in SQL, the
+% keywords are case-insensitive).
+%
+% \bigskip
+% As expected, if an informatic language uses a given style and if that style has
+% no local definition for that language, the global version is used. That notion
+% of ``global style'' has no link with the notion of global definition in TeX
+% (the notion of \emph{group} in TeX).
+% 
+% \bigskip
+% The package \pkg{piton} itself (that is to say the file |piton.sty|) defines
+% all the styles globally. 
+%
+% \bigskip
+%
+% \subsubsection{The style UserFunction}
 % The extension \pkg{piton} provides a special style called~|UserFunction|. That
-% style applies to the names of the functions previously defined by the user via
-% an instruction Python \piton{def} in one of the previous listings. The initial
-% value of that style is empty, and, therefore, the names of the functions are
-% formatted as standard text (in black). However, it's possible to change the
-% value of that style, as any other style, with the command |\SetPitonStyle|.
+% style applies to the names of the functions previously defined by the user
+% (for example, in Python, these names are those following the keyword
+% \piton{def} in a previous Python listing). The initial value of that style is
+% empty, and, therefore, the names of the functions are formatted as standard
+% text (in black). However, it's possible to change the value of that style, as
+% any other style, with the command |\SetPitonStyle|.
 %
 % \medskip
 % In the following example, we fix as value for that style |UserFunction| the
-% initial value of the the style |Name.Function| (which applies to the name of
+% initial value of the style |Name.Function| (which applies to the name of
 % the functions, \emph{at the moment of their definition}).
 %
 % \begingroup
@@ -611,25 +655,24 @@ version 2005/12/01 or later.
 %
 % \endgroup
 %
-% As one see, the name |transpse| has been highlighted because it's the name of
+% As one see, the name |transpose| has been highlighted because it's the name of
 % a Python function previously defined by the user (hence the name
 % |UserFunction| for that style).
 %
-% \PitonClearUserFunctions
+% \PitonClearUserFunctions[Python]
 %
 % \bigskip
-% \begingroup
-% \small
+% \begin{small}
 % Of course, the list of the names of Python functions previously défined is
-% kept in the memory of LuaLaTeX (in a global way, that is to say independtly of
-% the TeX groups). The extension \pkg{piton} provides a command to clear that
+% kept in the memory of LuaLaTeX (in a global way, that is to say independently
+% of the TeX groups). The extension \pkg{piton} provides a command to clear that
 % list : it's the command |\PitonClearUserFunctions|. When it is used without
 % argument, that command is applied to all the informatic languages used by the
 % user but it's also possible to use it with an optional argument (between
 % square brackets) which is a list of informatic languages to which the command
 % will be applied.\footnote{We remind that, in \pkg{piton}, the name of the
-% informatic languages are case-insensitive.}\par
-% \endgroup
+% informatic languages are case-insensitive.}
+% \end{small}
 % 
 % \subsection{Creation of new environments}
 %
@@ -638,7 +681,8 @@ version 2005/12/01 or later.
 % Since the environment |{Piton}| has to catch its body in a special way (more
 % or less as verbatim text), it's not possible to construct new environments
 % directly over the environment |{Piton}| with the classical commands
-% |\newenvironment| or |\NewDocumentEnvironment|.
+% |\newenvironment| (of standard LaTeX) or |\NewDocumentEnvironment| (of
+% LaTeX3). 
 %
 % That's why \pkg{piton} provides a command |\NewPitonEnvironment|. That
 % command takes in three mandatory arguments. 
@@ -1898,6 +1942,16 @@ version 2005/12/01 or later.
 % In \pkg{piton}, the default language is Python. If necessary, it's possible to
 % come back to the language Python with |\PitonOptions{language=Python}|.
 %
+% \bigskip
+%
+% The initial settings
+% done by \pkg{piton} in |piton.sty| are inspired by the style \pkg{manni} de
+% Pygments, as applied by Pygments to the language Python.\footnote{See:
+% \url{https://pygments.org/styles/}. Remark that, by default, Pygments provides
+% for its style \pkg{manni} a colored background whose color is the HTML color
+% \texttt{\#F0F3F3}. It's possible to have the same color in \texttt{\{Piton\}}
+% with the instruction \texttt{\textbackslash PitonOptions\{background-color =
+% [HTML]\{F0F3F3\}\}}.}
 %
 % \vspace{1cm}
 %
@@ -1990,11 +2044,11 @@ version 2005/12/01 or later.
 %   Name.Module & the name of the modules \\
 %   Name.Function & the name of the Python functions defined by the user \emph{at their
 %   point of definition} (with the keyword |let|) \\ 
-%   UserFunction & the name of the Python functions previously defined by the user
+%   UserFunction & the name of the OCaml functions previously defined by the user
 %                  (the initial value of that parameter is empty and these
 %                  elements are drawn in the current color, usually black) \\
 %   Exception & the predefined exceptions (eg : |End_of_File|) \\
-%   TypeParameter &  the parameters of the type \\
+%   TypeParameter &  the parameters of the types \\
 %   Comment & the comments, between |(*| et |*)|; these comments may be nested \\
 %   Keyword.Constant & |true| et |false| \\
 %   Keyword & the following keywords:
@@ -7057,6 +7111,11 @@ end
 % \subsection*{Changes between versions 2.1 and 2.2}
 %
 % New key |path| for |\PitonOptions|.
+%
+% New language SQL.
+%
+% It's now possible to define styles locally to a given language (with the
+% optional argument of |\SetPitonStyle|). 
 %
 % \subsection*{Changes between versions 2.0 and 2.1}
 %
