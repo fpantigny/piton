@@ -1410,6 +1410,7 @@ function piton.CountNonEmptyLines(code)
 end
 function piton.CountLinesFile(name)
   local count = 0
+  io.open(name) -- added
   for line in io.lines(name) do count = count + 1 end
   tex.sprint(
       luatexbase.catcodetables.expl ,

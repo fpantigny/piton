@@ -18,8 +18,8 @@
 %% and version 1.3 or later is part of all distributions of
 %% LaTeX version 2005/12/01 or later.
 %% 
-\def\myfileversion{2.2}
-\def\myfiledate{2023/09/05}
+\def\myfileversion{2.2z}
+\def\myfiledate{2023/09/10}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -49,7 +49,7 @@
 \__piton_msg_new:nn { piton.lua~not~found }
   {
     The~file~'piton.lua'~can't~be~found.\\
-    The package~'piton'~won't be loaded.
+    The package~'piton'~won't~be~loaded.
   }
 \file_if_exist:nF { piton.lua }
   { \msg_critical:nn { piton } { piton.lua~not~found } }
@@ -153,7 +153,7 @@
 \lua_now:n { piton = piton~or { } }
 \str_new:N \l__piton_language_str
 \str_set:Nn \l__piton_language_str { python }
-\tl_new:N \l__piton_path_seq
+\tl_new:N \l__piton_path_tl
 \bool_new:N \l__piton_in_PitonOptions_bool
 \bool_new:N \l__piton_in_PitonInputFile_bool
 \bool_new:N \g__piton_in_document_bool
@@ -501,8 +501,7 @@
     language         .code:n =
       \str_set:Nx \l__piton_language_str { \str_lowercase:n { #1 } } ,
     language         .value_required:n  = true ,
-    path             .code:n =
-      \seq_set_from_clist:Nn \l__piton_path_seq { #1 } ,
+    path             .tl_set:N          = \l__piton_path_tl ,
     path             .value_required:n  = true ,
     gobble           .int_set:N         = \l__piton_gobble_int ,
     gobble           .value_required:n  = true ,
@@ -909,8 +908,14 @@
 \NewDocumentCommand { \PitonInputFile } { d < > O { } m }
   {
     \group_begin:
-    \seq_set_eq:NN \l_file_search_path_seq \l__piton_path_seq
-    \file_get_full_name:nNTF { #3 } \l__piton_file_name_tl
+    \tl_if_empty:NTF \l__piton_path_tl
+      { \tl_set:Nn \l__piton_file_name_tl { #3 } }
+      {
+        \tl_set_eq:NN \l__piton_file_name_tl \l__piton_path_tl
+        \tl_put_right:Nn \l__piton_file_name_tl { / }
+        \tl_put_right:Nn \l__piton_file_name_tl { #3 }
+      }
+    \exp_args:NV \file_if_exist:nTF \l__piton_file_name_tl
       { \__piton_input_file:nn { #1 } { #2 } }
       { \msg_error:nnn { piton } { Unknown~file } { #3 } }
     \group_end:

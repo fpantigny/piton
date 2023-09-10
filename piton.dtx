@@ -43,12 +43,12 @@ version 2005/12/01 or later.
 %
 %<@@=piton>
 %<*STY>
-\def\myfileversion{2.2}
-\def\myfiledate{2023/09/05}
+\def\myfileversion{2.2z}
+\def\myfiledate{2023/09/08}
 %</STY>
 %<*driver>
-\def\myfileversion{2.2}
-\def\myfiledate{2023/09/05}
+\def\myfileversion{2.2z}
+\def\myfiledate{2023/09/08}
 \documentclass{l3doc}
 \usepackage{geometry}
 \geometry{left=2.8cm,right=2.8cm,top=2.5cm,bottom=2.5cm,papersize={21cm,29.7cm}}
@@ -230,7 +230,8 @@ version 2005/12/01 or later.
 % When its argument is given between curly braces, the command |\piton| does not
 % take its argument in verbatim mode. In particular:
 % \begin{itemize}
-% \item several consecutive spaces will be replaced by only one space,
+% \item several consecutive spaces will be replaced by only one space (and the
+% also the character of end on line),
 % 
 % {\color{cyan} but the command |\|␣ is provided to force the insertion of a space};
 %
@@ -2356,7 +2357,7 @@ version 2005/12/01 or later.
 \@@_msg_new:nn { piton.lua~not~found }
   { 
     The~file~'piton.lua'~can't~be~found.\\ 
-    The package~'piton'~won't be loaded.
+    The package~'piton'~won't~be~loaded.
   }
 %    \end{macrocode}
 %
@@ -2563,7 +2564,7 @@ version 2005/12/01 or later.
 % 
 % \medskip
 %    \begin{macrocode}
-\tl_new:N \l_@@_path_seq
+\tl_new:N \l_@@_path_tl
 %    \end{macrocode}
 % 
 % 
@@ -3302,8 +3303,7 @@ version 2005/12/01 or later.
     language         .code:n = 
       \str_set:Nx \l_@@_language_str { \str_lowercase:n { #1 } } , 
     language         .value_required:n  = true ,
-    path             .code:n = 
-      \seq_set_from_clist:Nn \l_@@_path_seq { #1 } , 
+    path             .tl_set:N          = \l_@@_path_tl ,
     path             .value_required:n  = true , 
     gobble           .int_set:N         = \l_@@_gobble_int , 
     gobble           .value_required:n  = true ,
@@ -3915,14 +3915,21 @@ version 2005/12/01 or later.
 \NewDocumentCommand { \PitonInputFile } { d < > O { } m }
   {
     \group_begin:
-    \seq_set_eq:NN \l_file_search_path_seq \l_@@_path_seq
-    \file_get_full_name:nNTF { #3 } \l_@@_file_name_tl 
+    \tl_if_empty:NTF \l_@@_path_tl
+      { \tl_set:Nn \l_@@_file_name_tl { #3 } } 
+      { 
+        \tl_set_eq:NN \l_@@_file_name_tl \l_@@_path_tl 
+        \tl_put_right:Nn \l_@@_file_name_tl { / }
+        \tl_put_right:Nn \l_@@_file_name_tl { #3 }
+      }
+    \exp_args:NV \file_if_exist:nTF \l_@@_file_name_tl 
       { \@@_input_file:nn { #1 } { #2 } }
       { \msg_error:nnn { piton } { Unknown~file } { #3 } } 
     \group_end:
   }
 %    \end{macrocode}
 %
+% The following command uses as implicit argument the name of the file in |\l_@@_file_name_tl|.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_input_file:nn #1 #2 
   {
@@ -7027,6 +7034,7 @@ end
 %    \begin{macrocode}
 function piton.CountLinesFile(name)
   local count = 0 
+  io.open(name) -- added
   for line in io.lines(name) do count = count + 1 end
   tex.sprint( 
       luatexbase.catcodetables.expl , 
