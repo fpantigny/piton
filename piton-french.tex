@@ -205,8 +205,7 @@ Il est possible de n'insérer qu'une partie du fichier : cf. partie~\ref{part-of
 p.~\pageref{part-of-a-file}.
 
 \colorbox{yellow!50}{\textbf{Nouveau 2.2}}\enskip La clé |path| de la commande |\PitonOptions| permet de spécifier
-un chemin de recherche pour le fichier à inclure. En fait, on peut spécifier plusieurs chemins, séparés par des
-virgules. 
+un chemin pour le fichier à inclure. 
 \end{itemize}
 
 
@@ -315,8 +314,8 @@ Ces clés peuvent aussi être appliquées à un environnement |{Piton}| individu
 \item La clé \Definition{language} spécifie le langage informatique considéré (la casse n'est pas prise en compte).
 Quatre valeurs sont possibles : |Python|, |OCaml|, |C| et |SQL|. La valeur initiale est |Python|.
 
-\item La clé \Definition{path} indique un chemin où seront cherchés prioritairement les fichiers inclus par
-|\PitonInputFile|. En fait, on peut spécifier plusieurs chemins, séparés par des virgules.
+\item La clé \Definition{path} indique un chemin où seront cherchés les fichiers inclus par
+|\PitonInputFile|. 
 
 \item La clé \Definition{gobble} prend comme valeur un entier positif $n$ : les $n$ premiers caractères de chaque
 ligne sont alors retirés (avant formatage du code) dans les environnements |{Piton}|. Ces $n$ caractères ne sont
@@ -353,8 +352,7 @@ partie du fichier (cf. part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}). 
 \item La clé \Definition{line-numbers/resume} reprend la numérotation là où elle avait été laissée au dernier listing. En fait,
 la clé \verb|line-numbers/resume| a un alias, qui est \verb|resume| tout court. 
 
-\item La clé \Definition{line-numbers/start} impose que la numérotation commence à ce numéro. Elle n'est pas disponible dans
-\verb|\PitonOptions|. 
+\item La clé \Definition{line-numbers/start} impose que la numérotation commence à ce numéro. 
 
 \item La clé \Definition{sep} est la distance horizontale entre les numéros de lignes (insérés par |line-numbers|)
 et les lignes du code informatique. La valeur initiale est 0.7~em.

@@ -43,12 +43,12 @@ version 2005/12/01 or later.
 %
 %<@@=piton>
 %<*STY>
-\def\myfileversion{2.2z}
-\def\myfiledate{2023/09/08}
+\def\myfileversion{2.2a}
+\def\myfiledate{2023/09/17}
 %</STY>
 %<*driver>
-\def\myfileversion{2.2z}
-\def\myfiledate{2023/09/08}
+\def\myfileversion{2.2a}
+\def\myfiledate{2023/09/17}
 \documentclass{l3doc}
 \usepackage{geometry}
 \geometry{left=2.8cm,right=2.8cm,top=2.5cm,bottom=2.5cm,papersize={21cm,29.7cm}}
@@ -213,8 +213,7 @@ version 2005/12/01 or later.
 %
 % \colorbox{yellow!50}{\textbf{New 2.2}}\enskip The key |path| of the command
 % |\PitonOptions| specifies a path where the files included by |\PitonInputFile|
-% will be searched. In fact, it's possible to specify a comma-separated list of
-% paths. 
+% will be searched. 
 % \end{itemize}
 %
 % \subsection{The syntax of the command \textbackslash piton}
@@ -326,9 +325,8 @@ version 2005/12/01 or later.
 % considered (that key is case-insensitive). Four values are allowed :
 % |Python|, |OCaml|, |C| and |SQL|. The initial value is |Python|.
 % 
-% \item The key |path| specifies a path where the files included by
-% |\PitonInputFile| will be searched. In fact, it's possible to specify a
-% comma-separated list of paths.
+% \item The key \Definition{path} specifies a path where the files included by
+% |\PitonInputFile| will be searched.
 % 
 % \item The key \Definition{gobble} takes in as value a
 % positive integer~$n$: the first $n$ characters are discarded (before the
@@ -373,7 +371,7 @@ version 2005/12/01 or later.
 % part of the file (cf. part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}).
 % The key |/absolute| is no-op in the environments |{Piton}|.
 % \item The key \Definition{line-numbers/start} requires that the line numbering
-% begins to the value of the key. That key is not available in |\PitonOptions|.
+% begins to the value of the key. 
 % \item With the key \Definition{line-numbers/resume}, the counter of lines is
 % not set to zero at the beginning of each environment |{Piton}| or use of
 % |\PitonInputFile| as it is otherwise. That allows a numbering of the lines
@@ -3439,6 +3437,18 @@ version 2005/12/01 or later.
   }
 %    \end{macrocode}
 %
+% \bigskip
+% When using |\NewPitonEnvironment| a user may use |\PitonOptions| inside.
+% However, the set of keys available should be different that in standard
+% |\PitonOptions|. That's why we define a version of |\PitonOptions| with no
+% restrection on the set of available keys and we will link that version to
+% |\PitonOptions| in such environment.
+%    \begin{macrocode}
+\NewDocumentCommand \@@_fake_PitonOptions { } 
+  { \keys_set:nn { PitonOptions } }
+%    \end{macrocode}
+% 
+%
 %
 % \bigskip
 %    \begin{macrocode}
@@ -3857,6 +3867,7 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
     \NewDocumentEnvironment { #1 } { #2 } 
       {
+        \cs_set_eq:NN \PitonOptions \@@_fake_PitonOptions
         #3 
         \@@_pre_env:
         \int_compare:nNnT \l_@@_number_lines_start_int > 0 

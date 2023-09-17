@@ -18,8 +18,8 @@
 %% and version 1.3 or later is part of all distributions of
 %% LaTeX version 2005/12/01 or later.
 %% 
-\def\myfileversion{2.2z}
-\def\myfiledate{2023/09/10}
+\def\myfileversion{2.2a}
+\def\myfiledate{2023/09/17}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -625,6 +625,8 @@
     \keys_set:nn { PitonOptions } { #1 }
     \bool_set_false:N \l__piton_in_PitonOptions_bool
   }
+\NewDocumentCommand \__piton_fake_PitonOptions { }
+  { \keys_set:nn { PitonOptions } }
 \hook_gput_code:nnn { begindocument } { . }
   { \bool_gset_true:N \g__piton_in_document_bool }
 \int_new:N \g__piton_visual_line_int
@@ -876,6 +878,7 @@
           }
     \NewDocumentEnvironment { #1 } { #2 }
       {
+        \cs_set_eq:NN \PitonOptions \__piton_fake_PitonOptions
         #3
         \__piton_pre_env:
         \int_compare:nNnT \l__piton_number_lines_start_int > 0
