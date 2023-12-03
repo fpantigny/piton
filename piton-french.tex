@@ -1155,7 +1155,7 @@ l'utiliser directement dans |{Piton}|.
 \fvset{commandchars=\~\#\+,formatcom=\color{gray}}
 \begin{Verbatim}
 \makeatletter
-~emphase#\let\Jaune\@highLight+
+~emphase#\NewCommandCopy{\Jaune}{\@highLight}+
 \makeatother
 \end{Verbatim}
 \endgroup
@@ -1171,7 +1171,7 @@ def fact(n):
 \end{Verbatim}
 
 \makeatletter
-\let\Jaune\@highLight
+\NewCommandCopy{\Jaune}{\@highLight}
 \makeatother
 
 
@@ -1715,6 +1715,11 @@ Ce réglage utilise la commande |\highLight| de \pkg{lua-ul} (cette extension n�
   }
 \end{Verbatim}
 
+
+Dans ce réglage, de nombreuses valeurs fournies aux clés sont vides, ce qui signifie que le style correspondant
+n'insèrera aucune instruction de formatage (l'élément sera composé dans la couleur standard, le plus souvent, en noir,
+etc.). Ces entrées avec valeurs nulles sont néanmoins nécessaires car la valeur initiale de ces styles dans
+\pkg{piton} n'est \emph{pas} vide.
 
 \begingroup
 
