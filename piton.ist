@@ -1,0 +1,3 @@
+heading_prefix "{\\bfseries\\hfil "     % Insert in front of letter
+heading_suffix "\\hfil}\\nopagebreak\n" % Append after letter
+headings_flag 1                         % Turn on headings (uppercase)

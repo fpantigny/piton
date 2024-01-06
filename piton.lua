@@ -1,3 +1,26 @@
+--
+-- This is file `piton.lua',
+-- generated with the docstrip utility.
+--
+-- The original source files were:
+--
+-- piton.dtx  (with options: `LUA')
+-- -------------------------------------------
+-- Copyright (C) 2022-2024 by F. Pantigny
+-- 
+-- This file may be distributed and/or modified under the
+-- conditions of the LaTeX Project Public License, either
+-- version 1.3 of this license or (at your option) any later
+-- version.  The latest version of this license is in:
+-- 
+--      http://www.latex-project.org/lppl.txt
+-- 
+-- and version 1.3 or later is part of all distributions of
+-- LaTeX version 2005/12/01 or later.
+-- -------------------------------------------
+-- 
+-- This file is part of the LuaLaTeX package 'piton'.
+-- Version 2.3 of 2024/01/06
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -684,7 +707,7 @@ local closeeq =
 local QuotedStringBis =
   WithStyle ( 'String.Long' ,
       (
-        VisualSpace
+        Space
         +
         Q ( ( 1 - S " \r" ) ^ 1 )
         +
@@ -830,6 +853,8 @@ ocaml =
        * Lc ( '\\__piton_end_line:' )
      )
 languages['ocaml'] = ocaml
+local Delim = Q ( S "{[()]}" )
+local Punct = Q ( S ",:;!" )
 local identifier = letter * alphanum ^ 0
 
 local Operator =
@@ -869,6 +894,7 @@ local Type =
 local DefFunction =
   Type
   * Space
+  * Q ( "*" ) ^ -1
   * K ( 'Name.Function.Internal' , identifier )
   * SkipSpace
   * # P "("
@@ -1385,6 +1411,11 @@ function piton.GobbleParse(language,n,code)
        end
   end
   piton.Parse(language,gobble(n,code))
+  if piton.write ~= ''
+  then local file = assert(io.open(piton.write,piton.write_mode))
+       file:write(code)
+       file:close()
+  end
 end
 function piton.CountLines(code)
   local count = 0

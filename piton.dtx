@@ -1,7 +1,7 @@
 % \iffalse -*- coding: utf-8 ; -*- \fi 
 % \iffalse meta-comment
 %
-% Copyright (C) 2022-2023 by F. Pantigny
+% Copyright (C) 2022-2024 by F. Pantigny
 % -----------------------------------
 %
 % This file may be distributed and/or modified under the
@@ -20,36 +20,11 @@
 %<*batchfile> 
 \begingroup
 \input l3docstrip.tex
-\keepsilent
-\usedir{tex/latex/cascade}
-\preamble
-
-Copyright (C) 2022-2023 by F. Pantigny
------------------------------------
-
-This file may be distributed and/or modified under the
-conditions of the LaTeX Project Public License, either version 1.3
-of this license or (at your option) any later version.
-The latest version of this license is in:
-
-http://www.latex-project.org/lppl.txt
-
-and version 1.3 or later is part of all distributions of LaTeX
-version 2005/12/01 or later.
-
-\endpreamble
-\askforoverwritefalse
 \endgroup
 %</batchfile>
 %
 %<@@=piton>
-%<*STY>
-\def\myfileversion{2.2b}
-\def\myfiledate{2023/11/03}
-%</STY>
 %<*driver>
-\def\myfileversion{2.2b}
-\def\myfiledate{2023/11/03}
 \documentclass{l3doc}
 \usepackage{geometry}
 \geometry{left=2.8cm,right=2.8cm,top=2.5cm,bottom=2.5cm,papersize={21cm,29.7cm}}
@@ -76,21 +51,39 @@ version 2005/12/01 or later.
 
 \def\CC{{C\nolinebreak[4]\hspace{-.05em}\raisebox{.4ex}{\tiny\bfseries ++}}}
 
+\usepackage{makeidx}
+\makeindex
+
+\NewDocumentCommand{\indexcommand}{m}{\index{#1@\texttt{\textbackslash #1}}}
+
+\NewDocumentCommand{\indexenv}{m}{\index{#1@\texttt{\{#1\}}}}
+
+
 \PitonOptions{gobble=2}
 
 \EnableCrossrefs
 
 \begin{document}
-
 \DocInput{piton.dtx}
 \end{document}
 %</driver>
 % \fi
+% \iffalse
+%<*STY>
+% \fi
+\def\PitonFileVersion{2.3}
+\def\PitonFileDate{2024/01/06}
+% \iffalse
+%</STY>
+%<*LUA>
+-- Version 2.3 of 2024/01/06
+%</LUA>
+%\fi
 %
 % \catcode`\" = 11 
 % 
 % \title{The package \pkg{piton}\thanks{This document corresponds to the
-% version~\myfileversion\space of \pkg{piton}, at the date of~\myfiledate.}} 
+% version~\PitonFileVersion\space of \pkg{piton}, at the date of~\PitonFileDate.}} 
 % \author{F. Pantigny \\ \texttt{fpantigny@wanadoo.fr}}
 %
 % \maketitle
@@ -178,6 +171,7 @@ version 2005/12/01 or later.
 % By default, the language used is Python.
 %
 % \smallskip
+% \index{language (key)}
 % It's possible to change the current language with the command |\PitonOptions|
 % and its key |language|: |\PitonOptions{language = C}|.
 %
@@ -186,6 +180,8 @@ version 2005/12/01 or later.
 % apply to the other languages.
 % 
 % \subsection{The tools provided to the user}
+%
+% \indexenv{Piton}
 % 
 % The package \pkg{piton} provides several tools to typeset Python code: the
 % command |\piton|, the environment |{Piton}| and the command |\PitonInputFile|.
@@ -218,6 +214,8 @@ version 2005/12/01 or later.
 % \end{itemize}
 %
 % \subsection{The syntax of the command \textbackslash piton}
+% 
+% \indexcommand{piton}
 % 
 % In fact, the command |\piton| is provided with a double syntax. It may be used
 % as a standard command of LaTeX taking its argument between curly braces
@@ -312,6 +310,8 @@ version 2005/12/01 or later.
 %
 % \NewDocumentCommand{\Definition}{m}
 %   {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily \vphantom{gl}#1}}}
+%
+% \indexcommand{PitonOptions}
 % 
 % The command |\PitonOptions| takes in as argument a comma-separated list of
 % \textsl{key=value} pairs. The scope of the settings done by that command is
@@ -326,20 +326,22 @@ version 2005/12/01 or later.
 % considered (that key is case-insensitive). Four values are allowed :
 % |Python|, |OCaml|, |C| and |SQL|. The initial value is |Python|.
 % 
-% \item The key \Definition{path} specifies a path where the files included by
+% \item \index{path} The key \Definition{path} specifies a path where the files included by
 % |\PitonInputFile| will be searched.
 % 
-% \item The key \Definition{gobble} takes in as value a
+% \item  \index{gobble} The key \Definition{gobble} takes in as value a
 % positive integer~$n$: the first $n$ characters are discarded (before the
 % process of highlightning of the code) for each line of the environment
 % |{Piton}|. These characters are not necessarily spaces.
 %
-% \item When the key \Definition{auto-gobble} is in force, the
-% extension \pkg{piton} computes the minimal value $n$ of the number of
-% consecutive spaces beginning each (non empty) line of the environment
-% |{Piton}| and applies |gobble| with that value of~$n$.
+% \item \index{auto-gobble}\index{gobble!auto-gobble} When the key
+% \Definition{auto-gobble} is in force, the extension \pkg{piton} computes the
+% minimal value $n$ of the number of consecutive spaces beginning each (non
+% empty) line of the environment |{Piton}| and applies |gobble| with that value
+% of~$n$.
 %
-% \item When the key \Definition{env-gobble} is in force, \pkg{piton} analyzes the last
+% \item \index{env-gobble}\index{gobble!env-gobble}
+% When the key \Definition{env-gobble} is in force, \pkg{piton} analyzes the last
 % line of the environment |{Piton}|, that is to say the line which contains
 % |\end{Piton}| and determines whether that line contains only spaces followed
 % by the |\end{Piton}|. If we are in that situation, \pkg{piton} computes the
@@ -348,9 +350,14 @@ version 2005/12/01 or later.
 % gobble is set by the position of the commands |\begin{Piton}| and
 % |\end{Piton}| which delimit the current environment.
 %
-% \item The key \Definition{line-numbers} activates the line numbering. in the
-% environments |{Piton}| and in the listings resulting from the use of
-% |\PitonInputFile|.
+% \item \index{write} \colorbox{yellow!50}{\bfseries New 2.3}\enskip The key
+% \Definition{write} takes in as argument a name of file (with its extension)
+% and write the content of the current environment in that file. At the first
+% use of a file by \pkg{piton}, it is erased.
+%
+% \item \index{line-numbers} The key \Definition{line-numbers} activates the
+% line numbering in the environments |{Piton}| and in the listings resulting
+% from the use of |\PitonInputFile|.
 % 
 % \colorbox{yellow!50}{\textbf{New 2.1}}\enskip In fact, the key |line-numbers| has
 % several subkeys.
@@ -397,19 +404,20 @@ version 2005/12/01 or later.
 % \end{Verbatim}
 %
 %
-% \item The key \Definition{left-margin} corresponds to a margin on the left.
-% That key may be useful in conjonction with the key |line-numbers| if one does
-% not want the numbers in an overlapping position on the left.
+% \item \index{left-margin} The key \Definition{left-margin} corresponds to a
+% margin on the left. That key may be useful in conjonction with the key
+% |line-numbers| if one does not want the numbers in an overlapping position on
+% the left. 
 %
 % It's possible to use the key |left-margin| with the value |auto|. With that
 % value, if the key |line-numbers| is in force, a margin will be automatically
 % inserted to fit the numbers of lines. See an example part
 % \ref{example-numbering} on page~\pageref{example-numbering}.
 %
-% \item The key \Definition{background-color} sets the background color of the
-% environments |{Piton}| and the listings produced by |\PitonInputFile| (it's
-% possible to fix the width of that background with the key |width| described
-% below). 
+% \item \index{background-color} The key \Definition{background-color} sets the
+% background color of the environments |{Piton}| and the listings produced by
+% |\PitonInputFile| (it's possible to fix the width of that background with the
+% key |width| described below). 
 %
 % \smallskip
 % The key |background-color| supports also as value a \emph{list} of colors. In
@@ -421,15 +429,16 @@ version 2005/12/01 or later.
 % The key |background-color| accepts a color defined «on the fly». For example,
 % it's possible to write |background-color = [cmyk]{0.1,0.05,0,0}|.
 %
-% \item With the key \Definition{prompt-background-color}, \pkg{piton} adds a
+% \item \index{prompt-background-color} With the key
+% \Definition{prompt-background-color}, \pkg{piton} adds a 
 % color background to the lines beginning with the prompt ``|>>>|'' (and its
 % continuation ``|...|'') characteristic of the Python consoles with
 % \textsc{repl} (\emph{read-eval-print loop}).
 %
-% \item The key \Definition{width} will fix the width of the listing. That width
-% applies to the colored backgrounds specified by |background-color| and
-% |prompt-background-color| but also for the automatic breaking of the lines
-% (when required by |break-lines|: cf.~\ref{line-breaks},
+% \item \index{width} The key \Definition{width} will fix the width of the
+% listing. That width applies to the colored backgrounds specified by
+% |background-color| and |prompt-background-color| but also for the automatic
+% breaking of the lines (when required by |break-lines|: cf.~\ref{line-breaks},
 % p.~\pageref{line-breaks}).
 %
 % That key may take in as value a numeric value but also the special
@@ -444,20 +453,23 @@ version 2005/12/01 or later.
 % p.~\pageref{example-comments}. 
 %
 %
-% \item When the key \Definition{show-spaces-in-strings} is activated, the
-% spaces in the short strings (that is to say those delimited by |'| or |"|) are
-% replaced by the character~␣ (U+2423 : \textsc{open box}). Of course, that
-% character~U+2423 must be present in the monospaced font which is
-% used.\footnote{The package \pkg{piton} simply uses the current monospaced
-% font. The best way to change that font is to use the command
-% \texttt{\textbackslash setmonofont} of the package \pkg{fontspec}.}\par\nobreak
-% \begingroup \PitonOptions{show-spaces-in-strings} Example : 
+% \item \index{show-spaces-in-strings} When the key
+% \Definition{show-spaces-in-strings} is activated, the spaces in the 
+% strings of characters\footnote{With the language Python that feature applies
+% only to the short strings (delimited by~\verb|'| or~\verb|"|). In OCaml, that
+% feature does not apply to the \emph{quoted strings}.} are replaced by the
+% character~␣ (U+2423 : \textsc{open box}). Of course, that character~U+2423
+% must be present in the monospaced font which is used.\footnote{The package
+% \pkg{piton} simply uses the current monospaced font. The best way to change
+% that font is to use the command \texttt{\textbackslash setmonofont} of the
+% package \pkg{fontspec}.}\par\nobreak \begingroup
+% \PitonOptions{show-spaces-in-strings} Example : 
 % \piton|my_string = 'Very good answer'| \endgroup
 %
-% With the key \Definition{show-spaces}, all the spaces are replaced by U+2423
-% (and no line break can occur on those ``visible spaces'', even when the key
-% |break-lines|\footnote{cf. \ref{line-breaks} p.~\pageref{line-breaks}} is in
-% force). 
+% With the key \index{show-spaces} \Definition{show-spaces}, all the spaces are
+% replaced by U+2423 (and no line break can occur on those ``visible spaces'',
+% even when the key |break-lines|\footnote{cf. \ref{line-breaks}
+% p.~\pageref{line-breaks}} is in force).
 % \end{itemize}
 %
 % \bigskip
@@ -525,6 +537,7 @@ version 2005/12/01 or later.
 % group.\footnote{We remind that a LaTeX environment is, in particular, a TeX group.}
 %
 % \bigskip
+% \indexcommand{SetPitonStyle}
 % The command |\SetPitonStyle| takes in as argument a comma-separated list of
 % \textsl{key=value} pairs. The keys are names of styles and the value are LaTeX
 % formatting instructions.
@@ -564,6 +577,7 @@ version 2005/12/01 or later.
 % 
 %
 % \bigskip
+% \indexcommand{PitonStyle}
 % The command |\PitonStyle| takes in as argument the name of a style and allows
 % to retrieve the value (as a list of LaTeX instructions) of that style.
 %
@@ -620,6 +634,9 @@ version 2005/12/01 or later.
 % \bigskip
 %
 % \subsubsection{The style UserFunction}
+%
+% \index{UserFunction (style)}
+% 
 % The extension \pkg{piton} provides a special style called~|UserFunction|. That
 % style applies to the names of the functions previously defined by the user
 % (for example, in Python, these names are those following the keyword
@@ -677,6 +694,7 @@ version 2005/12/01 or later.
 % \subsection{Creation of new environments}
 %
 % \label{NewPitonEnvironment}
+% \indexcommand{NewPitonEnvironment}
 % 
 % Since the environment |{Piton}| has to catch its body in a special way (more
 % or less as verbatim text), it's not possible to construct new environments
@@ -736,6 +754,7 @@ version 2005/12/01 or later.
 % \label{breakable}
 %
 % \subsubsection{Page breaks}
+% \index{splittable}
 %
 % By default, the listings produced by the environment |{Piton}| and the command
 % |\PitonInputFile| are not breakable.
@@ -769,13 +788,16 @@ version 2005/12/01 or later.
 % line. However, there are keys to allow such breaks (the possible breaking
 % points are the spaces, even the spaces in the Python strings).
 % \begin{itemize}
-% \item With the key \Definition{break-lines-in-piton}, the line breaks are
-% allowed in the command |\piton{...}| (but not in the command
-% \verb+\piton|...|+, that is to say the command |\piton| in verbatim mode). 
-% \item With the key \Definition{break-lines-in-Piton}, the line breaks are
-% allowed in the environment |{Piton}| (hence the capital letter |P| in the name) and in the
+% \item \index{break-lines!break-lines-in-piton} With the key
+% \Definition{break-lines-in-piton}, the line breaks are allowed in the command
+% |\piton{...}| (but not in the command \verb+\piton|...|+, that is to say the
+% command |\piton| in verbatim mode).
+% \item \index{break-lines!break-lines-in-Piton} With the key
+% \Definition{break-lines-in-Piton}, the line breaks are allowed in the
+% environment |{Piton}| (hence the capital letter |P| in the name) and in the
 % listings produced by |\PitonInputFile|.
-% \item The key \Definition{break-lines} is a conjonction of the two previous keys.
+% \item \index{break-lines} The key \Definition{break-lines} is a conjonction of
+% the two previous keys. 
 % \end{itemize}
 % 
 % \bigskip 
@@ -783,18 +805,20 @@ version 2005/12/01 or later.
 % on the line breaks allowed by |break-lines-in-Piton|.
 %
 % \begin{itemize}
-% \item With the key \Definition{indent-broken-lines}, the indentation of a
+% \item \index{indent-broken-lines} With the key
+% \Definition{indent-broken-lines}, the indentation of a 
 % broken line is respected at carriage return.
 %
 % \item The key \Definition{end-of-broken-line} corresponds to the symbol placed
 % at the end of a broken line. The initial value is:
 % |\hspace*{0.5em}\textbackslash|.
 %
-% \item The key \Definition{continuation-symbol} corresponds to the symbol
-% placed at each carriage return. The initial value is: |+\;| (the command |\;|
-% inserts a small horizontal space).
+% \item \index{continuation-symbol} The key \Definition{continuation-symbol}
+% corresponds to the symbol placed at each carriage return. The initial value
+% is: |+\;| (the command |\;| inserts a small horizontal space).
 %
-% \item The key \Definition{continuation-symbol-on-indentation} corresponds to
+% \item \index{continuation-symbol-on-indentation} 
+% The key \Definition{continuation-symbol-on-indentation} corresponds to
 % the symbol placed at each carriage return, on the position of the indentation
 % (only when the key |indent-broken-line| is in force). The initial value is:
 % |$\hookrightarrow\;$|.
@@ -831,6 +855,7 @@ version 2005/12/01 or later.
 % \subsection{Insertion of a part of a file}
 %
 % \label{part-of-a-file}
+% \indexcommand{PitonInputFile}
 %
 % The command |\PitonInputFile| inserts (with formating) the content of a file.
 % In fact, it's possible to insert only \emph{a part} of that file. Two
@@ -856,6 +881,9 @@ version 2005/12/01 or later.
 % \subsubsection{With textual markers}
 %
 % \colorbox{yellow!50}{\textbf{New 2.1}}
+%
+% \index{marker/beginning}
+% \index{marker/end}
 %
 % In order to use that feature, we first have to specify the format of the
 % markers (for the beginning and the end of the part to include) with the keys
@@ -928,6 +956,7 @@ version 2005/12/01 or later.
 % \end{Piton}
 %
 % \vspace{1cm}
+% \index{marker/include-line}
 % The key \Definition{marker/include-line} requires the insertion of the lines
 % containing the markers.
 %
@@ -952,6 +981,8 @@ version 2005/12/01 or later.
 %
 %
 % \bigskip
+% \index{begin-range}
+% \index{end-range}
 % In fact, there exist also the keys \Definition{begin-range} and
 % \Definition{end-range} to insert several marked contents at the same time.
 %
@@ -966,6 +997,8 @@ version 2005/12/01 or later.
 %
 %
 % \subsection{Highlighting some identifiers}
+%
+% \index{identifiers (key)}
 %
 % It's possible to require a changement of formating for some identifiers with
 % the key |identifiers| of |\PitonOptions|.\footnote{This feature is not
@@ -1091,6 +1124,8 @@ version 2005/12/01 or later.
 %
 % \subsection{Mechanisms to escape to LaTeX}
 %
+% \index{escapes to LaTeX}
+% 
 % The package \pkg{piton} provides several mechanisms for escaping to LaTeX:
 % \begin{itemize}
 % \item It's possible to compose comments entirely in LaTeX.
@@ -1104,6 +1139,8 @@ version 2005/12/01 or later.
 % environments of Beamer: cf. \ref{beamer} p.~\pageref{beamer}.
 %
 % \subsubsection{The ``LaTeX comments''}
+%
+% \index{comment-latex}
 %
 % In this document, we call ``LaTeX comments'' the comments which begins by
 % |#>|. The code following those characters, until the end of the line, will be
@@ -1154,13 +1191,15 @@ version 2005/12/01 or later.
 %
 % \subsubsection{The key ``math-comments''}
 %
+% \index{math-comments}
+%
 % It's possible to request that, in the standard Python comments (that is to say
 % those beginning by |#| and not |#>|), the elements between \texttt{\$} be
 % composed in LaTeX mathematical mode (the other elements of the comment being
 % composed verbatim).
 %
-% That feature is activated by the key \Definition{math-comments}, which is
-% available only in the preamble of the document.
+% That feature is activated by the key \Definition{math-comments}, \emph{which is
+% available only in the preamble of the document}.
 %
 % \medskip
 % Here is a example, where we have assumed that the preamble of the document
@@ -1180,14 +1219,18 @@ version 2005/12/01 or later.
 % 
 % \subsubsection{The mechanism ``escape''}
 %
+% \index{escape-math}
+% \index{begin-escape-math}
+% \index{end-escape-math}
+%
 % It's also possible to overwrite the Python listings to insert LaTeX code
 % almost everywhere (but between lexical units, of course). By default,
 % \pkg{piton} does not fix any delimiters for that kind of escape.
 %
 % In order to use this mechanism, it's necessary to specify the delimiters which
 % will delimit the escape (one for the beginning and one for the end) by using
-% the keys \Definition{begin-escape} and \Definition{end-escape}, available only
-% in the preamble of the document.
+% the keys \Definition{begin-escape} and \Definition{end-escape}, \emph{available only
+% in the preamble of the document}.
 %
 % \medskip
 % In the following example, we assume that the preamble of the document contains
@@ -1275,8 +1318,8 @@ version 2005/12/01 or later.
 % the math mode of LaTeX.
 %
 % This mechanism is activated with the keys \Definition{begin-escape-math} and
-% \Definition{end-escape-math} (which are available only in the preamble of the
-% document). 
+% \Definition{end-escape-math} (\emph{which are available only in the preamble of the
+% document}). 
 %
 % Despite the technical similarity, the use of the the mechanism
 % ``|escape-math|'' is in fact rather different from that of the mechanism
@@ -1335,6 +1378,7 @@ version 2005/12/01 or later.
 % \subsection{Behaviour in the class Beamer}
 %
 % \label{beamer}
+% \index{Beamer@\cls{Beamer} (class)}
 %
 % \emph{First remark}\par\nobreak
 % Since the environment |{Piton}| catches its body with a verbatim mode, it's
@@ -1501,7 +1545,12 @@ version 2005/12/01 or later.
 %
 % 
 % \subsection{Footnotes in the environments of piton}
-% 
+%
+%  \index{footnote@\pkg{footnote} (extension)}
+% \index{footnote (key)}
+% \index{footnotehyper@\pkg{footnotehyper} (extension)}
+% \index{footnotehyper (key)}
+%
 % \label{footnote}
 % If you want to put footnotes in an environment |{Piton}| or
 % (or, more unlikely, in a listing produced by |\PitonInputFile|), you can use a
@@ -1536,6 +1585,9 @@ version 2005/12/01 or later.
 %
 % \subsection{Tabulations}
 %
+% \index{tabulations}
+% \index{tab-size}
+%
 % \smallskip 
 % Even though it's recommended to indent the Python listings with spaces (see
 % PEP~8), \pkg{piton} accepts the characters of tabulation (that is to say the
@@ -1556,6 +1608,7 @@ version 2005/12/01 or later.
 % \subsection{Line numbering}
 %
 % \label{example-numbering}
+% \index{numbers of the lines de code|emph}
 %
 % We remind that it's possible to have an automatic numbering of the lines in
 % the Python listings by using the key |line-numbers|.
@@ -1695,6 +1748,7 @@ version 2005/12/01 or later.
 % \subsection{Notes in the listings}
 %
 % \label{notes-examples}
+% \index{notes in the listings}
 % 
 % In order to be able to extract the notes (which are typeset with the command
 % |\footnote|), the extension \pkg{piton} must be loaded with the key |footnote|
@@ -1874,6 +1928,8 @@ version 2005/12/01 or later.
 % \endgroup
 % 
 % \subsection{Use with pyluatex}
+%
+% \index{pyluatex@{\pkg{pyluatex}} (extension)}
 %
 % The package \pkg{pyluatex} is an extension which allows the execution of some
 % Python code from |lualatex| (provided that Python is installed on the machine
@@ -2179,6 +2235,14 @@ version 2005/12/01 or later.
 % \end{center}
 %
 %
+% \bigskip
+% It's possible to automatically capitalize the keywords by modifiying locally
+% for the language SQL the style |Keywords|.
+% \begin{Verbatim}
+% \SetPitonStyle~emphase#[SQL]@{Keywords = \bfseries \MakeUppercase}
+% \end{Verbatim}
+%
+%
 % \newpage
 %
 % \section{Implementation}
@@ -2322,8 +2386,8 @@ version 2005/12/01 or later.
 \RequirePackage{l3keys2e}
 \ProvidesExplPackage
   {piton}
-  {\myfiledate}
-  {\myfileversion}
+  {\PitonFileDate}
+  {\PitonFileVersion}
   {Highlight Python codes with LPEG on LuaLaTeX}
 %    \end{macrocode}
 %
@@ -2361,7 +2425,7 @@ version 2005/12/01 or later.
 \@@_msg_new:nn { piton.lua~not~found }
   { 
     The~file~'piton.lua'~can't~be~found.\\ 
-    The package~'piton'~won't~be~loaded.
+    The~package~'piton'~won't~be~loaded.
   }
 %    \end{macrocode}
 %
@@ -2410,7 +2474,6 @@ version 2005/12/01 or later.
     beamer .bool_gset:N = \g_@@_beamer_bool ,
     beamer .default:n = true , 
   
-    escape-inside .code:n = \@@_error:n { key-escape-inside-deleted } , 
     math-comments .code:n = \@@_error:n { moved~to~preamble } , 
     comment-latex .code:n = \@@_error:n { moved~to~preamble } , 
 
@@ -2418,16 +2481,6 @@ version 2005/12/01 or later.
   }
 %    \end{macrocode}
 %
-% \bigskip
-%    \begin{macrocode}
-\@@_msg_new:nn { key-escape-inside-deleted }
-  {
-    The~key~'escape-inside'~has~been~deleted.~You~must~now~use~
-    the~keys~'begin-escape'~and~'end-escape'~in~
-    \token_to_str:N \PitonOptions.\\
-    That~key~will~be~ignored.
-  }
-%    \end{macrocode}
 %
 % \bigskip
 %    \begin{macrocode}
@@ -2663,6 +2716,15 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 % \medskip
+% The parameter |\l_@@_writer_str| corresponds to the key |write|. We will store
+% the list of the files already used in |\g_@@_write_seq| (we must not erase a
+% file which has been still been used).
+%    \begin{macrocode}
+\str_new:N \l_@@_write_str
+\seq_new:N \g_@@_write_seq
+%    \end{macrocode}
+%
+% \medskip
 % The following boolean corresponds to the key |show-spaces|.
 %    \begin{macrocode}
 \bool_new:N \l_@@_show_spaces_bool
@@ -2684,9 +2746,9 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 % \medskip
-%    \begin{macrocode}
 % The following token list corresponds to the key
 % |continuation-symbol-on-indentation|. The name has been shorten to |csoi|.
+%    \begin{macrocode}
 \tl_new:N \l_@@_csoi_tl 
 \tl_set:Nn \l_@@_csoi_tl { $ \hookrightarrow \; $  }
 %    \end{macrocode}
@@ -2921,7 +2983,10 @@ version 2005/12/01 or later.
   {
     \tl_set:Nn \l_tmpa_tl { #1 } 
     \bool_if:NTF \l_@@_show_spaces_bool
-      { \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl } % U+2423
+      { 
+        \tl_set:Nn \l_@@_space_tl { ␣ }
+        \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl % U+2423
+      } 
       {
 %    \end{macrocode}
 % If the key |break-lines-in-Piton| is in force, we replace all the characters
@@ -3327,7 +3392,6 @@ version 2005/12/01 or later.
       \keys_set:nn { PitonOptions / line-numbers } { #1 } ,
     line-numbers .default:n = true , 
 
-
     splittable       .int_set:N         = \l_@@_splittable_int ,
     splittable       .default:n         = 1 , 
     background-color .clist_set:N       = \l_@@_bg_color_clist ,
@@ -3346,6 +3410,9 @@ version 2005/12/01 or later.
           \dim_set:Nn \l_@@_width_dim { #1 } 
         } , 
     width .value_required:n  = true ,
+
+    write .str_set:N = \l_@@_write_str ,
+    write .value_required:n = true ,
 
     left-margin      .code:n =
       \str_if_eq:nnTF { #1 } { auto }
@@ -3682,11 +3749,11 @@ version 2005/12/01 or later.
     \dim_compare:nNnT \l_@@_width_dim = \c_zero_dim 
       { \dim_set_eq:NN \l_@@_width_dim \linewidth }
 %    \end{macrocode}
-% We read the information written on the |aux| file by previous run (when the
+% We read the information written on the |aux| file by a previous run (when the
 % key |width| is used with the special value~|min|). At this time, the only
 % potential information written on the |aux| file is the value of
 % |\l_@@_line_width_dim| when the key |width| has been used with the special
-% value~|min|). 
+% value~|min|).
 %    \begin{macrocode}
     \cs_if_exist_use:c { c_@@ _ \int_use:N \g_@@_env_int _ tl }
     \bool_if:NF \l_@@_resume_bool { \int_gzero:N \g_@@_visual_line_int }
@@ -3694,7 +3761,6 @@ version 2005/12/01 or later.
     \int_gzero:N \g_@@_line_int
     \dim_zero:N \parindent 
     \dim_zero:N \lineskip 
-    \dim_zero:N \parindent 
     \cs_set_eq:NN \label \@@_label:n
   }
 %    \end{macrocode}
@@ -3773,8 +3839,8 @@ version 2005/12/01 or later.
           }
       }
 %    \end{macrocode}
-% If |\l_@@_line_width_dim| has yet a non-empty value, that means that it has
-% been read on the |aux| file: it has been written on a previous run because the
+% If |\l_@@_line_width_dim| has yet a non-zero value, that means that it has
+% been read in the |aux| file: it has been written by a previous run because the
 % key |width| is used with the special value~|min|). We compute now the width of
 % the environment by computations opposite to the preceding ones.
 %    \begin{macrocode}
@@ -3828,12 +3894,26 @@ version 2005/12/01 or later.
             \@@_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
             \@@_compute_width:
             \ttfamily
-            \dim_zero:N \parskip % added 2023/07/06
+            \dim_zero:N \parskip 
 %    \end{macrocode}
-% |\g_@@_footnote_bool| is raised when the package \pkg{piton} has been load
+% |\g_@@_footnote_bool| is raised when the package \pkg{piton} has been loaded
 % with the key |footnote| \emph{or} the key |footnotehyper|.
 %    \begin{macrocode}
             \bool_if:NT \g_@@_footnote_bool { \begin { savenotes } } 
+%    \end{macrocode}
+% 
+% Now, the key |write|.
+%    \begin{macrocode}
+            \lua_now:e { piton.write = "\l_@@_write_str" } 
+            \str_if_empty:NF \l_@@_write_str
+              { 
+                \seq_if_in:NVTF \g_@@_write_seq \l_@@_write_str 
+                  { \lua_now:n { piton.write_mode = "a" } }
+                  { 
+                    \lua_now:n { piton.write_mode = "w" } 
+                    \seq_gput_left:NV \g_@@_write_seq \l_@@_write_str
+                  }
+              }  
             \vtop \bgroup 
             \lua_now:e 
               { 
@@ -3881,7 +3961,7 @@ version 2005/12/01 or later.
           \char_set_catcode_other:N 
         \use:c { _@@_collect_ #1 :w }
       }
-      { #4 }
+      { #4 } 
 %    \end{macrocode}
 %
 % \medskip
@@ -4251,6 +4331,7 @@ version 2005/12/01 or later.
 %
 % \bigskip
 % \subsubsection{Highlighting some identifiers}
+%
 % 
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_identifier:n #1
@@ -4469,7 +4550,7 @@ version 2005/12/01 or later.
 %   \begin{macrocode}
 \@@_msg_new:nn { syntax~error }
   {
-    Your~code~is~not~syntactically~correct.\\
+    Your~code~\l_@@_language_str\ is~not~syntactically~correct.\\
     It~won't~be~printed~in~the~PDF~file.
   }
 %    \end{macrocode}
@@ -4553,7 +4634,8 @@ version 2005/12/01 or later.
     show-spaces-in-strings,~
     splittable,~
     tabs-auto-gobble,~
-    tab-size~and~width.
+    tab-size,~width~
+    and~write.
   }
 %    \end{macrocode}
 %
@@ -5889,7 +5971,7 @@ local closeeq =
 local QuotedStringBis = 
   WithStyle ( 'String.Long' ,
       (  
-        VisualSpace
+        Space
         +
         Q ( ( 1 - S " \r" ) ^ 1 ) 
         +  
@@ -6106,8 +6188,16 @@ languages['ocaml'] = ocaml
 %    \end{macrocode}
 %
 % \bigskip
-% \subsubsection{The LPEG language C}
+% \subsubsection{The LPEG for the language C}
 % 
+%    \begin{macrocode}
+local Delim = Q ( S "{[()]}" )
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+local Punct = Q ( S ",:;!" )
+%    \end{macrocode}
+%
 % \bigskip
 % Some strings of length 2 are explicit because we want the corresponding
 % ligatures available in some fonts such as \emph{Fira Code} to be active.
@@ -6151,6 +6241,7 @@ local Type =
 local DefFunction = 
   Type 
   * Space 
+  * Q ( "*" ) ^ -1 
   * K ( 'Name.Function.Internal' , identifier ) 
   * SkipSpace 
   * # P "("
@@ -7009,6 +7100,11 @@ function piton.GobbleParse(language,n,code)
        end
   end
   piton.Parse(language,gobble(n,code))
+  if piton.write ~= ''
+  then local file = assert(io.open(piton.write,piton.write_mode))
+       file:write(code)
+       file:close()
+  end
 end 
 %    \end{macrocode}
 %
@@ -7130,6 +7226,10 @@ end
 %
 % \verb|https://github.com/fpantigny/piton|
 %
+% \subsection*{Changes between versions 2.2 and 2.3}
+%
+% New key |write|.
+% 
 % \subsection*{Changes between versions 2.1 and 2.2}
 %
 % New key |path| for |\PitonOptions|.
