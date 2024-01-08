@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{2.3}
-\def\PitonFileDate{2024/01/06}
+\def\PitonFileVersion{2.3z}
+\def\PitonFileDate{2024/01/07}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -143,13 +143,16 @@
         \bool_gset_true:N \g__piton_footnote_bool
       }
   }
-\lua_now:n { piton = piton~or { } }
+\lua_now:n
+  {
+    piton = piton~or { }
+    piton.ListCommands = lpeg.P ( false )
+  }
 \str_new:N \l__piton_language_str
 \str_set:Nn \l__piton_language_str { python }
 \str_new:N \l__piton_path_str
 \bool_new:N \l__piton_in_PitonOptions_bool
 \bool_new:N \l__piton_in_PitonInputFile_bool
-\bool_new:N \g__piton_in_document_bool
 \int_new:N \l__piton_nb_lines_int
 \int_new:N \l__piton_nb_non_empty_lines_int
 \int_new:N \g__piton_line_int
@@ -467,6 +470,9 @@
   }
 \keys_define:nn { PitonOptions }
   {
+    detected-commands .code:n =  \__piton_detected_commands:n { #1 } ,
+    detected-commands .value_required:n = true ,
+    detected-commands .usage:n = preamble ,
     begin-escape .code:n =
       \lua_now:e { piton.begin_escape = "\lua_escape:n{#1}" } ,
     begin-escape .value_required:n = true ,
@@ -626,8 +632,6 @@
   }
 \NewDocumentCommand \__piton_fake_PitonOptions { }
   { \keys_set:nn { PitonOptions } }
-\hook_gput_code:nnn { begindocument } { . }
-  { \bool_gset_true:N \g__piton_in_document_bool }
 \int_new:N \g__piton_visual_line_int
 \cs_new_protected:Npn \__piton_print_number:
   {
@@ -1301,6 +1305,7 @@
     break-lines-in-Piton,~
     continuation-symbol,~
     continuation-symbol-on-indentation,~
+    detected-commands,~
     end-of-broken-line,~
     end-range,~
     env-gobble,~
@@ -1347,6 +1352,23 @@
   { A~Python~error~has~been~detected. }
 \hook_gput_code:nnn { begindocument } { . }
   { \lua_now:e { require("piton.lua") } }
+\cs_new_protected:Npn \__piton_detected_commands:n #1
+  { \lua_now:n { piton.addListCommands('#1') } }
+\ExplSyntaxOff
+\directlua
+  {
+    lpeg.locale(lpeg)
+    local P , alpha , C , Cf, space = lpeg.P , lpeg.alpha , lpeg.C , lpeg.Cf , lpeg.space
+    local One_P = space ^ 0
+                  * C ( alpha ^ 1 ) / ( function (s) return P ( "\\" .. s ) end )
+                  * space ^ 0
+    function piton.addListCommands( key_value )
+       piton.ListCommands =
+         piton.ListCommands +
+           Cf ( One_P * ( P "," * One_P ) ^ 0  ,
+                ( function (s,t) return s + t end ) ) : match ( key_value )
+    end
+  }
 
 \endinput
 %%

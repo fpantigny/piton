@@ -71,12 +71,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{2.3}
-\def\PitonFileDate{2024/01/06}
+\def\PitonFileVersion{2.3z}
+\def\PitonFileDate{2024/01/07}
 % \iffalse
 %</STY>
 %<*LUA>
--- Version 2.3 of 2024/01/06
+-- Version 2.3z of 2024/01/07
 %</LUA>
 %\fi
 %
@@ -2605,7 +2605,11 @@
 %
 % \bigskip
 %    \begin{macrocode}
-\lua_now:n { piton = piton~or { } }
+\lua_now:n 
+  { 
+    piton = piton~or { } 
+    piton.ListCommands = lpeg.P ( false ) 
+  }
 %    \end{macrocode}
 % 
 % \bigskip
@@ -2631,11 +2635,6 @@
 \bool_new:N \l_@@_in_PitonInputFile_bool 
 %    \end{macrocode}
 %
-% \medskip
-% The following flag will be raised in the |\AtBeginDocument|.
-%    \begin{macrocode}
-\bool_new:N \g_@@_in_document_bool
-%    \end{macrocode}
 % 
 % \medskip
 % We will compute (with Lua) the numbers of lines of the Python code and store
@@ -3331,6 +3330,9 @@
 %    \begin{macrocode}
 \keys_define:nn { PitonOptions }
   {
+    detected-commands .code:n =  \@@_detected_commands:n { #1 } , 
+    detected-commands .value_required:n = true , 
+    detected-commands .usage:n = preamble , 
 %    \end{macrocode}
 % First, we put keys that should be avalaible only in the preamble.
 %    \begin{macrocode}
@@ -3519,13 +3521,8 @@
 %    \end{macrocode}
 % 
 %
-%
-% \bigskip
-%    \begin{macrocode}
-\hook_gput_code:nnn { begindocument } { . }
-  { \bool_gset_true:N \g_@@_in_document_bool }
-%    \end{macrocode}
 % 
+%
 % \bigskip
 % \subsubsection{The numbers of the lines}
 %
@@ -4617,6 +4614,7 @@
     break-lines-in-Piton,~
     continuation-symbol,~ 
     continuation-symbol-on-indentation,~
+    detected-commands,~
     end-of-broken-line,~
     end-range,~
     env-gobble,~
@@ -4682,18 +4680,43 @@
 % \bigskip
 % \subsubsection{We load piton.lua}
 %
-%
 % \bigskip
 %    \begin{macrocode}
 \hook_gput_code:nnn { begindocument } { . }
   { \lua_now:e { require("piton.lua") } }
+%    \end{macrocode}
+% 
+% \bigskip
+% \subsubsection{Detected commands}
+%
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_detected_commands:n #1
+  { \lua_now:n { piton.addListCommands('#1') } }
+%    \end{macrocode}
+% 
+%    \begin{macrocode}
+\ExplSyntaxOff
+\directlua 
+  {
+    lpeg.locale(lpeg)
+    local P , alpha , C , Cf, space = lpeg.P , lpeg.alpha , lpeg.C , lpeg.Cf , lpeg.space
+    local One_P = space ^ 0 
+                  * C ( alpha ^ 1 ) / ( function (s) return P ( "\\" .. s ) end ) 
+                  * space ^ 0 
+    function piton.addListCommands( key_value )
+       piton.ListCommands =  
+         piton.ListCommands + 
+           Cf ( One_P * ( P "," * One_P ) ^ 0  ,
+                ( function (s,t) return s + t end ) ) : match ( key_value ) 
+    end
+  }
+%    \end{macrocode}
+% 
 %</STY>
 %    \end{macrocode}
 % 
 % \bigskip
 % \subsection{The Lua part of the implementation}
-%
-% 
 %
 % \bigskip
 % The Lua code will be loaded via a |{luacode*}| environment. The environment
@@ -5342,6 +5365,23 @@ end
 %    \end{macrocode}
 %
 % \bigskip
+% \paragraph{Detected commands}
+%
+%    \begin{macrocode}
+DetectedCommands = 
+      Ct ( Cc "Open" 
+            * C ( 
+                  piton.ListCommands
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 
+                  * P "{" 
+                ) 
+            * Cc "}" 
+         ) 
+       * ( C ( balanced_braces ) / (function (s) return MainLoopPython:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" ) 
+%    \end{macrocode}
+% 
+% \bigskip
 % \paragraph{EOL}
 %
 % \bigskip
@@ -5622,6 +5662,7 @@ local MainPython =
      + Escape + EscapeMath
      + CommentLaTeX
      + Beamer
+     + DetectedCommands 
      + LongString 
      + Comment
      + ExceptionInConsole
@@ -5896,6 +5937,20 @@ then
 end
 %    \end{macrocode}
 %
+%    \begin{macrocode}
+DetectedCommands = 
+      Ct ( Cc "Open" 
+            * C ( 
+                  piton.ListCommands
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 
+                  * P "{" 
+                ) 
+            * Cc "}" 
+         ) 
+       * ( C ( balanced_braces ) / (function (s) return MainLoopOCaml:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" ) 
+%    \end{macrocode}
+% 
 %
 % \bigskip
 % \paragraph{EOL}
@@ -6362,6 +6417,20 @@ then
 end
 %    \end{macrocode}
 %
+%    \begin{macrocode}
+DetectedCommands = 
+      Ct ( Cc "Open" 
+            * C ( 
+                  piton.ListCommands
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 
+                  * P "{" 
+                ) 
+            * Cc "}" 
+         ) 
+       * ( C ( balanced_braces ) / (function (s) return MainLoopC:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" ) 
+%    \end{macrocode}
+% 
 % \bigskip
 % \paragraph{EOL}
 %
@@ -6667,6 +6736,20 @@ then
       * K ( 'ParseAgain.noCR' , balanced_braces ) 
       * L ( P "}" )
 end
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+DetectedCommands = 
+      Ct ( Cc "Open" 
+            * C ( 
+                  piton.ListCommands
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 
+                  * P "{" 
+                ) 
+            * Cc "}" 
+         ) 
+       * ( C ( balanced_braces ) / (function (s) return MainLoopSQL:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" ) 
 %    \end{macrocode}
 %
 % \bigskip

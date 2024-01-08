@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
--- Version 2.3 of 2024/01/06
+-- Version 2.3z of 2024/01/07
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -337,6 +337,17 @@ then
       * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}" )
 end
+DetectedCommands =
+      Ct ( Cc "Open"
+            * C (
+                  piton.ListCommands
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
+                  * P "{"
+                )
+            * Cc "}"
+         )
+       * ( C ( balanced_braces ) / (function (s) return MainLoopPython:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" )
 local PromptHastyDetection = ( # ( P ">>>" + P "..." ) * Lc ( '\\__piton_prompt:' ) ) ^ -1
 local Prompt = K ( 'Prompt' , ( ( P ">>>" + P "..." ) * P " " ^ -1 ) ^ -1  )
 local EOL =
@@ -480,6 +491,7 @@ local MainPython =
      + Escape + EscapeMath
      + CommentLaTeX
      + Beamer
+     + DetectedCommands
      + LongString
      + Comment
      + ExceptionInConsole
@@ -666,6 +678,17 @@ then
       * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}" )
 end
+DetectedCommands =
+      Ct ( Cc "Open"
+            * C (
+                  piton.ListCommands
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
+                  * P "{"
+                )
+            * Cc "}"
+         )
+       * ( C ( balanced_braces ) / (function (s) return MainLoopOCaml:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" )
 local EOL =
   P "\r"
   *
@@ -969,6 +992,17 @@ then
       * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}" )
 end
+DetectedCommands =
+      Ct ( Cc "Open"
+            * C (
+                  piton.ListCommands
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
+                  * P "{"
+                )
+            * Cc "}"
+         )
+       * ( C ( balanced_braces ) / (function (s) return MainLoopC:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" )
 local EOL =
   P "\r"
   *
@@ -1158,6 +1192,17 @@ then
       * K ( 'ParseAgain.noCR' , balanced_braces )
       * L ( P "}" )
 end
+DetectedCommands =
+      Ct ( Cc "Open"
+            * C (
+                  piton.ListCommands
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
+                  * P "{"
+                )
+            * Cc "}"
+         )
+       * ( C ( balanced_braces ) / (function (s) return MainLoopSQL:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" )
 local EOL =
   P "\r"
   *
