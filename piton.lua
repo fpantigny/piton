@@ -5,7 +5,7 @@
 -- The original source files were:
 --
 -- piton.dtx  (with options: `LUA')
--- -------------------------------------------
+-- ---------------------------------------------
 -- Copyright (C) 2022-2024 by F. Pantigny
 -- 
 -- This file may be distributed and/or modified under the
@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
--- Version 2.3z of 2024/01/07
+-- Version 2.3zz of 2024/01/10
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end

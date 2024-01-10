@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{2.3z}
-\def\PitonFileDate{2024/01/07}
+\def\PitonFileVersion{2.3zz}
+\def\PitonFileDate{2024/01/10}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -927,10 +927,9 @@
       { \str_set:Nn \l__piton_file_name_str { #3 } }
       {
         \str_set_eq:NN \l__piton_file_name_str \l__piton_path_str
-        \str_put_right:Nn \l__piton_file_name_str { / }
-        \str_put_right:Nn \l__piton_file_name_str { #3 }
+        \str_put_right:Nn \l__piton_file_name_str { / #3 }
       }
-    \exp_args:NV \file_if_exist:nTF \l__piton_file_name_str
+    \file_if_exist:nTF { \l__piton_file_name_str }
       { \__piton_input_file:nn { #1 } { #2 } }
       { \msg_error:nnn { piton } { Unknown~file } { #3 } }
     \group_end:
@@ -1360,7 +1359,7 @@
     lpeg.locale(lpeg)
     local P , alpha , C , Cf, space = lpeg.P , lpeg.alpha , lpeg.C , lpeg.Cf , lpeg.space
     local One_P = space ^ 0
-                  * C ( alpha ^ 1 ) / ( function (s) return P ( "\\" .. s ) end )
+                  * C ( alpha ^ 1 ) / ( function (s) return P ( string.char(92) .. s ) end )
                   * space ^ 0
     function piton.addListCommands( key_value )
        piton.ListCommands =

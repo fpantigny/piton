@@ -71,12 +71,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{2.3z}
-\def\PitonFileDate{2024/01/07}
+\def\PitonFileVersion{2.3zz}
+\def\PitonFileDate{2024/01/10}
 % \iffalse
 %</STY>
 %<*LUA>
--- Version 2.3z of 2024/01/07
+-- Version 2.3zz of 2024/01/10
 %</LUA>
 %\fi
 %
@@ -4010,10 +4010,9 @@
       { \str_set:Nn \l_@@_file_name_str { #3 } } 
       { 
         \str_set_eq:NN \l_@@_file_name_str \l_@@_path_str 
-        \str_put_right:Nn \l_@@_file_name_str { / }
-        \str_put_right:Nn \l_@@_file_name_str { #3 }
+        \str_put_right:Nn \l_@@_file_name_str { / #3 }
       }
-    \exp_args:NV \file_if_exist:nTF \l_@@_file_name_str 
+    \file_if_exist:nTF { \l_@@_file_name_str }
       { \@@_input_file:nn { #1 } { #2 } }
       { \msg_error:nnn { piton } { Unknown~file } { #3 } } 
     \group_end:
@@ -4701,7 +4700,7 @@
     lpeg.locale(lpeg)
     local P , alpha , C , Cf, space = lpeg.P , lpeg.alpha , lpeg.C , lpeg.Cf , lpeg.space
     local One_P = space ^ 0 
-                  * C ( alpha ^ 1 ) / ( function (s) return P ( "\\" .. s ) end ) 
+                  * C ( alpha ^ 1 ) / ( function (s) return P ( string.char(92) .. s ) end ) 
                   * space ^ 0 
     function piton.addListCommands( key_value )
        piton.ListCommands =  
