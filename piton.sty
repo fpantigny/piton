@@ -148,8 +148,8 @@
     piton = piton~or { }
     piton.ListCommands = lpeg.P ( false )
   }
-\str_new:N \l__piton_language_str
-\str_set:Nn \l__piton_language_str { python }
+\str_new:N \l_piton_language_str
+\str_set:Nn \l_piton_language_str { python }
 \str_new:N \l__piton_path_str
 \bool_new:N \l__piton_in_PitonOptions_bool
 \bool_new:N \l__piton_in_PitonInputFile_bool
@@ -501,7 +501,7 @@
     math-comments .default:n  = true ,
     math-comments .usage:n = preamble ,
     language         .code:n =
-      \str_set:Nx \l__piton_language_str { \str_lowercase:n { #1 } } ,
+      \str_set:Nx \l_piton_language_str { \str_lowercase:n { #1 } } ,
     language         .value_required:n  = true ,
     path             .str_set:N         = \l__piton_path_str ,
     path             .value_required:n  = true ,
@@ -685,7 +685,7 @@
     \tl_set:Nx \l_tmpa_tl
       {
         \lua_now:e
-          { piton.ParseBis('\l__piton_language_str',token.scan_string()) }
+          { piton.ParseBis('\l_piton_language_str',token.scan_string()) }
           { #1 }
       }
     \bool_if:NTF \l__piton_show_spaces_bool
@@ -707,7 +707,7 @@
     \tl_set:Nx \l_tmpa_tl
       {
         \lua_now:e
-          { piton.Parse('\l__piton_language_str',token.scan_string()) }
+          { piton.Parse('\l_piton_language_str',token.scan_string()) }
           { #1 }
       }
     \bool_if:NT \l__piton_show_spaces_bool
@@ -728,7 +728,7 @@
         \tl_set:Nx \l_tmpa_tl
           {
             \lua_now:e
-              { piton.ParseTer('\l__piton_language_str',token.scan_string()) }
+              { piton.ParseTer('\l_piton_language_str',token.scan_string()) }
               { #1 }
           }
       }
@@ -736,7 +736,7 @@
         \tl_set:Nx \l_tmpa_tl
           {
             \lua_now:e
-              { piton.Parse('\l__piton_language_str',token.scan_string()) }
+              { piton.Parse('\l_piton_language_str',token.scan_string()) }
               { #1 }
           }
       }
@@ -759,7 +759,7 @@
         \tl_set:Nx \l_tmpa_tl
           {
             \lua_now:e
-              { piton.ParseTer('\l__piton_language_str',token.scan_string()) }
+              { piton.ParseTer('\l_piton_language_str',token.scan_string()) }
               { #1 }
           }
       }
@@ -767,7 +767,7 @@
         \tl_set:Nx \l_tmpa_tl
           {
             \lua_now:e
-              { piton.Parse('\l__piton_language_str',token.scan_string()) }
+              { piton.Parse('\l_piton_language_str',token.scan_string()) }
               { #1 }
           }
       }
@@ -875,7 +875,7 @@
               {
                 piton.GobbleParse
                   (
-                    '\l__piton_language_str' ,
+                    '\l_piton_language_str' ,
                     \int_use:N \l__piton_gobble_int ,
                     token.scan_argument()
                   )
@@ -996,7 +996,7 @@
       \lua_now:e
         {
           piton.ParseFile(
-           '\l__piton_language_str' ,
+           '\l_piton_language_str' ,
            '\l__piton_file_name_str' ,
            \int_use:N \l__piton_first_line_int ,
            \int_use:N \l__piton_last_line_int )
@@ -1023,14 +1023,14 @@
   }
 \NewDocumentCommand { \PitonStyle } { m }
   {
-    \cs_if_exist_use:cF { pitonStyle _ \l__piton_language_str  _ #1 }
+    \cs_if_exist_use:cF { pitonStyle _ \l_piton_language_str  _ #1 }
       { \use:c { pitonStyle _ #1 } }
   }
 \NewDocumentCommand { \SetPitonStyle } { O { } m }
   {
     \str_set:Nx \l__piton_SetPitonStyle_option_str { \str_lowercase:n { #1 } }
     \str_if_eq:onT \l__piton_SetPitonStyle_option_str { current-language }
-      { \str_set_eq:NN \l__piton_SetPitonStyle_option_str \l__piton_language_str }
+      { \str_set_eq:NN \l__piton_SetPitonStyle_option_str \l_piton_language_str }
     \keys_set:nn { piton / Styles } { #2 }
     \str_clear:N \l__piton_SetPitonStyle_option_str
   }
@@ -1143,7 +1143,7 @@
   }
 \bool_if:NT \g__piton_math_comments_bool { \SetPitonStyle { Comment.Math } }
 \cs_new_protected:Npn \__piton_identifier:n #1
-  { \cs_if_exist_use:c { PitonIdentifier _ \l__piton_language_str _ #1 } { #1 } }
+  { \cs_if_exist_use:c { PitonIdentifier _ \l_piton_language_str _ #1 } { #1 } }
 \keys_define:nn { PitonOptions }
   { identifiers .code:n = \__piton_set_identifiers:n { #1 } }
 \keys_define:nn { Piton / identifiers }
@@ -1159,20 +1159,20 @@
     \clist_map_inline:Nn \l__piton_identifiers_names_tl
       {
         \tl_set_eq:cN
-          { PitonIdentifier _ \l__piton_language_str _ ##1 }
+          { PitonIdentifier _ \l_piton_language_str _ ##1 }
           \l__piton_style_tl
       }
   }
 \cs_new_protected:cpn { pitonStyle _ Name.Function.Internal } #1
   {
     { \PitonStyle { Name.Function } { #1 } }
-    \cs_gset_protected:cpn { PitonIdentifier _ \l__piton_language_str _ #1 }
+    \cs_gset_protected:cpn { PitonIdentifier _ \l_piton_language_str _ #1 }
       { \PitonStyle { UserFunction } }
-    \seq_if_exist:cF { g__piton_functions _ \l__piton_language_str _ seq }
-      { \seq_new:c { g__piton_functions _ \l__piton_language_str _ seq } }
-    \seq_gput_right:cn { g__piton_functions _ \l__piton_language_str _ seq } { #1 }
-    \seq_if_in:NVF \g__piton_languages_seq \l__piton_language_str
-      { \seq_gput_left:NV \g__piton_languages_seq \l__piton_language_str }
+    \seq_if_exist:cF { g__piton_functions _ \l_piton_language_str _ seq }
+      { \seq_new:c { g__piton_functions _ \l_piton_language_str _ seq } }
+    \seq_gput_right:cn { g__piton_functions _ \l_piton_language_str _ seq } { #1 }
+    \seq_if_in:NVF \g__piton_languages_seq \l_piton_language_str
+      { \seq_gput_left:NV \g__piton_languages_seq \l_piton_language_str }
   }
 \NewDocumentCommand \PitonClearUserFunctions { ! o }
   {
@@ -1258,7 +1258,7 @@
   }
 \__piton_msg_new:nn { syntax~error }
   {
-    Your~code~\l__piton_language_str\ is~not~syntactically~correct.\\
+    Your~code~\l_piton_language_str\ is~not~syntactically~correct.\\
     It~won't~be~printed~in~the~PDF~file.
   }
 \NewDocumentCommand \PitonSyntaxError { }
@@ -1347,8 +1347,6 @@
     in~Beamer.\\
     If~you~go~on,~that~argument~will~be~ignored.
   }
-\__piton_msg_new:nn { Python~error }
-  { A~Python~error~has~been~detected. }
 \hook_gput_code:nnn { begindocument } { . }
   { \lua_now:e { require("piton.lua") } }
 \cs_new_protected:Npn \__piton_detected_commands:n #1

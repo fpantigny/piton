@@ -176,6 +176,10 @@
 % and its key |language|: |\PitonOptions{language = C}|.
 %
 % \smallskip
+% \colorbox{yellow!50}{\textbf{New 2.4}}\enskip The name of the L3 variable
+% corresponding to that key is |\l_piton_language_str|.
+%
+% \smallskip
 % In what follows, we will speak of Python, but the features described also
 % apply to the other languages.
 % 
@@ -2619,8 +2623,8 @@
 % considered (the initial value is |python|).
 %
 %    \begin{macrocode}
-\str_new:N \l_@@_language_str
-\str_set:Nn \l_@@_language_str { python }
+\str_new:N \l_piton_language_str
+\str_set:Nn \l_piton_language_str { python }
 %    \end{macrocode}
 % 
 % \medskip
@@ -3369,7 +3373,7 @@
 % Now, general keys.
 %    \begin{macrocode}
     language         .code:n = 
-      \str_set:Nx \l_@@_language_str { \str_lowercase:n { #1 } } , 
+      \str_set:Nx \l_piton_language_str { \str_lowercase:n { #1 } } , 
     language         .value_required:n  = true ,
     path             .str_set:N         = \l_@@_path_str ,
     path             .value_required:n  = true , 
@@ -3616,7 +3620,7 @@
     \tl_set:Nx \l_tmpa_tl 
       { 
         \lua_now:e 
-          { piton.ParseBis('\l_@@_language_str',token.scan_string()) }
+          { piton.ParseBis('\l_piton_language_str',token.scan_string()) }
           { #1 } 
       }
     \bool_if:NTF \l_@@_show_spaces_bool
@@ -3646,7 +3650,7 @@
     \tl_set:Nx \l_tmpa_tl 
       { 
         \lua_now:e 
-          { piton.Parse('\l_@@_language_str',token.scan_string()) } 
+          { piton.Parse('\l_piton_language_str',token.scan_string()) } 
           { #1 } 
       }
     \bool_if:NT \l_@@_show_spaces_bool
@@ -3678,7 +3682,7 @@
         \tl_set:Nx \l_tmpa_tl 
           { 
             \lua_now:e 
-              { piton.ParseTer('\l_@@_language_str',token.scan_string()) } 
+              { piton.ParseTer('\l_piton_language_str',token.scan_string()) } 
               { #1 } 
           }
       }
@@ -3686,7 +3690,7 @@
         \tl_set:Nx \l_tmpa_tl 
           { 
             \lua_now:e 
-              { piton.Parse('\l_@@_language_str',token.scan_string()) }
+              { piton.Parse('\l_piton_language_str',token.scan_string()) }
               { #1 } 
           }
       }
@@ -3715,7 +3719,7 @@
         \tl_set:Nx \l_tmpa_tl 
           { 
             \lua_now:e 
-              { piton.ParseTer('\l_@@_language_str',token.scan_string()) } 
+              { piton.ParseTer('\l_piton_language_str',token.scan_string()) } 
               { #1 }
           } 
       }
@@ -3723,7 +3727,7 @@
         \tl_set:Nx \l_tmpa_tl 
           { 
             \lua_now:e 
-              { piton.Parse('\l_@@_language_str',token.scan_string()) }
+              { piton.Parse('\l_piton_language_str',token.scan_string()) }
               { #1 } 
           }
       }
@@ -3916,7 +3920,7 @@
               { 
                 piton.GobbleParse
                   ( 
-                    '\l_@@_language_str' , 
+                    '\l_piton_language_str' , 
                     \int_use:N \l_@@_gobble_int , 
                     token.scan_argument() 
                   ) 
@@ -4101,7 +4105,7 @@
       \lua_now:e
         { 
           piton.ParseFile(
-           '\l_@@_language_str' ,
+           '\l_piton_language_str' ,
            '\l_@@_file_name_str' ,
            \int_use:N \l_@@_first_line_int , 
            \int_use:N \l_@@_last_line_int ) 
@@ -4157,7 +4161,7 @@
 %    \begin{macrocode}
 \NewDocumentCommand { \PitonStyle } { m } 
   { 
-    \cs_if_exist_use:cF { pitonStyle _ \l_@@_language_str  _ #1 }
+    \cs_if_exist_use:cF { pitonStyle _ \l_piton_language_str  _ #1 }
       { \use:c { pitonStyle _ #1 } }
   }
 %    \end{macrocode}
@@ -4168,7 +4172,7 @@
   { 
     \str_set:Nx \l_@@_SetPitonStyle_option_str { \str_lowercase:n { #1 } }
     \str_if_eq:onT \l_@@_SetPitonStyle_option_str { current-language }
-      { \str_set_eq:NN \l_@@_SetPitonStyle_option_str \l_@@_language_str }
+      { \str_set_eq:NN \l_@@_SetPitonStyle_option_str \l_piton_language_str }
     \keys_set:nn { piton / Styles } { #2 } 
     \str_clear:N \l_@@_SetPitonStyle_option_str 
   } 
@@ -4331,7 +4335,7 @@
 % 
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_identifier:n #1
-  { \cs_if_exist_use:c { PitonIdentifier _ \l_@@_language_str _ #1 } { #1 } } 
+  { \cs_if_exist_use:c { PitonIdentifier _ \l_piton_language_str _ #1 } { #1 } } 
 %    \end{macrocode}
 %
 % \bigskip
@@ -4359,7 +4363,7 @@
     \clist_map_inline:Nn \l_@@_identifiers_names_tl 
       {
         \tl_set_eq:cN 
-          { PitonIdentifier _ \l_@@_language_str _ ##1 }
+          { PitonIdentifier _ \l_piton_language_str _ ##1 }
           \l_@@_style_tl
       }
   }
@@ -4386,22 +4390,22 @@
 % here the affectation is global because we have to exit many groups and even
 % the environments |{Piton}|).
 %    \begin{macrocode}
-    \cs_gset_protected:cpn { PitonIdentifier _ \l_@@_language_str _ #1 } 
+    \cs_gset_protected:cpn { PitonIdentifier _ \l_piton_language_str _ #1 } 
       { \PitonStyle { UserFunction } }
 %    \end{macrocode}
 % Now, we put the name of that new user function in the dedicated sequence
 % (specific of the current language). {\bfseries That sequence will be used only
 % by |\PitonClearUserFunctions|}.
 %    \begin{macrocode}
-    \seq_if_exist:cF { g_@@_functions _ \l_@@_language_str _ seq }
-      { \seq_new:c { g_@@_functions _ \l_@@_language_str _ seq } }
-    \seq_gput_right:cn { g_@@_functions _ \l_@@_language_str _ seq } { #1 }
+    \seq_if_exist:cF { g_@@_functions _ \l_piton_language_str _ seq }
+      { \seq_new:c { g_@@_functions _ \l_piton_language_str _ seq } }
+    \seq_gput_right:cn { g_@@_functions _ \l_piton_language_str _ seq } { #1 }
 %    \end{macrocode}
 % We update |\g_@@_languages_seq| which is used only by the command
 % |\PitonClearUserFunctions| when it's used without its optional argument.
 %    \begin{macrocode}
-    \seq_if_in:NVF \g_@@_languages_seq \l_@@_language_str 
-      { \seq_gput_left:NV \g_@@_languages_seq \l_@@_language_str }
+    \seq_if_in:NVF \g_@@_languages_seq \l_piton_language_str 
+      { \seq_gput_left:NV \g_@@_languages_seq \l_piton_language_str }
   }
 %    \end{macrocode}
 %
@@ -4546,7 +4550,7 @@
 %   \begin{macrocode}
 \@@_msg_new:nn { syntax~error }
   {
-    Your~code~\l_@@_language_str\ is~not~syntactically~correct.\\
+    Your~code~\l_piton_language_str\ is~not~syntactically~correct.\\
     It~won't~be~printed~in~the~PDF~file.
   }
 %    \end{macrocode}
@@ -4670,11 +4674,6 @@
   }
 %    \end{macrocode}
 %
-% \bigskip
-%    \begin{macrocode}
-\@@_msg_new:nn { Python~error }
-  { A~Python~error~has~been~detected. }
-%    \end{macrocode}
 %
 % \bigskip
 % \subsubsection{We load piton.lua}
@@ -4709,10 +4708,9 @@
                 ( function (s,t) return s + t end ) ) : match ( key_value ) 
     end
   }
-%    \end{macrocode}
-% 
 %</STY>
 %    \end{macrocode}
+% 
 % 
 % \bigskip
 % \subsection{The Lua part of the implementation}
@@ -7307,6 +7305,13 @@ end
 % repository:
 %
 % \verb|https://github.com/fpantigny/piton|
+%
+% \subsection*{Changes between versions 2.2 and 2.3}
+%
+% New key |detected-commands|
+% 
+% The variable |\l_piton_language_str| is now public.
+% 
 %
 % \subsection*{Changes between versions 2.2 and 2.3}
 %
