@@ -1,5 +1,5 @@
 % -*- coding: utf-8 ; -*-
-\documentclass[dvipsnames]{article}
+\documentclass[dvipsnames,svgnames]{article}
 
 \usepackage{fontspec}
 
@@ -14,9 +14,9 @@
     begin-escape = ! ,
     end-escape = ! ,
     begin-escape-math = \( , 
-    end-escape-math = \) 
+    end-escape-math = \) ,
+    detected-commands = highLight 
   }
-
 
 
 \usepackage[executable=python.exe]{pyluatex}
@@ -33,6 +33,7 @@
 \usepackage{booktabs}
 \usepackage{tcolorbox}
 \usepackage{luacolor,lua-ul}
+
 
 \usepackage{caption}
 
@@ -112,7 +113,7 @@ LuaLaTeX.
 L'extension \pkg{piton} utilise la librairie Lua nommée LPEG\footnote{LPEG est une librairie de capture de motifs
   (\emph{pattern-matching} en anglais) pour Lua, écrite en C, fondée sur les PEG (\emph{parsing expression
     grammars}): \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} pour «parser» le code Python, OCaml, C ou SQL et le
-composer avec un coloriage syntaxique. Comme elle utilise du code Lua, elle fonctionne uniquement avec |lualatex|
+composer avec un coloriage syntaxique. Comme elle utilise le Lua de LuaLaTeX, elle fonctionne uniquement avec |lualatex|
 (et ne va pas fonctionner avec les autres moteurs de compilation LaTeX, que ce soit |latex|, |pdflatex| ou
 |xelatex|). Elle n'utilise aucun programme extérieur et la compilation ne requiert donc pas |--shell-escape|. La
 compilation est très rapide puisque tout le travail du parseur est fait par la librairie LPEG, écrite en C.
@@ -157,7 +158,8 @@ d'installer \pkg{piton} avec une distribution TeX comme MiKTeX, TeX~Live ou MacT
 
 \subsection{Choix du langage}
 
-L'extension \pkg{piton} prend en charge quatre langages informatiques : Python, OCaml, SQL et C, ou plutôt \CC.
+L'extension \pkg{piton} prend en charge quatre langages informatiques : Python, OCaml, SQL et C, ou plutôt \CC. Il
+prend aussi en charge un langage minimal appelé «|minimal|» : cf.~\pageref{minimal}.
 
 \smallskip
 Par défaut, le langage est Python.
@@ -330,7 +332,7 @@ Ces clés peuvent aussi être appliquées à un environnement |{Piton}| individu
 
 \begin{itemize}
 \item La clé \Definition{language} spécifie le langage informatique considéré (la casse n'est pas prise en compte).
-Quatre valeurs sont possibles : |Python|, |OCaml|, |C| et |SQL|. La valeur initiale est |Python|.
+Cinq valeurs sont possibles : |Python|, |OCaml|, |C|, |SQL| et |minimal|. La valeur initiale est |Python|.
 
 \item \index{path} La clé \Definition{path} indique un chemin où seront cherchés les fichiers inclus par
 |\PitonInputFile|. 
@@ -357,7 +359,7 @@ utilisation du fichier par \pkg{piton}, celui-ci est effacé.
 \item \index{line-numbers} La clé \Definition{line-numbers} active la numérotation des lignes (en débordement à gauche) dans les
 environnements \verb|{Piton}| et dans les listings produits par la commande |\PitonInputFile|.
 
-\colorbox{yellow!50}{\textbf{Nouveau 2.1}}\enskip Cette clé propose en fait plusieurs sous-clés.
+Cette clé propose en fait plusieurs sous-clés.
 \begin{itemize}
 \item La clé \Definition{line-numbers/skip-empty-lines} demande que les lignes vides soient considérées comme non existantes en
 ce qui concerne la numérotation des lignes (si la clé \verb|/absolute| est active, la clé \verb|/skip-empty-lines|
@@ -596,7 +598,8 @@ leur mise en capitales peut être envisagé).
 \medskip
 Comme on s'en doute, si un langage informatique utilise un certain style et que ce style n'est pas défini
 localement pour ce langage, c'est la version globale qui est utilisée. Cette notion de globalité n'a pas de
-rapport avec la notion de liaison locale de TeX (notion de groupe TeX).
+rapport avec la notion de liaison locale de TeX (notion de groupe TeX).\footnote{Du point de vue des groupes de
+  TeX, les liaisons faites par |\SetPitonStyle| sont toujours locales.}
 
 \medskip
 Les styles fournis par défaut par \pkg{piton} sont tous définis globalement.
@@ -814,7 +817,7 @@ La commande |\PitonInputFile| permet d'insérer (avec formatage) le contenu d'un
 mécanismes permettant de n'insérer qu'une partie du fichier en question.
 \begin{itemize}
 \item On peut spécifier la partie à insérer par les numéros de lignes (dans le fichier d'origine).
-\item \colorbox{yellow!50}{\textbf{Nouveau 2.1}}\enskip On peut aussi spécifier la partie à insérer par des marqueurs textuels.
+\item On peut aussi spécifier la partie à insérer par des marqueurs textuels.
 \end{itemize}
 Dans les deux cas, si on souhaite numéroter les lignes avec les numéros des lignes du fichier d'origine, il
 convient d'utiliser la clé |line-numbers/absolute|.
@@ -828,8 +831,6 @@ concerne la sortie alors que |first-line| et |last-line| concernent l'entrée).
 
 
 \subsubsection{Avec des marqueurs textuels}
-
-\colorbox{yellow!50}{\textbf{Nouveau 2.1}}
 
 \index{marker/beginning}
 \index{marker/end}
@@ -941,37 +942,36 @@ structuré correctement!):
 
 \subsection{Mise en évidence d'identificateurs}
 
-\index{identifiers (clé)}
+\indexcommand{SetPitonIdentifier}
+\label{SetPitonIdentifier}
 
-On peut demander le changement de formatage de certains identificateurs avec la clé |identifiers| de
-|\PitonOptions|.\footnote{Cette fonctionnalité n'est pas disponible avec le langage SQL car, en SQL, il n'y a pas
-  d'identificateurs (il n'y a que des noms de tables et des noms de champs).}
+\colorbox{yellow!50}{\bfseries Modification 2.4}\par\nobreak
 
 \smallskip
-Cette clé prend en argument une valeur au format suivant : 
+La commande |\SetPitonIdentifier| permet de changer le formatage de certains identificateurs.
 
-\quad |{ names = |\textsl{\ttfamily noms}|, style = |\textsl{\ttfamily instructions}| }|
+\smallskip
+Cette commande prend trois arguments : un optionnel et deux obligatoires.
 
 \begin{itemize}
-\item \textsl{\ttfamily noms} est une liste de noms d'identificateurs (séparés par des virgules) ; 
+\item L'argument optionnel (entre crochets) indique le langage (informatique) concerné ; si cet
+argument est absent, les réglages faits par |\SetPitonIdentifier| s'appliqueront à tous les langages.\footnote{On rappelle que, dans \pkg{piton}, les noms des langages informatiques ne sont pas
+  sensibles à la casse.}
 
-\item \textsl{\ttfamily instructions} est une liste d'instructions LaTeX de formatage du même type que pour les
-styles précédemment définis (cf.~\ref{styles} p.~\pageref{styles}).
+\item Le premier argument obligatoire est une liste de noms d'identificateurs séparés par des virgules.
+
+\item Le deuxième argument obligatoire est une liste d'instructions LaTeX de formatage du même type que pour les
+styles précédemment définis (cf. \ref{styles}, p.~\pageref{styles}).
+
+
 \end{itemize}
 
-\emph{Attention} : Seuls les identifiants peuvent voir leur formatage affecté. Les mots-clés et les noms de
-fonctions prédéfinies ne seront pas affectés, même s'ils figurent dans la liste \textsl{\ttfamily noms}.
+\emph{Attention} : Seuls les identificateurs peuvent voir leur formatage affecté. Les mots-clés et les noms de
+fonctions prédéfinies ne seront pas affectés, même s'ils figurent dans le premier argument de
+|\SetPitonIdentifier|. 
 
 \begin{Verbatim}
-\PitonOptions 
-  {
-    ~emphase#identifiers@ = 
-     {
-       ~emphase#names@ = { l1 , l2 } , 
-       ~emphase#style@ = \color{red} 
-     }
-  }
-
+~emphase#\SetPitonIdentifier{l1,l2}{\color{red}}@
 \begin{Piton}
 def tri(l):
     """Tri par segmentation"""
@@ -990,14 +990,7 @@ def tri(l):
 
 \begingroup
 
-\PitonOptions 
-  {
-    identifiers = 
-     {
-       names = { l1 , l2 } , 
-       style = \color{red} 
-     }
-  }
+\SetPitonIdentifier{l1,l2}{\color{red}}
 
 \begin{Piton}
 def tri(l):
@@ -1014,19 +1007,14 @@ def tri(l):
 \endgroup
 
 \bigskip
-En utilisant la clé |identifiers|, on peut ajouter de nouvelles fonctions prédéfinies (ou de nouveaux mots-clés,
-etc.) qui seront détectées par \pkg{piton}.
+Avec la commande |\SetPitonIdentifiers|, on peut ajouter à un langage informatique de nouvelles fonctions
+prédéfinies (ou de nouveaux mots-clés, etc.) qui seront détectées par \pkg{piton}.
 
 
 \begin{Verbatim}
-\PitonOptions 
-  {
-    ~emphase#identifiers@ = 
-     {
-       names = { cos, sin, tan, floor, ceil, trunc, pow, exp, ln, factorial } , 
-       style = \PitonStyle{Name.Builtin}
-     }
-  }
+~emphase#\SetPitonIdentifier[Python]@
+  {cos, sin, tan, floor, ceil, trunc, pow, exp, ln, factorial}
+  {\PitonStyle{Name.Builtin}}
 
 \begin{Piton}
 from math import *
@@ -1039,15 +1027,10 @@ floor(5.4)
 
 \begingroup
 
-\PitonOptions 
-  {
-    identifiers = 
-     {
-       names = { cos, sin, tan, floor, ceil, trunc, pow, exp, ln, factorial } , 
-       style = \PitonStyle{Name.Builtin}
-     }
-  }
-
+\SetPitonIdentifier[Python]
+  {cos, sin, tan, floor, ceil, trunc, pow, exp, ln, factorial}
+  {\PitonStyle{Name.Builtin}}
+ 
 \begin{Piton}
 from math import *
 cos(pi/2) 
@@ -1068,6 +1051,7 @@ L'extension \pkg{piton} propose plusieurs mécanismes d'échappement vers LaTeX 
 \item Il est possible d'avoir des commentaires entièrement composés en LaTeX.
 \item Il est possible d'avoir, dans les commentaires Python, les éléments entre \texttt{\$} composés en mode
 mathématique de LaTeX.
+\item Il est possible de demander à \pkg{piton} de détecter directement certaines commandes LaTeX avec leur argument.
 \item Il est possible d'insérer du code LaTeX à n'importe quel endroit d'un listing Python.
 \end{itemize}
 Ces mécanismes vont être détaillés dans les sous-parties de cette partie.
@@ -1157,6 +1141,57 @@ def carré(x):
 \end{Piton}
 
 
+\subsubsection{La clé «detected-commands»}
+
+\index{detected-commands (key)}
+
+\colorbox{yellow!50}{\bfseries Nouveau 2.4}\par\nobreak
+
+\smallskip
+La clé |detected-commands| de |\PitonOptions| permet de spécifier une liste de noms de commandes LaTeX qui seront
+directement détectées par \pkg{piton}.
+
+\begin{itemize}
+\item Cette clé |detected-commands| ne peut être utilisée que dans le préambule du document.
+
+\item Les noms de commandes LaTeX doivent apparaître sans la contre-oblique 
+(ex. : |detected-commands = { emph , bfseries }|). 
+
+\item Ces commandes doivent être des commandes LaTeX à un seul argument obligatoire entre accolades (et ces
+accolages doivent être explicites).
+\end{itemize}
+
+\medskip
+Dans l'exemple suivant, qui est une programmation récursive de la factorielle, on décide de surligner en jaune
+l'appel récursif. La commande |\highLight| de \pkg{lua-el} (cette extension requiert elle-même l'extension
+\pkg{luacolor}) permet de le faire avec la syntaxe |\hightLight{...}|.
+
+\smallskip
+On suppose que l'on a mis dans le préambule du document LaTeX l'instruction suivante :
+\begin{Verbatim}
+\PitonOptions{~emphase#detected-commands@ = highLight}
+\end{Verbatim}
+
+On peut alors écrire directement :
+\begin{Verbatim}
+\begin{Piton}
+def fact(n):
+    if n==0:
+        return 1
+    else:
+        ~emphase#\highLight@{return n*fact(n-1)}
+\end{Piton}
+\end{Verbatim}
+
+\begin{Piton}
+def fact(n):
+    if n==0:
+        return 1
+    else:
+        \highLight{return n*fact(n-1)}
+\end{Piton}
+
+
 \subsubsection{Le mécanisme «escape»}
 
 \index{begin-escape}
@@ -1168,25 +1203,27 @@ l'utiliser, il faut spécifier les deux délimiteurs marquant l'échappement (le
 le terminant) en utilisant les clés \Definition{begin-escape} et \Definition{end-escape} (\emph{qui ne sont accessibles
 que dans le préambule du document}). Les deux délimiteurs peuvent être identiques.
 
+\medskip
+On reprend l'exemple précédent de la factorielle et on souhaite surligner en rose l'instruction qui contient l'appel
+récursif. La commande |\highLight| de \pkg{lua-ul} permet de le faire avec la syntaxe |\highLight{LightPink}{...}|.
+Du fait de la présence de l'argument optionnel entre crochets, on ne peut pas utiliser la clé |detected-commands|
+comme précédemment mais on peut utiliser le mécanisme «escape».
 
-\bigskip
-Dans l'exemple suivant, on suppose que le préambule du document contient l'instruction :
+\smallskip
+On suppose que le préambule du document contient l'instruction :
 
 \begin{Verbatim}
 \PitonOptions{~emphase#begin-escape=!,end-escape=!@}
 \end{Verbatim}
 
-\medskip
-Dans le code suivant, qui est une programmation récursive de la factorielle, on décide de surligner en jaune
-l'instruction qui contient l'appel récursif. Cet exemple utilise la commande |\highLight| de \pkg{lua-ul} (cette
-extension requiert aussi l'extension \pkg{luacolor}).
+On peut alors écrire :
 \begin{Verbatim}
 \begin{Piton}
 def fact(n):
     if n==0:
         return 1
     else:
-        ~emphase#!\highLight{!@return n*fact(n-1)~emphase#!}!@
+        ~emphase#!\highLight[LightPink]{!@return n*fact(n-1)~emphase#!}!@
 \end{Piton}
 \end{Verbatim}
 
@@ -1195,45 +1232,7 @@ def fact(n):
     if n==0:
         return 1
     else:
-        !\highLight{!return n*fact(n-1)!}!
-\end{Piton}
-
-\bigskip
-En fait, dans le cas présent, il serait sans doute plus habile d'utiliser la commande |\@highLight| de
-\pkg{lua-ul}: cette commande bascule vers un fond jaune jusqu'à la fin du groupe TeX courant. Comme le nom de cette
-commande contient le caractère |@|, il convient de lui donner un synonyme sans caractère |@| pour pouvoir
-l'utiliser directement dans |{Piton}|.
-
-\begingroup
-\fvset{commandchars=\~\#\+,formatcom=\color{gray}}
-\begin{Verbatim}
-\makeatletter
-~emphase#\NewCommandCopy{\Jaune}{\@highLight}+
-\makeatother
-\end{Verbatim}
-\endgroup
-
-\begin{Verbatim}
-\begin{Piton}
-def fact(n):
-    if n==0:
-        return 1
-    else:
-        ~emphase#!\Jaune!@return n*fact(n-1)
-\end{Piton}
-\end{Verbatim}
-
-\makeatletter
-\NewCommandCopy{\Jaune}{\@highLight}
-\makeatother
-
-
-\begin{Piton}
-def fact(n):
-    if n==0:
-        return 1
-    else:
-        !\Jaune!return n*fact(n-1)
+        !\highLight[LightPink]{!return n*fact(n-1)!}!
 \end{Piton}
 
 
@@ -2323,6 +2322,55 @@ localement pour le langage SQL avec l'instruction :
 \begin{Verbatim}
 \SetPitonStyle~emphase#[SQL]@{Keywords = \bfseries \MakeUppercase}
 \end{Verbatim}
+
+
+
+\newpage
+
+\subsection{Le langage «minimal»}
+
+
+\label{minimal}
+\index{minimal (langage «minimal»)}
+
+\colorbox{yellow!50}{\bfseries Nouveau 2.4}\par\nobreak
+
+\bigskip
+On peut basculer vers le langage «|minimal|» avec |\PitonOptions{language = minimal}|
+
+\bigskip
+On peut aussi choisir le langage «|minimal|» pour un environnement |{Piton}| individuel :
+%
+\begin{Verbatim}
+\begin{Piton}~emphase#[language=minimal]@
+...
+\end{Piton}
+\end{Verbatim}
+
+\bigskip
+L'option est aussi disponible pour |\PitonInputFile| : |\PitonInputFile[language=minimal]{...}|
+
+
+\vspace{1cm}
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\normalfont Style  & Usage \\
+\midrule
+Number & les nombres \\
+String & les chaînes de caractères (qui sont entre \texttt{"}) \\
+Comment & les commentaires (qui débutent par |#|) \\
+Comment.LaTeX & les commentaires commençant par \texttt{\#>} qui sont composés par \pkg{piton} comme du code LaTeX (et
+                appelés simplement «commentaires LaTeX» dans ce document) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\bigskip
+Ce langage «|minimal|» est proposé par \pkg{piton} à l'utilisateur final pour qu'il y a puisse y ajouter des
+formatages de mots-clés avec la commande |\SetPitonIdentifier| (cf. \ref{SetPitonIdentifier},
+p.~\pageref{SetPitonIdentifier}) et créer par exemple un langage pour pseudo-code.
 
 
 \newpage

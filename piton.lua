@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
--- Version 2.3zz of 2024/01/10
+-- Version 2.4 of 2024/01/15
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -837,6 +837,7 @@ MainOCaml =
      + Tab
      + Escape + EscapeMath
      + Beamer
+     + DetectedCommands
      + TypeParameter
      + String + QuotedString + Char
      + Comment
@@ -1054,6 +1055,7 @@ local MainC =
      + Escape + EscapeMath
      + CommentLaTeX
      + Beamer
+     + DetectedCommands
      + Preproc
      + Comment + LongComment
      + Delim
@@ -1298,6 +1300,7 @@ local MainSQL =
      + Escape + EscapeMath
      + CommentLaTeX
      + Beamer
+     + DetectedCommands
      + Comment + LongComment
      + Delim
      + Operator
@@ -1322,6 +1325,163 @@ languageSQL =
        * Lc '\\__piton_end_line:'
      )
 languages['sql'] = languageSQL
+local CommentMath =
+  P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
+
+local Comment =
+  WithStyle ( 'Comment' ,
+     Q ( P "#" )
+     * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 )
+  * ( EOL + -1 )
+
+local String =
+  WithStyle ( 'String.Short' ,
+      Q "\""
+      * ( VisualSpace
+          + Q ( ( P "\\\"" + 1 - S " \"" ) ^ 1 )
+        ) ^ 0
+      * Q "\""
+    )
+
+local balanced_braces =
+  P { "E" ,
+       E =
+           (
+             P "{" * V "E" * P "}"
+             +
+             String
+             +
+             ( 1 - S "{}" )
+           ) ^ 0
+    }
+
+if piton_beamer
+then
+  Beamer =
+      L ( P "\\pause" * ( P "[" * ( 1 - P "]" ) ^ 0 * P "]" ) ^ -1 )
+    +
+      Ct ( Cc "Open"
+            * C (
+                  (
+                    P "\\uncover" + P "\\only" + P "\\alert" + P "\\visible"
+                    + P "\\invisible" + P "\\action"
+                  )
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
+                  * P "{"
+                )
+            * Cc "}"
+         )
+       * ( C ( balanced_braces ) / (function (s) return MainLoopMinimal:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" )
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoopMinimal )
+    + OneBeamerEnvironment ( "onlyenv" , MainLoopMinimal )
+    + OneBeamerEnvironment ( "visibleenv" , MainLoopMinimal )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoopMinimal )
+    + OneBeamerEnvironment ( "alertenv" , MainLoopMinimal )
+    + OneBeamerEnvironment ( "actionenv" , MainLoopMinimal )
+    +
+      L (
+          ( P "\\alt" )
+          * P "<" * (1 - P ">") ^ 0 * P ">"
+          * P "{"
+        )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}" )
+    +
+      L (
+          ( P "\\temporal" )
+          * P "<" * (1 - P ">") ^ 0 * P ">"
+          * P "{"
+        )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces )
+      * L ( P "}" )
+end
+
+DetectedCommands =
+      Ct ( Cc "Open"
+            * C (
+                  piton.ListCommands
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
+                  * P "{"
+                )
+            * Cc "}"
+         )
+       * ( C ( balanced_braces ) / (function (s) return MainLoopMinimal:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" )
+
+local EOL =
+  P "\r"
+  *
+  (
+    ( space^0 * -1 )
+    +
+    Ct (
+         Cc "EOL"
+         *
+         Ct (
+              Lc "\\__piton_end_line:"
+              * BeamerEndEnvironments
+              * BeamerBeginEnvironments
+              * Lc "\\__piton_newline: \\__piton_begin_line:"
+            )
+       )
+  )
+  *
+  SpaceIndentation ^ 0
+
+local CommentMath =
+  P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$" -- $
+
+local CommentLaTeX =
+  P(piton.comment_latex)
+  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces"
+  * L ( ( 1 - P "\r" ) ^ 0 )
+  * Lc "}}"
+  * ( EOL + -1 )
+
+local identifier = letter * alphanum ^ 0
+
+local Identifier = K ( 'Identifier' , identifier )
+
+local MainMinimal =
+       EOL
+     + Space
+     + Tab
+     + Escape + EscapeMath
+     + CommentLaTeX
+     + Beamer
+     + DetectedCommands
+     + Comment
+     + Delim
+     + String
+     + Punct
+     + Identifier
+     + Number
+     + Word
+
+MainLoopMinimal =
+  (  ( space^1 * -1 )
+     + MainMinimal
+  ) ^ 0
+
+languageMinimal =
+  Ct (
+       ( ( space - P "\r" ) ^ 0 * P "\r" ) ^ -1
+       * BeamerBeginEnvironments
+       * Lc '\\__piton_begin_line:'
+       * SpaceIndentation ^ 0
+       * MainLoopMinimal
+       * -1
+       * Lc '\\__piton_end_line:'
+     )
+languages['minimal'] = languageMinimal
+
 function piton.Parse(language,code)
   local t = languages[language] : match ( code )
   if t == nil

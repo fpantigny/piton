@@ -29,7 +29,7 @@
 \usepackage{geometry}
 \geometry{left=2.8cm,right=2.8cm,top=2.5cm,bottom=2.5cm,papersize={21cm,29.7cm}}
 \usepackage{fontspec}
-\usepackage[dvipsnames]{xcolor}
+\usepackage[dvipsnames,svgnames]{xcolor}
 \usepackage{caption,tabularx,tcolorbox,luacolor,lua-ul,upquote}
 \def\emphase{\bgroup\color{RoyalPurple}\let\next=}
 \fvset{commandchars=\~\#\@,formatcom=\color{gray}}
@@ -43,7 +43,8 @@
     begin-escape = ! ,
     end-escape = ! ,
     begin-escape-math = \( , 
-    end-escape-math = \) 
+    end-escape-math = \) ,
+    detected-commands = highLight
   }
 
 \parindent 0pt
@@ -71,12 +72,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{2.3zz}
-\def\PitonFileDate{2024/01/10}
+\def\PitonFileVersion{2.4}
+\def\PitonFileDate{2024/01/15}
 % \iffalse
 %</STY>
 %<*LUA>
--- Version 2.3zz of 2024/01/10
+-- Version 2.4 of 2024/01/15
 %</LUA>
 %\fi
 %
@@ -102,13 +103,12 @@
 % The package \pkg{piton} uses the Lua library LPEG\footnote{LPEG is a
 % pattern-matching library for Lua, written in C, based on \emph{parsing
 % expression grammars}:
-% \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} 
-% for parsing Python, OCaml, C or SQL listings and typesets them with syntactic
-% highlighting. Since it uses Lua code, it works with |lualatex| only (and won't
-% work with the other engines: |latex|, |pdflatex| and |xelatex|). It does not
-% use external program and the compilation does not require |--shell-escape|.
-% The compilation is very fast since all the parsing is done by the library
-% LPEG, written in C.
+% \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} for parsing Python, OCaml, C
+% or SQL listings and typesets them with syntactic highlighting. Since it uses
+% the Lua of LuaLaTeX, it works with |lualatex| only (and won't work with the
+% other engines: |latex|, |pdflatex| and |xelatex|). It does not use external
+% program and the compilation does not require |--shell-escape|. The compilation
+% is very fast since all the parsing is done by the library LPEG, written in C. 
 % 
 % \bigskip
 % Here is an example of code typeset by \pkg{piton}, with the environment |{Piton}|.
@@ -165,7 +165,8 @@
 % \subsection{Choice of the computer language}
 %
 % In current version, the package \pkg{piton} supports four computer languages:
-% Python, OCaml, SQL and C (in fact \CC).
+% Python, OCaml, SQL and C (in fact \CC). It supports also a special language
+% called ``|minimal|'': cf. \pageref{minimal}.
 %
 % \smallskip
 % By default, the language used is Python.
@@ -327,8 +328,8 @@
 %
 % \begin{itemize}
 % \item The key \Definition{language} speficies which computer language is
-% considered (that key is case-insensitive). Four values are allowed :
-% |Python|, |OCaml|, |C| and |SQL|. The initial value is |Python|.
+% considered (that key is case-insensitive). Five values are allowed :
+% |Python|, |OCaml|, |C|, |SQL| and |minimal|. The initial value is |Python|.
 % 
 % \item \index{path} The key \Definition{path} specifies a path where the files included by
 % |\PitonInputFile| will be searched.
@@ -363,8 +364,7 @@
 % line numbering in the environments |{Piton}| and in the listings resulting
 % from the use of |\PitonInputFile|.
 % 
-% \colorbox{yellow!50}{\textbf{New 2.1}}\enskip In fact, the key |line-numbers| has
-% several subkeys.
+% In fact, the key |line-numbers| has several subkeys.
 % \begin{itemize}
 % \item With the key \Definition{line-numbers/skip-empty-lines}, the empty lines
 % are considered as non existent for the line numbering (if the key |/absolute|
@@ -576,8 +576,8 @@
 % 
 % \bigskip
 % The different styles, and their use by \pkg{piton} in the different languages
-% which it supports (Python, OCaml, C and SQL), are described in the part
-% \ref{Semantic}, starting at the page \pageref{Semantic}. 
+% which it supports (Python, OCaml, C, SQL and ``|minimal|''), are described in
+% the part \ref{Semantic}, starting at the page \pageref{Semantic}. 
 % 
 %
 % \bigskip
@@ -629,7 +629,8 @@
 % As expected, if an informatic language uses a given style and if that style has
 % no local definition for that language, the global version is used. That notion
 % of ``global style'' has no link with the notion of global definition in TeX
-% (the notion of \emph{group} in TeX).
+% (the notion of \emph{group} in TeX).\footnote{As regards the TeX groups, the
+% definitions done by \texttt{\textbackslash SetPitonStyle} are always local.}
 % 
 % \bigskip
 % The package \pkg{piton} itself (that is to say the file |piton.sty|) defines
@@ -867,8 +868,7 @@
 % \begin{itemize}
 % \item It's possible to specify the part that we want to insert by the numbers
 % of the lines (in the original file).
-% \item \colorbox{yellow!50}{\textbf{New 2.1}}\enskip It's also possible to
-% specify the part to insert with textual markers.
+% \item It's also possible to specify the part to insert with textual markers.
 % \end{itemize}
 % In both cases, if we want to number the lines with the numbers of the
 % lines in the file, we have to use the key |line-numbers/absolute|.
@@ -883,8 +883,6 @@
 % |last-line| deal with the input.
 %
 % \subsubsection{With textual markers}
-%
-% \colorbox{yellow!50}{\textbf{New 2.1}}
 %
 % \index{marker/beginning}
 % \index{marker/end}
@@ -1002,42 +1000,38 @@
 %
 % \subsection{Highlighting some identifiers}
 %
-% \index{identifiers (key)}
+% \label{SetPitonIdentifier}
 %
-% It's possible to require a changement of formating for some identifiers with
-% the key |identifiers| of |\PitonOptions|.\footnote{This feature is not
-% available for the language SQL because, in SQL, there is no identifiers :
-% there are only names of fields and names of tables.}
+% \colorbox{yellow!50}{\bfseries Modification 2.4}\par\nobreak
 %
 % \smallskip
-% That key takes in as argument a value of the following format:
+% The command |\SetPitonIdentifier| allows to change the formatting of some
+% identifiers.
 %
-% \quad |{ names = |\textsl{\ttfamily names}|, style = |\textsl{\ttfamily
-% instructions}| }|
+% \smallskip
+% That command takes in three arguments: one 
 %
 % \begin{itemize}
-% \item \textsl{\ttfamily names} is a (comma-separated) list of identifier
-% names; 
+% \item The optionnal argument (within square brackets) specifies the informatic
+% langage. If this argument is not present, the tunings done by
+% |\SetPitonIdentifier| will apply to all the informatic langages of
+% \pkg{piton}.\footnote{We recall, that, in the package \pkg{piton}, the
+% names of the informatic languages are case-insensitive.}
 %
-% \item \textsl{\ttfamily instructions} is a list of LaTeX instructions of the
+% \item The first mandatory argument is a comma-separated list of names of
+% identifiers.
+%
+% \item The second mandatory argument is a list of LaTeX instructions of the
 % same type as \pkg{piton} ``styles'' previously presented (cf~\ref{styles}
 % p.~\pageref{styles}). 
 % \end{itemize}
-%
+% 
 % \emph{Caution}: Only the identifiers may be concerned by that key. The
-% keywords and the built-in functions won't be affected, even if their name is
-% in the list \textsl{\ttfamily names}.
+% keywords and the built-in functions won't be affected, even if their name
+% appear in the first argument of the command |\SetPitonIdentifier|.
 % 
 % \begin{Verbatim}
-% \PitonOptions 
-%   {
-%     ~emphase#identifiers@ = 
-%      {
-%        ~emphase#names@ = { l1 , l2 } , 
-%        ~emphase#style@ = \color{red} 
-%      }
-%   }
-%
+% ~emphase#\SetPitonIdentifier{l1,l2}{\color{red}}@
 % \begin{Piton}
 % def tri(l):
 %     """Segmentation sort"""
@@ -1056,14 +1050,7 @@
 %
 % \begingroup
 %
-% \PitonOptions 
-%   {
-%     identifiers = 
-%      {
-%        names = { l1 , l2 } , 
-%        style = \color{red} 
-%      }
-%   }
+% \SetPitonIdentifier{l1,l2}{\color{red}}
 %
 % \begin{Piton}
 % def tri(l):
@@ -1080,19 +1067,15 @@
 % \endgroup
 % 
 % \bigskip
-% By using the key |identifier|, it's possible to add other built-in functions
-% (or other new keywords, etc.) that will be detected by \pkg{piton}.
+% By using the command |\SetPitonIdentifier|, it's possible to add other
+% built-in functions (or other new keywords, etc.) that will be detected by
+% \pkg{piton}.
 %
 %
 % \begin{Verbatim}
-% \PitonOptions 
-%   {
-%     ~emphase#identifiers@ = 
-%      {
-%        names = { cos, sin, tan, floor, ceil, trunc, pow, exp, ln, factorial } , 
-%        style = \PitonStyle{Name.Builtin}
-%      }
-%   }
+% ~emphase#\SetPitonIdentifier[Python]@
+%   {cos, sin, tan, floor, ceil, trunc, pow, exp, ln, factorial}
+%   {\PitonStyle{Name.Builtin}}
 %
 % \begin{Piton}
 % from math import *
@@ -1105,14 +1088,9 @@
 %
 % \begingroup
 %
-% \PitonOptions 
-%   {
-%     identifiers = 
-%      {
-%        names = { cos, sin, tan, floor, ceil, trunc, pow, exp, ln, factorial } , 
-%        style = \PitonStyle{Name.Builtin}
-%      }
-%   }
+% \SetPitonIdentifier[Python]
+%   {cos, sin, tan, floor, ceil, trunc, pow, exp, ln, factorial}
+%   {\PitonStyle{Name.Builtin}}
 %
 % \begin{Piton}
 % from math import *
@@ -1135,6 +1113,8 @@
 % \item It's possible to compose comments entirely in LaTeX.
 % \item It's possible to have the elements between \texttt{\$} in the comments
 % composed in LateX mathematical mode.
+% \item It's possible to ask \pkg{piton} to detect automatically some LaTeX
+% commands, thanks to the key |detected-commands|.
 % \item It's also possible to insert LaTeX code almost everywhere in a Python listing.
 % \end{itemize}
 %
@@ -1220,6 +1200,53 @@
 % def square(x):
 %     return x*x # compute $x^2$
 % \end{Piton}
+%
+% \subsubsection{The key ``detected-commands''}
+%
+% \index{detected-commands (key)}
+%
+% \colorbox{yellow!50}{\bfseries New 2.4}\par\nobreak
+%
+% \smallskip
+% The key |detected-commands| of |\PitonOptions| allow to specify a
+% (comma-separated) list of names of LaTeX commands that will be detected 
+% directly by \pkg{piton}.
+%
+% \begin{itemize}
+% \item The key |detected-commands| must be used in the preamble of the LaTeX document.
+% 
+% \item The names of the LaTeX commands must appear without the leading
+% backslash (eg. |detected-commands = { emph, bfseries }|). 
+%
+% \item These commands must be LaTeX commands with only one (mandatory) argument
+% between braces (and these braces must be explicit). 
+% \end{itemize}
+%
+% \medskip
+% We assume that the preamble of the LaTeX document contains the following line.
+% \begin{Verbatim}
+% \PitonOptions{~emphase#detected-commands@ = highLight}
+% \end{Verbatim}
+%
+% Then, it's possible to write directly:
+% \begin{Verbatim}
+% \begin{Piton}
+% def fact(n):
+%     if n==0:
+%         return 1
+%     else:
+%         ~emphase#\highLight@{return n*fact(n-1)}
+% \end{Piton}
+% \end{Verbatim}
+%
+% \begin{Piton}
+% def fact(n):
+%     if n==0:
+%         return 1
+%     else:
+%         \highLight{return n*fact(n-1)}
+% \end{Piton}
+%
 % 
 % \subsubsection{The mechanism ``escape''}
 %
@@ -1237,7 +1264,15 @@
 % in the preamble of the document}.
 %
 % \medskip
-% In the following example, we assume that the preamble of the document contains
+% We consider once again the previous example of a recursive programmation of
+% the factorial. We want to highlight in pink the instruction containing the
+% recursive call. With the package \pkg{lua-el}, we can use the syntax
+% |\highLight[LightPink]{...}|. Because of the optional argument between square
+% brackets, it's not possible to use the key |detected-commands| but it's
+% possible to acheive our goal with the more general mechanism ``escape''.
+%
+% \medskip
+% We assume that the preamble of the document contains
 % the following instruction:
 %
 % \begin{Verbatim}
@@ -1245,17 +1280,14 @@
 % \end{Verbatim}
 %
 % \medskip
-% In the following code, which is a recursive programmation of the mathematical
-% factorial, we decide to highlight in yellow the instruction which contains the
-% recursive call. That example uses the command |\highLight| of \pkg{lua-ul}
-% (that package requires itself the package \pkg{luacolor}).
+% Then, it's possible to write:
 % \begin{Verbatim}
 % \begin{Piton}
 % def fact(n):
 %     if n==0:
 %         return 1
 %     else:
-%         ~emphase#!\highLight{!@return n*fact(n-1)~emphase#!}!@
+%         ~emphase#!\highLight[LightPink]{!@return n*fact(n-1)~emphase#!}!@
 % \end{Piton}
 % \end{Verbatim}
 %
@@ -1264,46 +1296,8 @@
 %     if n==0:
 %         return 1
 %     else:
-%         !\highLight{!return n*fact(n-1)!}!
+%         !\highLight[LightPink]{!return n*fact(n-1)!}!
 %    \end{Piton}
-%         
-% \bigskip
-% In fact, in that case, it's probably easier to use the command |\@highLight|
-% of \pkg{lua-ul}: that command sets a yellow background until the end of the
-% current TeX group. Since the name of that command contains the character |@|,
-% it's necessary to define a synonym without |@| in order to be able to use it
-% directly in |{Piton}|.
-% \begingroup
-% \fvset{commandchars=\~\#\+,formatcom=\color{gray}}
-% \begin{Verbatim}
-% \makeatletter
-% ~emphase#\NewCommandCopy{\Yellow}{\@highLight}+
-% \makeatother
-% \end{Verbatim}
-% \endgroup
-%
-% \begin{Verbatim}
-% \begin{Piton}
-% def fact(n):
-%     if n==0:
-%         return 1
-%     else:
-%         ~emphase#!\Yellow!@return n*fact(n-1)
-% \end{Piton}
-% \end{Verbatim}
-%
-% \makeatletter
-% \NewCommandCopy{\Yellow}{\@highLight}
-% \makeatother
-%
-%
-% \begin{Piton}
-% def fact(n):
-%     if n==0:
-%         return 1
-%     else:
-%         !\Yellow!return n*fact(n-1)
-% \end{Piton}
 %
 %
 %
@@ -2246,6 +2240,51 @@
 % \SetPitonStyle~emphase#[SQL]@{Keywords = \bfseries \MakeUppercase}
 % \end{Verbatim}
 %
+% \newpage
+%
+% \subsection{The language ``minimal''}
+%
+% \colorbox{yellow!50}{\bfseries New 2.4}\par\nobreak
+%
+% \bigskip
+% It's possible to switch to the language ``|minimal|'' with |\PitonOptions{language = minimal}|.
+%
+% \bigskip
+% It's also possible to set the language ``|minimal|'' for an individual environment |{Piton}|. 
+% %
+% \begin{Verbatim}
+% \begin{Piton}~emphase#[language=minimal]@
+% ...
+% \end{Piton}
+% \end{Verbatim}
+%
+% \bigskip
+% The option exists also for |\PitonInputFile| : |\PitonInputFile[language=minimal]{...}|
+%
+%
+% \label{minimal}
+%
+% \vspace{1cm}
+%
+% \begin{center}
+% \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+% \toprule
+% \normalfont Style  & Usage \\
+% \midrule
+% Number & the numbers \\
+% String & the strings (between \texttt{"}) \\
+% Comment & les comments (which begins with |#|) \\
+% Comment.LaTeX &  the comments beginning with \texttt{\#>}, which are composed by
+%   \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
+% \bottomrule
+% \end{tabularx}
+% \end{center}
+%
+% \bigskip
+% That language is provided for the final user who might wish to add keywords in
+% that language (with the command |\SetPitonIdentifier|: cf. \ref{SetPitonIdentifier},
+% p.~\pageref{SetPitonIdentifier}) in order to create, for example, a language
+% for pseudo-code.
 %
 % \newpage
 %
@@ -2404,6 +2443,14 @@
 \cs_new_protected:Npn \@@_fatal:n { \msg_fatal:nn { piton } }
 \cs_new_protected:Npn \@@_fatal:nn { \msg_fatal:nnn { piton } }
 \cs_new_protected:Npn \@@_msg_new:nn { \msg_new:nnn { piton } }
+\cs_new_protected:Npn \@@_msg_new:nnn { \msg_new:nnnn { piton } }
+\cs_new_protected:Npn \@@_gredirect_none:n #1 
+  {
+    \group_begin:
+    \globaldefs = 1
+    \msg_redirect_name:nnn { piton } { #1 } { none }
+    \group_end:
+  }
 %    \end{macrocode}
 %
 % \bigskip
@@ -2426,10 +2473,16 @@
 % 
 % \bigskip
 %    \begin{macrocode}
-\@@_msg_new:nn { piton.lua~not~found }
+\@@_msg_new:nnn { piton.lua~not~found }
   { 
     The~file~'piton.lua'~can't~be~found.\\ 
-    The~package~'piton'~won't~be~loaded.
+    The~package~'piton'~won't~be~loaded.\\
+    If~you~want~to~know~how~to~retrieve~the~file~'piton.lua',~type~H~<return>.
+  }
+  {
+    On~the~site~CTAN,~go~to~the~page~of~'piton':~https://ctan.org/pkg/piton.~
+    The~file~'README.md'~explains~how~to~retrieve~the~files~'piton.sty'~and~
+    'piton.lua'.
   }
 %    \end{macrocode}
 %
@@ -4332,10 +4385,34 @@
 % \bigskip
 % \subsubsection{Highlighting some identifiers}
 %
+%
+% \medskip
+%    \begin{macrocode}
+\NewDocumentCommand { \SetPitonIdentifier } { o m m } 
+  { 
+    \clist_set:Nn \l_tmpa_clist { #2 }
+    \IfNoValueTF { #1 }
+      { 
+        \clist_map_inline:Nn \l_tmpa_clist 
+          { \cs_set:cpn { pitonIdentifier _ ##1 } { #3 } }
+      }
+      {
+        \str_set:Nx \l_tmpa_str { \str_lowercase:n { #1 } }
+        \str_if_eq:onT \l_tmpa_str { current-language }
+          { \str_set_eq:NN \l_tmpa_str \l_piton_language_str }
+        \clist_map_inline:Nn \l_tmpa_clist 
+          { \cs_set:cpn { pitonIdentifier _ \l_tmpa_str _ ##1 } { #3 } }
+      }
+  } 
+%    \end{macrocode}
 % 
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_identifier:n #1
-  { \cs_if_exist_use:c { PitonIdentifier _ \l_piton_language_str _ #1 } { #1 } } 
+  { 
+    \cs_if_exist_use:cF { pitonIdentifier _ \l_piton_language_str _ #1 } 
+      { \cs_if_exist_use:c { pitonIdentifier_ #1 } }
+    { #1 } 
+  } 
 %    \end{macrocode}
 %
 % \bigskip
@@ -4357,6 +4434,8 @@
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_set_identifiers:n #1
   {
+    \@@_error:n { key~identifiers~deprecated }
+    \@@_gredirect_none:n { key~identifiers~deprecated }
     \clist_clear_new:N \l_@@_identifiers_names_tl 
     \tl_clear_new:N \l_@@_style_tl 
     \keys_set:nn { Piton / identifiers } { #1 }
@@ -4493,6 +4572,15 @@
 % \bigskip
 % \subsubsection{The error messages of the package}
 % 
+%    \begin{macrocode}
+\@@_msg_new:nn { key~identifiers~deprecated }
+  {
+    The~key~'identifiers'~in~the~command~\token_to_str:N PitonOptions\ 
+    is~now~deprecated:~you~should~use~the~command~
+    \token_to_str:N \SetPitonIdentifier\ instead.\\
+    However,~you~can~go~on.
+  }
+%    \end{macrocode}
 % 
 %    \begin{macrocode}
 \@@_msg_new:nn { Unknown~key~for~SetPitonStyle } 
@@ -4622,7 +4710,6 @@
     end-range,~
     env-gobble,~
     gobble,~
-    identifiers,~
     indent-broken-lines,~
     language,~
     left-margin,~
@@ -6186,6 +6273,7 @@ MainOCaml =
      + Tab
      + Escape + EscapeMath
      + Beamer 
+     + DetectedCommands
      + TypeParameter
      + String + QuotedString + Char
      + Comment
@@ -6525,6 +6613,7 @@ local MainC =
      + Escape + EscapeMath 
      + CommentLaTeX
      + Beamer
+     + DetectedCommands
      + Preproc
      + Comment + LongComment
      + Delim
@@ -6590,6 +6679,7 @@ local Operator =
       P "=" + P "!=" + P "<>" + P ">=" + P ">" + P "<=" + P "<"  + S "*+/"
     )
 %    \end{macrocode}
+%
 % In SQL, the keywords are case-insensitive. That's why we have a little
 % complication. We will catch the keywords with the identifiers and, then,
 % distinguish the keywords with a Lua function. However, some keywords will be
@@ -6893,6 +6983,7 @@ local MainSQL =
      + Escape + EscapeMath 
      + CommentLaTeX
      + Beamer
+     + DetectedCommands
      + Comment + LongComment
      + Delim
      + Operator
@@ -6935,6 +7026,168 @@ languageSQL =
 languages['sql'] = languageSQL
 %    \end{macrocode}
 % 
+% \subsubsection{The LPEG language Minimal}
+% 
+%    \begin{macrocode}
+local CommentMath = 
+  P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
+
+local Comment = 
+  WithStyle ( 'Comment' ,
+     Q ( P "#" ) 
+     * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 ) 
+  * ( EOL + -1 )
+
+
+local String = 
+  WithStyle ( 'String.Short' ,
+      Q "\"" 
+      * ( VisualSpace 
+          + Q ( ( P "\\\"" + 1 - S " \"" ) ^ 1 ) 
+        ) ^ 0 
+      * Q "\""
+    )
+
+
+local balanced_braces =
+  P { "E" ,
+       E = 
+           (
+             P "{" * V "E" * P "}" 
+             + 
+             String  
+             + 
+             ( 1 - S "{}" ) 
+           ) ^ 0 
+    }
+
+if piton_beamer 
+then
+  Beamer =
+      L ( P "\\pause" * ( P "[" * ( 1 - P "]" ) ^ 0 * P "]" ) ^ -1 ) 
+    + 
+      Ct ( Cc "Open" 
+            * C ( 
+                  ( 
+                    P "\\uncover" + P "\\only" + P "\\alert" + P "\\visible"
+                    + P "\\invisible" + P "\\action" 
+                  ) 
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 
+                  * P "{" 
+                ) 
+            * Cc "}" 
+         ) 
+       * ( C ( balanced_braces ) / (function (s) return MainLoopMinimal:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" ) 
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoopMinimal ) 
+    + OneBeamerEnvironment ( "onlyenv" , MainLoopMinimal ) 
+    + OneBeamerEnvironment ( "visibleenv" , MainLoopMinimal )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoopMinimal ) 
+    + OneBeamerEnvironment ( "alertenv" , MainLoopMinimal ) 
+    + OneBeamerEnvironment ( "actionenv" , MainLoopMinimal ) 
+    +
+      L ( 
+          ( P "\\alt" )
+          * P "<" * (1 - P ">") ^ 0 * P ">" 
+          * P "{" 
+        )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}" )
+    +  
+      L ( 
+          ( P "\\temporal" )
+          * P "<" * (1 - P ">") ^ 0 * P ">" 
+          * P "{" 
+        )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}{" )
+      * K ( 'ParseAgain.noCR' , balanced_braces ) 
+      * L ( P "}" )
+end
+
+DetectedCommands = 
+      Ct ( Cc "Open" 
+            * C ( 
+                  piton.ListCommands
+                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1 
+                  * P "{" 
+                ) 
+            * Cc "}" 
+         ) 
+       * ( C ( balanced_braces ) / (function (s) return MainLoopMinimal:match(s) end ) )
+       * P "}" * Ct ( Cc "Close" ) 
+
+local EOL = 
+  P "\r" 
+  *
+  (
+    ( space^0 * -1 )
+    + 
+    Ct ( 
+         Cc "EOL"
+         * 
+         Ct (
+              Lc "\\@@_end_line:"
+              * BeamerEndEnvironments 
+              * BeamerBeginEnvironments 
+              * Lc "\\@@_newline: \\@@_begin_line:"
+            )
+       )
+  ) 
+  *
+  SpaceIndentation ^ 0
+
+local CommentMath = 
+  P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$" -- $
+
+local CommentLaTeX =
+  P(piton.comment_latex) 
+  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces" 
+  * L ( ( 1 - P "\r" ) ^ 0 ) 
+  * Lc "}}" 
+  * ( EOL + -1 )  
+
+local identifier = letter * alphanum ^ 0
+
+local Identifier = K ( 'Identifier' , identifier )
+
+local MainMinimal = 
+       EOL
+     + Space 
+     + Tab
+     + Escape + EscapeMath 
+     + CommentLaTeX
+     + Beamer
+     + DetectedCommands
+     + Comment
+     + Delim
+     + String
+     + Punct
+     + Identifier 
+     + Number
+     + Word
+
+MainLoopMinimal = 
+  (  ( space^1 * -1 ) 
+     + MainMinimal
+  ) ^ 0 
+
+languageMinimal =
+  Ct (
+       ( ( space - P "\r" ) ^ 0 * P "\r" ) ^ -1 
+       * BeamerBeginEnvironments 
+       * Lc '\\@@_begin_line:'
+       * SpaceIndentation ^ 0 
+       * MainLoopMinimal
+       * -1 
+       * Lc '\\@@_end_line:' 
+     )
+languages['minimal'] = languageMinimal
+
 % \bigskip
 % \subsubsection{The function Parse}
 %
@@ -7305,6 +7558,15 @@ end
 % repository:
 %
 % \verb|https://github.com/fpantigny/piton|
+%
+% \subsection*{Changes between versions 2.3 and 2.4}
+%
+% The key |identifiers| of the command |\PitonOptions| is now deprecated and
+% replaced by the new command |\SetPitonIdentifier|.
+%
+% A new special language called ``minimal'' has been added.
+%
+% New key |detected-commands|.
 %
 % \subsection*{Changes between versions 2.2 and 2.3}
 %
