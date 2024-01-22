@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{2.4}
-\def\PitonFileDate{2024/01/15}
+\def\PitonFileVersion{2.5}
+\def\PitonFileDate{2024/01/31}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -165,6 +165,7 @@
 \str_new:N \l_piton_language_str
 \str_set:Nn \l_piton_language_str { python }
 \str_new:N \l__piton_path_str
+\str_new:N \l__piton_path_write_str
 \bool_new:N \l__piton_in_PitonOptions_bool
 \bool_new:N \l__piton_in_PitonInputFile_bool
 \int_new:N \l__piton_nb_lines_int
@@ -511,7 +512,7 @@
     comment-latex .value_required:n = true ,
     comment-latex .usage:n = preamble ,
 
-    math-comments .bool_set:N = \g__piton_math_comments_bool ,
+    math-comments .bool_gset:N = \g__piton_math_comments_bool ,
     math-comments .default:n  = true ,
     math-comments .usage:n = preamble ,
     language         .code:n =
@@ -519,6 +520,8 @@
     language         .value_required:n  = true ,
     path             .str_set:N         = \l__piton_path_str ,
     path             .value_required:n  = true ,
+    path-write       .str_set:N         = \l__piton_path_write_str ,
+    path-write       .value_required:n  = true ,
     gobble           .int_set:N         = \l__piton_gobble_int ,
     gobble           .value_required:n  = true ,
     auto-gobble      .code:n            = \int_set:Nn \l__piton_gobble_int { -1 } ,
@@ -874,7 +877,11 @@
             \ttfamily
             \dim_zero:N \parskip
             \bool_if:NT \g__piton_footnote_bool { \begin { savenotes } }
-            \lua_now:e { piton.write = "\l__piton_write_str" }
+            \str_if_empty:NTF \l__piton_path_write_str
+              { \lua_now:e { piton.write = "\l__piton_write_str" } }
+              { \lua_now:e
+                 { piton.write = "\l__piton_path_write_str / \l__piton_write_str" }
+              }
             \str_if_empty:NF \l__piton_write_str
               {
                 \seq_if_in:NVTF \g__piton_write_seq \l__piton_write_str
@@ -884,7 +891,7 @@
                     \seq_gput_left:NV \g__piton_write_seq \l__piton_write_str
                   }
               }
-            \vtop \bgroup
+            \vbox \bgroup
             \lua_now:e
               {
                 piton.GobbleParse
@@ -1049,7 +1056,7 @@
     \str_clear:N \l__piton_SetPitonStyle_option_str
   }
 \cs_new_protected:Npn \__piton_math_scantokens:n #1
-  { \normalfont \scantextokens { $#1$ } }
+  { \normalfont \scantextokens { \begin{math} #1 \end{math} } }
 \clist_new:N \g__piton_style_clist
 \clist_set:Nn \g__piton_styles_clist
   {
@@ -1105,12 +1112,10 @@
 \keys_define:nn { piton / Styles }
   {
     String          .meta:n = { String.Long = #1 , String.Short = #1 } ,
-    Comment.Math    .tl_set:c = pitonStyle Comment.Math ,
-    Comment.Math    .default:n = \__piton_math_scantokens:n ,
-    Comment.Math    .initial:n = ,
-    ParseAgain      .tl_set:c = pitonStyle ParseAgain ,
+    Comment.Math    .tl_set:c = pitonStyle _ Comment.Math  ,
+    ParseAgain      .tl_set:c = pitonStyle _ ParseAgain ,
     ParseAgain      .value_required:n = true ,
-    ParseAgain.noCR .tl_set:c = pitonStyle ParseAgain.noCR ,
+    ParseAgain.noCR .tl_set:c = pitonStyle _ ParseAgain.noCR ,
     ParseAgain.noCR .value_required:n = true ,
     unknown         .code:n =
       \__piton_error:n { Unknown~key~for~SetPitonStyle }
@@ -1155,7 +1160,11 @@
     ParseAgain.noCR    = \__piton_piton_no_cr:n ,
     ParseAgain         = \__piton_piton:n ,
   }
-\bool_if:NT \g__piton_math_comments_bool { \SetPitonStyle { Comment.Math } }
+\AtBeginDocument
+  {
+    \bool_if:NT \g__piton_math_comments_bool
+       { \SetPitonStyle { Comment.Math = \__piton_math_scantokens:n } }
+  }
 \NewDocumentCommand { \SetPitonIdentifier } { o m m }
   {
     \clist_set:Nn \l_tmpa_clist { #2 }
@@ -1357,15 +1366,17 @@
     left-margin,~
     line-numbers/,~
     marker/,~
+    math-comments,~
     path,~
+    path-write,~
     prompt-background-color,~
     resume,~
     show-spaces,~
     show-spaces-in-strings,~
     splittable,~
     tabs-auto-gobble,~
-    tab-size,~width~
-    and~write.
+    tab-size,~
+    width~and~write.
   }
 \__piton_msg_new:nn { label~with~lines~numbers }
   {

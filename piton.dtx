@@ -72,12 +72,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{2.4}
-\def\PitonFileDate{2024/01/15}
+\def\PitonFileVersion{2.5}
+\def\PitonFileDate{2024/01/31}
 % \iffalse
 %</STY>
 %<*LUA>
--- Version 2.4 of 2024/01/15
+-- Version 2.5 of 2024/01/31
 %</LUA>
 %\fi
 %
@@ -1009,7 +1009,7 @@
 % identifiers.
 %
 % \smallskip
-% That command takes in three arguments: one 
+% That command takes in three arguments: 
 %
 % \begin{itemize}
 % \item The optionnal argument (within square brackets) specifies the informatic
@@ -1216,7 +1216,7 @@
 % \item The key |detected-commands| must be used in the preamble of the LaTeX document.
 % 
 % \item The names of the LaTeX commands must appear without the leading
-% backslash (eg. |detected-commands = { emph, bfseries }|). 
+% backslash (eg. |detected-commands = { emph, textbf }|). 
 %
 % \item These commands must be LaTeX commands with only one (mandatory) argument
 % between braces (and these braces must be explicit). 
@@ -2509,7 +2509,7 @@
 %    \end{macrocode}
 %
 % \medskip
-% The following boolean corresponds to the key |math-comments| (only at load-time).
+% The following boolean corresponds to the key |math-comments| (available only at load-time).
 %    \begin{macrocode}
 \bool_new:N \g_@@_math_comments_bool
 %    \end{macrocode}
@@ -2681,8 +2681,18 @@
 %    \end{macrocode}
 % 
 % \medskip
+% The following parameter corresponds to the key |path| (which is the path used
+% to include files by |\PitonInputFile|).
 %    \begin{macrocode}
 \str_new:N \l_@@_path_str
+%    \end{macrocode}
+%
+% \medskip
+% The following parameter corresponds to the key |path-write| (which is the path
+% use when writing files from listings inserted in the environments of
+% \pkg{piton} by use of the key |write|).
+%    \begin{macrocode}
+\str_new:N \l_@@_path_write_str
 %    \end{macrocode}
 % 
 % \medskip
@@ -3417,7 +3427,7 @@
     comment-latex .value_required:n = true ,
     comment-latex .usage:n = preamble ,
 
-    math-comments .bool_set:N = \g_@@_math_comments_bool ,
+    math-comments .bool_gset:N = \g_@@_math_comments_bool ,
     math-comments .default:n  = true ,
     math-comments .usage:n = preamble , 
 %    \end{macrocode}
@@ -3430,6 +3440,8 @@
     language         .value_required:n  = true ,
     path             .str_set:N         = \l_@@_path_str ,
     path             .value_required:n  = true , 
+    path-write       .str_set:N         = \l_@@_path_write_str ,
+    path-write       .value_required:n  = true , 
     gobble           .int_set:N         = \l_@@_gobble_int , 
     gobble           .value_required:n  = true ,
     auto-gobble      .code:n            = \int_set:Nn \l_@@_gobble_int { -1 } , 
@@ -3958,7 +3970,11 @@
 % 
 % Now, the key |write|.
 %    \begin{macrocode}
-            \lua_now:e { piton.write = "\l_@@_write_str" } 
+            \str_if_empty:NTF \l_@@_path_write_str
+              { \lua_now:e { piton.write = "\l_@@_write_str" } }
+              { \lua_now:e 
+                 { piton.write = "\l_@@_path_write_str / \l_@@_write_str" } 
+              } 
             \str_if_empty:NF \l_@@_write_str
               { 
                 \seq_if_in:NVTF \g_@@_write_seq \l_@@_write_str 
@@ -3968,7 +3984,7 @@
                     \seq_gput_left:NV \g_@@_write_seq \l_@@_write_str
                   }
               }  
-            \vtop \bgroup 
+            \vbox \bgroup 
             \lua_now:e 
               { 
                 piton.GobbleParse
@@ -3980,7 +3996,7 @@
               } 
               { ##1 }
             \vspace { 2.5 pt } 
-            \egroup 
+            \egroup
             \bool_if:NT \g_@@_footnote_bool { \end { savenotes } } 
 %    \end{macrocode}
 % If the user has used the key |width| with the special value~|min|, we write on
@@ -4234,7 +4250,7 @@
 % \medskip
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_math_scantokens:n #1 
-  { \normalfont \scantextokens { $#1$ } }
+  { \normalfont \scantextokens { \begin{math} #1 \end{math} } }
 %    \end{macrocode}
 % 
 % \medskip
@@ -4294,12 +4310,10 @@
 \keys_define:nn { piton / Styles }
   {
     String          .meta:n = { String.Long = #1 , String.Short = #1 } ,
-    Comment.Math    .tl_set:c = pitonStyle Comment.Math , 
-    Comment.Math    .default:n = \@@_math_scantokens:n ,
-    Comment.Math    .initial:n = ,
-    ParseAgain      .tl_set:c = pitonStyle ParseAgain , 
+    Comment.Math    .tl_set:c = pitonStyle _ Comment.Math  ,
+    ParseAgain      .tl_set:c = pitonStyle _ ParseAgain , 
     ParseAgain      .value_required:n = true ,
-    ParseAgain.noCR .tl_set:c = pitonStyle ParseAgain.noCR , 
+    ParseAgain.noCR .tl_set:c = pitonStyle _ ParseAgain.noCR , 
     ParseAgain.noCR .value_required:n = true ,
     unknown         .code:n = 
       \@@_error:n { Unknown~key~for~SetPitonStyle }
@@ -4377,7 +4391,11 @@
 % However, maybe we will document in a future version the possibility to write
 % change the style \emph{locally} in a document)].
 %    \begin{macrocode}
-\bool_if:NT \g_@@_math_comments_bool { \SetPitonStyle { Comment.Math } }
+\AtBeginDocument 
+  { 
+    \bool_if:NT \g_@@_math_comments_bool 
+       { \SetPitonStyle { Comment.Math = \@@_math_scantokens:n } } 
+  }
 %    \end{macrocode}
 % 
 % \bigskip
@@ -4715,15 +4733,17 @@
     left-margin,~
     line-numbers/,~
     marker/,~
+    math-comments,~
     path,~
+    path-write,~
     prompt-background-color,~
     resume,~
     show-spaces,~
     show-spaces-in-strings,~
     splittable,~
     tabs-auto-gobble,~
-    tab-size,~width~
-    and~write.
+    tab-size,~
+    width~and~write.
   }
 %    \end{macrocode}
 %
@@ -5911,7 +5931,7 @@ local OperatorWord =
 
 local Keyword = 
   K ( 'Keyword' ,
-      P "assert" + P "as" + P "begin" + P "class" + P "constraint" + P "done" 
+      P "assert" + P "and" + P "as" + P "begin" + P "class" + P "constraint" + P "done" 
   + P "downto" + P "do" + P "else" + P "end" + P "exception" + P "external" 
   + P "for" + P "function" + P "functor" + P "fun"  + P "if" 
   + P "include" + P "inherit" + P "initializer" + P "in"  + P "lazy" + P "let" 

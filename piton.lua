@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
--- Version 2.4 of 2024/01/15
+-- Version 2.5 of 2024/01/31
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -600,7 +600,7 @@ local OperatorWord =
 
 local Keyword =
   K ( 'Keyword' ,
-      P "assert" + P "as" + P "begin" + P "class" + P "constraint" + P "done"
+      P "assert" + P "and" + P "as" + P "begin" + P "class" + P "constraint" + P "done"
   + P "downto" + P "do" + P "else" + P "end" + P "exception" + P "external"
   + P "for" + P "function" + P "functor" + P "fun"  + P "if"
   + P "include" + P "inherit" + P "initializer" + P "in"  + P "lazy" + P "let"
