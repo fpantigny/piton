@@ -73,11 +73,11 @@
 %<*STY>
 % \fi
 \def\PitonFileVersion{2.5}
-\def\PitonFileDate{2024/01/31}
+\def\PitonFileDate{2024/02/20}
 % \iffalse
 %</STY>
 %<*LUA>
--- Version 2.5 of 2024/01/31
+-- Version 2.5 of 2024/02/20
 %</LUA>
 %\fi
 %
@@ -213,9 +213,8 @@
 % It's possible to insert only a part of the file: cf.
 % part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}. 
 %
-% \colorbox{yellow!50}{\textbf{New 2.2}}\enskip The key |path| of the command
-% |\PitonOptions| specifies a path where the files included by |\PitonInputFile|
-% will be searched. 
+% The key |path| of the command |\PitonOptions| specifies a path where the files
+% included by |\PitonInputFile| will be searched.
 % \end{itemize}
 %
 % \subsection{The syntax of the command \textbackslash piton}
@@ -331,8 +330,8 @@
 % considered (that key is case-insensitive). Five values are allowed :
 % |Python|, |OCaml|, |C|, |SQL| and |minimal|. The initial value is |Python|.
 % 
-% \item \index{path} The key \Definition{path} specifies a path where the files included by
-% |\PitonInputFile| will be searched.
+% \item \index{path} The key \Definition{path} specifies a path where the files
+% included by |\PitonInputFile| will be searched.
 % 
 % \item  \index{gobble} The key \Definition{gobble} takes in as value a
 % positive integer~$n$: the first $n$ characters are discarded (before the
@@ -359,6 +358,10 @@
 % \Definition{write} takes in as argument a name of file (with its extension)
 % and write the content of the current environment in that file. At the first
 % use of a file by \pkg{piton}, it is erased.
+%
+% \item \index{path-write}\colorbox{yellow!50}{\bfseries New 2.5}\enskip The key
+% \Definition{path-write} specifies a path where the files written by the key
+% |write| will be written.
 %
 % \item \index{line-numbers} The key \Definition{line-numbers} activates the
 % line numbering in the environments |{Piton}| and in the listings resulting
@@ -610,11 +613,11 @@
 % informatic language they use (Python, C, OCaml, etc.).
 % 
 % \bigskip
-% \colorbox{yellow!50}{\textbf{New 2.2}}\enskip But it's also possible to define
-% a style locally for a given informatic langage by providing the name of that
-% language as optional argument (between square brackets) to the command
-% |\SetPitonStyle|.\footnote{We recall, that, in the package \pkg{piton}, the
-% names of the informatic languages are case-insensitive.}
+% But it's also possible to define a style locally for a given informatic
+% langage by providing the name of that language as optional argument (between
+% square brackets) to the command |\SetPitonStyle|.\footnote{We recall, that, in
+% the package \pkg{piton}, the names of the informatic languages are
+% case-insensitive.}
 %
 % \bigskip
 % For example, with the command
@@ -2689,7 +2692,7 @@
 %
 % \medskip
 % The following parameter corresponds to the key |path-write| (which is the path
-% use when writing files from listings inserted in the environments of
+% used when writing files from listings inserted in the environments of
 % \pkg{piton} by use of the key |write|).
 %    \begin{macrocode}
 \str_new:N \l_@@_path_write_str
@@ -3972,8 +3975,9 @@
 %    \begin{macrocode}
             \str_if_empty:NTF \l_@@_path_write_str
               { \lua_now:e { piton.write = "\l_@@_write_str" } }
-              { \lua_now:e 
-                 { piton.write = "\l_@@_path_write_str / \l_@@_write_str" } 
+              { 
+                \lua_now:e 
+                  { piton.write = "\l_@@_path_write_str / \l_@@_write_str" } 
               } 
             \str_if_empty:NF \l_@@_write_str
               { 
@@ -4656,7 +4660,7 @@
 %   \begin{macrocode}
 \@@_msg_new:nn { syntax~error }
   {
-    Your~code~\l_piton_language_str\ is~not~syntactically~correct.\\
+    Your~code~of~the~language~"\l_piton_language_str"~is~not~syntactically~correct.\\ 
     It~won't~be~printed~in~the~PDF~file.
   }
 %    \end{macrocode}
@@ -4804,10 +4808,13 @@
 \directlua 
   {
     lpeg.locale(lpeg)
-    local P , alpha , C , Cf, space = lpeg.P , lpeg.alpha , lpeg.C , lpeg.Cf , lpeg.space
-    local One_P = space ^ 0 
-                  * C ( alpha ^ 1 ) / ( function (s) return P ( string.char(92) .. s ) end ) 
-                  * space ^ 0 
+    local P , alpha , C , Cf, space 
+      = lpeg.P , lpeg.alpha , lpeg.C , lpeg.Cf , lpeg.space 
+    local S = lpeg.S 
+    local One_P 
+      = space ^ 0 
+        * C ( alpha ^ 1 ) / ( function (s) return P ( string.char(92) .. s ) end ) 
+        * space ^ 0 
     function piton.addListCommands( key_value )
        piton.ListCommands =  
          piton.ListCommands + 
@@ -5034,10 +5041,10 @@ local Number =
 % corresponding to the keys |begin-escape| and |end-escape|. 
 %    \begin{macrocode}
 local Word
-if piton.begin_escape ~= nil -- before : ''
+if piton.begin_escape ~= nil 
 then Word = Q ( ( ( 1 - space - P(piton.begin_escape) - P(piton.end_escape) ) 
-                   - S "'\"\r[()]" - digit ) ^ 1 )
-else Word = Q ( ( ( 1 - space ) - S "'\"\r[()]" - digit ) ^ 1 )
+                   - S "'\"\r[({})]" - digit ) ^ 1 )
+else Word = Q ( ( ( 1 - space ) - S "'\"\r[({})]" - digit ) ^ 1 )
 end
 %    \end{macrocode}
 %
@@ -5060,7 +5067,7 @@ local SpaceIndentation = Lc ( '\\@@_an_indentation_space:' ) * ( Q " " )
 %
 % \bigskip
 %    \begin{macrocode}
-local Delim = Q ( S "[()]" )
+local Delim = Q ( S "[({})]" )
 %    \end{macrocode}
 % 
 % \bigskip
@@ -7049,6 +7056,8 @@ languages['sql'] = languageSQL
 % \subsubsection{The LPEG language Minimal}
 % 
 %    \begin{macrocode}
+local Punct = Q ( S ",:;!\\" )
+
 local CommentMath = 
   P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
 
@@ -7174,6 +7183,8 @@ local CommentLaTeX =
 local identifier = letter * alphanum ^ 0
 
 local Identifier = K ( 'Identifier' , identifier )
+
+local Delim = Q ( S "{[()]}" )
 
 local MainMinimal = 
        EOL
@@ -7578,6 +7589,10 @@ end
 % repository:
 %
 % \verb|https://github.com/fpantigny/piton|
+%
+% \subsection*{Changes between versions 2.4 and 2.5}
+%
+% New key |path-write|
 %
 % \subsection*{Changes between versions 2.3 and 2.4}
 %

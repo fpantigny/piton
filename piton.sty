@@ -20,7 +20,7 @@
 %% -------------------------------------------
 %% 
 \def\PitonFileVersion{2.5}
-\def\PitonFileDate{2024/01/31}
+\def\PitonFileDate{2024/02/20}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -879,7 +879,8 @@
             \bool_if:NT \g__piton_footnote_bool { \begin { savenotes } }
             \str_if_empty:NTF \l__piton_path_write_str
               { \lua_now:e { piton.write = "\l__piton_write_str" } }
-              { \lua_now:e
+              {
+                \lua_now:e
                  { piton.write = "\l__piton_path_write_str / \l__piton_write_str" }
               }
             \str_if_empty:NF \l__piton_write_str
@@ -1310,7 +1311,7 @@
   }
 \__piton_msg_new:nn { syntax~error }
   {
-    Your~code~\l_piton_language_str\ is~not~syntactically~correct.\\
+    Your~code~of~the~language~"\l_piton_language_str"~is~not~syntactically~correct.\\
     It~won't~be~printed~in~the~PDF~file.
   }
 \NewDocumentCommand \PitonSyntaxError { }
@@ -1409,6 +1410,7 @@
   {
     lpeg.locale(lpeg)
     local P , alpha , C , Cf, space = lpeg.P , lpeg.alpha , lpeg.C , lpeg.Cf , lpeg.space
+    local S = lpeg.S
     local One_P = space ^ 0
                   * C ( alpha ^ 1 ) / ( function (s) return P ( string.char(92) .. s ) end )
                   * space ^ 0

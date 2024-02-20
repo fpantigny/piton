@@ -222,8 +222,7 @@ composer un fichier extérieur.
 Il est possible de n'insérer qu'une partie du fichier : cf. partie~\ref{part-of-a-file},
 p.~\pageref{part-of-a-file}.
 
-\colorbox{yellow!50}{\textbf{Nouveau 2.2}}\enskip La clé |path| de la commande |\PitonOptions| permet de spécifier
-un chemin pour le fichier à inclure. 
+La clé |path| de la commande |\PitonOptions| permet de spécifier un chemin pour le fichier à inclure. 
 \end{itemize}
 
 
@@ -356,26 +355,29 @@ de la position des délimiteurs |\begin{Piton}| et |\end{Piton}| de l'environnem
 fichier (avec l'extension) et écrit le contenu de l'environnement courant dans ce fichier. À la première
 utilisation du fichier par \pkg{piton}, celui-ci est effacé.
 
+\item \index{path-write} \colorbox{yellow!50}{\bfseries Nouveau 2.5}\enskip La clé \Definition{path-write} indique
+un chemin où seront écrits les fichiers écrits par l'emploi de la clé |write| précédente.
+
 \item \index{line-numbers} La clé \Definition{line-numbers} active la numérotation des lignes (en débordement à gauche) dans les
-environnements \verb|{Piton}| et dans les listings produits par la commande |\PitonInputFile|.
+environnements |{Piton}| et dans les listings produits par la commande |\PitonInputFile|.
 
 Cette clé propose en fait plusieurs sous-clés.
 \begin{itemize}
 \item La clé \Definition{line-numbers/skip-empty-lines} demande que les lignes vides soient considérées comme non existantes en
-ce qui concerne la numérotation des lignes (si la clé \verb|/absolute| est active, la clé \verb|/skip-empty-lines|
-n'a pas d'effet dans \verb|\PitonInputFile|). La valeur initiale de cette clé est \verb|true| (et non
-\verb|false|).\footnote{Avec le langage Python, les lignes vides des \emph{docstrings} sont prises en compte.}
+ce qui concerne la numérotation des lignes (si la clé |/absolute| est active, la clé |/skip-empty-lines|
+n'a pas d'effet dans |\PitonInputFile|). La valeur initiale de cette clé est |true| (et non
+|false|).\footnote{Avec le langage Python, les lignes vides des \emph{docstrings} sont prises en compte.}
 
 \item La clé \Definition{line/numbers/label-empty-lines} demande que les labels (c'est-à-dire les numéros) des lignes vides
-soient affichés. Si la clé \verb|/skip-empty-lines| est active, la clé \verb|/label-empty-lines| est sans effet. La
-valeur initiale de cette clé est \verb|true|.
+soient affichés. Si la clé |/skip-empty-lines| est active, la clé |/label-empty-lines| est sans effet. La
+valeur initiale de cette clé est |true|.
 
-\item La clé \Definition{line-numbers/absolute} demande, pour les listings générés par \verb|\PitonInputFile|, que les numéros de
+\item La clé \Definition{line-numbers/absolute} demande, pour les listings générés par |\PitonInputFile|, que les numéros de
 lignes affichés soient absolus (c'est-à-dire ceux du fichier d'origine). Elle n'a d'intérêt que si on n'insère qu'une
-partie du fichier (cf. part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}). La clé |/absolute| est sans effet dans les environnements \verb|{Piton}|.
+partie du fichier (cf. part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}). La clé |/absolute| est sans effet dans les environnements |{Piton}|.
 
 \item La clé \Definition{line-numbers/resume} reprend la numérotation là où elle avait été laissée au dernier listing. En fait,
-la clé \verb|line-numbers/resume| a un alias, qui est \verb|resume| tout court. 
+la clé |line-numbers/resume| a un alias, qui est |resume| tout court. 
 
 \item La clé \Definition{line-numbers/start} impose que la numérotation commence à ce numéro. 
 
@@ -581,10 +583,9 @@ Par exemple, avec la commande
 tous les commentaires (que ce soit en Python, en C, en OCaml, etc.) seront composés en gris.
 
 \bigskip
-\colorbox{yellow!50}{\textbf{Nouveau 2.2}}\enskip Mais il est aussi possible de définir un style localement pour un
-certain langage informatique en passant le nom du langage en argument optionnel (entre crochets) de la commande
-|\SetPitonStyle|.\footnote{On rappelle que, dans \pkg{piton}, les noms des langages informatiques ne sont pas
-  sensibles à la casse.}
+Mais il est aussi possible de définir un style localement pour un certain langage informatique en passant le nom du
+langage en argument optionnel (entre crochets) de la commande |\SetPitonStyle|.\footnote{On rappelle que, dans
+  \pkg{piton}, les noms des langages informatiques ne sont pas sensibles à la casse.}
 
 \medskip
 Par exemple, avec la commande 
@@ -678,7 +679,7 @@ commande classique |\NewDocumentEnvironment|.
 Par exemple, avec l'instruction suivante, un nouvel environnement |{Python}| sera défini avec le même comportement
 que l'environnement |{Piton}|:
 
-{\color{gray}\verb|\NewPitonEnvironment{Python}{O{}}{\PitonOptions{#1}}{}|}
+{\color{gray}|\NewPitonEnvironment{Python}{O{}}{\PitonOptions{#1}}{}|}
 
 \bigskip
 Si on souhaite un environnement |{Python}| qui compose le code inclus dans une boîte de \pkg{tcolorbox}, on peut
@@ -1078,7 +1079,7 @@ caractères qui (précédés par~|#|) serviront de marqueur syntaxique.
 
 Par exemple, avec le réglage suivant (fait dans le préambule du document) :
 
-\verb|\PitonOptions{comment-latex = LaTeX}|
+|\PitonOptions{comment-latex = LaTeX}|
 
 les commentaires LaTeX commenceront par~|#LaTeX|.
 
@@ -1262,12 +1263,12 @@ mécanisme «|escape|». En effet, comme le contenu en échappement est composé
 particulier composé dans un groupe TeX et ne pourra donc pas servir à changer le formatage d'autres unités lexicales.
 
 \medskip
-Dans les langages où le caractère \verb|$| ne joue pas un rôle syntaxique important, on peut assez naturellement
-vouloir activer le mécanisme «|escape-math|» avec le caractère \verb|$|:
+Dans les langages où le caractère |$| ne joue pas un rôle syntaxique important, on peut assez naturellement
+vouloir activer le mécanisme «|escape-math|» avec le caractère |$|:
 \begin{Verbatim}
 \PitonOptions{~emphase#begin-escape-math=$,end-escape-math=$@}
 \end{Verbatim}
-Remarquer que le caractère \verb|$| ne doit \emph{pas} être protégé par une contre-oblique.
+Remarquer que le caractère |$| ne doit \emph{pas} être protégé par une contre-oblique.
 
 \bigskip
 Néanmoins, il est sans doute plus prudent d'utiliser |\(| et |\)|.
@@ -1965,7 +1966,8 @@ Voici la programmation d'un environnement |{PitonREPL}| qui effectue ce travail 
        tex.print(pyluatex.get_last_output())
        tex.print("\\end{Piton}")
        tex.print("") 
-     }
+     }% 
+   \ignorespacesafterend
  }
 \end{Verbatim}
 
@@ -2005,7 +2007,8 @@ Voici un exemple d'utilisation de ce nouvel environnement |{PitonREPL}|.
        tex.print(pyluatex.get_last_output())
        tex.print("\\end{Piton}")
        tex.print("") 
-     }
+     }%
+   \ignorespacesafterend
  }
 
 
@@ -2121,7 +2124,7 @@ tel qu'il est appliqué au langage Python par Pygments.\footnote{Voir \url{https
   Interpol.Inside & le contenu des interpolations dans les f-strings (c'est-à-dire les éléments qui se trouvent entre
                     \texttt{\{} et~\texttt{\}} ; si l'utilisateur n'a pas fixé ce style, ces éléments sont analysés et formatés par \pkg{piton}
                     au même titre que le reste du code. \\
-                    Operator & les opérateurs suivants : \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ \verb|@| \\
+                    Operator & les opérateurs suivants : \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ |@| \\
   Operator.Word & les opérateurs suivants : |in|, |is|, |and|, |or| et |not| \\
   Name.Builtin & la plupart des fonctions prédéfinies par Python \\
   Name.Decorator & les décorateurs (instructions débutant par \verb|@|) \\
@@ -2239,12 +2242,12 @@ Number & les nombres \\
 String.Long & les chaînes de caractères (entre \texttt{"}) \\
 String.Interpol &  les éléments \texttt{\%d}, \texttt{\%i}, \texttt{\%f}, \texttt{\%c}, etc. dans les chaînes de
                   caractères ; ce style hérite du style |String.Long| \\
-Operator & les opérateurs suivants : \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ \verb|@| \\
+Operator & les opérateurs suivants : \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ |@| \\
 Name.Type & les types prédéfinis suivants :
   |bool|, |char|, |char16_t|, |char32_t|, |double|, |float|, |int|, |int8_t|, |int16_t|, |int32_t|, 
   |int64_t|, |long|, |short|, |signed|, |unsigned|, |void| et |wchar_t| \\ 
 Name.Builtin & les fonctions prédéfinies suivantes : |printf|, |scanf|, |malloc|, |sizeof| et  |alignof|  \\
-  Name.Class & le nom des classes au moment de leur définition, c'est-à-dire après le mot-clé \verb|class| \\
+  Name.Class & le nom des classes au moment de leur définition, c'est-à-dire après le mot-clé |class| \\
 Name.Function & le nom des fonctions définies par l'utilisateur \emph{au moment de leur définition} \\
 UserFunction & le nom des fonctions précédemment définies par l'utilisateur (la valeur initiale de ce paramètre est
                vide et ces éléments sont affichés en noir --- ou plutôt dans la couleur courante) \\

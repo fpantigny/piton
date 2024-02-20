@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
--- Version 2.5 of 2024/01/31
+-- Version 2.5 of 2024/02/20
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -91,10 +91,10 @@ local Number =
       + digit^1
     )
 local Word
-if piton.begin_escape ~= nil -- before : ''
+if piton.begin_escape ~= nil
 then Word = Q ( ( ( 1 - space - P(piton.begin_escape) - P(piton.end_escape) )
-                   - S "'\"\r[()]" - digit ) ^ 1 )
-else Word = Q ( ( ( 1 - space ) - S "'\"\r[()]" - digit ) ^ 1 )
+                   - S "'\"\r[({})]" - digit ) ^ 1 )
+else Word = Q ( ( ( 1 - space ) - S "'\"\r[({})]" - digit ) ^ 1 )
 end
 local Space = ( Q " " ) ^ 1
 
@@ -104,7 +104,7 @@ local Punct = Q ( S ".,:;!" )
 
 local Tab = P "\t" * Lc ( '\\l__piton_tab_tl' )
 local SpaceIndentation = Lc ( '\\__piton_an_indentation_space:' ) * ( Q " " )
-local Delim = Q ( S "[()]" )
+local Delim = Q ( S "[({})]" )
 local VisualSpace = space * Lc "\\l__piton_space_tl"
 local Beamer = P ( false )
 local BeamerBeginEnvironments = P ( true )
@@ -1325,6 +1325,8 @@ languageSQL =
        * Lc '\\__piton_end_line:'
      )
 languages['sql'] = languageSQL
+local Punct = Q ( S ",:;!\\" )
+
 local CommentMath =
   P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
 
@@ -1448,6 +1450,8 @@ local CommentLaTeX =
 local identifier = letter * alphanum ^ 0
 
 local Identifier = K ( 'Identifier' , identifier )
+
+local Delim = Q ( S "{[()]}" )
 
 local MainMinimal =
        EOL
