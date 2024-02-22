@@ -72,12 +72,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{2.5}
-\def\PitonFileDate{2024/02/20}
+\def\PitonFileVersion{2.6}
+\def\PitonFileDate{2024/02/30}
 % \iffalse
 %</STY>
 %<*LUA>
--- Version 2.5 of 2024/02/20
+-- Version 2.6 of 2024/02/30
 %</LUA>
 %\fi
 %
@@ -166,7 +166,7 @@
 %
 % In current version, the package \pkg{piton} supports four computer languages:
 % Python, OCaml, SQL and C (in fact \CC). It supports also a special language
-% called ``|minimal|'': cf. \pageref{minimal}.
+% called ``|minimal|'': cf. p.~\pageref{minimal}.
 %
 % \smallskip
 % By default, the language used is Python.
@@ -177,8 +177,8 @@
 % and its key |language|: |\PitonOptions{language = C}|.
 %
 % \smallskip
-% \colorbox{yellow!50}{\textbf{New 2.4}}\enskip The name of the L3 variable
-% corresponding to that key is |\l_piton_language_str|.
+% For the developpers, let's say that the name of the current language is stored
+% (in lower case) in the L3 public variable |\l_piton_language_str|.
 %
 % \smallskip
 % In what follows, we will speak of Python, but the features described also
@@ -333,9 +333,9 @@
 % \item \index{path} The key \Definition{path} specifies a path where the files
 % included by |\PitonInputFile| will be searched.
 % 
-% \item  \index{gobble} The key \Definition{gobble} takes in as value a
-% positive integer~$n$: the first $n$ characters are discarded (before the
-% process of highlightning of the code) for each line of the environment
+% \item \index{gobble}\label{gobble} The key \Definition{gobble} takes in as
+% value a positive integer~$n$: the first $n$ characters are discarded (before
+% the process of highlightning of the code) for each line of the environment
 % |{Piton}|. These characters are not necessarily spaces.
 %
 % \item \index{auto-gobble}\index{gobble!auto-gobble} When the key
@@ -354,10 +354,9 @@
 % gobble is set by the position of the commands |\begin{Piton}| and
 % |\end{Piton}| which delimit the current environment.
 %
-% \item \index{write} \colorbox{yellow!50}{\bfseries New 2.3}\enskip The key
-% \Definition{write} takes in as argument a name of file (with its extension)
-% and write the content of the current environment in that file. At the first
-% use of a file by \pkg{piton}, it is erased.
+% \item \index{write} The key \Definition{write} takes in as argument a name of
+% file (with its extension) and write the content of the current environment in
+% that file. At the first use of a file by \pkg{piton}, it is erased.
 %
 % \item \index{path-write}\colorbox{yellow!50}{\bfseries New 2.5}\enskip The key
 % \Definition{path-write} specifies a path where the files written by the key
@@ -714,7 +713,10 @@
 % command takes in three mandatory arguments. 
 
 % That command has the same syntax as the classical environment
-% |\NewDocumentEnvironment|.
+% |\NewDocumentEnvironment|.\footnote{However, the specifier of argument |b|
+% (used to catch the body of the environment as a LaTeX argument) is
+% not allowed.}
+%
 % 
 % \bigskip
 % With the following instruction, a new environment |{Python}| will be
@@ -1208,9 +1210,6 @@
 %
 % \index{detected-commands (key)}
 %
-% \colorbox{yellow!50}{\bfseries New 2.4}\par\nobreak
-%
-% \smallskip
 % The key |detected-commands| of |\PitonOptions| allow to specify a
 % (comma-separated) list of names of LaTeX commands that will be detected 
 % directly by \pkg{piton}.
@@ -1991,8 +1990,46 @@
 % This environment |{PitonExecute}| takes in as optional argument (between
 % square brackets) the options of the command |\PitonOptions|.
 %
+% \bigskip
+% \section{API for the developpers}
+%
+% \indexcommand{g\_piton\_last\_code\_tl}
+% \index{piton.last@\texttt{piton.last\_code} (variable of Lua)}
+% 
+% The L3 variable |\l_piton_language_str| contains the name of the current
+% language of \pkg{piton} (in lower case).
 %
 % \bigskip
+% \colorbox{yellow!50}{\textbf{New 6.5}}\par\nobreak
+%
+% \smallskip
+% The extension \pkg{piton} provides two tools to retrieve the body of the last
+% environment of \pkg{piton}: the Lua variable |piton.last_code| and the L3
+% variable |\g_piton_last_code_tl|. In fact, in both cases, it's the body of the
+% environment \emph{after application of a potential key} |gobble| (cf.
+% p.~\pageref{gobble}). 
+%
+% \begin{itemize}
+% \item The Lua variable \Definition{piton.last_code} is a string of Lua. The
+% carriage returns (present in the environment as inserted by the final user)
+% appear in that string as characters |\r| (that is to say characters U+000D).
+%
+% \item The L3 variable \Definition{\textbackslash g_piton_last_code_tl} is the
+% L3 version of the previous Lua variable.
+% \begin{itemize}
+% \item As specified by the prefix |g| in its name, it must be used as a
+% \emph{global} variable (in the TeX sens).
+% \item Since its name is |\g_piton_last_code_tl| (and not
+% |\g__piton_last_code_tl|), it's a \emph{public} variable (and that's why it's
+% documented here).
+% \item As specified by the suffixe |tl| in its name, it's a token list of L3.
+% However, \emph{all} the tokens of that token list are characters with the
+% catcode ``other'' (=12), including the spaces and the carriage returns.
+% \end{itemize}
+% \end{itemize}
+%
+%
+%
 % \clearpage
 % \section{The styles for the different computer languages}
 %
@@ -2247,9 +2284,6 @@
 %
 % \subsection{The language ``minimal''}
 %
-% \colorbox{yellow!50}{\bfseries New 2.4}\par\nobreak
-%
-% \bigskip
 % It's possible to switch to the language ``|minimal|'' with |\PitonOptions{language = minimal}|.
 %
 % \bigskip
@@ -2434,7 +2468,7 @@
   {piton}
   {\PitonFileDate}
   {\PitonFileVersion}
-  {Highlight Python codes with LPEG on LuaLaTeX}
+  {Highlight informatic listings with LPEG on LuaLaTeX}
 %    \end{macrocode}
 %
 % \bigskip
@@ -2669,6 +2703,7 @@
   { 
     piton = piton~or { } 
     piton.ListCommands = lpeg.P ( false ) 
+    piton.last_code = ''
   }
 %    \end{macrocode}
 % 
@@ -2683,6 +2718,13 @@
 \str_set:Nn \l_piton_language_str { python }
 %    \end{macrocode}
 % 
+% \medskip
+% Each time the command |\PitonInputFile| or an environment of \pkg{piton} is
+% used, the code of that environment will be stored in the following global string.
+%    \begin{macrocode}
+\tl_new:N \g_piton_last_code_tl
+%    \end{macrocode}
+%
 % \medskip
 % The following parameter corresponds to the key |path| (which is the path used
 % to include files by |\PitonInputFile|).
@@ -4243,11 +4285,11 @@
 %    \begin{macrocode}
 \NewDocumentCommand { \SetPitonStyle } { O { } m } 
   { 
+    \str_clear_new:N \l_@@_SetPitonStyle_option_str
     \str_set:Nx \l_@@_SetPitonStyle_option_str { \str_lowercase:n { #1 } }
     \str_if_eq:onT \l_@@_SetPitonStyle_option_str { current-language }
       { \str_set_eq:NN \l_@@_SetPitonStyle_option_str \l_piton_language_str }
     \keys_set:nn { piton / Styles } { #2 } 
-    \str_clear:N \l_@@_SetPitonStyle_option_str 
   } 
 %    \end{macrocode}
 % 
@@ -4259,8 +4301,8 @@
 % 
 % \medskip
 %    \begin{macrocode}
-\clist_new:N \g_@@_style_clist
-\clist_set:Nn \g_@@_styles_clist 
+\clist_new:N \g_@@_styles_clist
+\clist_gset:Nn \g_@@_styles_clist 
   {
     Comment ,
     Comment.LaTeX ,
@@ -7223,6 +7265,8 @@ languages['minimal'] = languageMinimal
 % \subsubsection{The function Parse}
 %
 %
+%
+% \bigskip
 % The function |Parse| is the main function of the package \pkg{piton}. It
 % parses its argument and sends back to LaTeX the code with interlaced
 % formatting LaTeX instructions. In fact, everything is done by the
@@ -7397,8 +7441,7 @@ end
 % previous one) using |math.min| as folding operator.
 %    \begin{macrocode}
 local AutoGobbleLPEG = 
-    ( space ^ 0 * P "\r" ) ^ -1 
-    * Cf (
+      Cf (
            (
 %    \end{macrocode}
 % We don't take into account the empty lines (with only spaces).
@@ -7422,8 +7465,7 @@ local AutoGobbleLPEG =
 % The following \textsc{lpeg} is similar but works with the indentations.
 %    \begin{macrocode}
 local TabsAutoGobbleLPEG = 
-    ( space ^ 0 * P "\r" ) ^ -1 
-    * Cf (
+      Cf (
            (
              ( P "\t" ) ^ 0 * P "\r"
              + 
@@ -7453,7 +7495,20 @@ local EnvGobbleLPEG =
 % 
 % \bigskip
 %    \begin{macrocode}
+function remove_before_cr(input_string)
+    local match_result = P("\r") : match(input_string)
+    if match_result then
+        return string.sub(input_string, match_result ) 
+    else
+        return input_string 
+    end
+end
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
 function piton.GobbleParse(language,n,code)
+  code = remove_before_cr(code)
   if n==-1 
   then n = AutoGobbleLPEG : match(code)
   else if n==-2 
@@ -7463,15 +7518,24 @@ function piton.GobbleParse(language,n,code)
             end
        end
   end
-  piton.Parse(language,gobble(n,code))
+%    \end{macrocode}
+% Be careful: |piton.last_code| is a \emph{public} variable! Its name must not be changed.
+%    \begin{macrocode}
+  piton.last_code = gobble(n,code)
+  piton.Parse(language,piton.last_code)
+  tex.sprint( luatexbase.catcodetables.expl , 
+        '\\tl_gset:Nn \\g_piton_last_code_tl {' )
+  tex.sprint( luatexbase.catcodetables.other , piton.last_code ) 
+  tex.sprint( luatexbase.catcodetables.expl , '}' ) 
   if piton.write ~= ''
   then local file = assert(io.open(piton.write,piton.write_mode))
-       file:write(code)
+       file:write(piton.last_code) -- modified 2024/02/20
        file:close()
   end
 end 
 %    \end{macrocode}
 %
+% 
 % \bigskip
 % \subsubsection{To count the number of lines}
 %
@@ -7508,7 +7572,7 @@ end
 %    \begin{macrocode}
 function piton.CountLinesFile(name)
   local count = 0 
-  io.open(name) -- added
+  io.open(name) 
   for line in io.lines(name) do count = count + 1 end
   tex.sprint( 
       luatexbase.catcodetables.expl , 
@@ -7590,6 +7654,10 @@ end
 %
 % \verb|https://github.com/fpantigny/piton|
 %
+% \subsection*{Changes between versions 2.5 and 2.6}
+%
+% API: |piton.last_code| and |\g_piton_last_code_tl| are provided.
+%
 % \subsection*{Changes between versions 2.4 and 2.5}
 %
 % New key |path-write|
@@ -7609,8 +7677,6 @@ end
 % 
 % The variable |\l_piton_language_str| is now public.
 % 
-%
-% \subsection*{Changes between versions 2.2 and 2.3}
 %
 % New key |write|.
 % 

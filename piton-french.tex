@@ -159,7 +159,7 @@ d'installer \pkg{piton} avec une distribution TeX comme MiKTeX, TeX~Live ou MacT
 \subsection{Choix du langage}
 
 L'extension \pkg{piton} prend en charge quatre langages informatiques : Python, OCaml, SQL et C, ou plutôt \CC. Il
-prend aussi en charge un langage minimal appelé «|minimal|» : cf.~\pageref{minimal}.
+prend aussi en charge un langage minimal appelé «|minimal|» : cf.~p.~\pageref{minimal}.
 
 \smallskip
 Par défaut, le langage est Python.
@@ -172,8 +172,8 @@ On peut changer de langage avec la clé |language| de |\PitonOptions| :
 |\PitonOptions{language = C}|
 
 \smallskip
-\colorbox{yellow!50}{\textbf{Nouveau 2.4}}\enskip La variable L3 contenant le nom du langage courant est :
-|\l_piton_language_str|.
+Pour les développeurs, précisons que le nom du langage courant est stocké (en minuscules) dans la variable publique
+L3 nommée |\l_piton_language_str|. 
 
 \smallskip
 Dans la suite de ce document, on parlera de Python mais les fonctionnalités s'appliquent aussi aux autres langages.
@@ -336,9 +336,9 @@ Cinq valeurs sont possibles : |Python|, |OCaml|, |C|, |SQL| et |minimal|. La val
 \item \index{path} La clé \Definition{path} indique un chemin où seront cherchés les fichiers inclus par
 |\PitonInputFile|. 
 
-\item \index{gobble} La clé \Definition{gobble} prend comme valeur un entier positif $n$ : les $n$ premiers caractères de chaque
-ligne sont alors retirés (avant formatage du code) dans les environnements |{Piton}|. Ces $n$ caractères ne sont
-pas nécessairement des espaces.
+\item \index{gobble}\label{gobble} La clé \Definition{gobble} prend comme valeur un entier positif $n$ : les $n$
+premiers caractères de chaque ligne sont alors retirés (avant formatage du code) dans les environnements |{Piton}|.
+Ces $n$ caractères ne sont pas nécessairement des espaces.
 
 \item \index{auto-gobble}\index{gobble!auto-gobble} Quand la clé \Definition{auto-gobble} est activée, l'extension \pkg{piton} détermine la valeur minimale $n$
 du nombre d'espaces successifs débutant chaque ligne (non vide) de l'environnement |{Piton}| et applique |gobble|
@@ -351,9 +351,9 @@ c'est-à-dire celle qui contient le |\end{Piton}| et détermine si cette ligne n
 valeur de~$n$. Le nom de cette clé vient de \emph{environment gobble}: le nombre d'espaces à retirer ne dépend que
 de la position des délimiteurs |\begin{Piton}| et |\end{Piton}| de l'environnement.
 
-\item \index{write} \colorbox{yellow!50}{\bfseries Nouveau 2.3}\enskip La clé \Definition{write} prend en argument un nom de
-fichier (avec l'extension) et écrit le contenu de l'environnement courant dans ce fichier. À la première
-utilisation du fichier par \pkg{piton}, celui-ci est effacé.
+\item \index{write} La clé \Definition{write} prend en argument un nom de fichier (avec l'extension) et écrit le
+contenu de l'environnement courant dans ce fichier. À la première utilisation du fichier par \pkg{piton}, celui-ci
+est effacé.
 
 \item \index{path-write} \colorbox{yellow!50}{\bfseries Nouveau 2.5}\enskip La clé \Definition{path-write} indique
 un chemin où seront écrits les fichiers écrits par l'emploi de la clé |write| précédente.
@@ -673,7 +673,8 @@ verbatim), il n'est pas possible de définir de nouveaux environnements directem
 LaTeX3). 
 
 C'est pourquoi \pkg{piton} propose une commande |\NewPitonEnvironment|. Cette commande a la même syntaxe que la
-commande classique |\NewDocumentEnvironment|.
+commande classique |\NewDocumentEnvironment|.\footnote{Néanmoins, le spécificateur d'argument~|b|, qui sert à
+  capter le corps de l'environnement comme un argument LaTeX, n'est pas autorisé.}
 
 \bigskip
 Par exemple, avec l'instruction suivante, un nouvel environnement |{Python}| sera défini avec le même comportement
@@ -1146,9 +1147,6 @@ def carré(x):
 
 \index{detected-commands (key)}
 
-\colorbox{yellow!50}{\bfseries Nouveau 2.4}\par\nobreak
-
-\smallskip
 La clé |detected-commands| de |\PitonOptions| permet de spécifier une liste de noms de commandes LaTeX qui seront
 directement détectées par \pkg{piton}.
 
@@ -1864,20 +1862,24 @@ affiche également dessous le résultat de l'exécution de ce code avec Python.
   }
   {
     \end{pythonq}
-    \directlua
+    \lua_now:n
       {
-        tex.print("\\PitonOptions{~#1}")
-        tex.print("\\begin{Piton}")
+        tex.print("\\begin{Piton}[~#1]")
         tex.print(pyluatex.get_last_code())
         tex.print("\\end{Piton}")
         tex.print("") 
       }
     \begin{center}
-      \directlua{tex.print(pyluatex.get_last_output())}
+      \lua_now:n { tex.print(pyluatex.get_last_output()) }
     \end{center}
   }
 \ExplSyntaxOff
 \end{Verbatim}
+
+% On utilise \lua_now:n et non pas \luadirect car on ne peut pas d'expanson de l'argument
+% En effet, si on fait une expansion de l'argument, la commande \\ risque d'être développée
+% Habituellement, en LaTeX, la commande \\ est protégée mais pas si on charge lineno (chargé
+% par exemple par minted).
 
 \ExplSyntaxOn
 \NewDocumentEnvironment { PitonExecute } { ! O { } } 
@@ -1887,16 +1889,15 @@ affiche également dessous le résultat de l'exécution de ce code avec Python.
   }
   {
     \end{pythonq}
-    \directlua
+    \lua_now:n
       {
-        tex.print("\\PitonOptions{#1}")
-        tex.print("\\begin{Piton}")
+        tex.print("\\begin{Piton}[#1]")
         tex.print(pyluatex.get_last_code())
         tex.print("\\end{Piton}")
         tex.print("") 
       }
     \begin{center}
-      \directlua{tex.print(pyluatex.get_last_output())}
+      \lua_now:n { tex.print(pyluatex.get_last_output()) }
     \end{center}
   }
 \ExplSyntaxOff
@@ -1947,6 +1948,7 @@ Voici la programmation d'un environnement |{PitonREPL}| qui effectue ce travail 
 |!| est ici obligatoire dans la signature de l'environnement).
 
 \begin{Verbatim}
+\ExplSyntaxOn
 \NewDocumentEnvironment { PitonREPL } { ! O { } } % le ! est obligatoire
  { 
    \PitonOptions
@@ -1960,15 +1962,16 @@ Voici la programmation d'un environnement |{PitonREPL}| qui effectue ce travail 
  }
  {
    \end{pythonrepl}
-   \directlua
+   \lua_now:n
      {
        tex.print("\\begin{Piton}")
        tex.print(pyluatex.get_last_output())
        tex.print("\\end{Piton}")
        tex.print("") 
-     }% 
+     } 
    \ignorespacesafterend
  }
+\ExplSyntaxOff
 \end{Verbatim}
 
 \medskip
@@ -1992,7 +1995,7 @@ Voici un exemple d'utilisation de ce nouvel environnement |{PitonREPL}|.
 
 \bigskip
 
-
+\ExplSyntaxOn
 \NewDocumentEnvironment { PitonREPL } { }
  { 
    \PitonOptions{background-color=white,prompt-background-color = gray!10}
@@ -2001,17 +2004,17 @@ Voici un exemple d'utilisation de ce nouvel environnement |{PitonREPL}|.
  }
  {
    \end{pythonrepl}
-   \directlua
+   \lua_now:n
      {
        tex.print("\\begin{Piton}")
        tex.print(pyluatex.get_last_output())
        tex.print("\\end{Piton}")
        tex.print("") 
-     }%
+     }
    \ignorespacesafterend
  }
-
-
+\ExplSyntaxOff
+ 
 \begin{PitonREPL}
     def valeur_absolue(x):
         "Renvoie la valeur absolue de x"
@@ -2083,8 +2086,43 @@ L'exemple précédent donne alors :
     valeur_absolue(5)
 \end{PitonREPL}
 
+\section{API pour les développeurs}
 
-\newpage
+\indexcommand{g\_piton\_last\_code\_tl}
+\index{piton.last@\texttt{piton.last\_code} (variable Lua)}
+
+La variable L3 |\l_piton_language_str| contient le nom du langage courant (en minuscules).
+
+\bigskip
+
+\colorbox{yellow!50}{\textbf{Nouveau 2.6}}\par\nobreak
+
+\smallskip
+L'extension \pkg{piton} fournit deux moyens pour accéder au contenu du dernier environnement de \pkg{piton} : la
+variable Lua |piton.last_code| et la variable L3 |\g_piton_last_code_tl|. En fait, dans les deux cas, il s'agit du
+corps de l'environnement \emph{après application d'une éventuelle clé} |gobble| (cf. p.~\pageref{gobble}).
+
+\begin{itemize}
+\item La variable Lua \Definition{piton.last\_code} est une chaîne de caractères de Lua. Les retours à la ligne
+(présents dans l'environnement de départ) apparaissent comme des caractères |\r| (c'est-à-dire des caractères
+U+000D).
+
+
+\item La variable L3 \Definition{\textbackslash g\_piton\_last\_code\_tl} est la version L3 de la variable Lua
+précédente.  
+\begin{itemize}
+\item Comme l'indique le préfixe |g| dans le nom, elle doit être utlisée comme une variable \emph{globale}
+(au sens de TeX). 
+
+\item Comme son nom est |\g_piton_last_code_tl| et non |\g__piton_last_code_tl|, il s'agit d'une variable
+\emph{publique} (et c'est pourquoi elle est documentée ici).
+
+\item Comme l'indique le suffixe |tl|, il s'agit d'une \emph{token list} de L3. Néanmoins, tous les \emph{tokens}
+de cette liste sont des caractères de catcode «other» (=12) y compris les espaces et les retours à la ligne.
+\end{itemize}
+\end{itemize}
+
+\clearpage
 
 \section{Les styles pour les différents langages informatiques}
 
@@ -2336,9 +2374,6 @@ localement pour le langage SQL avec l'instruction :
 \label{minimal}
 \index{minimal (langage «minimal»)}
 
-\colorbox{yellow!50}{\bfseries Nouveau 2.4}\par\nobreak
-
-\bigskip
 On peut basculer vers le langage «|minimal|» avec |\PitonOptions{language = minimal}|
 
 \bigskip

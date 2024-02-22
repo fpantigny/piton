@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{2.5}
-\def\PitonFileDate{2024/02/20}
+\def\PitonFileVersion{2.6}
+\def\PitonFileDate{2024/02/30}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -29,7 +29,7 @@
   {piton}
   {\PitonFileDate}
   {\PitonFileVersion}
-  {Highlight Python codes with LPEG on LuaLaTeX}
+  {Highlight informatic listings with LPEG on LuaLaTeX}
 \cs_new_protected:Npn \__piton_error:n { \msg_error:nn { piton } }
 \cs_new_protected:Npn \__piton_warning:n { \msg_warning:nn { piton } }
 \cs_new_protected:Npn \__piton_error:nn { \msg_error:nnn { piton } }
@@ -161,9 +161,11 @@
   {
     piton = piton~or { }
     piton.ListCommands = lpeg.P ( false )
+    piton.last_code = ''
   }
 \str_new:N \l_piton_language_str
 \str_set:Nn \l_piton_language_str { python }
+\tl_new:N \g_piton_last_code_tl
 \str_new:N \l__piton_path_str
 \str_new:N \l__piton_path_write_str
 \bool_new:N \l__piton_in_PitonOptions_bool
@@ -881,7 +883,7 @@
               { \lua_now:e { piton.write = "\l__piton_write_str" } }
               {
                 \lua_now:e
-                 { piton.write = "\l__piton_path_write_str / \l__piton_write_str" }
+                  { piton.write = "\l__piton_path_write_str / \l__piton_write_str" }
               }
             \str_if_empty:NF \l__piton_write_str
               {
@@ -1050,16 +1052,16 @@
   }
 \NewDocumentCommand { \SetPitonStyle } { O { } m }
   {
+    \str_clear_new:N \l__piton_SetPitonStyle_option_str
     \str_set:Nx \l__piton_SetPitonStyle_option_str { \str_lowercase:n { #1 } }
     \str_if_eq:onT \l__piton_SetPitonStyle_option_str { current-language }
       { \str_set_eq:NN \l__piton_SetPitonStyle_option_str \l_piton_language_str }
     \keys_set:nn { piton / Styles } { #2 }
-    \str_clear:N \l__piton_SetPitonStyle_option_str
   }
 \cs_new_protected:Npn \__piton_math_scantokens:n #1
   { \normalfont \scantextokens { \begin{math} #1 \end{math} } }
-\clist_new:N \g__piton_style_clist
-\clist_set:Nn \g__piton_styles_clist
+\clist_new:N \g__piton_styles_clist
+\clist_gset:Nn \g__piton_styles_clist
   {
     Comment ,
     Comment.LaTeX ,
@@ -1409,11 +1411,13 @@
 \directlua
   {
     lpeg.locale(lpeg)
-    local P , alpha , C , Cf, space = lpeg.P , lpeg.alpha , lpeg.C , lpeg.Cf , lpeg.space
+    local P , alpha , C , Cf, space
+      = lpeg.P , lpeg.alpha , lpeg.C , lpeg.Cf , lpeg.space
     local S = lpeg.S
-    local One_P = space ^ 0
-                  * C ( alpha ^ 1 ) / ( function (s) return P ( string.char(92) .. s ) end )
-                  * space ^ 0
+    local One_P
+      = space ^ 0
+        * C ( alpha ^ 1 ) / ( function (s) return P ( string.char(92) .. s ) end )
+        * space ^ 0
     function piton.addListCommands( key_value )
        piton.ListCommands =
          piton.ListCommands +

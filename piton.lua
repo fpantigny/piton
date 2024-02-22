@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
--- Version 2.5 of 2024/02/20
+-- Version 2.6 of 2024/02/30
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -1579,8 +1579,7 @@ local function add(acc,new_value)
   return acc + new_value
 end
 local AutoGobbleLPEG =
-    ( space ^ 0 * P "\r" ) ^ -1
-    * Cf (
+      Cf (
            (
              ( P " " ) ^ 0 * P "\r"
              +
@@ -1593,8 +1592,7 @@ local AutoGobbleLPEG =
            math.min
          )
 local TabsAutoGobbleLPEG =
-    ( space ^ 0 * P "\r" ) ^ -1
-    * Cf (
+      Cf (
            (
              ( P "\t" ) ^ 0 * P "\r"
              +
@@ -1609,7 +1607,16 @@ local TabsAutoGobbleLPEG =
 local EnvGobbleLPEG =
   ( ( 1 - P "\r" ) ^ 0 * P "\r" ) ^ 0
     * Cf ( Cc(0) * ( P " " * Cc(1) ) ^ 0 , add ) * -1
+function remove_before_cr(input_string)
+    local match_result = P("\r") : match(input_string)
+    if match_result then
+        return string.sub(input_string, match_result )
+    else
+        return input_string
+    end
+end
 function piton.GobbleParse(language,n,code)
+  code = remove_before_cr(code)
   if n==-1
   then n = AutoGobbleLPEG : match(code)
   else if n==-2
@@ -1619,10 +1626,15 @@ function piton.GobbleParse(language,n,code)
             end
        end
   end
-  piton.Parse(language,gobble(n,code))
+  piton.last_code = gobble(n,code)
+  piton.Parse(language,piton.last_code)
+  tex.sprint( luatexbase.catcodetables.expl ,
+        '\\tl_gset:Nn \\g_piton_last_code_tl {' )
+  tex.sprint( luatexbase.catcodetables.other , piton.last_code )
+  tex.sprint( luatexbase.catcodetables.expl , '}' )
   if piton.write ~= ''
   then local file = assert(io.open(piton.write,piton.write_mode))
-       file:write(code)
+       file:write(piton.last_code) -- modified 2024/02/20
        file:close()
   end
 end
@@ -1650,7 +1662,7 @@ function piton.CountNonEmptyLines(code)
 end
 function piton.CountLinesFile(name)
   local count = 0
-  io.open(name) -- added
+  io.open(name)
   for line in io.lines(name) do count = count + 1 end
   tex.sprint(
       luatexbase.catcodetables.expl ,
