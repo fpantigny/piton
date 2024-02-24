@@ -352,7 +352,8 @@ valeur de~$n$. Le nom de cette clé vient de \emph{environment gobble}: le nombr
 de la position des délimiteurs |\begin{Piton}| et |\end{Piton}| de l'environnement.
 
 \item \index{write} La clé \Definition{write} prend en argument un nom de fichier (avec l'extension) et écrit le
-contenu de l'environnement courant dans ce fichier. À la première utilisation du fichier par \pkg{piton}, celui-ci
+contenu\footnote{En fait, il ne s'agit pas exactement du contenu de l'environnement mais de la valeur renvoyée par
+  |piton.get_last_code()| qui en est une version dans les surcharges de formatage LaTeX (voir la partie \ref{API}, p.~\pageref{API}).} de l'environnement courant dans ce fichier. À la première utilisation du fichier par \pkg{piton}, celui-ci
 est effacé.
 
 \item \index{path-write} \colorbox{yellow!50}{\bfseries Nouveau 2.5}\enskip La clé \Definition{path-write} indique
@@ -1056,7 +1057,7 @@ mathématique de LaTeX.
 \item Il est possible de demander à \pkg{piton} de détecter directement certaines commandes LaTeX avec leur argument.
 \item Il est possible d'insérer du code LaTeX à n'importe quel endroit d'un listing Python.
 \end{itemize}
-Ces mécanismes vont être détaillés dans les sous-parties de cette partie.
+Ces mécanismes vont être détaillés dans les sous-parties suivantes.
 
 \smallskip
 À remarquer également que, dans le cas où \pkg{piton} est utilisée dans la classe \cls{beamer}, \pkg{piton} détecte
@@ -1146,6 +1147,7 @@ def carré(x):
 \subsubsection{La clé «detected-commands»}
 
 \index{detected-commands (key)}
+\label{detected-commands}
 
 La clé |detected-commands| de |\PitonOptions| permet de spécifier une liste de noms de commandes LaTeX qui seront
 directement détectées par \pkg{piton}.
@@ -1157,12 +1159,12 @@ directement détectées par \pkg{piton}.
 (ex. : |detected-commands = { emph , textbf }|). 
 
 \item Ces commandes doivent être des commandes LaTeX à un seul argument obligatoire entre accolades (et ces
-accolages doivent être explicites).
+accolades doivent être explicites).
 \end{itemize}
 
 \medskip
 Dans l'exemple suivant, qui est une programmation récursive de la factorielle, on décide de surligner en jaune
-l'appel récursif. La commande |\highLight| de \pkg{lua-el} (cette extension requiert elle-même l'extension
+l'appel récursif. La commande |\highLight| de \pkg{lua-ul} (cette extension requiert elle-même l'extension
 \pkg{luacolor}) permet de le faire avec la syntaxe |\hightLight{...}|.
 
 \smallskip
@@ -1195,6 +1197,7 @@ def fact(n):
 
 \index{begin-escape}
 \index{end-escape}
+\label{escape}
 
 Il est aussi possible de surcharger les listings Python pour y insérer du code LaTeX à peu près n'importe où (mais
 entre deux lexèmes, bien entendu). Cette fonctionnalité n'est pas activée par défaut par \pkg{piton}. Pour
@@ -1528,8 +1531,39 @@ ligne (non vide) de l'environnement |{Piton}| et applique |gobble| avec cette va
 caractères U+0009 par des espaces, bien entendu). Cette clé est donc similaire à la clé |auto-gobble| mais agit sur
 des caractères U+0009 au lieu de caractères U+0020 (espaces).
 
-\section{Exemples}
 
+\section{API pour les développeurs}
+
+
+\index{piton.last@\texttt{piton.get\_last\_code} (fonction Lua)}
+\label{API}
+
+La variable L3 |\l_piton_language_str| contient le nom du langage courant (en minuscules).
+
+\bigskip
+
+\colorbox{yellow!50}{\textbf{Nouveau 2.6}}\par\nobreak
+
+L'extension \pkg{piton} fournit une function Lua |piton.get_last_code| sans argument permettant de récupérer le
+code contenu dans le dernier environnement de \pkg{piton}. On a plusieurs remarques à faire.
+\begin{itemize}
+\item Le code fourni par |piton.get_last_code()| tient compte de l'éventuelle application d'une clé |gobble| (cf.
+p.~\pageref{gobble}). 
+
+\item Les surcharges du code (qui entraînent des échappements vers LaTeX) ont été retirées du code fourni par
+|piton.get_last_code()|. Cela s'applique aux commandes LaTeX déclarées par la clé |detected-commands| (cf.
+partie~\ref{detected-commands}) et aux éléments insérés avec le mécanisme «|escape|» (cf. partie~\ref{escape}).
+
+\item Les retours à la ligne (présents dans l'environnement de départ) apparaissent comme des caractères |\r|
+(c'est-à-dire des caractères U+000D).
+\end{itemize}
+
+\medskip
+Pour un exemple d'utilisation, voir la partie concernant l'utilisation (standard) de \pkg{pyluatex},
+partie~\ref{pyluatex}, p.~\pageref{pyluatex}.
+
+
+\section{Exemples}
 
 \subsection{Numérotation des lignes}
 
@@ -1844,6 +1878,7 @@ def arctan(x,n=10):
 
 \subsection{Utilisation standard de pyluatex}
 
+\label{pyluatex}
 \index{pyluatex@{\pkg{pyluatex}} (extension)}
 
 L'extension \pkg{pyluatex} est une extension qui permet l'exécution de code Python à partir de |lualatex| (pourvu
@@ -1854,74 +1889,45 @@ affiche également dessous le résultat de l'exécution de ce code avec Python.
 
 
 \begin{Verbatim}
-\ExplSyntaxOn
-\NewDocumentEnvironment { ~emphase#PitonExecute@ } { ! O { } }  % le ! est obligatoire 
-  { 
-    \PyLTVerbatimEnv
-    \begin{pythonq} 
-  }
-  {
-    \end{pythonq}
-    \lua_now:n
-      {
-        tex.print("\\begin{Piton}[~#1]")
-        tex.print(pyluatex.get_last_code())
-        tex.print("\\end{Piton}")
-        tex.print("") 
-      }
-    \begin{center}
-      \lua_now:n { tex.print(pyluatex.get_last_output()) }
-    \end{center}
-  }
-\ExplSyntaxOff
+\NewPitonEnvironment{~emphase#PitonExecute@}{O{}}
+  {\PitonOptions{~#1}}
+  {\begin{center}
+   \directlua{pyluatex.execute(piton.get_last_code(), false, true, false, true)}%
+   \end{center}
+   \ignorespacesafterend}
 \end{Verbatim}
 
-% On utilise \lua_now:n et non pas \luadirect car on ne peut pas d'expanson de l'argument
-% En effet, si on fait une expansion de l'argument, la commande \\ risque d'être développée
-% Habituellement, en LaTeX, la commande \\ est protégée mais pas si on charge lineno (chargé
-% par exemple par minted).
+\NewPitonEnvironment{PitonExecute}{O{}}
+  {\PitonOptions{#1}}
+  {\begin{center}
+   \directlua{pyluatex.execute(piton.get_last_code(), false, true, false, true)}%
+   \end{center}
+   \ignorespacesafterend}
 
-\ExplSyntaxOn
-\NewDocumentEnvironment { PitonExecute } { ! O { } } 
-  { 
-    \PyLTVerbatimEnv
-    \begin{pythonq} 
-  }
-  {
-    \end{pythonq}
-    \lua_now:n
-      {
-        tex.print("\\begin{Piton}[#1]")
-        tex.print(pyluatex.get_last_code())
-        tex.print("\\end{Piton}")
-        tex.print("") 
-      }
-    \begin{center}
-      \lua_now:n { tex.print(pyluatex.get_last_output()) }
-    \end{center}
-  }
-\ExplSyntaxOff
 
+On a utilisé la fonction Lua |piton.get_last_code| fournie dans l'API de \pkg{piton} : cf.~partie~\ref{API},
+p.~\pageref{API}. 
+
+\bigskip
 Cet environnement |{PitonExecute}| prend en argument optionnel (entre crochets) les options proposées par la
 commande |\PitonOptions|.
 
-\bigskip
-Voici un exemple d'utilisation de cet environnement |{PitonExecute}| :
-
 \begin{Verbatim}
 \begin{~emphase#PitonExecute@}[background-color=gray!15]
-def square(x):
+def carré(x):
+    """Calcule le carré de l'argument"""
     return x*x
-print(f'Le carré de 12 est {square(12)}.')
+print(f'Le carré de 12 est {carré(12)}.')
 \end{~emphase#PitonExecute@}
 \end{Verbatim}
 
 
 \medskip
 \begin{PitonExecute}[background-color=gray!15]
-def square(x):
+def carré(x):
+    """Calcule le carré de l'argument"""
     return x*x
-print(f'Le carré de 12 est {square(12)}.')
+print(f'Le carré de 12 est {carré(12)}.')
 \end{PitonExecute}
 
 \bigskip
@@ -1945,7 +1951,10 @@ et mettre sur fond grisé les lignes correspondant aux instructions fournies à 
 
 \medskip
 Voici la programmation d'un environnement |{PitonREPL}| qui effectue ce travail (pour des raisons techniques, le
-|!| est ici obligatoire dans la signature de l'environnement).
+|!| est ici obligatoire dans la signature de l'environnement). On en peut pas procéder comme précédemment (dans
+l'utilisation «standard» de \pkg{pyluatex}) car, bien sûr, c'est le retour fait par |{pythonrepl}| qui doit être
+traité par \pkg{piton}. De ce fait, il ne sera pas possible de mettre des surcharges (avec |detected-commands| ou
+le mécanisme |escape|) dans le code.
 
 \begin{Verbatim}
 \ExplSyntaxOn
@@ -2085,42 +2094,6 @@ L'exemple précédent donne alors :
     valeur_absolue(0)
     valeur_absolue(5)
 \end{PitonREPL}
-
-\section{API pour les développeurs}
-
-\indexcommand{g\_piton\_last\_code\_tl}
-\index{piton.last@\texttt{piton.last\_code} (variable Lua)}
-
-La variable L3 |\l_piton_language_str| contient le nom du langage courant (en minuscules).
-
-\bigskip
-
-\colorbox{yellow!50}{\textbf{Nouveau 2.6}}\par\nobreak
-
-\smallskip
-L'extension \pkg{piton} fournit deux moyens pour accéder au contenu du dernier environnement de \pkg{piton} : la
-variable Lua |piton.last_code| et la variable L3 |\g_piton_last_code_tl|. En fait, dans les deux cas, il s'agit du
-corps de l'environnement \emph{après application d'une éventuelle clé} |gobble| (cf. p.~\pageref{gobble}).
-
-\begin{itemize}
-\item La variable Lua \Definition{piton.last\_code} est une chaîne de caractères de Lua. Les retours à la ligne
-(présents dans l'environnement de départ) apparaissent comme des caractères |\r| (c'est-à-dire des caractères
-U+000D).
-
-
-\item La variable L3 \Definition{\textbackslash g\_piton\_last\_code\_tl} est la version L3 de la variable Lua
-précédente.  
-\begin{itemize}
-\item Comme l'indique le préfixe |g| dans le nom, elle doit être utlisée comme une variable \emph{globale}
-(au sens de TeX). 
-
-\item Comme son nom est |\g_piton_last_code_tl| et non |\g__piton_last_code_tl|, il s'agit d'une variable
-\emph{publique} (et c'est pourquoi elle est documentée ici).
-
-\item Comme l'indique le suffixe |tl|, il s'agit d'une \emph{token list} de L3. Néanmoins, tous les \emph{tokens}
-de cette liste sont des caractères de catcode «other» (=12) y compris les espaces et les retours à la ligne.
-\end{itemize}
-\end{itemize}
 
 \clearpage
 

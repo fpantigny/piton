@@ -56,11 +56,16 @@ local function WithStyle(style,pattern)
      * Ct ( Cc "Close" )
 end
 Escape = P ( false )
+EscapeClean = P ( false )
 if piton.begin_escape ~= nil
 then
   Escape =
     P(piton.begin_escape)
     * L ( ( 1 - P(piton.end_escape) ) ^ 1 )
+    * P(piton.end_escape)
+  EscapeClean =
+    P(piton.begin_escape)
+    * ( 1 - P(piton.end_escape) ) ^ 1
     * P(piton.end_escape)
 end
 EscapeMath = P ( false )
@@ -133,7 +138,7 @@ then
         Ct ( Cc "Open"
               * C (
                     P ( "\\begin{" .. name ..   "}" )
-                    * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
+                    * ( P "<" * ( 1 - P ">") ^ 0 * P ">" ) ^ -1
                   )
              * Cc ( "\\end{" .. name ..  "}" )
             )
@@ -339,15 +344,20 @@ then
 end
 DetectedCommands =
       Ct ( Cc "Open"
-            * C (
-                  piton.ListCommands
-                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
-                  * P "{"
-                )
+            * C ( piton.ListCommands * P "{" )
             * Cc "}"
          )
        * ( C ( balanced_braces ) / (function (s) return MainLoopPython:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
+local function concat(acc,x) return acc .. x end
+Clean = Cf (  Cc ( "" ) *
+              ( piton.ListCommands * P "{"
+                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+                * P "}"
+               + EscapeClean
+               +  C ( P ( 1 ) )
+              ) ^ 0 ,
+              concat )
 local PromptHastyDetection = ( # ( P ">>>" + P "..." ) * Lc ( '\\__piton_prompt:' ) ) ^ -1
 local Prompt = K ( 'Prompt' , ( ( P ">>>" + P "..." ) * P " " ^ -1 ) ^ -1  )
 local EOL =
@@ -680,15 +690,20 @@ then
 end
 DetectedCommands =
       Ct ( Cc "Open"
-            * C (
-                  piton.ListCommands
-                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
-                  * P "{"
-                )
-            * Cc "}"
+            * C ( piton.ListCommands * P "{" ) * Cc "}"
          )
        * ( C ( balanced_braces ) / (function (s) return MainLoopOCaml:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
+local function concat(acc,x) return acc .. x end
+Clean = Cf (  Cc ( "" ) *
+              ( piton.ListCommands * P "{"
+                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+                * P "}"
+               + EscapeClean
+               +  C ( P ( 1 ) )
+              ) ^ 0 ,
+              concat )
+
 local EOL =
   P "\r"
   *
@@ -995,15 +1010,19 @@ then
 end
 DetectedCommands =
       Ct ( Cc "Open"
-            * C (
-                  piton.ListCommands
-                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
-                  * P "{"
-                )
-            * Cc "}"
+            * C ( piton.ListCommands * P "{" ) * Cc "}"
          )
        * ( C ( balanced_braces ) / (function (s) return MainLoopC:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
+local function concat(acc,x) return acc .. x end
+Clean = Cf (  Cc ( "" ) *
+              ( piton.ListCommands * P "{"
+                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+                * P "}"
+               + EscapeClean
+               +  C ( P ( 1 ) )
+              ) ^ 0 ,
+              concat )
 local EOL =
   P "\r"
   *
@@ -1196,15 +1215,19 @@ then
 end
 DetectedCommands =
       Ct ( Cc "Open"
-            * C (
-                  piton.ListCommands
-                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
-                  * P "{"
-                )
-            * Cc "}"
+            * C ( piton.ListCommands * P "{" ) * Cc "}"
          )
        * ( C ( balanced_braces ) / (function (s) return MainLoopSQL:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
+local function concat(acc,x) return acc .. x end
+Clean = Cf (  Cc ( "" ) *
+              ( piton.ListCommands * P "{"
+                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+                * P "}"
+               + EscapeClean
+               +  C ( P ( 1 ) )
+              ) ^ 0 ,
+              concat )
 local EOL =
   P "\r"
   *
@@ -1407,15 +1430,20 @@ end
 
 DetectedCommands =
       Ct ( Cc "Open"
-            * C (
-                  piton.ListCommands
-                  * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
-                  * P "{"
-                )
-            * Cc "}"
+            * C ( piton.ListCommands * P "{" ) * Cc "}"
          )
        * ( C ( balanced_braces ) / (function (s) return MainLoopMinimal:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
+
+local function concat(acc,x) return acc .. x end
+Clean = Cf (  Cc ( "" ) *
+              ( piton.ListCommands * P "{"
+                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+                * P "}"
+               + EscapeClean
+               +  C ( P ( 1 ) )
+              ) ^ 0 ,
+              concat )
 
 local EOL =
   P "\r"
@@ -1607,7 +1635,7 @@ local TabsAutoGobbleLPEG =
 local EnvGobbleLPEG =
   ( ( 1 - P "\r" ) ^ 0 * P "\r" ) ^ 0
     * Cf ( Cc(0) * ( P " " * Cc(1) ) ^ 0 , add ) * -1
-function remove_before_cr(input_string)
+local function remove_before_cr(input_string)
     local match_result = P("\r") : match(input_string)
     if match_result then
         return string.sub(input_string, match_result )
@@ -1628,15 +1656,14 @@ function piton.GobbleParse(language,n,code)
   end
   piton.last_code = gobble(n,code)
   piton.Parse(language,piton.last_code)
-  tex.sprint( luatexbase.catcodetables.expl ,
-        '\\tl_gset:Nn \\g_piton_last_code_tl {' )
-  tex.sprint( luatexbase.catcodetables.other , piton.last_code )
-  tex.sprint( luatexbase.catcodetables.expl , '}' )
   if piton.write ~= ''
   then local file = assert(io.open(piton.write,piton.write_mode))
-       file:write(piton.last_code) -- modified 2024/02/20
+       file:write(piton.get_last_code())
        file:close()
   end
+end
+function piton.get_last_code ( )
+  return Clean : match(piton.last_code)
 end
 function piton.CountLines(code)
   local count = 0

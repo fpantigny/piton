@@ -241,14 +241,14 @@
   }
 \cs_new_protected:Npn \__piton_marker_beginning:n #1 { }
 \cs_new_protected:Npn \__piton_marker_end:n #1 { }
-\cs_new_protected:Npn \__piton_open_brace: { \directlua { piton.open_brace() } }
-\cs_new_protected:Npn \__piton_close_brace: { \directlua { piton.close_brace() } }
+\cs_new_protected:Npn \__piton_open_brace: { \lua_now:n { piton.open_brace() } }
+\cs_new_protected:Npn \__piton_close_brace: { \lua_now:n { piton.close_brace() } }
 \tl_new:N \g__piton_begin_line_hook_tl
 \cs_new_protected:Npn \__piton_prompt:
   {
     \tl_gset:Nn \g__piton_begin_line_hook_tl
       {
-        \tl_if_empty:NF \l__piton_prompt_bg_color_tl % added 2023-04-24
+        \tl_if_empty:NF \l__piton_prompt_bg_color_tl
           { \clist_set:NV \l__piton_bg_color_clist \l__piton_prompt_bg_color_tl }
       }
   }
@@ -487,7 +487,8 @@
   }
 \keys_define:nn { PitonOptions }
   {
-    detected-commands .code:n =  \__piton_detected_commands:n { #1 } ,
+    detected-commands .code:n =
+       \lua_now:n { piton.addListCommands('#1') } ,
     detected-commands .value_required:n = true ,
     detected-commands .usage:n = preamble ,
     begin-escape .code:n =
@@ -1405,8 +1406,6 @@
   }
 \hook_gput_code:nnn { begindocument } { . }
   { \lua_now:e { require("piton.lua") } }
-\cs_new_protected:Npn \__piton_detected_commands:n #1
-  { \lua_now:n { piton.addListCommands('#1') } }
 \ExplSyntaxOff
 \directlua
   {
