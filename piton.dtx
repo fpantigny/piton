@@ -72,12 +72,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{2.6}
+\def\PitonFileVersion{2.6z}
 \def\PitonFileDate{2024/02/27}
 % \iffalse
 %</STY>
 %<*LUA>
--- Version 2.6 of 2024/02/27
+-- Version 2.6z of 2024/02/27
 %</LUA>
 %\fi
 %
@@ -4686,12 +4686,6 @@
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-\NewDocumentCommand \PitonSyntaxError { }
-  { \@@_error:n { syntax~error } }
-%    \end{macrocode}
-%
-%
-%    \begin{macrocode}
 \@@_msg_new:nn { begin~marker~not~found }
   {
     Marker~not~found.\\
@@ -4713,13 +4707,6 @@
   }
 %    \end{macrocode}
 % 
-%
-%    \begin{macrocode}
-\NewDocumentCommand \PitonBeginMarkerNotFound { } 
-  { \@@_error:n { begin~marker~not~found } }
-\NewDocumentCommand \PitonEndMarkerNotFound { } 
-  { \@@_error:n { end~marker~not~found } }
-%    \end{macrocode}
 % 
 %    \begin{macrocode}
 \@@_msg_new:nn { Unknown~file }
@@ -7300,7 +7287,8 @@ function piton.Parse(language,code)
   local t = languages[language] : match ( code ) 
   if t == nil 
   then 
-    tex.sprint("\\PitonSyntaxError")
+    tex.sprint(luatexbase.catcodetables.CatcodeTableExpl,
+               "\\@@_error:n { syntax~error }")
     return -- to exit in force the function
   end 
   local left_stack = {}
@@ -7637,9 +7625,11 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
      count = count + 1 
   end
   if first_line == -1 
-  then tex.sprint("\\PitonBeginMarkerNotFound")
+  then tex.sprint( luatexbase.catcodetables.expl ,
+                   "\\@@_error:n { begin~marker~not~found }" )
   else if last_found == false
-       then tex.sprint("\\PitonEndMarkerNotFound")
+       then tex.sprint(luatexbase.catcodetables.expl ,
+                       "\\@@_error:n { end~marker~not~found }")
        end
   end
   tex.sprint( 

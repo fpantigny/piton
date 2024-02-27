@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
--- Version 2.6 of 2024/02/27
+-- Version 2.6z of 2024/02/27
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -1514,7 +1514,8 @@ function piton.Parse(language,code)
   local t = languages[language] : match ( code )
   if t == nil
   then
-    tex.sprint("\\PitonSyntaxError")
+    tex.sprint(luatexbase.catcodetables.CatcodeTableExpl,
+               "\\__piton_error:n { syntax~error }")
     return -- to exit in force the function
   end
   local left_stack = {}
@@ -1712,9 +1713,11 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
      count = count + 1
   end
   if first_line == -1
-  then tex.sprint("\\PitonBeginMarkerNotFound")
+  then tex.sprint( luatexbase.catcodetables.expl ,
+                   "\\__piton_error:n { begin~marker~not~found }" )
   else if last_found == false
-       then tex.sprint("\\PitonEndMarkerNotFound")
+       then tex.sprint(luatexbase.catcodetables.expl ,
+                       "\\__piton_error:n { end~marker~not~found }")
        end
   end
   tex.sprint(
