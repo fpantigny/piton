@@ -20,7 +20,7 @@
 %% -------------------------------------------
 %% 
 \def\PitonFileVersion{2.6}
-\def\PitonFileDate{2024/02/30}
+\def\PitonFileDate{2024/02/27}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -55,6 +55,7 @@
   }
 \sys_if_engine_luatex:F { \msg_critical:nn { piton } { LuaLaTeX~mandatory } }
 \RequirePackage { luatexbase }
+\RequirePackage { luacode }
 \__piton_msg_new:nnn { piton.lua~not~found }
   {
     The~file~'piton.lua'~can't~be~found.\\
@@ -162,6 +163,7 @@
     piton = piton~or { }
     piton.ListCommands = lpeg.P ( false )
     piton.last_code = ''
+    piton.last_language = ''
   }
 \str_new:N \l_piton_language_str
 \str_set:Nn \l_piton_language_str { python }
@@ -1407,23 +1409,24 @@
 \hook_gput_code:nnn { begindocument } { . }
   { \lua_now:e { require("piton.lua") } }
 \ExplSyntaxOff
-\directlua
-  {
+\begin{luacode*}
     lpeg.locale(lpeg)
-    local P , alpha , C , Cf, space
-      = lpeg.P , lpeg.alpha , lpeg.C , lpeg.Cf , lpeg.space
-    local S = lpeg.S
-    local One_P
-      = space ^ 0
-        * C ( alpha ^ 1 ) / ( function (s) return P ( string.char(92) .. s ) end )
-        * space ^ 0
+    local P , alpha , C , space , S , V
+      = lpeg.P , lpeg.alpha , lpeg.C , lpeg.space , lpeg.S , lpeg.V
+    local function add(...)
+          local s = P ( false )
+          for _ , x in ipairs({...}) do s = s + x end
+          return s
+          end
+    local my_lpeg =
+      P {  "E" ,
+           E = ( V "F" * ( P "," * V "F" ) ^ 0 ) / add ,
+           F = space ^ 0 * ( alpha ^ 1 ) / "\\%0" * space ^ 0
+        }
     function piton.addListCommands( key_value )
-       piton.ListCommands =
-         piton.ListCommands +
-           Cf ( One_P * ( P "," * One_P ) ^ 0  ,
-                ( function (s,t) return s + t end ) ) : match ( key_value )
+      piton.ListCommands = piton.ListCommands + my_lpeg : match ( key_value )
     end
-  }
+\end{luacode*}
 
 \endinput
 %%

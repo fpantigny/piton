@@ -73,11 +73,11 @@
 %<*STY>
 % \fi
 \def\PitonFileVersion{2.6}
-\def\PitonFileDate{2024/02/30}
+\def\PitonFileDate{2024/02/27}
 % \iffalse
 %</STY>
 %<*LUA>
--- Version 2.6 of 2024/02/30
+-- Version 2.6 of 2024/02/27
 %</LUA>
 %\fi
 %
@@ -386,7 +386,8 @@
 % \emph{absolute} (that is to say: they are the numbers of the lines in the
 % file). That key may be useful when |\PitonInputFile| is used to insert only a
 % part of the file (cf. part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}).
-% The key |/absolute| is no-op in the environments |{Piton}|.
+% The key |/absolute| is no-op in the environments |{Piton}| and those created
+% by |\NewPitonEnvironment|.
 % \item The key \Definition{line-numbers/start} requires that the line numbering
 % begins to the value of the key. 
 % \item With the key \Definition{line-numbers/resume}, the counter of lines is
@@ -1621,16 +1622,22 @@
 % without argument which returns the code in the latest environment of
 % \pkg{piton}.
 % \begin{itemize}
+% \item The carriage returns (which are present in the initial environment)
+% appears as characters |\r| (i.e. U+000D).
+%
 % \item The code returned by |piton.get_last_code()| takes into account the
-% potential application of a key |gobble| (cf.~p.~\pageref{gobble}).
+% potential application of a key |gobble|, |auto-gobble| or |env-gobble|
+% (cf.~p.~\pageref{gobble}). 
 %
 % \item The extra formatting elements added in the code are deleted in the code
 % returned by |piton.get_last_code()|. That concerns the LaTeX commands declared
 % by the key |detected-commands| (cf. part~\ref{detected-commands}) and the
 % elements inserted by the mechanism ``|escape|'' (cf. part~\ref{escape}).
 %
-% \item The carriage returns (which are present in the initial environment)
-% appears as characters |\r| (i.e. U+000D).
+% \item |piton.get_last_code| is a Lua function and not a Lua string: the
+% treatments outlined above are executed when the function is called. Therefore,
+% it might be judicious to store the value returned by |piton.get_last_code()|
+% in a variable of Lua if it will be used serveral times.
 % \end{itemize}
 % 
 % \medskip
@@ -2471,6 +2478,7 @@
 % \bigskip
 %    \begin{macrocode}
 \RequirePackage { luatexbase } 
+\RequirePackage { luacode }
 %    \end{macrocode}
 % 
 % \bigskip
@@ -2669,6 +2677,7 @@
     piton = piton~or { } 
     piton.ListCommands = lpeg.P ( false ) 
     piton.last_code = ''
+    piton.last_language = ''
   }
 %    \end{macrocode}
 % 
@@ -4812,23 +4821,24 @@
 % 
 %    \begin{macrocode}
 \ExplSyntaxOff
-\directlua
-  {
+\begin{luacode*}
     lpeg.locale(lpeg)
-    local P , alpha , C , Cf, space 
-      = lpeg.P , lpeg.alpha , lpeg.C , lpeg.Cf , lpeg.space 
-    local S = lpeg.S 
-    local One_P 
-      = space ^ 0 
-        * C ( alpha ^ 1 ) / ( function (s) return P ( string.char(92) .. s ) end ) 
-        * space ^ 0 
+    local P , alpha , C , space , S , V
+      = lpeg.P , lpeg.alpha , lpeg.C , lpeg.space , lpeg.S , lpeg.V
+    local function add(...)
+          local s = P ( false ) 
+          for _ , x in ipairs({...}) do s = s + x end  
+          return s 
+          end
+    local my_lpeg = 
+      P {  "E" ,
+           E = ( V "F" * ( P "," * V "F" ) ^ 0 ) / add ,
+           F = space ^ 0 * ( alpha ^ 1 ) / "\\%0" * space ^ 0 
+        }
     function piton.addListCommands( key_value )
-       piton.ListCommands =  
-         piton.ListCommands + 
-           Cf ( One_P * ( P "," * One_P ) ^ 0  ,
-                ( function (s,t) return s + t end ) ) : match ( key_value ) 
+      piton.ListCommands = piton.ListCommands + my_lpeg : match ( key_value ) 
     end
-  }
+\end{luacode*}
 %</STY>
 %    \end{macrocode}
 % 
@@ -4870,7 +4880,7 @@ end
 % define first aliases for several functions of that library.
 %    \begin{macrocode}
 local P, S, V, C, Ct, Cc = lpeg.P, lpeg.S, lpeg.V, lpeg.C, lpeg.Ct, lpeg.Cc
-local Cf, Cs , Cg , Cmt , Cb = lpeg.Cf, lpeg.Cs, lpeg.Cg , lpeg.Cmt , lpeg.Cb
+local Cs , Cg , Cmt , Cb = lpeg.Cs, lpeg.Cg , lpeg.Cmt , lpeg.Cb
 local R = lpeg.R
 %    \end{macrocode}
 %
@@ -5142,8 +5152,8 @@ then
              * Cc ( "\\end{" .. name ..  "}" )
             ) 
        * ( 
-           C ( ( 1 - P ( "\\end{" .. name .. "}" ) ) ^ 0 ) 
-           / ( function (s) return lpeg : match(s) end ) 
+           ( ( 1 - P ( "\\end{" .. name .. "}" ) ) ^ 0 ) 
+              / ( function (s) return lpeg : match(s) end ) 
          )
        * P ( "\\end{" .. name ..  "}" ) * Ct ( Cc "Close" ) 
   end 
@@ -5155,6 +5165,7 @@ end
 % \bigskip
 %    \begin{macrocode}
 local languages = { }
+local CleanLPEGs = { }
 %    \end{macrocode}
 % 
 % \bigskip
@@ -5387,7 +5398,7 @@ local DoubleShortString =
          Q ( P "f\"" + P "F\"" ) 
          * ( 
              K ( 'String.Interpol' , P "{" )
-               * Q ( ( 1 - S "}\":" ) ^ 0 , 'Interpol.Inside' )
+               * K ( 'Interpol.Inside' , ( 1 - S "}\":" ) ^ 0 )
                * ( K ( 'String.Interpol' , P ":" ) * Q ( (1 - S "}:\"") ^ 0 ) ) ^ -1
                * K ( 'String.Interpol' , P "}" )
              + 
@@ -5448,7 +5459,7 @@ then
                 ) 
             * Cc "}" 
          ) 
-       * ( C ( balanced_braces ) / (function (s) return MainLoopPython:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopPython:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
     + OneBeamerEnvironment ( "uncoverenv" , MainLoopPython ) 
     + OneBeamerEnvironment ( "onlyenv" , MainLoopPython ) 
@@ -5496,7 +5507,7 @@ DetectedCommands =
             * C ( piton.ListCommands * P "{" ) 
             * Cc "}" 
          ) 
-       * ( C ( balanced_braces ) / (function (s) return MainLoopPython:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopPython:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
 %    \end{macrocode}
 %
@@ -5505,15 +5516,14 @@ DetectedCommands =
 % \paragraph{The LPEG Clean}
 %
 %    \begin{macrocode}
-local function concat(acc,x) return acc .. x end 
-Clean = Cf (  Cc ( "" ) * 
-              ( piton.ListCommands * P "{" 
-                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+CleanLPEGs['python']
+      = Ct ( ( piton.ListCommands * P "{" 
+                * (  balanced_braces 
+                    / ( function (s) return CleanLPEGs['python']:match(s) end ) )
                 * P "}" 
                + EscapeClean
                +  C ( P ( 1 ) )
-              ) ^ 0 ,
-              concat )
+              ) ^ 0 ) / table.concat 
 %    \end{macrocode}
 % 
 % 
@@ -5649,7 +5659,7 @@ local LongString = SingleLongString + DoubleLongString
 % of a function definition (which begins with |def|).
 %    \begin{macrocode}
 local StringDoc = 
-    K ( 'String.Doc' , P "\"\"\"" )
+    K ( 'String.Doc' , P "r" ^ -1 * P "\"\"\"" )
       * ( K ( 'String.Doc' , (1 - P "\"\"\"" - P "\r" ) ^ 0  ) * EOL
           * Tab ^ 0 
         ) ^ 0
@@ -5727,7 +5737,7 @@ local expression =
 % \medskip
 %    \begin{macrocode}
 local Param = 
-  SkipSpace * Identifier * SkipSpace
+  SkipSpace * ( Identifier + Q "*args" + Q "**kwargs" ) * SkipSpace
    * ( 
          K ( 'InitialValues' , P "=" * expression )
        + Q ( P ":" ) * SkipSpace * K ( 'Name.Type' , letter ^ 1  ) 
@@ -5893,8 +5903,8 @@ local expression_for_fields =
        E = ( P "{" * V "F" * P "}"
              + P "(" * V "F" * P ")"
              + P "[" * V "F" * P "]" 
-             + P "\"" * (P "\\\"" + 1 - S "\"\r" )^0 * P "\""
-             + P "'" * ( P "\\'" + 1 - S "'\r" )^0 * P "'"
+             + P "\"" * (P "\\\"" + 1 - S "\"\r" ) ^ 0 * P "\""
+             + P "'" * ( P "\\'" + 1 - S "'\r" ) ^ 0 * P "'"
              + ( 1 - S "{}()[]\r;" ) ) ^ 0 ,
        F = ( P "{" * V "F" * P "}"
              + P "(" * V "F" * P ")"
@@ -5914,7 +5924,7 @@ local OneFieldDefinition =
 local OneField = 
     K ( 'Name.Field' , identifier ) * SkipSpace
   * Q "=" * SkipSpace
-  * ( C ( expression_for_fields ) / ( function (s) return LoopOCaml:match(s) end ) )
+  * ( expression_for_fields / ( function (s) return LoopOCaml:match(s) end ) )
   * SkipSpace
 
 local Record = 
@@ -5965,7 +5975,7 @@ local Keyword =
   K ( 'Keyword' ,
       P "assert" + P "and" + P "as" + P "begin" + P "class" + P "constraint" + P "done" 
   + P "downto" + P "do" + P "else" + P "end" + P "exception" + P "external" 
-  + P "for" + P "function" + P "functor" + P "fun"  + P "if" 
+  + P "for" + P "function" + P "functor" + P "fun" + P "if" 
   + P "include" + P "inherit" + P "initializer" + P "in"  + P "lazy" + P "let" 
   + P "match" + P "method" + P "module" + P "mutable" + P "new" + P "object" 
   + P "of" + P "open" + P "private" + P "raise" + P "rec" + P "sig" 
@@ -6034,7 +6044,7 @@ then
                 ) 
             * Cc "}" 
          ) 
-       * ( C ( balanced_braces ) / (function (s) return MainLoopOCaml:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopOCaml:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
     + OneBeamerEnvironment ( "uncoverenv" , MainLoopOCaml ) 
     + OneBeamerEnvironment ( "onlyenv" , MainLoopOCaml ) 
@@ -6078,21 +6088,20 @@ DetectedCommands =
       Ct ( Cc "Open" 
             * C ( piton.ListCommands * P "{" ) * Cc "}" 
          ) 
-       * ( C ( balanced_braces ) / (function (s) return MainLoopOCaml:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopOCaml:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
 %    \end{macrocode}
 %
 % \bigskip
 %    \begin{macrocode}
-local function concat(acc,x) return acc .. x end 
-Clean = Cf (  Cc ( "" ) * 
-              ( piton.ListCommands * P "{" 
-                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+CleanLPEGs['ocaml']
+      = Ct ( ( piton.ListCommands * P "{" 
+                * ( balanced_braces 
+                    / ( function (s) return CleanLPEGs['ocaml']:match(s) end ) )
                 * P "}" 
                + EscapeClean
                +  C ( P ( 1 ) )
-              ) ^ 0 ,
-              concat )
+              ) ^ 0 ) / table.concat 
 %    \end{macrocode}
 % 
 
@@ -6163,7 +6172,7 @@ local open = "{" * Cg(ext, 'init') * "|"
 local close = "|" * C(ext) * "}"
 local closeeq = 
   Cmt ( close * Cb('init'), 
-        function (s, i, a, b) return a==b end ) 
+        function (s, i, a, b) return a == b end ) 
 %    \end{macrocode}
 %
 % \medskip
@@ -6525,7 +6534,7 @@ then
                 ) 
             * Cc "}" 
          ) 
-       * ( C ( balanced_braces ) / (function (s) return MainLoopC:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopC:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
     + OneBeamerEnvironment ( "uncoverenv" , MainLoopC ) 
     + OneBeamerEnvironment ( "onlyenv" , MainLoopC ) 
@@ -6569,21 +6578,20 @@ DetectedCommands =
       Ct ( Cc "Open" 
             * C ( piton.ListCommands * P "{" ) * Cc "}" 
          ) 
-       * ( C ( balanced_braces ) / (function (s) return MainLoopC:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopC:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
 %    \end{macrocode}
 %
 % \bigskip
 %    \begin{macrocode}
-local function concat(acc,x) return acc .. x end 
-Clean = Cf (  Cc ( "" ) * 
-              ( piton.ListCommands * P "{" 
-                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+CleanLPEGs['c']
+      = Ct ( ( piton.ListCommands * P "{" 
+                * ( balanced_braces 
+                    / ( function (s) return CleanLPEGs['c']:match(s) end ) )
                 * P "}" 
                + EscapeClean
                +  C ( P ( 1 ) )
-              ) ^ 0 ,
-              concat )
+              ) ^ 0 ) / table.concat 
 %    \end{macrocode}
 % 
 % \bigskip
@@ -6856,7 +6864,7 @@ then
                 ) 
             * Cc "}" 
          ) 
-       * ( C ( balanced_braces ) / (function (s) return MainLoopSQL:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopSQL:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
     + OneBeamerEnvironment ( "uncoverenv" , MainLoopSQL ) 
     + OneBeamerEnvironment ( "onlyenv" , MainLoopSQL ) 
@@ -6900,21 +6908,20 @@ DetectedCommands =
       Ct ( Cc "Open" 
             * C ( piton.ListCommands * P "{" ) * Cc "}" 
          ) 
-       * ( C ( balanced_braces ) / (function (s) return MainLoopSQL:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopSQL:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
 %    \end{macrocode}
 %
 % \bigskip
 %    \begin{macrocode}
-local function concat(acc,x) return acc .. x end 
-Clean = Cf (  Cc ( "" ) * 
-              ( piton.ListCommands * P "{" 
-                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+CleanLPEGs['sql']
+      = Ct ( ( piton.ListCommands * P "{" 
+                * ( balanced_braces 
+                    / ( function (s) return CleanLPEGs['sql']:match(s) end ) )
                 * P "}" 
                + EscapeClean
                +  C ( P ( 1 ) )
-              ) ^ 0 ,
-              concat )
+              ) ^ 0 ) / table.concat 
 %    \end{macrocode}
 %
 % \bigskip
@@ -7157,7 +7164,7 @@ then
                 ) 
             * Cc "}" 
          ) 
-       * ( C ( balanced_braces ) / (function (s) return MainLoopMinimal:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopMinimal:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
     + OneBeamerEnvironment ( "uncoverenv" , MainLoopMinimal ) 
     + OneBeamerEnvironment ( "onlyenv" , MainLoopMinimal ) 
@@ -7193,18 +7200,20 @@ DetectedCommands =
       Ct ( Cc "Open" 
             * C ( piton.ListCommands * P "{" ) * Cc "}" 
          ) 
-       * ( C ( balanced_braces ) / (function (s) return MainLoopMinimal:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopMinimal:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
 
-local function concat(acc,x) return acc .. x end 
-Clean = Cf (  Cc ( "" ) * 
-              ( piton.ListCommands * P "{" 
-                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+
+CleanLPEGs['minimal']
+      = Ct ( ( piton.ListCommands * P "{" 
+                * ( balanced_braces 
+                    / ( function (s) return CleanLPEGs['minimal']:match(s) end ) )
                 * P "}" 
                + EscapeClean
                +  C ( P ( 1 ) )
-              ) ^ 0 ,
-              concat )
+              ) ^ 0 ) / table.concat 
+
+
 
 local EOL = 
   P "\r" 
@@ -7416,21 +7425,16 @@ end
 % value of~$n$.
 %    \begin{macrocode}
 local function gobble(n,code)
-  function concat(acc,new_value)
-    return acc .. new_value
-  end 
   if n==0 
   then return code
   else 
-       return Cf ( 
-                   Cc ( "" ) * 
-                   ( 1 - P "\r" ) ^ (-n)  * C ( ( 1 - P "\r" ) ^ 0 ) 
-                     * ( C ( P "\r" )
-                     * ( 1 - P "\r" ) ^ (-n)
-                     * C ( ( 1 - P "\r" ) ^ 0 )
-                    ) ^ 0 ,
-                    concat 
-                 ) : match ( code ) 
+       return ( Ct ( 
+                     ( 1 - P "\r" ) ^ (-n)  * C ( ( 1 - P "\r" ) ^ 0 ) 
+                       * ( C ( P "\r" )
+                       * ( 1 - P "\r" ) ^ (-n)
+                       * C ( ( 1 - P "\r" ) ^ 0 )
+                      ) ^ 0 
+                   ) / table.concat ) : match ( code ) 
   end
 end
 %    \end{macrocode}
@@ -7438,57 +7442,55 @@ end
 % 
 % 
 % \bigskip
-% The following function |add| will be used in the following \textsc{lpeg}
-% |AutoGobbleLPEG|, |TabsAutoGobbleLPEG| and |EnvGobbleLPEG|.
+% The following function |sum| will be used in the following \textsc{lpeg}
+% |AutoGobbleLPEG|, |TabsAutoGobbleLPEG| and |EnvGobbleLPEG|. It computes the
+% sum of all its arguments.
 %    \begin{macrocode}
-local function add(acc,new_value)
-  return acc + new_value
-end 
+local function count_captures(...)
+    local acc = 0
+    for _ in ipairs({...}) do
+        acc = acc + 1
+    end
+    return acc
+end
 %    \end{macrocode}
 % 
 % \bigskip
 % The following \textsc{lpeg} returns as capture the minimal number of spaces at
-% the beginning of the lines of code. The main work is done by two \emph{fold
-% captures} (|lpeg.Cf|), one using |add| and the other (encompassing the
-% previous one) using |math.min| as folding operator.
+% the beginning of the lines of code. 
+%    begin{macrocode}
 %    \begin{macrocode}
 local AutoGobbleLPEG = 
-      Cf (
-           (
+  (
+    (
 %    \end{macrocode}
-% We don't take into account the empty lines (with only spaces).
+% We don't take into account the empty lines (those containing only spaces).
 %    \begin{macrocode}
-             ( P " " ) ^ 0 * P "\r"
-             + 
-             Cf ( Cc(0) * ( P " " * Cc(1) ) ^ 0 , add )
-             * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 * P "\r"
-           ) ^ 0
+      P " " ^ 0 * P "\r"
+      + 
+      C ( P " " ) ^ 0 / count_captures * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 * P "\r"
+    ) ^ 0
 %    \end{macrocode}
 % Now for the last line of the Python code...
 %    \begin{macrocode}
-           *
-           ( Cf ( Cc(0) * ( P " " * Cc(1) ) ^ 0 , add )
-           * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 ) ^ -1 ,
-           math.min
-         )
+    *
+    ( C ( P " " ) ^ 0 / count_captures * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 ) ^ -1 
+  ) / math.min
 %    \end{macrocode}
 %
 % \bigskip
 % The following \textsc{lpeg} is similar but works with the indentations.
 %    \begin{macrocode}
 local TabsAutoGobbleLPEG = 
-      Cf (
-           (
-             ( P "\t" ) ^ 0 * P "\r"
-             + 
-             Cf ( Cc(0) * ( P "\t" * Cc(1) ) ^ 0 , add )
-             * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 * P "\r"
-           ) ^ 0
-           *
-           ( Cf ( Cc(0) * ( P "\t" * Cc(1) ) ^ 0 , add )
-           * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 ) ^ -1 ,
-           math.min
-         )
+  (
+    (
+      P "\t" ^ 0 * P "\r"
+      + 
+      C ( P " " ) ^ 0 / count_captures * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 * P "\r"
+    ) ^ 0
+    *
+    ( C ( P " " ) ^ 0 / count_captures * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 ) ^ -1 
+  ) / math.min
 %    \end{macrocode}
 % 
 %
@@ -7497,12 +7499,10 @@ local TabsAutoGobbleLPEG =
 % The following \textsc{lpeg} returns as capture the number of spaces at the
 % last line, that is to say before the |\end{Piton}| (and usually it's also the
 % number of spaces before the corresponding |\begin{Piton}| because that's the
-% traditionnal way to indent in LaTeX). The main work is done by a \emph{fold
-% capture} (|lpeg.Cf|) using the function |add| as folding operator.
+% traditionnal way to indent in LaTeX). 
 %    \begin{macrocode}
 local EnvGobbleLPEG =
-  ( ( 1 - P "\r" ) ^ 0 * P "\r" ) ^ 0 
-    * Cf ( Cc(0) * ( P " " * Cc(1) ) ^ 0 , add ) * -1
+  ( ( 1 - P "\r" ) ^ 0 * P "\r" ) ^ 0 * ( C ( P " " )  ^ 0 / count_captures ) * -1
 %    \end{macrocode}
 % 
 % \bigskip
@@ -7532,6 +7532,7 @@ function piton.GobbleParse(language,n,code)
   end
   piton.last_code = gobble(n,code)
   piton.Parse(language,piton.last_code)
+  piton.last_language = language
 %    \end{macrocode}
 % Now, if the final user has used the key |write| to write the code of the
 % environment on an external file.
@@ -7548,7 +7549,7 @@ end
 % The following Lua function is provided to the developper. 
 %    \begin{macrocode}
 function piton.get_last_code ( ) 
-  return Clean : match(piton.last_code) 
+  return CleanLPEGs[piton.last_language] : match(piton.last_code) 
 end
 %    \end{macrocode}
 % 
@@ -7571,14 +7572,12 @@ end
 function piton.CountNonEmptyLines(code)
   local count = 0 
   count = 
-  ( Cf (  Cc(0) * 
-          ( 
+  (  (  (  ( 
             ( P " " ) ^ 0 * P "\r"  
-            + ( 1 - P "\r" ) ^ 0 * P "\r" * Cc(1) 
-          ) ^ 0 
-          * (1 - P "\r" ) ^ 0 ,
-         add
-       ) * -1 ) : match (code) 
+              + ( 1 - P "\r" ) ^ 0 * C ( P "\r" ) 
+            ) ^ 0 
+          * (1 - P "\r" ) ^ 0 
+       ) / count_captures ) * -1 ) : match (code) 
   tex.sprint( 
       luatexbase.catcodetables.expl , 
       '\\int_set:Nn \\l_@@_nb_non_empty_lines_int {' .. count .. '}' )

@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
--- Version 2.6 of 2024/02/30
+-- Version 2.6 of 2024/02/27
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -32,7 +32,7 @@ function piton.close_brace ()
    tex.sprint("}")
 end
 local P, S, V, C, Ct, Cc = lpeg.P, lpeg.S, lpeg.V, lpeg.C, lpeg.Ct, lpeg.Cc
-local Cf, Cs , Cg , Cmt , Cb = lpeg.Cf, lpeg.Cs, lpeg.Cg , lpeg.Cmt , lpeg.Cb
+local Cs , Cg , Cmt , Cb = lpeg.Cs, lpeg.Cg , lpeg.Cmt , lpeg.Cb
 local R = lpeg.R
 local function Q(pattern)
   return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
@@ -143,13 +143,14 @@ then
              * Cc ( "\\end{" .. name ..  "}" )
             )
        * (
-           C ( ( 1 - P ( "\\end{" .. name .. "}" ) ) ^ 0 )
-           / ( function (s) return lpeg : match(s) end )
+           ( ( 1 - P ( "\\end{" .. name .. "}" ) ) ^ 0 )
+              / ( function (s) return lpeg : match(s) end )
          )
        * P ( "\\end{" .. name ..  "}" ) * Ct ( Cc "Close" )
   end
 end
 local languages = { }
+local CleanLPEGs = { }
 local Operator =
   K ( 'Operator' ,
       P "!=" + P "<>" + P "==" + P "<<" + P ">>" + P "<=" + P ">=" + P ":="
@@ -265,7 +266,7 @@ local DoubleShortString =
          Q ( P "f\"" + P "F\"" )
          * (
              K ( 'String.Interpol' , P "{" )
-               * Q ( ( 1 - S "}\":" ) ^ 0 , 'Interpol.Inside' )
+               * K ( 'Interpol.Inside' , ( 1 - S "}\":" ) ^ 0 )
                * ( K ( 'String.Interpol' , P ":" ) * Q ( (1 - S "}:\"") ^ 0 ) ) ^ -1
                * K ( 'String.Interpol' , P "}" )
              +
@@ -311,7 +312,7 @@ then
                 )
             * Cc "}"
          )
-       * ( C ( balanced_braces ) / (function (s) return MainLoopPython:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopPython:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
     + OneBeamerEnvironment ( "uncoverenv" , MainLoopPython )
     + OneBeamerEnvironment ( "onlyenv" , MainLoopPython )
@@ -347,17 +348,16 @@ DetectedCommands =
             * C ( piton.ListCommands * P "{" )
             * Cc "}"
          )
-       * ( C ( balanced_braces ) / (function (s) return MainLoopPython:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopPython:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
-local function concat(acc,x) return acc .. x end
-Clean = Cf (  Cc ( "" ) *
-              ( piton.ListCommands * P "{"
-                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+CleanLPEGs['python']
+      = Ct ( ( piton.ListCommands * P "{"
+                * (  balanced_braces
+                    / ( function (s) return CleanLPEGs['python']:match(s) end ) )
                 * P "}"
                + EscapeClean
                +  C ( P ( 1 ) )
-              ) ^ 0 ,
-              concat )
+              ) ^ 0 ) / table.concat
 local PromptHastyDetection = ( # ( P ">>>" + P "..." ) * Lc ( '\\__piton_prompt:' ) ) ^ -1
 local Prompt = K ( 'Prompt' , ( ( P ">>>" + P "..." ) * P " " ^ -1 ) ^ -1  )
 local EOL =
@@ -438,7 +438,7 @@ local DoubleLongString =
   )
 local LongString = SingleLongString + DoubleLongString
 local StringDoc =
-    K ( 'String.Doc' , P "\"\"\"" )
+    K ( 'String.Doc' , P "r" ^ -1 * P "\"\"\"" )
       * ( K ( 'String.Doc' , (1 - P "\"\"\"" - P "\r" ) ^ 0  ) * EOL
           * Tab ^ 0
         ) ^ 0
@@ -471,7 +471,7 @@ local expression =
              + ( 1 - S "{}()[]\r\"'" ) ) ^ 0
     }
 local Param =
-  SkipSpace * Identifier * SkipSpace
+  SkipSpace * ( Identifier + Q "*args" + Q "**kwargs" ) * SkipSpace
    * (
          K ( 'InitialValues' , P "=" * expression )
        + Q ( P ":" ) * SkipSpace * K ( 'Name.Type' , letter ^ 1  )
@@ -552,8 +552,8 @@ local expression_for_fields =
        E = ( P "{" * V "F" * P "}"
              + P "(" * V "F" * P ")"
              + P "[" * V "F" * P "]"
-             + P "\"" * (P "\\\"" + 1 - S "\"\r" )^0 * P "\""
-             + P "'" * ( P "\\'" + 1 - S "'\r" )^0 * P "'"
+             + P "\"" * (P "\\\"" + 1 - S "\"\r" ) ^ 0 * P "\""
+             + P "'" * ( P "\\'" + 1 - S "'\r" ) ^ 0 * P "'"
              + ( 1 - S "{}()[]\r;" ) ) ^ 0 ,
        F = ( P "{" * V "F" * P "}"
              + P "(" * V "F" * P ")"
@@ -570,7 +570,7 @@ local OneFieldDefinition =
 local OneField =
     K ( 'Name.Field' , identifier ) * SkipSpace
   * Q "=" * SkipSpace
-  * ( C ( expression_for_fields ) / ( function (s) return LoopOCaml:match(s) end ) )
+  * ( expression_for_fields / ( function (s) return LoopOCaml:match(s) end ) )
   * SkipSpace
 
 local Record =
@@ -612,7 +612,7 @@ local Keyword =
   K ( 'Keyword' ,
       P "assert" + P "and" + P "as" + P "begin" + P "class" + P "constraint" + P "done"
   + P "downto" + P "do" + P "else" + P "end" + P "exception" + P "external"
-  + P "for" + P "function" + P "functor" + P "fun"  + P "if"
+  + P "for" + P "function" + P "functor" + P "fun" + P "if"
   + P "include" + P "inherit" + P "initializer" + P "in"  + P "lazy" + P "let"
   + P "match" + P "method" + P "module" + P "mutable" + P "new" + P "object"
   + P "of" + P "open" + P "private" + P "raise" + P "rec" + P "sig"
@@ -657,7 +657,7 @@ then
                 )
             * Cc "}"
          )
-       * ( C ( balanced_braces ) / (function (s) return MainLoopOCaml:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopOCaml:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
     + OneBeamerEnvironment ( "uncoverenv" , MainLoopOCaml )
     + OneBeamerEnvironment ( "onlyenv" , MainLoopOCaml )
@@ -692,17 +692,16 @@ DetectedCommands =
       Ct ( Cc "Open"
             * C ( piton.ListCommands * P "{" ) * Cc "}"
          )
-       * ( C ( balanced_braces ) / (function (s) return MainLoopOCaml:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopOCaml:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
-local function concat(acc,x) return acc .. x end
-Clean = Cf (  Cc ( "" ) *
-              ( piton.ListCommands * P "{"
-                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+CleanLPEGs['ocaml']
+      = Ct ( ( piton.ListCommands * P "{"
+                * ( balanced_braces
+                    / ( function (s) return CleanLPEGs['ocaml']:match(s) end ) )
                 * P "}"
                + EscapeClean
                +  C ( P ( 1 ) )
-              ) ^ 0 ,
-              concat )
+              ) ^ 0 ) / table.concat
 
 local EOL =
   P "\r"
@@ -741,7 +740,7 @@ local open = "{" * Cg(ext, 'init') * "|"
 local close = "|" * C(ext) * "}"
 local closeeq =
   Cmt ( close * Cb('init'),
-        function (s, i, a, b) return a==b end )
+        function (s, i, a, b) return a == b end )
 local QuotedStringBis =
   WithStyle ( 'String.Long' ,
       (
@@ -977,7 +976,7 @@ then
                 )
             * Cc "}"
          )
-       * ( C ( balanced_braces ) / (function (s) return MainLoopC:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopC:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
     + OneBeamerEnvironment ( "uncoverenv" , MainLoopC )
     + OneBeamerEnvironment ( "onlyenv" , MainLoopC )
@@ -1012,17 +1011,16 @@ DetectedCommands =
       Ct ( Cc "Open"
             * C ( piton.ListCommands * P "{" ) * Cc "}"
          )
-       * ( C ( balanced_braces ) / (function (s) return MainLoopC:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopC:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
-local function concat(acc,x) return acc .. x end
-Clean = Cf (  Cc ( "" ) *
-              ( piton.ListCommands * P "{"
-                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+CleanLPEGs['c']
+      = Ct ( ( piton.ListCommands * P "{"
+                * ( balanced_braces
+                    / ( function (s) return CleanLPEGs['c']:match(s) end ) )
                 * P "}"
                + EscapeClean
                +  C ( P ( 1 ) )
-              ) ^ 0 ,
-              concat )
+              ) ^ 0 ) / table.concat
 local EOL =
   P "\r"
   *
@@ -1182,7 +1180,7 @@ then
                 )
             * Cc "}"
          )
-       * ( C ( balanced_braces ) / (function (s) return MainLoopSQL:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopSQL:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
     + OneBeamerEnvironment ( "uncoverenv" , MainLoopSQL )
     + OneBeamerEnvironment ( "onlyenv" , MainLoopSQL )
@@ -1217,17 +1215,16 @@ DetectedCommands =
       Ct ( Cc "Open"
             * C ( piton.ListCommands * P "{" ) * Cc "}"
          )
-       * ( C ( balanced_braces ) / (function (s) return MainLoopSQL:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopSQL:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
-local function concat(acc,x) return acc .. x end
-Clean = Cf (  Cc ( "" ) *
-              ( piton.ListCommands * P "{"
-                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+CleanLPEGs['sql']
+      = Ct ( ( piton.ListCommands * P "{"
+                * ( balanced_braces
+                    / ( function (s) return CleanLPEGs['sql']:match(s) end ) )
                 * P "}"
                + EscapeClean
                +  C ( P ( 1 ) )
-              ) ^ 0 ,
-              concat )
+              ) ^ 0 ) / table.concat
 local EOL =
   P "\r"
   *
@@ -1396,7 +1393,7 @@ then
                 )
             * Cc "}"
          )
-       * ( C ( balanced_braces ) / (function (s) return MainLoopMinimal:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopMinimal:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
     + OneBeamerEnvironment ( "uncoverenv" , MainLoopMinimal )
     + OneBeamerEnvironment ( "onlyenv" , MainLoopMinimal )
@@ -1432,18 +1429,17 @@ DetectedCommands =
       Ct ( Cc "Open"
             * C ( piton.ListCommands * P "{" ) * Cc "}"
          )
-       * ( C ( balanced_braces ) / (function (s) return MainLoopMinimal:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoopMinimal:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
 
-local function concat(acc,x) return acc .. x end
-Clean = Cf (  Cc ( "" ) *
-              ( piton.ListCommands * P "{"
-                * ( C ( balanced_braces ) / ( function (s) return Clean:match(s) end ) )
+CleanLPEGs['minimal']
+      = Ct ( ( piton.ListCommands * P "{"
+                * ( balanced_braces
+                    / ( function (s) return CleanLPEGs['minimal']:match(s) end ) )
                 * P "}"
                + EscapeClean
                +  C ( P ( 1 ) )
-              ) ^ 0 ,
-              concat )
+              ) ^ 0 ) / table.concat
 
 local EOL =
   P "\r"
@@ -1586,55 +1582,47 @@ function piton.ParseTer(language,code)
   return piton.Parse(language,s)
 end
 local function gobble(n,code)
-  function concat(acc,new_value)
-    return acc .. new_value
-  end
   if n==0
   then return code
   else
-       return Cf (
-                   Cc ( "" ) *
-                   ( 1 - P "\r" ) ^ (-n)  * C ( ( 1 - P "\r" ) ^ 0 )
-                     * ( C ( P "\r" )
-                     * ( 1 - P "\r" ) ^ (-n)
-                     * C ( ( 1 - P "\r" ) ^ 0 )
-                    ) ^ 0 ,
-                    concat
-                 ) : match ( code )
+       return ( Ct (
+                     ( 1 - P "\r" ) ^ (-n)  * C ( ( 1 - P "\r" ) ^ 0 )
+                       * ( C ( P "\r" )
+                       * ( 1 - P "\r" ) ^ (-n)
+                       * C ( ( 1 - P "\r" ) ^ 0 )
+                      ) ^ 0
+                   ) / table.concat ) : match ( code )
   end
 end
-local function add(acc,new_value)
-  return acc + new_value
+local function count_captures(...)
+    local acc = 0
+    for _ in ipairs({...}) do
+        acc = acc + 1
+    end
+    return acc
 end
 local AutoGobbleLPEG =
-      Cf (
-           (
-             ( P " " ) ^ 0 * P "\r"
-             +
-             Cf ( Cc(0) * ( P " " * Cc(1) ) ^ 0 , add )
-             * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 * P "\r"
-           ) ^ 0
-           *
-           ( Cf ( Cc(0) * ( P " " * Cc(1) ) ^ 0 , add )
-           * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 ) ^ -1 ,
-           math.min
-         )
+  (
+    (
+      P " " ^ 0 * P "\r"
+      +
+      C ( P " " ) ^ 0 / count_captures * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 * P "\r"
+    ) ^ 0
+    *
+    ( C ( P " " ) ^ 0 / count_captures * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 ) ^ -1
+  ) / math.min
 local TabsAutoGobbleLPEG =
-      Cf (
-           (
-             ( P "\t" ) ^ 0 * P "\r"
-             +
-             Cf ( Cc(0) * ( P "\t" * Cc(1) ) ^ 0 , add )
-             * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 * P "\r"
-           ) ^ 0
-           *
-           ( Cf ( Cc(0) * ( P "\t" * Cc(1) ) ^ 0 , add )
-           * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 ) ^ -1 ,
-           math.min
-         )
+  (
+    (
+      P "\t" ^ 0 * P "\r"
+      +
+      C ( P " " ) ^ 0 / count_captures * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 * P "\r"
+    ) ^ 0
+    *
+    ( C ( P " " ) ^ 0 / count_captures * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 ) ^ -1
+  ) / math.min
 local EnvGobbleLPEG =
-  ( ( 1 - P "\r" ) ^ 0 * P "\r" ) ^ 0
-    * Cf ( Cc(0) * ( P " " * Cc(1) ) ^ 0 , add ) * -1
+  ( ( 1 - P "\r" ) ^ 0 * P "\r" ) ^ 0 * ( C ( P " " )  ^ 0 / count_captures ) * -1
 local function remove_before_cr(input_string)
     local match_result = P("\r") : match(input_string)
     if match_result then
@@ -1656,6 +1644,7 @@ function piton.GobbleParse(language,n,code)
   end
   piton.last_code = gobble(n,code)
   piton.Parse(language,piton.last_code)
+  piton.last_language = language
   if piton.write ~= ''
   then local file = assert(io.open(piton.write,piton.write_mode))
        file:write(piton.get_last_code())
@@ -1663,7 +1652,7 @@ function piton.GobbleParse(language,n,code)
   end
 end
 function piton.get_last_code ( )
-  return Clean : match(piton.last_code)
+  return CleanLPEGs[piton.last_language] : match(piton.last_code)
 end
 function piton.CountLines(code)
   local count = 0
@@ -1675,14 +1664,12 @@ end
 function piton.CountNonEmptyLines(code)
   local count = 0
   count =
-  ( Cf (  Cc(0) *
-          (
+  (  (  (  (
             ( P " " ) ^ 0 * P "\r"
-            + ( 1 - P "\r" ) ^ 0 * P "\r" * Cc(1)
-          ) ^ 0
-          * (1 - P "\r" ) ^ 0 ,
-         add
-       ) * -1 ) : match (code)
+              + ( 1 - P "\r" ) ^ 0 * C ( P "\r" )
+            ) ^ 0
+          * (1 - P "\r" ) ^ 0
+       ) / count_captures ) * -1 ) : match (code)
   tex.sprint(
       luatexbase.catcodetables.expl ,
       '\\int_set:Nn \\l__piton_nb_non_empty_lines_int {' .. count .. '}' )

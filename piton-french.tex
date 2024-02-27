@@ -353,6 +353,7 @@ de la position des délimiteurs |\begin{Piton}| et |\end{Piton}| de l'environnem
 
 \item \index{write} La clé \Definition{write} prend en argument un nom de fichier (avec l'extension) et écrit le
 contenu\footnote{En fait, il ne s'agit pas exactement du contenu de l'environnement mais de la valeur renvoyée par
+  l'instruction Lua 
   |piton.get_last_code()| qui en est une version dans les surcharges de formatage LaTeX (voir la partie \ref{API}, p.~\pageref{API}).} de l'environnement courant dans ce fichier. À la première utilisation du fichier par \pkg{piton}, celui-ci
 est effacé.
 
@@ -1545,8 +1546,11 @@ La variable L3 |\l_piton_language_str| contient le nom du langage courant (en mi
 \colorbox{yellow!50}{\textbf{Nouveau 2.6}}\par\nobreak
 
 L'extension \pkg{piton} fournit une function Lua |piton.get_last_code| sans argument permettant de récupérer le
-code contenu dans le dernier environnement de \pkg{piton}. On a plusieurs remarques à faire.
+code contenu dans le dernier environnement de \pkg{piton}. 
 \begin{itemize}
+\item Les retours à la ligne (présents dans l'environnement de départ) apparaissent comme des caractères |\r|
+(c'est-à-dire des caractères U+000D).
+
 \item Le code fourni par |piton.get_last_code()| tient compte de l'éventuelle application d'une clé |gobble| (cf.
 p.~\pageref{gobble}). 
 
@@ -1554,8 +1558,9 @@ p.~\pageref{gobble}).
 |piton.get_last_code()|. Cela s'applique aux commandes LaTeX déclarées par la clé |detected-commands| (cf.
 partie~\ref{detected-commands}) et aux éléments insérés avec le mécanisme «|escape|» (cf. partie~\ref{escape}).
 
-\item Les retours à la ligne (présents dans l'environnement de départ) apparaissent comme des caractères |\r|
-(c'est-à-dire des caractères U+000D).
+\item |piton.get_last_code| est une fonction Lua et non une chaîne de caracètres : les traitements présentés
+précédemment son exécutés lorsque la fonction est appelée. De ce fait, il peut être judicieux de sotcker la valeur
+renvoyée par |piton.get_last_code()| dans une variable Lua si on doit l'utiliser plusieurs fois.
 \end{itemize}
 
 \medskip
