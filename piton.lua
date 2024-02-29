@@ -149,6 +149,8 @@ then
        * P ( "\\end{" .. name ..  "}" ) * Ct ( Cc "Close" )
   end
 end
+local CommentMath =
+  P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
 local languages = { }
 local CleanLPEGs = { }
 local Operator =
@@ -443,9 +445,6 @@ local StringDoc =
           * Tab ^ 0
         ) ^ 0
       * K ( 'String.Doc' , ( 1 - P "\"\"\"" - P "\r" ) ^ 0 * P "\"\"\"" )
-local CommentMath =
-  P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
-
 local Comment =
   WithStyle ( 'Comment' ,
      Q ( P "#" )
@@ -561,7 +560,7 @@ local expression_for_fields =
              + ( 1 - S "{}()[]\r\"'" ) ) ^ 0
     }
 local OneFieldDefinition =
-    ( K ( 'KeyWord' , P "mutable" ) * SkipSpace ) ^ -1
+    ( K ( 'Keyword' , P "mutable" ) * SkipSpace ) ^ -1
   * K ( 'Name.Field' , identifier ) * SkipSpace
   * Q ":" * SkipSpace
   * K ( 'Name.Type' , expression_for_fields )
@@ -1044,9 +1043,6 @@ local EOL =
   SpaceIndentation ^ 0
 local Preproc =
   K ( 'Preproc' , P "#" * (1 - P "\r" ) ^ 0  ) * ( EOL + -1 )
-local CommentMath =
-  P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
-
 local Comment =
   WithStyle ( 'Comment' ,
      Q ( P "//" )
@@ -1244,9 +1240,6 @@ local EOL =
   )
   *
   SpaceIndentation ^ 0
-local CommentMath =
-  P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
-
 local Comment =
   WithStyle ( 'Comment' ,
      Q ( P "--" )  -- syntax of SQL92
@@ -1346,9 +1339,6 @@ languageSQL =
      )
 languages['sql'] = languageSQL
 local Punct = Q ( S ",:;!\\" )
-
-local CommentMath =
-  P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
 
 local Comment =
   WithStyle ( 'Comment' ,
@@ -1461,9 +1451,6 @@ local EOL =
   *
   SpaceIndentation ^ 0
 
-local CommentMath =
-  P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$" -- $
-
 local CommentLaTeX =
   P(piton.comment_latex)
   * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces"
@@ -1509,7 +1496,6 @@ languageMinimal =
        * Lc '\\__piton_end_line:'
      )
 languages['minimal'] = languageMinimal
-
 function piton.Parse(language,code)
   local t = languages[language] : match ( code )
   if t == nil
@@ -1617,10 +1603,10 @@ local TabsAutoGobbleLPEG =
     (
       P "\t" ^ 0 * P "\r"
       +
-      C ( P " " ) ^ 0 / count_captures * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 * P "\r"
+      C ( P "\t" ) ^ 0 / count_captures * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 * P "\r"
     ) ^ 0
     *
-    ( C ( P " " ) ^ 0 / count_captures * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 ) ^ -1
+    ( C ( P "\t" ) ^ 0 / count_captures * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 ) ^ -1
   ) / math.min
 local EnvGobbleLPEG =
   ( ( 1 - P "\r" ) ^ 0 * P "\r" ) ^ 0 * ( C ( P " " )  ^ 0 / count_captures ) * -1
@@ -1700,7 +1686,7 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
   local first_line = -1
   local count = 0
   local last_found = false
-  for line in io.lines(file_name)
+  for line in io.lines ( file_name )
   do if first_line == -1
      then if string.sub(line,1,#s) == s
           then first_line = count
@@ -1724,5 +1710,238 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
       luatexbase.catcodetables.expl ,
       '\\int_set:Nn \\l__piton_first_line_int {' .. first_line .. ' + 2 }'
       .. '\\int_set:Nn \\l__piton_last_line_int {' .. count .. ' }' )
+end
+MainLoop = { }
+function piton.new_language(name,definition)
+  local balanced_braces_bis =
+    P { "E" ,
+        E = ( P "{" * V "F" * P "}" + ( 1 - S ",{}" ) ) ^ 0  ,
+        F = ( P "{" * V "F" * P "}" + ( 1 - S "{}" ) ) ^ 0
+      }
+  local cut_definition =
+    P { "E" ,
+        E = Ct ( ( V "F" ) * ( P "," * V "F" ) ^ 0 ) ,
+        F = Ct ( space ^ 0 * C ( alpha ^ 1 ) * space ^ 0
+                * P "=" * space ^ 0 * C ( balanced_braces_bis ) )
+      }
+  local cut_list =
+    P { "E" ,
+         E = space ^ 0 * ( P "{" ) ^ 1
+             * Ct ( V "F" * ( P "," * V "F" ) ^ 0 )
+             * ( P "}" ) ^ 1 * space ^ 0 ,
+         F = space ^ 0 * C ( alpha ^ 1 ) * space ^ 0
+      }
+  local keyword = P ( false )
+  local short_string  = P ( false )
+  for _ , x in ipairs ( cut_definition : match ( definition ) )
+  do if x[1] == "morekeywords"
+     then for _ , word in ipairs ( cut_list : match ( x[2] ) )
+          do keyword = keyword + word
+          end
+     end
+     if x[1] == "morestring"
+     then if ( P "[b]" ) : match ( x[2] )
+          then local char = ( P "[b]" * C ( 1 ) ) : match ( x[2] )
+               short_string = short_string +
+                  ( Q ( char )
+                    * ( VisualSpace
+                        + Q ( ( P ( "\\" .. char )  + 1 - S ( " " .. char ) ) ^ 1 )
+                      ) ^ 0
+                    * Q ( char ) )
+          end
+          if ( P "[d]" ) : match ( x[2] )
+          then local char = ( P "[d]" * C ( 1 ) ) : match ( x[2] )
+               short_string = short_string +
+                  ( Q ( char )
+                    * ( VisualSpace
+                        + Q ( ( P ( char .. char )  + 1 - S ( " " .. char ) ) ^ 1 )
+                      ) ^ 0
+                    * Q ( char ) )
+          end
+          if ( P "[bd]" ) : match ( x[2] )
+          then local char = ( P "[bd]" * C ( 1 ) ) : match ( x[2] )
+               short_string = short_string +
+                  ( Q ( char )
+                    * ( VisualSpace
+                        + Q ( ( P ( char .. char ) + P ( "\\" .. char ) + 1 - S ( " " .. char ) ) ^ 1 )
+                      ) ^ 0
+                    * Q ( char ) )
+          end
+     end
+  end
+  local String = WithStyle ( 'String.Short' , short_string )
+  local balanced_braces =
+    P { "E" ,
+         E =
+             (
+               P "{" * V "E" * P "}"
+               +
+               String
+               +
+               ( 1 - S "{}" )
+             ) ^ 0
+      }
+  if piton_beamer
+  then
+    Beamer =
+        L ( P "\\pause" * ( P "[" * ( 1 - P "]" ) ^ 0 * P "]" ) ^ -1 )
+      +
+        Ct ( Cc "Open"
+              * C (
+                    (
+                      P "\\uncover" + P "\\only" + P "\\alert" + P "\\visible"
+                      + P "\\invisible" + P "\\action"
+                    )
+                    * ( P "<" * (1 - P ">") ^ 0 * P ">" ) ^ -1
+                    * P "{"
+                  )
+              * Cc "}"
+           )
+         * ( balanced_braces / (function (s) return MainLoop[name]:match(s) end ) )
+         * P "}" * Ct ( Cc "Close" )
+      + OneBeamerEnvironment ( "uncoverenv" , MainLoop[name] )
+      + OneBeamerEnvironment ( "onlyenv" , MainLoop[name] )
+      + OneBeamerEnvironment ( "visibleenv" , MainLoop[name] )
+      + OneBeamerEnvironment ( "invisibleenv" , MainLoop[name] )
+      + OneBeamerEnvironment ( "alertenv" , MainLoop[name] )
+      + OneBeamerEnvironment ( "actionenv" , MainLoop[name] )
+      +
+        L (
+            ( P "\\alt" )
+            * P "<" * (1 - P ">") ^ 0 * P ">"
+            * P "{"
+          )
+        * K ( 'ParseAgain.noCR' , balanced_braces )
+        * L ( P "}{" )
+        * K ( 'ParseAgain.noCR' , balanced_braces )
+        * L ( P "}" )
+      +
+        L (
+            ( P "\\temporal" )
+            * P "<" * (1 - P ">") ^ 0 * P ">"
+            * P "{"
+          )
+        * K ( 'ParseAgain.noCR' , balanced_braces )
+        * L ( P "}{" )
+        * K ( 'ParseAgain.noCR' , balanced_braces )
+        * L ( P "}{" )
+        * K ( 'ParseAgain.noCR' , balanced_braces )
+        * L ( P "}" )
+  end
+  DetectedCommands =
+        Ct ( Cc "Open"
+              * C ( piton.ListCommands * P "{" ) * Cc "}"
+           )
+         * ( balanced_braces / (function (s) return MainLoop[name]:match(s) end ) )
+         * P "}" * Ct ( Cc "Close" )
+  CleanLPEGs[name]
+        = Ct ( ( piton.ListCommands * P "{"
+                  * ( balanced_braces
+                      / ( function (s) return CleanLPEGs[name]:match(s) end ) )
+                  * P "}"
+                 + EscapeClean
+                 +  C ( P ( 1 ) )
+                ) ^ 0 ) / table.concat
+  local EOL =
+    P "\r"
+    *
+    (
+      ( space ^ 0 * -1 )
+      +
+      Ct (
+           Cc "EOL"
+           *
+           Ct (
+                Lc "\\__piton_end_line:"
+                * BeamerEndEnvironments
+                * BeamerBeginEnvironments
+                * Lc "\\__piton_newline: \\__piton_begin_line:"
+              )
+         )
+    )
+    *
+    SpaceIndentation ^ 0
+  local CommentLaTeX =
+    P(piton.comment_latex)
+    * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces"
+    * L ( ( 1 - P "\r" ) ^ 0 )
+    * Lc "}}"
+    * ( EOL + -1 )
+  local comment = P ( false )
+  local sncomment = P ( false )
+  for _ , x in ipairs ( cut_definition : match ( definition ) )
+  do if x[1] == "morecomment"
+     then if ( P "[l]" ) : match ( x[2] )
+          then local mark =
+                ( P "[l]" * ( P "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" + C ( 1 ) ) )
+                              : match ( x[2] )
+               comment = comment +
+                 Q ( mark ) * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
+           end
+           if ( P "[s]" ) : match ( x[2] )
+           then local mark1 , mark2 =
+                ( P "[s]" * ( P "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" )
+                          * ( P "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" ) )
+                              : match ( x[2] )
+               sncomment = sncomment +
+                 Q ( mark1 )
+                 * (
+                     CommentMath
+                     + Q ( ( 1 - P ( mark2 ) - S "$\r" ) ^ 1 ) -- $
+                     + EOL
+                   ) ^ 0
+                 * Q ( mark2 )
+           end
+           if ( P "[n]" ) : match ( x[2] )
+           then local mark1 , mark2 =
+                ( P "[n]" * ( P "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" )
+                          * ( P "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" ) )
+                              : match ( x[2] )
+                sncomment = sncomment +
+                 P { "A" ,
+                     A = Q ( mark1 )
+                         * ( V "A"
+                             + Q ( ( 1 - P ( mark1 ) - P ( mark2 ) - S "\r$\"" ) ^ 1 ) -- $
+                             + short_string
+                             + P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) * P "$" -- $
+                             + EOL
+                           ) ^ 0
+                         * Q ( mark2 )
+                    }
+           end
+      end
+  end
+  local Main =
+         EOL
+       + Space
+       + Tab
+       + Escape + EscapeMath
+       + CommentLaTeX
+       + Beamer
+       + DetectedCommands
+       + WithStyle ( 'Comment' , comment ) * ( EOL + -1 )
+       + WithStyle ( 'Comment' , sncomment )
+       + Q ( S "{[()]}" )
+       + String
+       + Q ( S ",:;!\\" )
+       + K ( 'Keyword' , keyword )
+       + K ( 'Identifier' , letter * alphanum ^ 0 )
+       + Number
+       + Word
+  MainLoop[name] =
+    (  ( space ^ 1 * -1 )
+       + Main
+    ) ^ 0
+  language =
+    Ct (
+         ( ( space - P "\r" ) ^ 0 * P "\r" ) ^ -1
+         * BeamerBeginEnvironments
+         * Lc '\\__piton_begin_line:'
+         * SpaceIndentation ^ 0
+         * MainLoop[name]
+         * -1
+         * Lc '\\__piton_end_line:'
+       )
+  languages[name] = language
 end
 
