@@ -153,6 +153,7 @@ local CommentMath =
   P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
 local languages = { }
 local CleanLPEGs = { }
+local MainLoop = { }
 local Operator =
   K ( 'Operator' ,
       P "!=" + P "<>" + P "==" + P "<<" + P ">>" + P "<=" + P ">=" + P ":="
@@ -314,14 +315,14 @@ then
                 )
             * Cc "}"
          )
-       * ( balanced_braces / (function (s) return MainLoopPython:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['python']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
-    + OneBeamerEnvironment ( "uncoverenv" , MainLoopPython )
-    + OneBeamerEnvironment ( "onlyenv" , MainLoopPython )
-    + OneBeamerEnvironment ( "visibleenv" , MainLoopPython )
-    + OneBeamerEnvironment ( "invisibleenv" , MainLoopPython )
-    + OneBeamerEnvironment ( "alertenv" , MainLoopPython )
-    + OneBeamerEnvironment ( "actionenv" , MainLoopPython )
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoop['python'] )
+    + OneBeamerEnvironment ( "onlyenv" , MainLoop['python'] )
+    + OneBeamerEnvironment ( "visibleenv" , MainLoop['python'] )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoop['python'] )
+    + OneBeamerEnvironment ( "alertenv" , MainLoop['python'] )
+    + OneBeamerEnvironment ( "actionenv" , MainLoop['python'] )
     +
       L (
           ( P "\\alt" )
@@ -350,7 +351,7 @@ DetectedCommands =
             * C ( piton.ListCommands * P "{" )
             * Cc "}"
          )
-       * ( balanced_braces / (function (s) return MainLoopPython:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['python']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
 CleanLPEGs['python']
       = Ct ( ( piton.ListCommands * P "{"
@@ -381,8 +382,7 @@ local EOL =
             )
        )
   )
-  *
-  SpaceIndentation ^ 0
+  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 local SingleLongString =
   WithStyle ( 'String.Long' ,
      ( Q ( S "fF" * P "'''" )
@@ -493,8 +493,8 @@ local DefFunction =
       * StringDoc ^ 0 -- there may be additionnal docstrings
     ) ^ -1
 local ExceptionInConsole = Exception *  Q ( ( 1 - P "\r" ) ^ 0 ) * EOL
-local MainPython =
-       EOL
+local Main =
+       space ^ 0 * EOL
      + Space
      + Tab
      + Escape + EscapeMath
@@ -519,25 +519,20 @@ local MainPython =
      + Identifier
      + Number
      + Word
-MainLoopPython =
-  (  ( space^1 * -1 )
-     + MainPython
-  ) ^ 0
-local python = P ( true )
-
-python =
+-- MainLoop['python'] = ( ( space ^ 1 * -1 ) + Main ) ^ 0
+MainLoop['python'] = Main ^ 0
+languages['python'] =
   Ct (
-       ( ( space - P "\r" ) ^0 * P "\r" ) ^ -1
+       ( space ^0 * P "\r" ) ^ -1
        * BeamerBeginEnvironments
        * PromptHastyDetection
        * Lc '\\__piton_begin_line:'
        * Prompt
        * SpaceIndentation ^ 0
-       * MainLoopPython
+       * MainLoop['python']
        * -1
        * Lc '\\__piton_end_line:'
      )
-languages['python'] = python
 local Delim = Q ( P "[|" + P "|]" + S "[()]" )
 local Punct = Q ( S ",:;!" )
 local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
@@ -656,14 +651,14 @@ then
                 )
             * Cc "}"
          )
-       * ( balanced_braces / (function (s) return MainLoopOCaml:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['ocaml']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
-    + OneBeamerEnvironment ( "uncoverenv" , MainLoopOCaml )
-    + OneBeamerEnvironment ( "onlyenv" , MainLoopOCaml )
-    + OneBeamerEnvironment ( "visibleenv" , MainLoopOCaml )
-    + OneBeamerEnvironment ( "invisibleenv" , MainLoopOCaml )
-    + OneBeamerEnvironment ( "alertenv" , MainLoopOCaml )
-    + OneBeamerEnvironment ( "actionenv" , MainLoopOCaml )
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoop['ocaml'] )
+    + OneBeamerEnvironment ( "onlyenv" , MainLoop['ocaml'] )
+    + OneBeamerEnvironment ( "visibleenv" , MainLoop['ocaml'] )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoop['ocaml'] )
+    + OneBeamerEnvironment ( "alertenv" , MainLoop['ocaml'] )
+    + OneBeamerEnvironment ( "actionenv" , MainLoop['ocaml'] )
     +
       L (
           ( P "\\alt" )
@@ -691,7 +686,7 @@ DetectedCommands =
       Ct ( Cc "Open"
             * C ( piton.ListCommands * P "{" ) * Cc "}"
          )
-       * ( balanced_braces / (function (s) return MainLoopOCaml:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['ocaml']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
 CleanLPEGs['ocaml']
       = Ct ( ( piton.ListCommands * P "{"
@@ -701,7 +696,6 @@ CleanLPEGs['ocaml']
                + EscapeClean
                +  C ( P ( 1 ) )
               ) ^ 0 ) / table.concat
-
 local EOL =
   P "\r"
   *
@@ -721,8 +715,7 @@ local EOL =
             )
        )
   )
-  *
-  SpaceIndentation ^ 0
+  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 local ocaml_string =
        Q ( P "\"" )
      * (
@@ -844,7 +837,7 @@ local DefModule =
   K ( 'Keyword' , P "include" + P "open" )
   * Space * K ( 'Name.Module' , cap_identifier )
 local TypeParameter = K ( 'TypeParameter' , P "'" * alpha * # ( 1 - P "'" ) )
-MainOCaml =
+local Main =
        EOL
      + Space
      + Tab
@@ -871,25 +864,17 @@ MainOCaml =
      + Number
      + Word
 
-LoopOCaml = MainOCaml ^ 0
-
-MainLoopOCaml =
-  (  ( space^1 * -1 )
-     + MainOCaml
-  ) ^ 0
-local ocaml = P ( true )
-
-ocaml =
+MainLoop['ocaml'] = Main ^ 0
+languages['ocaml'] =
   Ct (
-       ( ( space - P "\r" ) ^0 * P "\r" ) ^ -1
+       ( space ^0 * P "\r" ) ^ -1
        * BeamerBeginEnvironments
        * Lc ( '\\__piton_begin_line:' )
        * SpaceIndentation ^ 0
-       * MainLoopOCaml
+       * MainLoop['ocaml']
        * -1
        * Lc ( '\\__piton_end_line:' )
      )
-languages['ocaml'] = ocaml
 local Delim = Q ( S "{[()]}" )
 local Punct = Q ( S ",:;!" )
 local identifier = letter * alphanum ^ 0
@@ -975,14 +960,14 @@ then
                 )
             * Cc "}"
          )
-       * ( balanced_braces / (function (s) return MainLoopC:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['c']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
-    + OneBeamerEnvironment ( "uncoverenv" , MainLoopC )
-    + OneBeamerEnvironment ( "onlyenv" , MainLoopC )
-    + OneBeamerEnvironment ( "visibleenv" , MainLoopC )
-    + OneBeamerEnvironment ( "invisibleenv" , MainLoopC )
-    + OneBeamerEnvironment ( "alertenv" , MainLoopC )
-    + OneBeamerEnvironment ( "actionenv" , MainLoopC )
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoop['c'] )
+    + OneBeamerEnvironment ( "onlyenv" , MainLoop['c'] )
+    + OneBeamerEnvironment ( "visibleenv" , MainLoop['c'] )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoop['c'] )
+    + OneBeamerEnvironment ( "alertenv" , MainLoop['c'] )
+    + OneBeamerEnvironment ( "actionenv" , MainLoop['c'] )
     +
       L (
           ( P "\\alt" )
@@ -1010,7 +995,7 @@ DetectedCommands =
       Ct ( Cc "Open"
             * C ( piton.ListCommands * P "{" ) * Cc "}"
          )
-       * ( balanced_braces / (function (s) return MainLoopC:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['c']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
 CleanLPEGs['c']
       = Ct ( ( piton.ListCommands * P "{"
@@ -1039,8 +1024,7 @@ local EOL =
             )
        )
   )
-  *
-  SpaceIndentation ^ 0
+  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 local Preproc =
   K ( 'Preproc' , P "#" * (1 - P "\r" ) ^ 0  ) * ( EOL + -1 )
 local Comment =
@@ -1061,8 +1045,8 @@ local CommentLaTeX =
   * L ( ( 1 - P "\r" ) ^ 0 )
   * Lc "}}"
   * ( EOL + -1 )
-local MainC =
-       EOL
+local Main =
+       space ^0 * EOL
      + Space
      + Tab
      + Escape + EscapeMath
@@ -1083,21 +1067,27 @@ local MainC =
      + Identifier
      + Number
      + Word
-MainLoopC =
-  (  ( space^1 * -1 )
-     + MainC
-  ) ^ 0
-languageC =
+MainLoop['c'] = Main ^ 0
+languages['c'] =
   Ct (
-       ( ( space - P "\r" ) ^0 * P "\r" ) ^ -1
+       ( space ^0 * P "\r" ) ^ -1
        * BeamerBeginEnvironments
        * Lc '\\__piton_begin_line:'
        * SpaceIndentation ^ 0
-       * MainLoopC
+       * MainLoop['c']
        * -1
        * Lc '\\__piton_end_line:'
      )
-languages['c'] = languageC
+local function LuaKeyword ( name )
+return
+   Lc ( "{\\PitonStyle{Keyword}{" )
+   * Q ( Cmt (
+               C ( identifier ) ,
+               function(s,i,a) return string.upper(a) == name end
+             )
+       )
+   * Lc ( "}}" )
+end
 local identifier =
   letter * ( alphanum + P "-" ) ^ 0
   + P '"' * ( ( alphanum + space - P '"' ) ^ 1 ) * P '"'
@@ -1176,14 +1166,14 @@ then
                 )
             * Cc "}"
          )
-       * ( balanced_braces / (function (s) return MainLoopSQL:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['sql']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
-    + OneBeamerEnvironment ( "uncoverenv" , MainLoopSQL )
-    + OneBeamerEnvironment ( "onlyenv" , MainLoopSQL )
-    + OneBeamerEnvironment ( "visibleenv" , MainLoopSQL )
-    + OneBeamerEnvironment ( "invisibleenv" , MainLoopSQL )
-    + OneBeamerEnvironment ( "alertenv" , MainLoopSQL )
-    + OneBeamerEnvironment ( "actionenv" , MainLoopSQL )
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoop['sql'] )
+    + OneBeamerEnvironment ( "onlyenv" , MainLoop['sql'] )
+    + OneBeamerEnvironment ( "visibleenv" , MainLoop['sql'] )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoop['sql'] )
+    + OneBeamerEnvironment ( "alertenv" , MainLoop['sql'] )
+    + OneBeamerEnvironment ( "actionenv" , MainLoop['sql'] )
     +
       L (
           ( P "\\alt" )
@@ -1211,7 +1201,7 @@ DetectedCommands =
       Ct ( Cc "Open"
             * C ( piton.ListCommands * P "{" ) * Cc "}"
          )
-       * ( balanced_braces / (function (s) return MainLoopSQL:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['sql']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
 CleanLPEGs['sql']
       = Ct ( ( piton.ListCommands * P "{"
@@ -1238,8 +1228,7 @@ local EOL =
             )
        )
   )
-  *
-  SpaceIndentation ^ 0
+  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 local Comment =
   WithStyle ( 'Comment' ,
      Q ( P "--" )  -- syntax of SQL92
@@ -1258,16 +1247,6 @@ local CommentLaTeX =
   * L ( ( 1 - P "\r" ) ^ 0 )
   * Lc "}}"
   * ( EOL + -1 )
-local function LuaKeyword ( name )
-return
-   Lc ( "{\\PitonStyle{Keyword}{" )
-   * Q ( Cmt (
-               C ( identifier ) ,
-               function(s,i,a) return string.upper(a) == name end
-             )
-       )
-   * Lc ( "}}" )
-end
 local TableField =
      K ( 'Name.Table' , identifier )
      * Q ( P "." )
@@ -1306,8 +1285,8 @@ local WeCatchTableNames =
       + LuaKeyword ( "TABLE" )
     )
     * ( Space + EOL ) * OneTable
-local MainSQL =
-       EOL
+local Main =
+       space ^ 0 * EOL
      + Space
      + Tab
      + Escape + EscapeMath
@@ -1323,21 +1302,17 @@ local MainSQL =
      + ( TableField + Identifier ) * ( Space + Operator + Punct + Delim + EOL + -1 )
      + Number
      + Word
-MainLoopSQL =
-  (  ( space^1 * -1 )
-     + MainSQL
-  ) ^ 0
-languageSQL =
+MainLoop['sql'] = Main ^ 0
+languages['sql'] =
   Ct (
-       ( ( space - P "\r" ) ^ 0 * P "\r" ) ^ -1
+       ( space ^ 0 * P "\r" ) ^ -1
        * BeamerBeginEnvironments
        * Lc '\\__piton_begin_line:'
        * SpaceIndentation ^ 0
-       * MainLoopSQL
+       * MainLoop['sql']
        * -1
        * Lc '\\__piton_end_line:'
      )
-languages['sql'] = languageSQL
 local Punct = Q ( S ",:;!\\" )
 
 local Comment =
@@ -1383,14 +1358,14 @@ then
                 )
             * Cc "}"
          )
-       * ( balanced_braces / (function (s) return MainLoopMinimal:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['minimal']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
-    + OneBeamerEnvironment ( "uncoverenv" , MainLoopMinimal )
-    + OneBeamerEnvironment ( "onlyenv" , MainLoopMinimal )
-    + OneBeamerEnvironment ( "visibleenv" , MainLoopMinimal )
-    + OneBeamerEnvironment ( "invisibleenv" , MainLoopMinimal )
-    + OneBeamerEnvironment ( "alertenv" , MainLoopMinimal )
-    + OneBeamerEnvironment ( "actionenv" , MainLoopMinimal )
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoop['minimal'] )
+    + OneBeamerEnvironment ( "onlyenv" , MainLoop['minimal'] )
+    + OneBeamerEnvironment ( "visibleenv" , MainLoop['minimal'] )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoop['minimal'] )
+    + OneBeamerEnvironment ( "alertenv" , MainLoop['minimal'] )
+    + OneBeamerEnvironment ( "actionenv" , MainLoop['minimal'] )
     +
       L (
           ( P "\\alt" )
@@ -1419,7 +1394,7 @@ DetectedCommands =
       Ct ( Cc "Open"
             * C ( piton.ListCommands * P "{" ) * Cc "}"
          )
-       * ( balanced_braces / (function (s) return MainLoopMinimal:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['minimal']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" )
 
 CleanLPEGs['minimal']
@@ -1448,8 +1423,7 @@ local EOL =
             )
        )
   )
-  *
-  SpaceIndentation ^ 0
+  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 
 local CommentLaTeX =
   P(piton.comment_latex)
@@ -1464,8 +1438,8 @@ local Identifier = K ( 'Identifier' , identifier )
 
 local Delim = Q ( S "{[()]}" )
 
-local MainMinimal =
-       EOL
+local Main =
+       space ^0 * EOL
      + Space
      + Tab
      + Escape + EscapeMath
@@ -1480,22 +1454,19 @@ local MainMinimal =
      + Number
      + Word
 
-MainLoopMinimal =
-  (  ( space^1 * -1 )
-     + MainMinimal
-  ) ^ 0
+MainLoop['minimal'] = Main ^ 0
 
-languageMinimal =
+languages['minimal'] =
   Ct (
-       ( ( space - P "\r" ) ^ 0 * P "\r" ) ^ -1
+       ( space ^ 0 * P "\r" ) ^ -1
        * BeamerBeginEnvironments
        * Lc '\\__piton_begin_line:'
        * SpaceIndentation ^ 0
-       * MainLoopMinimal
+       * MainLoop['minimal']
        * -1
        * Lc '\\__piton_end_line:'
      )
-languages['minimal'] = languageMinimal
+
 function piton.Parse(language,code)
   local t = languages[language] : match ( code )
   if t == nil
@@ -1581,102 +1552,98 @@ local function gobble(n,code)
                    ) / table.concat ) : match ( code )
   end
 end
-local function count_captures(...)
-    local acc = 0
-    for _ in ipairs({...}) do
-        acc = acc + 1
-    end
-    return acc
-end
 local AutoGobbleLPEG =
-  (
-    (
-      P " " ^ 0 * P "\r"
-      +
-      C ( P " " ) ^ 0 / count_captures * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 * P "\r"
-    ) ^ 0
-    *
-    ( C ( P " " ) ^ 0 / count_captures * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 ) ^ -1
-  ) / math.min
+      (  (
+           ( P " " ) ^ 0 * P "\r"
+           +
+           Ct ( C ( P " " ) ^ 0 ) / table.getn
+           * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 * P "\r"
+         ) ^ 0
+         * ( Ct ( C ( P " " ) ^ 0 ) / table.getn
+              * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 ) ^ -1
+       ) / math.min
 local TabsAutoGobbleLPEG =
-  (
-    (
-      P "\t" ^ 0 * P "\r"
-      +
-      C ( P "\t" ) ^ 0 / count_captures * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 * P "\r"
-    ) ^ 0
-    *
-    ( C ( P "\t" ) ^ 0 / count_captures * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 ) ^ -1
-  ) / math.min
+       (
+         (
+           ( P "\t" ) ^ 0 * P "\r"
+           +
+           Ct ( C ( P "\t" ) ^ 0 ) / table.getn
+           * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 * P "\r"
+         ) ^ 0
+         * ( Ct ( C ( P "\t" ) ^ 0 ) / table.getn
+             * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 ) ^ -1
+       ) / math.min
 local EnvGobbleLPEG =
-  ( ( 1 - P "\r" ) ^ 0 * P "\r" ) ^ 0 * ( C ( P " " )  ^ 0 / count_captures ) * -1
-local function remove_before_cr(input_string)
-    local match_result = P("\r") : match(input_string)
-    if match_result then
-        return string.sub(input_string, match_result )
+      ( ( 1 - P "\r" ) ^ 0 * P "\r" ) ^ 0
+    * Ct ( C ( P " " ) ^ 0 * -1 ) / table.getn
+local function remove_before_cr ( input_string )
+    local match_result = P ( "\r" ) : match ( input_string )
+    if match_result
+    then
+        return string.sub ( input_string , match_result )
     else
         return input_string
     end
 end
-function piton.GobbleParse(language,n,code)
-  code = remove_before_cr(code)
-  if n==-1
-  then n = AutoGobbleLPEG : match(code)
-  else if n==-2
-       then n = EnvGobbleLPEG : match(code)
-       else if n==-3
-            then n = TabsAutoGobbleLPEG : match(code)
+function piton.GobbleParse ( language , n , code )
+  code = remove_before_cr ( code )
+  if n == -1
+  then n = AutoGobbleLPEG : match ( code )
+  else if n == -2
+       then n = EnvGobbleLPEG : match ( code )
+       else if n == -3
+            then n = TabsAutoGobbleLPEG : match ( code )
             end
        end
   end
-  piton.last_code = gobble(n,code)
-  piton.Parse(language,piton.last_code)
+  piton.last_code = gobble ( n , code )
+  piton.Parse ( language , piton.last_code )
   piton.last_language = language
   if piton.write ~= ''
-  then local file = assert(io.open(piton.write,piton.write_mode))
-       file:write(piton.get_last_code())
-       file:close()
+  then local file = assert ( io.open ( piton.write , piton.write_mode ) )
+       file:write ( piton.get_last_code ( ) )
+       file:close ( )
   end
 end
 function piton.get_last_code ( )
-  return CleanLPEGs[piton.last_language] : match(piton.last_code)
+  return CleanLPEGs[piton.last_language] : match ( piton.last_code )
 end
-function piton.CountLines(code)
+function piton.CountLines ( code )
   local count = 0
   for i in code : gmatch ( "\r" ) do count = count + 1 end
   tex.sprint(
       luatexbase.catcodetables.expl ,
       '\\int_set:Nn \\l__piton_nb_lines_int {' .. count .. '}' )
 end
-function piton.CountNonEmptyLines(code)
+function piton.CountNonEmptyLines ( code )
   local count = 0
   count =
-  (  (  (  (
-            ( P " " ) ^ 0 * P "\r"
-              + ( 1 - P "\r" ) ^ 0 * C ( P "\r" )
-            ) ^ 0
-          * (1 - P "\r" ) ^ 0
-       ) / count_captures ) * -1 ) : match (code)
+     ( Ct ( ( P " " ^ 0 * P "\r"
+              + ( 1 - P "\r" ) ^ 0 * C ( P "\r" ) ) ^ 0
+            * (1 - P "\r" ) ^ 0
+            * -1
+          ) / table.getn
+     ) : match ( code )
   tex.sprint(
       luatexbase.catcodetables.expl ,
       '\\int_set:Nn \\l__piton_nb_non_empty_lines_int {' .. count .. '}' )
 end
-function piton.CountLinesFile(name)
+function piton.CountLinesFile ( name )
   local count = 0
-  io.open(name)
-  for line in io.lines(name) do count = count + 1 end
-  tex.sprint(
+  io.open ( name )
+  for line in io.lines ( name ) do count = count + 1 end
+  tex.sprint (
       luatexbase.catcodetables.expl ,
       '\\int_set:Nn \\l__piton_nb_lines_int {' .. count .. '}' )
 end
-function piton.CountNonEmptyLinesFile(name)
+function piton.CountNonEmptyLinesFile ( name )
   local count = 0
-  for line in io.lines(name)
+  for line in io.lines ( name )
   do if not ( ( ( P " " ) ^ 0 * -1 ) : match ( line ) )
      then count = count + 1
      end
   end
-  tex.sprint(
+  tex.sprint (
       luatexbase.catcodetables.expl ,
       '\\int_set:Nn \\l__piton_nb_non_empty_lines_int {' .. count .. '}' )
 end
@@ -1706,13 +1673,15 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
                        "\\__piton_error:n { end~marker~not~found }")
        end
   end
-  tex.sprint(
+  tex.sprint (
       luatexbase.catcodetables.expl ,
       '\\int_set:Nn \\l__piton_first_line_int {' .. first_line .. ' + 2 }'
       .. '\\int_set:Nn \\l__piton_last_line_int {' .. count .. ' }' )
 end
-MainLoop = { }
-function piton.new_language(name,definition)
+function piton.new_language ( name,definition )
+  name = string.lower ( name )
+  local identifier = letter * alphanum ^ 0
+  local Identifier = K ( 'Identifier' , identifier )
   local balanced_braces_bis =
     P { "E" ,
         E = ( P "{" * V "F" * P "}" + ( 1 - S ",{}" ) ) ^ 0  ,
@@ -1722,24 +1691,57 @@ function piton.new_language(name,definition)
     P { "E" ,
         E = Ct ( ( V "F" ) * ( P "," * V "F" ) ^ 0 ) ,
         F = Ct ( space ^ 0 * C ( alpha ^ 1 ) * space ^ 0
-                * P "=" * space ^ 0 * C ( balanced_braces_bis ) )
+                * ( P "=" * space ^ 0 * C ( balanced_braces_bis ) ) ^ -1 )
       }
-  local cut_list =
+  local def_table = cut_definition : match ( definition )
+  local sensitive = true
+  for _ , x in ipairs ( def_table )
+  do if x[1] == "sensitive"
+     then if x[2] == nil or ( P "true" ) : match ( x[2] )
+          then sensitive = true
+          else if ( P "false" ) : match ( x[2] ) then sensitive = false end
+          end
+
+     end
+  end
+ local option = ( P "[" * C ( ( 1 - P "]" ) ^ 0 ) * P "]" )
+  local split_clist =
     P { "E" ,
-         E = space ^ 0 * ( P "{" ) ^ 1
+         E = ( P "[" * ( 1 - P "]" ) ^ 0 * P "]" ) ^ -1
+             * ( P "{" ) ^ 1
              * Ct ( V "F" * ( P "," * V "F" ) ^ 0 )
              * ( P "}" ) ^ 1 * space ^ 0 ,
          F = space ^ 0 * C ( alpha ^ 1 ) * space ^ 0
       }
-  local keyword = P ( false )
-  local short_string  = P ( false )
-  for _ , x in ipairs ( cut_definition : match ( definition ) )
+  local function keyword_to_lpeg ( name )
+  return
+    Q ( Cmt (
+              C ( identifier ) ,
+              function(s,i,a) return string.upper(a) == string.upper(name) end
+            )
+      )
+  end
+  local Keyword = P ( false )
+  for _ , x in ipairs ( def_table )
   do if x[1] == "morekeywords"
-     then for _ , word in ipairs ( cut_list : match ( x[2] ) )
-          do keyword = keyword + word
+     then local keywords = P ( false )
+          for _ , word in ipairs ( split_clist : match ( x[2] ) )
+          do if sensitive
+             then keywords = keywords + Q ( word  )
+             else keywords = keywords + keyword_to_lpeg ( word )
+             end
           end
+          Keyword = Keyword +
+             Lc ( "{"
+                   ..  ( option : match ( x[2] ) or "\\PitonStyle{Keyword}" )
+                   .. "{" )
+             * keywords * Lc ( "}}" )
      end
-     if x[1] == "morestring"
+  end
+  local short_string  = P ( false )
+
+  for _ , x in ipairs ( def_table )
+  do if x[1] == "morestring"
      then if ( P "[b]" ) : match ( x[2] )
           then local char = ( P "[b]" * C ( 1 ) ) : match ( x[2] )
                short_string = short_string +
@@ -1767,9 +1769,21 @@ function piton.new_language(name,definition)
                       ) ^ 0
                     * Q ( char ) )
           end
+          if ( P "[m]" ) : match ( x[2] )
+          then local char = ( P "[m]" * C ( 1 ) ) : match ( x[2] )
+               short_string = short_string +
+                  ( lpeg.B ( 1 - letter - P ")" - P"]" )
+                    * Q ( char )
+                    * ( VisualSpace
+                        + Q ( ( P ( char .. char )  + 1 - S ( " " .. char ) ) ^ 1 )
+                      ) ^ 0
+                    * Q ( char ) )
+          end
      end
   end
+
   local String = WithStyle ( 'String.Short' , short_string )
+
   local balanced_braces =
     P { "E" ,
          E =
@@ -1781,6 +1795,7 @@ function piton.new_language(name,definition)
                ( 1 - S "{}" )
              ) ^ 0
       }
+
   if piton_beamer
   then
     Beamer =
@@ -1828,12 +1843,14 @@ function piton.new_language(name,definition)
         * K ( 'ParseAgain.noCR' , balanced_braces )
         * L ( P "}" )
   end
+
   DetectedCommands =
         Ct ( Cc "Open"
               * C ( piton.ListCommands * P "{" ) * Cc "}"
            )
          * ( balanced_braces / (function (s) return MainLoop[name]:match(s) end ) )
          * P "}" * Ct ( Cc "Close" )
+
   CleanLPEGs[name]
         = Ct ( ( piton.ListCommands * P "{"
                   * ( balanced_braces
@@ -1842,6 +1859,7 @@ function piton.new_language(name,definition)
                  + EscapeClean
                  +  C ( P ( 1 ) )
                 ) ^ 0 ) / table.concat
+
   local EOL =
     P "\r"
     *
@@ -1859,22 +1877,28 @@ function piton.new_language(name,definition)
               )
          )
     )
-    *
-    SpaceIndentation ^ 0
+    * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
+
   local CommentLaTeX =
     P(piton.comment_latex)
     * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces"
     * L ( ( 1 - P "\r" ) ^ 0 )
     * Lc "}}"
     * ( EOL + -1 )
+
   local comment = P ( false )
+
   local sncomment = P ( false )
-  for _ , x in ipairs ( cut_definition : match ( definition ) )
+
+  for _ , x in ipairs ( def_table )
   do if x[1] == "morecomment"
      then if ( P "[l]" ) : match ( x[2] )
           then local mark =
-                ( P "[l]" * ( P "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" + C ( 1 ) ) )
-                              : match ( x[2] )
+                ( P "[l]" *
+                   ( P "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}"
+                     + C ( ( 1 - P ( " " ) )^ 0 ) )
+                ) : match ( x[2] )
+               if mark == [[\#]] then mark = "#" end -- mandatory
                comment = comment +
                  Q ( mark ) * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
            end
@@ -1901,9 +1925,12 @@ function piton.new_language(name,definition)
                  P { "A" ,
                      A = Q ( mark1 )
                          * ( V "A"
-                             + Q ( ( 1 - P ( mark1 ) - P ( mark2 ) - S "\r$\"" ) ^ 1 ) -- $
+                             + Q ( ( 1 - P ( mark1 ) - P ( mark2 )
+                                     - S "\r$\"" ) ^ 1 ) -- $
                              + short_string
-                             + P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) * P "$" -- $
+                             + P "$"
+                                 * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 )
+                                 * P "$" -- $
                              + EOL
                            ) ^ 0
                          * Q ( mark2 )
@@ -1911,8 +1938,9 @@ function piton.new_language(name,definition)
            end
       end
   end
+
   local Main =
-         EOL
+         space ^ 0 * EOL
        + Space
        + Tab
        + Escape + EscapeMath
@@ -1923,18 +1951,17 @@ function piton.new_language(name,definition)
        + WithStyle ( 'Comment' , sncomment )
        + Q ( S "{[()]}" )
        + String
-       + Q ( S ",:;!\\" )
-       + K ( 'Keyword' , keyword )
+       + Q ( S ",:;!\\'\"" )
+       + Keyword
        + K ( 'Identifier' , letter * alphanum ^ 0 )
        + Number
        + Word
-  MainLoop[name] =
-    (  ( space ^ 1 * -1 )
-       + Main
-    ) ^ 0
-  language =
+
+  MainLoop[name] = Main ^ 0
+
+  languages[name] =
     Ct (
-         ( ( space - P "\r" ) ^ 0 * P "\r" ) ^ -1
+         ( space ^ 0 * P "\r" ) ^ -1
          * BeamerBeginEnvironments
          * Lc '\\__piton_begin_line:'
          * SpaceIndentation ^ 0
@@ -1942,6 +1969,6 @@ function piton.new_language(name,definition)
          * -1
          * Lc '\\__piton_end_line:'
        )
-  languages[name] = language
+
 end
 

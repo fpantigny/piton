@@ -372,11 +372,11 @@
 % In fact, the key |line-numbers| has several subkeys.
 % \begin{itemize}
 % \item With the key \Definition{line-numbers/skip-empty-lines}, the empty lines
-% are considered as non existent for the line numbering (if the key |/absolute|
-% is in force, the key |/skip-empty-lines| is no-op in |\PitonInputFile|). The
-% initial value of that key is |true| (and not |false|).\footnote{For the
-% language Python, the empty lines in the docstrings are taken into account (by
-% design).}
+% (which contains only spaces) are considered as non existent for the line
+% numbering (if the key |/absolute| is in force, the key |/skip-empty-lines| is
+% no-op in |\PitonInputFile|). The initial value of that key is |true| (and not
+% |false|).\footnote{For the language Python, the empty lines in the docstrings
+% are taken into account (by design).}
 % \item With the key \Definition{line-numbers/label-empty-lines}, the labels
 % (that is to say the numbers) of the empty lines are displayed. If the key
 % |/skip-empty-line| is in force, the clé |/label-empty-lines| is no-op. The
@@ -479,7 +479,8 @@
 % With the key \index{show-spaces} \Definition{show-spaces}, all the spaces are
 % replaced by U+2423 (and no line break can occur on those ``visible spaces'',
 % even when the key |break-lines|\footnote{cf. \ref{line-breaks}
-% p.~\pageref{line-breaks}} is in force).
+% p.~\pageref{line-breaks}} is in force). By the way, one should remark that all
+% the trailing spaces (at the end of a line) are deleted by \pkg{piton}.
 % \end{itemize}
 %
 % \bigskip
@@ -2282,7 +2283,7 @@
 % \midrule
 % Number & the numbers \\
 % String & the strings (between \texttt{"}) \\
-% Comment & les comments (which begins with |#|) \\
+% Comment & the comments (which begin with |#|) \\
 % Comment.LaTeX &  the comments beginning with \texttt{\#>}, which are composed by
 %   \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
 % \bottomrule
@@ -3126,6 +3127,7 @@
 % Now, we add the potential number of line, the potential left margin and the
 % potential background.
 %    \begin{macrocode}
+    \tl_log:n { Contenu : #1.}
     \hbox_set:Nn \l_tmpa_box 
       { 
         \skip_horizontal:N \l_@@_left_margin_dim
@@ -3137,7 +3139,7 @@
                 && 
                 \l_@@_skip_empty_lines_bool 
               }
-              { \int_gincr:N \g_@@_visual_line_int}
+              { \int_gincr:N \g_@@_visual_line_int }
 
             \bool_if:nT
               { 
@@ -3280,9 +3282,9 @@
           { \l_@@_nb_lines_int - \g_@@_line_int } > \l_@@_splittable_int 
           {
             \egroup
-            \bool_if:NT \g_@@_footnote_bool { \end { savenotes } } 
+            \bool_if:NT \g_@@_footnote_bool { \endsavenotes } 
             \par \mode_leave_vertical: 
-            \bool_if:NT \g_@@_footnote_bool { \begin { savenotes } } 
+            \bool_if:NT \g_@@_footnote_bool { \savenotes } 
             \vtop \bgroup
           }
      }
@@ -3683,6 +3685,12 @@
 %
 % \bigskip
 %    \begin{macrocode}
+\NewDocumentCommand { \NewPitonLanguage } { m m }
+  { \lua_now:e { piton.new_language("#1","\lua_escape:n{#2}") } }
+%    \end{macrocode}
+% 
+% \bigskip
+%    \begin{macrocode}
 \NewDocumentCommand { \piton } { }
   { \peek_meaning:NTF \bgroup \@@_piton_standard \@@_piton_verbatim }
 %    \end{macrocode}
@@ -3973,7 +3981,7 @@
 %    \end{macrocode}
 % We count with Lua the number of lines of the argument. The result will be
 % stored by Lua in |\l_@@_nb_lines_int|. That information will be used to allow
-% or disallow page breaks.
+% or disallow page breaks. We use the technic of |token.scan_argument| for optimisation.
 %    \begin{macrocode}
             \lua_now:n { piton.CountLines(token.scan_argument()) } { ##1 }  
 %    \end{macrocode}
@@ -3988,7 +3996,7 @@
 % |\g_@@_footnote_bool| is raised when the package \pkg{piton} has been loaded
 % with the key |footnote| \emph{or} the key |footnotehyper|.
 %    \begin{macrocode}
-            \bool_if:NT \g_@@_footnote_bool { \begin { savenotes } } 
+            \bool_if:NT \g_@@_footnote_bool { \savenotes } 
 %    \end{macrocode}
 % 
 % Now, the key |write|.
@@ -4009,19 +4017,22 @@
                   }
               }  
             \vbox \bgroup 
+%    \end{macrocode}
+% Now, the main job. We use |token.scan_argument()| for optimisation.
+%    \begin{macrocode}
             \lua_now:e 
               { 
                 piton.GobbleParse
                   ( 
                     '\l_piton_language_str' , 
-                    \int_use:N \l_@@_gobble_int , 
-                    token.scan_argument() 
+                    \int_use:N \l_@@_gobble_int ,
+                    token.scan_argument ( )
                   ) 
               } 
               { ##1 }
             \vspace { 2.5 pt } 
             \egroup
-            \bool_if:NT \g_@@_footnote_bool { \end { savenotes } } 
+            \bool_if:NT \g_@@_footnote_bool { \endsavenotes } 
 %    \end{macrocode}
 % If the user has used the key |width| with the special value~|min|, we write on
 % the |aux| file the value of |\l_@@_line_width_dim| (largest width of the lines
@@ -4075,13 +4086,13 @@
 % Now, we define the environment |{Piton}|, which is the main environment
 % provided by the package \pkg{piton}. Of course, you use
 % |\NewPitonEnvironment|. 
-%    \begin{macrocode}
+%    \begin{macrocode} 
 \bool_if:NTF \g_@@_beamer_bool
   {
     \NewPitonEnvironment { Piton } { d < > O { } }
       { 
         \keys_set:nn { PitonOptions } { #2 } 
-        \IfValueTF { #1 }
+        \tl_if_novalue:nTF { #1 }
           { \begin { uncoverenv } < #1 > }
           { \begin { uncoverenv } }
       }
@@ -4116,7 +4127,8 @@
   }
 %    \end{macrocode}
 %
-% The following command uses as implicit argument the name of the file in |\l_@@_file_name_str|.
+% The following command uses as implicit argument the name of the file in
+% |\l_@@_file_name_str|. 
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_input_file:nn #1 #2 
   {
@@ -4185,7 +4197,7 @@
 % stored by Lua in |\l_@@_nb_lines_int|. That information will be used to allow
 % or disallow page breaks.
 %    \begin{macrocode}
-      \lua_now:e { piton.CountLinesFile('\l_@@_file_name_str') } 
+      \lua_now:e { piton.CountLinesFile ( '\l_@@_file_name_str' ) } 
 %    \end{macrocode}
 % The first argument of the following function is the name of the Lua function
 % that will be applied to the second argument in order to count the number of lines.
@@ -4193,7 +4205,7 @@
       \@@_compute_left_margin:no { CountNonEmptyLinesFile } \l_@@_file_name_str
       \@@_compute_width:
       \ttfamily
-      \bool_if:NT \g_@@_footnote_bool { \begin { savenotes } } 
+      \bool_if:NT \g_@@_footnote_bool { \savenotes } 
       \vtop \bgroup 
       \lua_now:e
         { 
@@ -4204,7 +4216,7 @@
            \int_use:N \l_@@_last_line_int ) 
         } 
       \egroup 
-      \bool_if:NT \g_@@_footnote_bool { \end { savenotes } } 
+      \bool_if:NT \g_@@_footnote_bool { \endsavenotes } 
       \bool_if:NT \l_@@_width_min_bool \@@_width_to_aux:
     \group_end:
 %    \end{macrocode}
@@ -4433,7 +4445,7 @@
 \NewDocumentCommand { \SetPitonIdentifier } { o m m } 
   { 
     \clist_set:Nn \l_tmpa_clist { #2 }
-    \IfNoValueTF { #1 }
+    \tl_if_novalue:nTF { #1 }
       { 
         \clist_map_inline:Nn \l_tmpa_clist 
           { \cs_set:cpn { pitonIdentifier _ ##1 } { #3 } }
@@ -4680,7 +4692,8 @@
 %   \begin{macrocode}
 \@@_msg_new:nn { syntax~error }
   {
-    Your~code~of~the~language~"\l_piton_language_str"~is~not~syntactically~correct.\\ 
+    Your~code~of~the~language~"\l_piton_language_str"~is~not~
+    syntactically~correct.\\  
     It~won't~be~printed~in~the~PDF~file.
   }
 %    \end{macrocode}
@@ -4867,7 +4880,7 @@ end
 % define first aliases for several functions of that library.
 %    \begin{macrocode}
 local P, S, V, C, Ct, Cc = lpeg.P, lpeg.S, lpeg.V, lpeg.C, lpeg.Ct, lpeg.Cc
-local Cs , Cg , Cmt , Cb = lpeg.Cs, lpeg.Cg , lpeg.Cmt , lpeg.Cb
+local Cs , Cg , Cmt , Cb = lpeg.Cs, lpeg.Cg , lpeg.Cmt , lpeg.Cb 
 local R = lpeg.R
 %    \end{macrocode}
 %
@@ -5126,8 +5139,8 @@ then
 % \bigskip
 % The following function will return a \textsc{lpeg} which will catch an
 % environment of Beamer (supported by \pkg{piton}), that is to say
-% |{uncoverenv}|, etc. The argument |lpeg| should be |MainLoopPython|,
-% |MainLoopC|, etc. 
+% |{uncoverenv}|, etc. The argument |lpeg| should be |MainLoop[Python]|,
+% |MainLoop[C]|, etc. 
 %    \begin{macrocode}
   function OneBeamerEnvironment(name,lpeg)
     return 
@@ -5155,11 +5168,13 @@ local CommentMath =
   P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$"
 %    \end{macrocode}
 % 
+% \bigskip
 %
 % \bigskip
 %    \begin{macrocode}
 local languages = { }
 local CleanLPEGs = { }
+local MainLoop = { }
 %    \end{macrocode}
 % 
 % \bigskip
@@ -5453,14 +5468,14 @@ then
                 ) 
             * Cc "}" 
          ) 
-       * ( balanced_braces / (function (s) return MainLoopPython:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['python']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
-    + OneBeamerEnvironment ( "uncoverenv" , MainLoopPython ) 
-    + OneBeamerEnvironment ( "onlyenv" , MainLoopPython ) 
-    + OneBeamerEnvironment ( "visibleenv" , MainLoopPython )
-    + OneBeamerEnvironment ( "invisibleenv" , MainLoopPython ) 
-    + OneBeamerEnvironment ( "alertenv" , MainLoopPython ) 
-    + OneBeamerEnvironment ( "actionenv" , MainLoopPython ) 
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoop['python'] ) 
+    + OneBeamerEnvironment ( "onlyenv" , MainLoop['python'] ) 
+    + OneBeamerEnvironment ( "visibleenv" , MainLoop['python'] )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoop['python'] ) 
+    + OneBeamerEnvironment ( "alertenv" , MainLoop['python'] ) 
+    + OneBeamerEnvironment ( "actionenv" , MainLoop['python'] ) 
     +
       L ( 
 %    \end{macrocode}
@@ -5501,7 +5516,7 @@ DetectedCommands =
             * C ( piton.ListCommands * P "{" ) 
             * Cc "}" 
          ) 
-       * ( balanced_braces / (function (s) return MainLoopPython:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['python']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
 %    \end{macrocode}
 %
@@ -5575,8 +5590,7 @@ local EOL =
             )
        )
   ) 
-  *
-  SpaceIndentation ^ 0
+  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 %    \end{macrocode}
 %
 % 
@@ -5792,8 +5806,9 @@ local ExceptionInConsole = Exception *  Q ( ( 1 - P "\r" ) ^ 0 ) * EOL
 %
 % First, the main loop :
 %    \begin{macrocode}
-local MainPython = 
-       EOL
+local Main = 
+       space ^ 1 * -1
+     + space ^ 0 * EOL 
      + Space 
      + Tab
      + Escape + EscapeMath
@@ -5822,10 +5837,8 @@ local MainPython =
 %
 % Here, we must not put |local|!
 %    \begin{macrocode}
-MainLoopPython = 
-  (  ( space^1 * -1 ) 
-     + MainPython
-  ) ^ 0 
+-- MainLoop['python'] = ( ( space ^ 1 * -1 ) + Main ) ^ 0 
+MainLoop['python'] = Main ^ 0 
 %    \end{macrocode}
 %
 % \bigskip
@@ -5835,25 +5848,20 @@ MainLoopPython =
 % will be used as marker in order to delimit the argument of the command
 % \texttt{\textbackslash @@\_begin\_line:}}.
 %    \begin{macrocode}
-local python = P ( true ) 
-
-python =
+languages['python'] = 
   Ct (
-       ( ( space - P "\r" ) ^0 * P "\r" ) ^ -1 
+       ( space ^0 * P "\r" ) ^ -1 
        * BeamerBeginEnvironments 
        * PromptHastyDetection
        * Lc '\\@@_begin_line:'
        * Prompt 
        * SpaceIndentation ^ 0 
-       * MainLoopPython
+       * MainLoop['python']
        * -1 
        * Lc '\\@@_end_line:' 
      )
 %    \end{macrocode}
 %
-%    \begin{macrocode}
-languages['python'] = python
-%    \end{macrocode}
 %
 % \bigskip
 % \subsubsection{The LPEG ocaml}
@@ -5974,7 +5982,6 @@ local Keyword =
   + P "value" + P "val" + P "virtual" + P "when" + P "while" + P "with" )
   + K ( 'Keyword.Constant' , P "true" + P "false" )  
 
-
 local Builtin = 
   K ( 'Name.Builtin' , P "not" + P "incr" + P "decr" + P "fst" + P "snd" )
 %    \end{macrocode}
@@ -6016,7 +6023,6 @@ local balanced_braces =
     }
 %    \end{macrocode}
 %
-%
 % \bigskip
 %    \begin{macrocode}
 if piton_beamer 
@@ -6035,14 +6041,14 @@ then
                 ) 
             * Cc "}" 
          ) 
-       * ( balanced_braces / (function (s) return MainLoopOCaml:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['ocaml']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
-    + OneBeamerEnvironment ( "uncoverenv" , MainLoopOCaml ) 
-    + OneBeamerEnvironment ( "onlyenv" , MainLoopOCaml ) 
-    + OneBeamerEnvironment ( "visibleenv" , MainLoopOCaml )
-    + OneBeamerEnvironment ( "invisibleenv" , MainLoopOCaml ) 
-    + OneBeamerEnvironment ( "alertenv" , MainLoopOCaml ) 
-    + OneBeamerEnvironment ( "actionenv" , MainLoopOCaml ) 
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoop['ocaml'] ) 
+    + OneBeamerEnvironment ( "onlyenv" , MainLoop['ocaml'] ) 
+    + OneBeamerEnvironment ( "visibleenv" , MainLoop['ocaml'] )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoop['ocaml'] ) 
+    + OneBeamerEnvironment ( "alertenv" , MainLoop['ocaml'] ) 
+    + OneBeamerEnvironment ( "actionenv" , MainLoop['ocaml'] ) 
     +
       L ( 
 %    \end{macrocode}
@@ -6079,7 +6085,7 @@ DetectedCommands =
       Ct ( Cc "Open" 
             * C ( piton.ListCommands * P "{" ) * Cc "}" 
          ) 
-       * ( balanced_braces / (function (s) return MainLoopOCaml:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['ocaml']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
 %    \end{macrocode}
 %
@@ -6094,8 +6100,6 @@ CleanLPEGs['ocaml']
                +  C ( P ( 1 ) )
               ) ^ 0 ) / table.concat 
 %    \end{macrocode}
-% 
-
 % 
 %
 % \bigskip
@@ -6120,8 +6124,7 @@ local EOL =
             )
        )
   ) 
-  *
-  SpaceIndentation ^ 0
+  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 %    \end{macrocode}
 %
 % 
@@ -6329,8 +6332,9 @@ local TypeParameter = K ( 'TypeParameter' , P "'" * alpha * # ( 1 - P "'" ) )
 %
 % First, the main loop :
 %    \begin{macrocode}
-MainOCaml = 
-       EOL
+local Main = 
+       space ^ 1 * -1
+     + space ^ 0 * EOL 
      + Space 
      + Tab
      + Escape + EscapeMath
@@ -6356,38 +6360,28 @@ MainOCaml =
      + Number
      + Word
 
-LoopOCaml = MainOCaml ^ 0 
-
-MainLoopOCaml = 
-  (  ( space^1 * -1 ) 
-     + MainOCaml
-  ) ^ 0 
+MainLoop['ocaml'] = Main ^ 0 
 %    \end{macrocode}
 %
 % \bigskip
-% We recall that each line in the Python code to parse will be sent back to
+% We recall that each line in the code to parse will be sent back to
 % LaTeX between a pair |\@@_begin_line:| -- |\@@_end_line:|\footnote{Remember
 % that the \texttt{\textbackslash @@\_end\_line:} must be explicit because it
 % will be used as marker in order to delimit the argument of the command
 % \texttt{\textbackslash @@\_begin\_line:}}.
 %    \begin{macrocode}
-local ocaml = P ( true ) 
-
-ocaml =
+languages['ocaml'] = 
   Ct (
-       ( ( space - P "\r" ) ^0 * P "\r" ) ^ -1 
+       ( space ^0 * P "\r" ) ^ -1 
        * BeamerBeginEnvironments 
        * Lc ( '\\@@_begin_line:' ) 
        * SpaceIndentation ^ 0 
-       * MainLoopOCaml
+       * MainLoop['ocaml']
        * -1 
        * Lc ( '\\@@_end_line:' )
      )
 %    \end{macrocode}
 %
-%    \begin{macrocode}
-languages['ocaml'] = ocaml
-%    \end{macrocode}
 %
 % \bigskip
 % \subsubsection{The LPEG for the language C}
@@ -6525,14 +6519,14 @@ then
                 ) 
             * Cc "}" 
          ) 
-       * ( balanced_braces / (function (s) return MainLoopC:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['c']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
-    + OneBeamerEnvironment ( "uncoverenv" , MainLoopC ) 
-    + OneBeamerEnvironment ( "onlyenv" , MainLoopC ) 
-    + OneBeamerEnvironment ( "visibleenv" , MainLoopC )
-    + OneBeamerEnvironment ( "invisibleenv" , MainLoopC ) 
-    + OneBeamerEnvironment ( "alertenv" , MainLoopC ) 
-    + OneBeamerEnvironment ( "actionenv" , MainLoopC ) 
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoop['c'] ) 
+    + OneBeamerEnvironment ( "onlyenv" , MainLoop['c'] ) 
+    + OneBeamerEnvironment ( "visibleenv" , MainLoop['c'] )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoop['c'] ) 
+    + OneBeamerEnvironment ( "alertenv" , MainLoop['c'] ) 
+    + OneBeamerEnvironment ( "actionenv" , MainLoop['c'] ) 
     +
       L ( 
 %    \end{macrocode}
@@ -6569,7 +6563,7 @@ DetectedCommands =
       Ct ( Cc "Open" 
             * C ( piton.ListCommands * P "{" ) * Cc "}" 
          ) 
-       * ( balanced_braces / (function (s) return MainLoopC:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['c']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
 %    \end{macrocode}
 %
@@ -6598,7 +6592,7 @@ local EOL =
     ( space^0 * -1 )
     + 
 %    \end{macrocode}
-% We recall that each line in the Python code we have to parse will be sent
+% We recall that each line in the code we have to parse will be sent
 % back to LaTeX between a pair |\@@_begin_line:| --
 % |\@@_end_line:|\footnote{Remember that the \texttt{\textbackslash
 % @@\_end\_line:} must be explicit because it will be used as marker in order to
@@ -6617,8 +6611,7 @@ local EOL =
             )
        )
   ) 
-  *
-  SpaceIndentation ^ 0
+  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 %    \end{macrocode}
 %
 % \bigskip
@@ -6672,8 +6665,9 @@ local CommentLaTeX =
 %
 % First, the main loop :
 %    \begin{macrocode}
-local MainC = 
-       EOL
+local Main = 
+       space ^ 1 * -1
+     + space ^ 0 * EOL 
      + Space 
      + Tab
      + Escape + EscapeMath 
@@ -6698,10 +6692,7 @@ local MainC =
 %
 % Here, we must not put |local|!
 %    \begin{macrocode}
-MainLoopC = 
-  (  ( space^1 * -1 ) 
-     + MainC
-  ) ^ 0 
+MainLoop['c'] = Main ^ 0 
 %    \end{macrocode}
 %
 % \bigskip
@@ -6711,26 +6702,35 @@ MainLoopC =
 % will be used as marker in order to delimit the argument of the command
 % \texttt{\textbackslash @@\_begin\_line:}}.
 %    \begin{macrocode}
-languageC =
+languages['c'] = 
   Ct (
-       ( ( space - P "\r" ) ^0 * P "\r" ) ^ -1 
+       ( space ^0 * P "\r" ) ^ -1 
        * BeamerBeginEnvironments 
        * Lc '\\@@_begin_line:'
        * SpaceIndentation ^ 0 
-       * MainLoopC
+       * MainLoop['c']
        * -1 
        * Lc '\\@@_end_line:' 
      )
-%    \end{macrocode}
-%
-%    \begin{macrocode}
-languages['c'] = languageC
 %    \end{macrocode}
 %
 %
 % \bigskip
 % \subsubsection{The LPEG language SQL}
 % 
+%    \begin{macrocode}
+local function LuaKeyword ( name ) 
+return 
+   Lc ( "{\\PitonStyle{Keyword}{" )
+   * Q ( Cmt ( 
+               C ( identifier ) , 
+               function(s,i,a) return string.upper(a) == name end 
+             ) 
+       ) 
+   * Lc ( "}}" )
+end 
+%    \end{macrocode}
+%
 % \bigskip
 % In the identifiers, we will be able to catch those contening spaces, that is
 % to say like |"last name"|. 
@@ -6852,14 +6852,14 @@ then
                 ) 
             * Cc "}" 
          ) 
-       * ( balanced_braces / (function (s) return MainLoopSQL:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['sql']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
-    + OneBeamerEnvironment ( "uncoverenv" , MainLoopSQL ) 
-    + OneBeamerEnvironment ( "onlyenv" , MainLoopSQL ) 
-    + OneBeamerEnvironment ( "visibleenv" , MainLoopSQL )
-    + OneBeamerEnvironment ( "invisibleenv" , MainLoopSQL ) 
-    + OneBeamerEnvironment ( "alertenv" , MainLoopSQL ) 
-    + OneBeamerEnvironment ( "actionenv" , MainLoopSQL ) 
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoop['sql'] ) 
+    + OneBeamerEnvironment ( "onlyenv" , MainLoop['sql'] ) 
+    + OneBeamerEnvironment ( "visibleenv" , MainLoop['sql'] )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoop['sql'] ) 
+    + OneBeamerEnvironment ( "alertenv" , MainLoop['sql'] ) 
+    + OneBeamerEnvironment ( "actionenv" , MainLoop['sql'] ) 
     +
       L ( 
 %    \end{macrocode}
@@ -6896,7 +6896,7 @@ DetectedCommands =
       Ct ( Cc "Open" 
             * C ( piton.ListCommands * P "{" ) * Cc "}" 
          ) 
-       * ( balanced_braces / (function (s) return MainLoopSQL:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['sql']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
 %    \end{macrocode}
 %
@@ -6942,8 +6942,7 @@ local EOL =
             )
        )
   ) 
-  *
-  SpaceIndentation ^ 0
+  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 %    \end{macrocode}
 %
 % 
@@ -6989,18 +6988,6 @@ local CommentLaTeX =
 % \paragraph{The main LPEG for the language SQL}
 %
 %
-%    \begin{macrocode}
-local function LuaKeyword ( name ) 
-return 
-   Lc ( "{\\PitonStyle{Keyword}{" )
-   * Q ( Cmt ( 
-               C ( identifier ) , 
-               function(s,i,a) return string.upper(a) == name end 
-             ) 
-       ) 
-   * Lc ( "}}" )
-end 
-%    \end{macrocode}
 % 
 %    \begin{macrocode}
 local TableField = 
@@ -7046,8 +7033,9 @@ local WeCatchTableNames =
 %
 % First, the main loop :
 %    \begin{macrocode}
-local MainSQL = 
-       EOL
+local Main = 
+       space ^ 1 * -1
+     + space ^ 0 * EOL 
      + Space 
      + Tab
      + Escape + EscapeMath 
@@ -7067,34 +7055,28 @@ local MainSQL =
 %
 % Here, we must not put |local|!
 %    \begin{macrocode}
-MainLoopSQL = 
-  (  ( space^1 * -1 ) 
-     + MainSQL
-  ) ^ 0 
+MainLoop['sql'] = Main ^ 0 
 %    \end{macrocode}
 %
 % \bigskip
-% We recall that each line in the C code to parse will be sent back to
+% We recall that each line in the code to parse will be sent back to
 % LaTeX between a pair |\@@_begin_line:| -- |\@@_end_line:|\footnote{Remember
 % that the \texttt{\textbackslash @@\_end\_line:} must be explicit because it
 % will be used as marker in order to delimit the argument of the command
 % \texttt{\textbackslash @@\_begin\_line:}}.
 %    \begin{macrocode}
-languageSQL =
+languages['sql'] =
   Ct (
-       ( ( space - P "\r" ) ^ 0 * P "\r" ) ^ -1 
+       ( space ^ 0 * P "\r" ) ^ -1 
        * BeamerBeginEnvironments 
        * Lc '\\@@_begin_line:'
        * SpaceIndentation ^ 0 
-       * MainLoopSQL
+       * MainLoop['sql']
        * -1 
        * Lc '\\@@_end_line:' 
      )
 %    \end{macrocode}
 %
-%    \begin{macrocode}
-languages['sql'] = languageSQL
-%    \end{macrocode}
 % 
 % \subsubsection{The LPEG language Minimal}
 % 
@@ -7144,14 +7126,14 @@ then
                 ) 
             * Cc "}" 
          ) 
-       * ( balanced_braces / (function (s) return MainLoopMinimal:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['minimal']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
-    + OneBeamerEnvironment ( "uncoverenv" , MainLoopMinimal ) 
-    + OneBeamerEnvironment ( "onlyenv" , MainLoopMinimal ) 
-    + OneBeamerEnvironment ( "visibleenv" , MainLoopMinimal )
-    + OneBeamerEnvironment ( "invisibleenv" , MainLoopMinimal ) 
-    + OneBeamerEnvironment ( "alertenv" , MainLoopMinimal ) 
-    + OneBeamerEnvironment ( "actionenv" , MainLoopMinimal ) 
+    + OneBeamerEnvironment ( "uncoverenv" , MainLoop['minimal'] ) 
+    + OneBeamerEnvironment ( "onlyenv" , MainLoop['minimal'] ) 
+    + OneBeamerEnvironment ( "visibleenv" , MainLoop['minimal'] )
+    + OneBeamerEnvironment ( "invisibleenv" , MainLoop['minimal'] ) 
+    + OneBeamerEnvironment ( "alertenv" , MainLoop['minimal'] ) 
+    + OneBeamerEnvironment ( "actionenv" , MainLoop['minimal'] ) 
     +
       L ( 
           ( P "\\alt" )
@@ -7180,7 +7162,7 @@ DetectedCommands =
       Ct ( Cc "Open" 
             * C ( piton.ListCommands * P "{" ) * Cc "}" 
          ) 
-       * ( balanced_braces / (function (s) return MainLoopMinimal:match(s) end ) )
+       * ( balanced_braces / (function (s) return MainLoop['minimal']:match(s) end ) )
        * P "}" * Ct ( Cc "Close" ) 
 
 CleanLPEGs['minimal']
@@ -7209,9 +7191,7 @@ local EOL =
             )
        )
   ) 
-  *
-  SpaceIndentation ^ 0
-
+  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 
 local CommentLaTeX =
   P(piton.comment_latex) 
@@ -7226,8 +7206,9 @@ local Identifier = K ( 'Identifier' , identifier )
 
 local Delim = Q ( S "{[()]}" )
 
-local MainMinimal = 
-       EOL
+local Main = 
+       space ^ 1 * -1
+     + space ^ 0 * EOL 
      + Space 
      + Tab
      + Escape + EscapeMath 
@@ -7242,22 +7223,19 @@ local MainMinimal =
      + Number
      + Word
 
-MainLoopMinimal = 
-  (  ( space^1 * -1 ) 
-     + MainMinimal
-  ) ^ 0 
+MainLoop['minimal'] = Main ^ 0
 
-languageMinimal =
+languages['minimal'] = 
   Ct (
-       ( ( space - P "\r" ) ^ 0 * P "\r" ) ^ -1 
+       ( space ^ 0 * P "\r" ) ^ -1 
        * BeamerBeginEnvironments 
        * Lc '\\@@_begin_line:'
        * SpaceIndentation ^ 0 
-       * MainLoopMinimal
+       * MainLoop['minimal']
        * -1 
        * Lc '\\@@_end_line:' 
      )
-languages['minimal'] = languageMinimal
+
 % \bigskip
 % \subsubsection{The function Parse}
 %
@@ -7415,60 +7393,37 @@ end
 %    \end{macrocode}
 %
 % 
-% 
-% \bigskip
-% The following function |sum| will be used in the following \textsc{lpeg}
-% |AutoGobbleLPEG|, |TabsAutoGobbleLPEG| and |EnvGobbleLPEG|. It computes the
-% sum of all its arguments.
-%    \begin{macrocode}
-local function count_captures(...)
-    local acc = 0
-    for _ in ipairs({...}) do
-        acc = acc + 1
-    end
-    return acc
-end
-%    \end{macrocode}
-% 
 % \bigskip
 % The following \textsc{lpeg} returns as capture the minimal number of spaces at
 % the beginning of the lines of code. 
-%    begin{macrocode}
 %    \begin{macrocode}
-local AutoGobbleLPEG = 
-  (
-    (
-%    \end{macrocode}
-% We don't take into account the empty lines (those containing only spaces).
-%    \begin{macrocode}
-      P " " ^ 0 * P "\r"
-      + 
-      C ( P " " ) ^ 0 / count_captures * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 * P "\r"
-    ) ^ 0
-%    \end{macrocode}
-% Now for the last line of the Python code...
-%    \begin{macrocode}
-    *
-    ( C ( P " " ) ^ 0 / count_captures * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 ) ^ -1 
-  ) / math.min
+local AutoGobbleLPEG =
+      (  (
+           ( P " " ) ^ 0 * P "\r"
+           +
+           Ct ( C ( P " " ) ^ 0 ) / table.getn
+           * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 * P "\r"
+         ) ^ 0
+         * ( Ct ( C ( P " " ) ^ 0 ) / table.getn
+              * ( 1 - P " " ) * ( 1 - P "\r" ) ^ 0 ) ^ -1 
+       ) / math.min
 %    \end{macrocode}
 %
 % \bigskip
-% The following \textsc{lpeg} is similar but works with the indentations.
+% The following \textsc{lpeg} is similar but works with the tabulations.
 %    \begin{macrocode}
-local TabsAutoGobbleLPEG = 
-  (
-    (
-      P "\t" ^ 0 * P "\r"
-      + 
-      C ( P "\t" ) ^ 0 / count_captures * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 * P "\r"
-    ) ^ 0
-    *
-    ( C ( P "\t" ) ^ 0 / count_captures * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 ) ^ -1 
-  ) / math.min
+local TabsAutoGobbleLPEG =
+       (
+         (
+           ( P "\t" ) ^ 0 * P "\r"
+           +
+           Ct ( C ( P "\t" ) ^ 0 ) / table.getn
+           * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 * P "\r"
+         ) ^ 0
+         * ( Ct ( C ( P "\t" ) ^ 0 ) / table.getn
+             * ( 1 - P "\t" ) * ( 1 - P "\r" ) ^ 0 ) ^ -1 
+       ) / math.min
 %    \end{macrocode}
-% 
-%
 %
 % \bigskip
 % The following \textsc{lpeg} returns as capture the number of spaces at the
@@ -7477,15 +7432,17 @@ local TabsAutoGobbleLPEG =
 % traditionnal way to indent in LaTeX). 
 %    \begin{macrocode}
 local EnvGobbleLPEG =
-  ( ( 1 - P "\r" ) ^ 0 * P "\r" ) ^ 0 * ( C ( P " " )  ^ 0 / count_captures ) * -1
+      ( ( 1 - P "\r" ) ^ 0 * P "\r" ) ^ 0
+    * Ct ( C ( P " " ) ^ 0 * -1 ) / table.getn 
 %    \end{macrocode}
 % 
 % \bigskip
 %    \begin{macrocode}
-local function remove_before_cr(input_string)
-    local match_result = P("\r") : match(input_string)
-    if match_result then
-        return string.sub(input_string, match_result ) 
+local function remove_before_cr ( input_string )
+    local match_result = P ( "\r" ) : match ( input_string )
+    if match_result 
+    then
+        return string.sub ( input_string , match_result ) 
     else
         return input_string 
     end
@@ -7493,38 +7450,39 @@ end
 %    \end{macrocode}
 %
 % \bigskip
+% In the following code, |n| is the value of |\l_@@_gobble_int|.
 %    \begin{macrocode}
-function piton.GobbleParse(language,n,code)
-  code = remove_before_cr(code)
-  if n==-1 
-  then n = AutoGobbleLPEG : match(code)
-  else if n==-2 
-       then n = EnvGobbleLPEG : match(code)
-       else if n==-3
-            then n = TabsAutoGobbleLPEG : match(code)
+function piton.GobbleParse ( language , n , code )
+  code = remove_before_cr ( code )
+  if n == -1 
+  then n = AutoGobbleLPEG : match ( code )
+  else if n == -2
+       then n = EnvGobbleLPEG : match ( code )
+       else if n == -3
+            then n = TabsAutoGobbleLPEG : match ( code )
             end
        end
   end
-  piton.last_code = gobble(n,code)
-  piton.Parse(language,piton.last_code)
+  piton.last_code = gobble ( n , code )
+  piton.Parse ( language , piton.last_code )
   piton.last_language = language
 %    \end{macrocode}
 % Now, if the final user has used the key |write| to write the code of the
 % environment on an external file.
 %    \begin{macrocode}
   if piton.write ~= ''
-  then local file = assert(io.open(piton.write,piton.write_mode))
-       file:write(piton.get_last_code()) 
-       file:close()
+  then local file = assert ( io.open ( piton.write , piton.write_mode ) )
+       file:write ( piton.get_last_code ( ) ) 
+       file:close ( )
   end
 end 
 %    \end{macrocode}
 %
 % \bigskip
-% The following Lua function is provided to the developper. 
+% The following public Lua function is provided to the developper. 
 %    \begin{macrocode}
 function piton.get_last_code ( ) 
-  return CleanLPEGs[piton.last_language] : match(piton.last_code) 
+  return CleanLPEGs[piton.last_language] : match ( piton.last_code ) 
 end
 %    \end{macrocode}
 % 
@@ -7534,7 +7492,7 @@ end
 %
 % \medskip
 %    \begin{macrocode}
-function piton.CountLines(code)
+function piton.CountLines ( code )
   local count = 0 
   for i in code : gmatch ( "\r" ) do count = count + 1 end 
   tex.sprint( 
@@ -7544,15 +7502,15 @@ end
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-function piton.CountNonEmptyLines(code)
-  local count = 0 
-  count = 
-  (  (  (  ( 
-            ( P " " ) ^ 0 * P "\r"  
-              + ( 1 - P "\r" ) ^ 0 * C ( P "\r" ) 
-            ) ^ 0 
-          * (1 - P "\r" ) ^ 0 
-       ) / count_captures ) * -1 ) : match (code) 
+function piton.CountNonEmptyLines ( code )
+  local count = 0
+  count =
+     ( Ct ( ( P " " ^ 0 * P "\r"
+              + ( 1 - P "\r" ) ^ 0 * C ( P "\r" ) ) ^ 0
+            * (1 - P "\r" ) ^ 0 
+            * -1
+          ) / table.getn
+     ) : match ( code )
   tex.sprint( 
       luatexbase.catcodetables.expl , 
       '\\int_set:Nn \\l_@@_nb_non_empty_lines_int {' .. count .. '}' )
@@ -7561,11 +7519,11 @@ end
 %
 % \bigskip
 %    \begin{macrocode}
-function piton.CountLinesFile(name)
+function piton.CountLinesFile ( name )
   local count = 0 
-  io.open(name) 
-  for line in io.lines(name) do count = count + 1 end
-  tex.sprint( 
+  io.open ( name ) 
+  for line in io.lines ( name ) do count = count + 1 end
+  tex.sprint ( 
       luatexbase.catcodetables.expl , 
       '\\int_set:Nn \\l_@@_nb_lines_int {' .. count .. '}' )
 end 
@@ -7574,14 +7532,14 @@ end
 %
 % \bigskip
 %    \begin{macrocode}
-function piton.CountNonEmptyLinesFile(name)
+function piton.CountNonEmptyLinesFile ( name )
   local count = 0 
-  for line in io.lines(name) 
+  for line in io.lines ( name ) 
   do if not ( ( ( P " " ) ^ 0 * -1 ) : match ( line ) ) 
      then count = count + 1 
      end
   end
-  tex.sprint( 
+  tex.sprint ( 
       luatexbase.catcodetables.expl , 
       '\\int_set:Nn \\l_@@_nb_non_empty_lines_int {' .. count .. '}' )
 end 
@@ -7619,7 +7577,7 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
                        "\\@@_error:n { end~marker~not~found }")
        end
   end
-  tex.sprint( 
+  tex.sprint ( 
       luatexbase.catcodetables.expl , 
       '\\int_set:Nn \\l_@@_first_line_int {' .. first_line .. ' + 2 }' 
       .. '\\int_set:Nn \\l_@@_last_line_int {' .. count .. ' }' )
@@ -7629,13 +7587,11 @@ end
 % \bigskip
 % \subsubsection{To create new languages with the syntax of listings}
 %
-%
-%    \begin{marocode}
-MainLoop = { }
-%    \end{marocode}
-%
 %    \begin{macrocode}
-function piton.new_language(name,definition)
+function piton.new_language ( name,definition )
+  name = string.lower ( name )
+  local identifier = letter * alphanum ^ 0
+  local Identifier = K ( 'Identifier' , identifier )
   local balanced_braces_bis =
     P { "E" , 
         E = ( P "{" * V "F" * P "}" + ( 1 - S ",{}" ) ) ^ 0  ,
@@ -7645,24 +7601,90 @@ function piton.new_language(name,definition)
     P { "E" ,
         E = Ct ( ( V "F" ) * ( P "," * V "F" ) ^ 0 ) ,
         F = Ct ( space ^ 0 * C ( alpha ^ 1 ) * space ^ 0 
-                * P "=" * space ^ 0 * C ( balanced_braces_bis ) )
+                * ( P "=" * space ^ 0 * C ( balanced_braces_bis ) ) ^ -1 )
       }
-  local cut_list = 
+  local def_table = cut_definition : match ( definition )
+%    \end{macrocode}
+%
+% \bigskip
+% We scan the definition of the language (i.e. the table |def_table|) in order
+% to detect the potential key |sensitive|. Indeed, we have to catch that key
+% before the treatment of the keywords of the language.
+%    \begin{macrocode}
+  local sensitive = true 
+  for _ , x in ipairs ( def_table )
+  do if x[1] == "sensitive"
+     then if x[2] == nil or ( P "true" ) : match ( x[2] ) 
+          then sensitive = true 
+          else if ( P "false" ) : match ( x[2] ) then sensitive = false end
+          end
+
+     end
+  end
+%    \end{macrocode}
+% 
+% \bigskip
+% Now, we scan the definition of the language (i.e. the table |def_table|) for
+% the keywords.
+%
+% The following LPEG catches the optional argument (between square brackets) in
+% first position.
+%    \begin{macrocode}
+ local option = ( P "[" * C ( ( 1 - P "]" ) ^ 0 ) * P "]" ) 
+%    \end{macrocode}
+%
+% The following LPEG does \emph{not} catch the optional argument between square
+% brackets in first position.
+%    \begin{macrocode}
+  local split_clist = 
     P { "E" ,
-         E = space ^ 0 * ( P "{" ) ^ 1
+         E = ( P "[" * ( 1 - P "]" ) ^ 0 * P "]" ) ^ -1  
+             * ( P "{" ) ^ 1
              * Ct ( V "F" * ( P "," * V "F" ) ^ 0 ) 
              * ( P "}" ) ^ 1 * space ^ 0 ,
          F = space ^ 0 * C ( alpha ^ 1 ) * space ^ 0 
       }
-  local keyword = P ( false )  
-  local short_string  = P ( false )
-  for _ , x in ipairs ( cut_definition : match ( definition ) )
+%    \end{macrocode}
+% The following function will be used if the keywords are not case-sensitive.
+%    \begin{macrocode}
+  local function keyword_to_lpeg ( name ) 
+  return 
+    Q ( Cmt ( 
+              C ( identifier ) , 
+              function(s,i,a) return string.upper(a) == string.upper(name) end 
+            ) 
+      ) 
+  end 
+  local Keyword = P ( false )  
+%    \end{macrocode}
+% Now, you actually treat all the keywords.
+%    \begin{macrocode}
+  for _ , x in ipairs ( def_table )
   do if x[1] == "morekeywords"
-     then for _ , word in ipairs ( cut_list : match ( x[2] ) )
-          do keyword = keyword + word 
+     then local keywords = P ( false ) 
+          for _ , word in ipairs ( split_clist : match ( x[2] ) )
+          do if sensitive 
+             then keywords = keywords + Q ( word  )
+             else keywords = keywords + keyword_to_lpeg ( word )
+             end 
           end
+          Keyword = Keyword + 
+             Lc ( "{" 
+                   ..  ( option : match ( x[2] ) or "\\PitonStyle{Keyword}" ) 
+                   .. "{" )
+             * keywords * Lc ( "}}" )
      end 
-     if x[1] == "morestring"
+  end    
+%    \end{macrocode}
+%
+% \bigskip
+% Now, we scan the definition of the language (i.e. the table |def_table|) for
+% the strings.
+%    \begin{macrocode}
+  local short_string  = P ( false )
+
+  for _ , x in ipairs ( def_table )
+  do if x[1] == "morestring"
      then if ( P "[b]" ) : match ( x[2] )
           then local char = ( P "[b]" * C ( 1 ) ) : match ( x[2] ) 
                short_string = short_string + 
@@ -7690,9 +7712,21 @@ function piton.new_language(name,definition)
                       ) ^ 0 
                     * Q ( char ) )
           end
+          if ( P "[m]" ) : match ( x[2] )
+          then local char = ( P "[m]" * C ( 1 ) ) : match ( x[2] ) 
+               short_string = short_string +
+                  ( lpeg.B ( 1 - letter - P ")" - P"]" ) 
+                    * Q ( char )  
+                    * ( VisualSpace 
+                        + Q ( ( P ( char .. char )  + 1 - S ( " " .. char ) ) ^ 1 ) 
+                      ) ^ 0 
+                    * Q ( char ) )
+          end
      end 
-  end 
+  end
+ 
   local String = WithStyle ( 'String.Short' , short_string ) 
+
   local balanced_braces =
     P { "E" ,
          E = 
@@ -7704,6 +7738,7 @@ function piton.new_language(name,definition)
                ( 1 - S "{}" ) 
              ) ^ 0 
       }
+
   if piton_beamer 
   then
     Beamer =
@@ -7751,12 +7786,14 @@ function piton.new_language(name,definition)
         * K ( 'ParseAgain.noCR' , balanced_braces ) 
         * L ( P "}" )
   end
+
   DetectedCommands = 
         Ct ( Cc "Open" 
               * C ( piton.ListCommands * P "{" ) * Cc "}" 
            ) 
          * ( balanced_braces / (function (s) return MainLoop[name]:match(s) end ) )
          * P "}" * Ct ( Cc "Close" ) 
+
   CleanLPEGs[name]
         = Ct ( ( piton.ListCommands * P "{" 
                   * ( balanced_braces 
@@ -7765,6 +7802,7 @@ function piton.new_language(name,definition)
                  + EscapeClean
                  +  C ( P ( 1 ) )
                 ) ^ 0 ) / table.concat 
+
   local EOL = 
     P "\r" 
     *
@@ -7782,22 +7820,28 @@ function piton.new_language(name,definition)
               )
          )
     ) 
-    *
-    SpaceIndentation ^ 0
+    * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
+
   local CommentLaTeX =
     P(piton.comment_latex) 
     * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces" 
     * L ( ( 1 - P "\r" ) ^ 0 ) 
     * Lc "}}" 
     * ( EOL + -1 )  
+
   local comment = P ( false ) 
+
   local sncomment = P ( false ) 
-  for _ , x in ipairs ( cut_definition : match ( definition ) )
+
+  for _ , x in ipairs ( def_table )
   do if x[1] == "morecomment"
      then if ( P "[l]" ) : match ( x[2] )
           then local mark = 
-                ( P "[l]" * ( P "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" + C ( 1 ) ) )
-                              : match ( x[2] ) 
+                ( P "[l]" * 
+                   ( P "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" 
+                     + C ( ( 1 - P ( " " ) )^ 0 ) ) 
+                ) : match ( x[2] ) 
+               if mark == [[\#]] then mark = "#" end -- mandatory
                comment = comment + 
                  Q ( mark ) * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
            end 
@@ -7824,9 +7868,12 @@ function piton.new_language(name,definition)
                  P { "A" ,
                      A = Q ( mark1 ) 
                          * ( V "A" 
-                             + Q ( ( 1 - P ( mark1 ) - P ( mark2 ) - S "\r$\"" ) ^ 1 ) -- $
+                             + Q ( ( 1 - P ( mark1 ) - P ( mark2 ) 
+                                     - S "\r$\"" ) ^ 1 ) -- $
                              + short_string
-                             + P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) * P "$" -- $
+                             + P "$" 
+                                 * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) 
+                                 * P "$" -- $
                              + EOL
                            ) ^ 0 
                          * Q ( mark2 )
@@ -7834,8 +7881,10 @@ function piton.new_language(name,definition)
            end
       end 
   end 
+
   local Main = 
-         EOL
+         space ^ 1 * -1
+       + space ^ 0 * EOL 
        + Space 
        + Tab
        + Escape + EscapeMath 
@@ -7846,18 +7895,17 @@ function piton.new_language(name,definition)
        + WithStyle ( 'Comment' , sncomment ) 
        + Q ( S "{[()]}" )
        + String
-       + Q ( S ",:;!\\" )
-       + K ( 'Keyword' , keyword ) 
+       + Q ( S ",:;!\\'\"" )
+       + Keyword
        + K ( 'Identifier' , letter * alphanum ^ 0 )
        + Number
        + Word
-  MainLoop[name] = 
-    (  ( space ^ 1 * -1 ) 
-       + Main
-    ) ^ 0 
-  language =
+
+  MainLoop[name] = Main ^ 0 
+
+  languages[name] = 
     Ct (
-         ( ( space - P "\r" ) ^ 0 * P "\r" ) ^ -1 
+         ( space ^ 0 * P "\r" ) ^ -1 
          * BeamerBeginEnvironments 
          * Lc '\\@@_begin_line:'
          * SpaceIndentation ^ 0 
@@ -7865,7 +7913,7 @@ function piton.new_language(name,definition)
          * -1 
          * Lc '\\@@_end_line:' 
        )
-  languages[name] = language
+
 end
 %</LUA>
 %    \end{macrocode}
@@ -7996,48 +8044,6 @@ end
 % The extension \pkg{piton} detects the class \cls{beamer} and activates the
 % commands |\action|, |\alert|, |\invisible|, |\only|, |\uncover| and |\visible|
 % in the environments |{Piton}| when the class \cls{beamer} is used.
-%
-% \subsection*{Changes between versions 0.99 and 1.0}
-%
-% New key |tabs-auto-gobble|.
-% 
-% \subsection*{Changes between versions 0.95 and 0.99}
-%
-% New key |break-lines| to allow breaks of the lines of code (and other keys to
-% customize the appearance).
-%
-% \subsection*{Changes between versions 0.9 and 0.95}
-%
-% New key |show-spaces|.
-%
-% The key |left-margin| now accepts the special value |auto|.
-%
-% New key |latex-comment| at load-time and replacement of |##| by |#>|
-%
-% New key |math-comments| at load-time.
-%
-% New keys |first-line| and |last-line| for the command |\InputPitonFile|.
-%
-% \subsection*{Changes between versions 0.8 and 0.9}
-%
-% New key |tab-size|.
-%
-% Integer value for the key |splittable|.
-%
-% \subsection*{Changes between versions 0.7 and 0.8}
-% 
-% New keys |footnote| and |footnotehyper| at load-time.
-%
-% New key |left-margin|.
-% 
-% \subsection*{Changes between versions 0.6 and 0.7}
-% 
-% New keys |resume|, |splittable| and |background-color| in |\PitonOptions|.
-%
-% The file |piton.lua| has been embedded in the file |piton.sty|. That means
-% that the extension \pkg{piton} is now entirely contained in the file |piton.sty|.
-% 
-%
 %
 % \tableofcontents
 %

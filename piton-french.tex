@@ -360,15 +360,16 @@ est effacé.
 \item \index{path-write} \colorbox{yellow!50}{\bfseries Nouveau 2.5}\enskip La clé \Definition{path-write} indique
 un chemin où seront écrits les fichiers écrits par l'emploi de la clé |write| précédente.
 
-\item \index{line-numbers} La clé \Definition{line-numbers} active la numérotation des lignes (en débordement à gauche) dans les
-environnements |{Piton}| et dans les listings produits par la commande |\PitonInputFile|.
+\item \index{line-numbers} La clé \Definition{line-numbers} active la numérotation des lignes (en débordement à
+gauche) dans les environnements |{Piton}| et dans les listings produits par la commande |\PitonInputFile|.
 
 Cette clé propose en fait plusieurs sous-clés.
 \begin{itemize}
-\item La clé \Definition{line-numbers/skip-empty-lines} demande que les lignes vides soient considérées comme non existantes en
-ce qui concerne la numérotation des lignes (si la clé |/absolute| est active, la clé |/skip-empty-lines|
-n'a pas d'effet dans |\PitonInputFile|). La valeur initiale de cette clé est |true| (et non
-|false|).\footnote{Avec le langage Python, les lignes vides des \emph{docstrings} sont prises en compte.}
+\item La clé \Definition{line-numbers/skip-empty-lines} demande que les lignes vides (qui ne contiennent que des
+espaces) soient considérées comme non existantes en ce qui concerne la numérotation des lignes (si la clé
+|/absolute| est active, la clé |/skip-empty-lines| n'a pas d'effet dans |\PitonInputFile|). La valeur initiale de
+cette clé est |true| (et non |false|).\footnote{Avec le langage Python, les lignes vides des \emph{docstrings} sont
+  prises en compte.}
 
 \item La clé \Definition{line/numbers/label-empty-lines} demande que les labels (c'est-à-dire les numéros) des lignes vides
 soient affichés. Si la clé |/skip-empty-lines| est active, la clé |/label-empty-lines| est sans effet. La
@@ -453,7 +454,8 @@ Exemple : \piton{my_string = 'Très bonne réponse'}
 
 \item \index{show-spaces} Avec la clé \Definition{show-spaces}, tous les espaces sont matérialisés (et aucune coupure de ligne ne peut
 plus intervenir sur ces espaces matérialisés, même si la clé |break-lines|\footnote{cf. \ref{line-breaks}
-  p.~\pageref{line-breaks}.} est active).
+  p.~\pageref{line-breaks}.} est active). Il faut néanmoins remarquer que les espaces en fin de ligne sont tous
+supprimés par \pkg{piton}.
 \end{itemize}
 
 \bigskip
