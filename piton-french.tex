@@ -384,7 +384,7 @@ la clé |line-numbers/resume| a un alias, qui est |resume| tout court.
 
 \item La clé \Definition{line-numbers/start} impose que la numérotation commence à ce numéro. 
 
-\item La clé \Definition{sep} est la distance horizontale entre les numéros de lignes (insérés par |line-numbers|)
+\item La clé \Definition{line-numbers/sep} est la distance horizontale entre les numéros de lignes (insérés par |line-numbers|)
 et les lignes du code informatique. La valeur initiale est 0.7~em.
 \end{itemize}
 
@@ -452,10 +452,10 @@ matérialisés par le caractère ␣ (U+2423 : \textsc{open box}). Bien sûr, le
 Exemple : \piton{my_string = 'Très bonne réponse'}
 \endgroup
 
-\item \index{show-spaces} Avec la clé \Definition{show-spaces}, tous les espaces sont matérialisés (et aucune coupure de ligne ne peut
-plus intervenir sur ces espaces matérialisés, même si la clé |break-lines|\footnote{cf. \ref{line-breaks}
-  p.~\pageref{line-breaks}.} est active). Il faut néanmoins remarquer que les espaces en fin de ligne sont tous
-supprimés par \pkg{piton}.
+\item \index{show-spaces} Avec la clé \Definition{show-spaces}, tous les espaces sont matérialisés (et aucune
+coupure de ligne ne peut plus intervenir sur ces espaces matérialisés, même si la clé |break-lines|\footnote{cf.
+  \ref{line-breaks} p.~\pageref{line-breaks}.} est active). Il faut néanmoins remarquer que les espaces en fin de
+ligne sont tous supprimés par \pkg{piton}. Les tabulations de début de ligne sont représentées par des flèches.
 \end{itemize}
 
 \bigskip
@@ -1560,7 +1560,7 @@ p.~\pageref{gobble}).
 |piton.get_last_code()|. Cela s'applique aux commandes LaTeX déclarées par la clé |detected-commands| (cf.
 partie~\ref{detected-commands}) et aux éléments insérés avec le mécanisme «|escape|» (cf. partie~\ref{escape}).
 
-\item |piton.get_last_code| est une fonction Lua et non une chaîne de caracètres : les traitements présentés
+\item |piton.get_last_code| est une fonction Lua et non une chaîne de caractères : les traitements présentés
 précédemment son exécutés lorsque la fonction est appelée. De ce fait, il peut être judicieux de sotcker la valeur
 renvoyée par |piton.get_last_code()| dans une variable Lua si on doit l'utiliser plusieurs fois.
 \end{itemize}
@@ -1662,7 +1662,7 @@ def arctan(x,n=10):
 \vspace{1cm}
 On peut aussi faire afficher les commentaires dans une deuxième colonne à droite si on limite la largeur du code
 proprement dit avec la clé |width|. Dans l'exemple qui suit, on utilise la clé |width| avec la valeur
-spéciale~|min|. 
+spéciale~|min|. Plusieurs compilations sont nécessaires.
 
 
 \begingroup

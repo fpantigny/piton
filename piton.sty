@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{2.6z}
-\def\PitonFileDate{2024/02/27}
+\def\PitonFileVersion{2.6y}
+\def\PitonFileDate{2024/03/03}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -105,7 +105,8 @@
 \ProcessKeysOptions { piton / package }
 \@ifclassloaded { beamer } { \bool_gset_true:N \g__piton_beamer_bool } { }
 \@ifpackageloaded { beamerarticle } { \bool_gset_true:N \g__piton_beamer_bool } { }
-\bool_if:NT \g__piton_beamer_bool { \lua_now:n { piton_beamer = true } }
+\lua_now:n { piton = piton~or~{ } }
+\bool_if:NT \g__piton_beamer_bool { \lua_now:n { piton.beamer = true } }
 \hook_gput_code:nnn { begindocument } { . }
   {
     \@ifpackageloaded { xcolor }
@@ -160,7 +161,6 @@
   }
 \lua_now:n
   {
-    piton = piton~or { }
     piton.ListCommands = lpeg.P ( false )
     piton.last_code = ''
     piton.last_language = ''
@@ -213,9 +213,19 @@
       { \tl_put_right:Nn \l__piton_tab_tl { ~ } }
   }
 \__piton_set_tab_tl:n { 4 }
+\cs_new_protected:Npn \__piton_convert_tab_tl:
+  {
+    \hbox_set:Nn \l_tmpa_box { \l__piton_tab_tl }
+    \dim_set:Nn \l_tmpa_dim { \box_wd:N \l_tmpa_box }
+    \tl_set:Nn \l__piton_tab_tl
+      {
+        \( \mathcolor { gray }
+             { \hbox_to_wd:nn \l_tmpa_dim { \rightarrowfill } \) }
+      }
+  }
 \int_new:N \l__piton_gobble_int
 \tl_new:N \l__piton_space_tl
-\tl_set:Nn \l__piton_space_tl { ~ }
+\tl_set_eq:NN \l__piton_space_tl \nobreakspace
 \int_new:N \g__piton_indentation_int
 \cs_new_protected:Npn \__piton_an_indentation_space:
   { \int_gincr:N \g__piton_indentation_int }
@@ -585,8 +595,10 @@
 
     tab-size         .code:n            = \__piton_set_tab_tl:n { #1 } ,
     tab-size         .value_required:n  = true ,
-    show-spaces      .bool_set:N        = \l__piton_show_spaces_bool ,
-    show-spaces      .default:n         = true ,
+    show-spaces      .code:n            =
+         \bool_set_true:N \l__piton_show_spaces_bool
+         \__piton_convert_tab_tl: ,
+    show-spaces      .value_forbidden:n = true ,
     show-spaces-in-strings .code:n      = \tl_set:Nn \l__piton_space_tl { ␣ } , % U+2423
     show-spaces-in-strings .value_forbidden:n = true ,
     break-lines-in-Piton .bool_set:N    = \l__piton_break_lines_in_Piton_bool ,
@@ -900,7 +912,7 @@
                     \seq_gput_left:NV \g__piton_write_seq \l__piton_write_str
                   }
               }
-            \vbox \bgroup
+            \vtop \bgroup % modified 2024/03/02
             \lua_now:e
               {
                 piton.GobbleParse
@@ -940,8 +952,8 @@
       {
         \keys_set:nn { PitonOptions } { #2 }
         \tl_if_novalue:nTF { #1 }
-          { \begin { uncoverenv } < #1 > }
           { \begin { uncoverenv } }
+          { \begin { uncoverenv } < #1 > }
       }
       { \end { uncoverenv } }
   }
@@ -1418,7 +1430,7 @@
           end
     local my_lpeg =
       P {  "E" ,
-           E = ( V "F" * ( P "," * V "F" ) ^ 0 ) / add ,
+           E = ( V "F" * ( "," * V "F" ) ^ 0 ) / add ,
            F = space ^ 0 * ( alpha ^ 1 ) / "\\%0" * space ^ 0
         }
     function piton.addListCommands( key_value )
