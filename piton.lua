@@ -1300,7 +1300,7 @@ function piton.new_language ( lang , definition )
   lang = string.lower ( lang )
   local alpha , digit = lpeg.alpha , lpeg.digit
   local letter = alpha + S "@_$" -- $
-  local other = S "+-*/<>!?:;.()@[]~^=#&\"\'\\$"
+  local other = S "+-*/<>!?:;.()@[]~^=#&\"\'\\$" -- $
   function add_to_letter ( c )
      if c ~= " " then letter = letter + c end
   end
@@ -1380,46 +1380,32 @@ function piton.new_language ( lang , definition )
      end
   end
   local short_string  = P ( false )
-
+  local args = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
+               * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + C "nil" )
+               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) )
+  local central_pattern
   for _ , x in ipairs ( def_table )
-  do if x[1] == "morestring"
-     then if ( P "[b]" ) : match ( x[2] )
-          then local char = ( "[b]" * C ( 1 ) ) : match ( x[2] )
-               short_string = short_string +
-                  ( Q ( char )
-                    * ( VisualSpace
-                        + Q ( ( P ( "\\" .. char )  + 1 - S ( " " .. char ) ) ^ 1 )
-                      ) ^ 0
-                    * Q ( char ) )
-          end
-          if ( P "[d]" ) : match ( x[2] )
-          then local char = ( "[d]" * C ( 1 ) ) : match ( x[2] )
-               short_string = short_string +
-                  ( Q ( char )
-                    * ( VisualSpace
-                        + Q ( ( P ( char .. char )  + 1 - S ( " " .. char ) ) ^ 1 )
-                      ) ^ 0
-                    * Q ( char ) )
-          end
-          if ( P "[bd]" ) : match ( x[2] )
-          then local char = ( "[bd]" * C ( 1 ) ) : match ( x[2] )
-               short_string = short_string +
-                  ( Q ( char )
-                    * ( VisualSpace
-                        + Q ( ( P ( char .. char ) + P ( "\\" .. char ) + 1 - S ( " " .. char ) ) ^ 1 )
-                      ) ^ 0
-                    * Q ( char ) )
-          end
-          if ( P "[m]" ) : match ( x[2] )
-          then local char = ( "[m]" * C ( 1 ) ) : match ( x[2] )
-               short_string = short_string +
-                  ( lpeg.B ( 1 - letter - ")" - "]" )
-                    * Q ( char )
-                    * ( VisualSpace
-                        + Q ( ( P ( char .. char ) + 1 - S ( " " .. char ) ) ^ 1 )
-                      ) ^ 0
-                    * Q ( char ) )
-          end
+  do if x[1] == "morestring" then
+       arg1 , arg2 , arg3 = args : match ( x[2] )
+       if arg1 == "b" then
+         central_pattern = Q ( ( P ( "\\" .. arg3 )  + 1 - S ( " " .. char ) ) ^ 1 )
+       end
+       if arg1 == "d" then
+         central_pattern = Q ( ( P ( arg3 .. arg3 )  + 1 - S ( " " .. arg3 ) ) ^ 1 )
+       end
+       if arg1 == "bd" then
+         central_pattern =
+           Q ( ( P ( arg3 .. arg3 ) + P ( "\\" .. arg3 ) + 1 - S ( " " .. arg3 ) ) ^ 1 )
+       end
+       if arg1 == "m" then
+         central_pattern =  Q ( ( P ( arg3 .. arg3 ) + 1 - S ( " " .. arg3 ) ) ^ 1 )
+       end
+       if arg1 == "m"
+       then prefix = P ( false )
+       else prefix = lpeg.B ( 1 - letter - ")" - "]" )
+       end
+       short_string = short_string +
+             prefix * ( Q ( arg3 ) * ( VisualSpace + central_pattern ) ^ 0 * Q ( arg3 ) )
      end
   end
 

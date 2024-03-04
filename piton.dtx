@@ -7356,50 +7356,38 @@ function piton.new_language ( lang , definition )
 % the strings.
 %    \begin{macrocode}
   local short_string  = P ( false )
-
+  local ShortString = P (false ) 
+  local args = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" 
+               * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil ) ) 
+               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) ) 
+  local central_pattern = P ( false ) 
   for _ , x in ipairs ( def_table )
-  do if x[1] == "morestring"
-     then if ( P "[b]" ) : match ( x[2] )
-          then local char = ( "[b]" * C ( 1 ) ) : match ( x[2] ) 
-               short_string = short_string + 
-                  ( Q ( char )  
-                    * ( VisualSpace 
-                        + Q ( ( P ( "\\" .. char )  + 1 - S ( " " .. char ) ) ^ 1 ) 
-                      ) ^ 0 
-                    * Q ( char ) )
-          end
-          if ( P "[d]" ) : match ( x[2] )
-          then local char = ( "[d]" * C ( 1 ) ) : match ( x[2] ) 
-               short_string = short_string +
-                  ( Q ( char )  
-                    * ( VisualSpace 
-                        + Q ( ( P ( char .. char )  + 1 - S ( " " .. char ) ) ^ 1 ) 
-                      ) ^ 0 
-                    * Q ( char ) )
-          end
-          if ( P "[bd]" ) : match ( x[2] )
-          then local char = ( "[bd]" * C ( 1 ) ) : match ( x[2] ) 
-               short_string = short_string +
-                  ( Q ( char )  
-                    * ( VisualSpace 
-                        + Q ( ( P ( char .. char ) + P ( "\\" .. char ) + 1 - S ( " " .. char ) ) ^ 1 ) 
-                      ) ^ 0 
-                    * Q ( char ) )
-          end
-          if ( P "[m]" ) : match ( x[2] )
-          then local char = ( "[m]" * C ( 1 ) ) : match ( x[2] ) 
-               short_string = short_string +
-                  ( lpeg.B ( 1 - letter - ")" - "]" ) 
-                    * Q ( char )  
-                    * ( VisualSpace 
-                        + Q ( ( P ( char .. char ) + 1 - S ( " " .. char ) ) ^ 1 ) 
-                      ) ^ 0 
-                    * Q ( char ) )
-          end
+  do if x[1] == "morestring" then
+       arg1 , arg2 , arg3 = args : match ( x[2] ) 
+       if arg1 == "b" then 
+         central_pattern = Q ( ( P ( "\\" .. arg3 )  + 1 - S ( " " .. arg3 ) ) ^ 1 ) 
+       end
+       if arg1 == "d" then 
+         central_pattern = Q ( ( P ( arg3 .. arg3 )  + 1 - S ( " " .. arg3 ) ) ^ 1 ) 
+       end
+       if arg1 == "bd" then 
+         central_pattern = 
+           Q ( ( P ( arg3 .. arg3 ) + P ( "\\" .. arg3 ) + 1 - S ( " " .. arg3 ) ) ^ 1 ) 
+       end
+       if arg1 == "m" then 
+         central_pattern =  Q ( ( P ( arg3 .. arg3 ) + 1 - S ( " " .. arg3 ) ) ^ 1 ) 
+       end
+       if arg1 == "m" 
+       then prefix = P ( false ) 
+       else prefix = lpeg.B ( 1 - letter - ")" - "]" ) 
+       end
+       short_string = short_string +
+         prefix * ( Q ( arg3 ) * ( VisualSpace + central_pattern ) ^ 0 * Q ( arg3 ) )
+       ShortString = ShortString +
+           Lc ( "{" ..  ( arg2 or "\\PitonStyle{ShortString}" ) .. "{" )
+           * short_string * Lc "}}" 
      end 
   end
- 
-  local String = WithStyle ( 'String.Short' , short_string ) 
 
   local braces = Compute_braces ( String ) 
   if piton.beamer then Beamer = Compute_Beamer ( lang , braces ) end
@@ -7415,43 +7403,53 @@ function piton.new_language ( lang , definition )
     * Lc "}}" 
     * ( EOL + -1 )  
 
-  local comment = P ( false ) 
+  local Comment = P ( false ) 
 
-  local sncomment = P ( false ) 
+  local opt2 = "[" * ( 1 - P "]" ) ^ 0 * "]" 
+               * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil ) ) 
 
   for _ , x in ipairs ( def_table )
   do if x[1] == "morecomment"
-     then if ( P "[l]" ) : match ( x[2] )
+     then local style = ( opt2 : match ( x[2] ) ) or "\\PitonStyle{Comment}"
+          if ( P "[l]" ) : match ( x[2] )
           then local mark = 
-                ( "[l]" * 
+                ( "[l]" * ( "[" * ( ( 1 - P "]" ) ^ 0 ) * "]" ) ^ -1 *
                    ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" 
-                     + C ( ( 1 - P ( " " ) )^ 0 ) ) 
+                     + C ( ( 1 - P " " ) ^ 0 ) ) 
                 ) : match ( x[2] ) 
                if mark == [[\#]] then mark = "#" end -- mandatory
-               comment = comment + 
-                 Q ( mark ) * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
+               Comment = Comment + 
+       Ct ( Cc "Open" * Cc ( "{" .. style .. "{" ) * Cc "}}" ) 
+                *  Q ( mark ) * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
+     * Ct ( Cc "Close" ) 
+                  * ( EOL + -1 )
            end 
            if ( P "[s]" ) : match ( x[2] )
            then local mark1 , mark2 = 
-                ( "[s]" * ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" ) 
+                ( "[s]" * ( "[" * ( ( 1 - P "]" ) ^ 0 ) * "]" ) ^ -1
+                        * ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" ) 
                         * ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" ) )
                               : match ( x[2] ) 
-               sncomment = sncomment +
-                 Q ( mark1 ) 
+               Comment = Comment +
+       Ct ( Cc "Open" * Cc ( "{" .. style .. "{" ) * Cc "}}" ) 
+                 * Q ( mark1 ) 
                  * ( 
                      CommentMath 
                      + Q ( ( 1 - P ( mark2 ) - S "$\r" ) ^ 1 ) -- $
                      + EOL 
                    ) ^ 0  
                  * Q ( mark2 ) 
+     * Ct ( Cc "Close" ) 
            end
            if ( P "[n]" ) : match ( x[2] )
            then local mark1 , mark2 = 
-                ( "[n]" * ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" ) 
+                ( "[n]" * ( "[" * ( ( 1 - P "]" ) ^ 0 ) * "]" ) ^ -1
+                        * ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" ) 
                         * ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" ) )
                               : match ( x[2] ) 
-                sncomment = sncomment +
-                 P { "A" ,
+                Comment = Comment +
+       Ct ( Cc "Open" * Cc ( "{" .. style .. "{" ) * Cc "}}" ) 
+              *   P { "A" ,
                      A = Q ( mark1 ) 
                          * ( V "A" 
                              + Q ( ( 1 - P ( mark1 ) - P ( mark2 ) 
@@ -7463,7 +7461,8 @@ function piton.new_language ( lang , definition )
                              + EOL
                            ) ^ 0 
                          * Q ( mark2 )
-                    }   
+                    }  
+     * Ct ( Cc "Close" ) 
            end
       end 
   end 
@@ -7480,10 +7479,9 @@ function piton.new_language ( lang , definition )
        + CommentLaTeX
        + Beamer
        + DetectedCommands
-       + WithStyle ( 'Comment' , comment ) * ( EOL + -1 )
-       + WithStyle ( 'Comment' , sncomment ) 
+       + Comment 
        + Delim
-       + String
+       + ShortString
         -- should maybe be after the following line!
        + Keyword * ( Space + Punct + Delim + EOL + -1 ) 
        + Punct 
