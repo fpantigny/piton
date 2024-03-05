@@ -216,6 +216,35 @@ local function Compute_Beamer ( lang , braces )
 end
 local CommentMath =
   P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$" -- $
+local PromptHastyDetection =
+  ( # ( P ">>>" + "..." ) * Lc ( '\\__piton_prompt:' ) ) ^ -1
+local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ^ -1  )
+local EOL =
+  P "\r"
+  *
+  (
+    ( space ^ 0 * -1 )
+    +
+    Ct (
+         Cc "EOL"
+         *
+         Ct (
+              Lc "\\__piton_end_line:"
+              * BeamerEndEnvironments
+              * BeamerBeginEnvironments
+              * PromptHastyDetection
+              * Lc "\\__piton_newline: \\__piton_begin_line:"
+              * Prompt
+            )
+       )
+  )
+  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
+local CommentLaTeX =
+  P(piton.comment_latex)
+  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces"
+  * L ( ( 1 - P "\r" ) ^ 0 )
+  * Lc "}}"
+  * ( EOL + -1 )
 local Operator =
   K ( 'Operator' ,
       P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "//" + "**"
@@ -349,29 +378,6 @@ local braces = Compute_braces ( ShortString )
 if piton.beamer then Beamer = Compute_Beamer ( 'python' , braces ) end
 DetectedCommands = Compute_DetectedCommands ( 'python' , braces )
 LPEG_cleaner['python'] = Compute_LPEG_cleaner ( 'python' , braces )
-local PromptHastyDetection =
-  ( # ( P ">>>" + "..." ) * Lc ( '\\__piton_prompt:' ) ) ^ -1
-local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ^ -1  )
-local EOL =
-  P "\r"
-  *
-  (
-    ( space ^ 0 * -1 )
-    +
-    Ct (
-         Cc "EOL"
-         *
-         Ct (
-              Lc "\\__piton_end_line:"
-              * BeamerEndEnvironments
-              * BeamerBeginEnvironments
-              * PromptHastyDetection
-              * Lc "\\__piton_newline: \\__piton_begin_line:"
-              * Prompt
-            )
-       )
-  )
-  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 local SingleLongString =
   WithStyle ( 'String.Long' ,
      ( Q ( S "fF" * P "'''" )
@@ -438,12 +444,6 @@ local Comment =
   WithStyle ( 'Comment' ,
      Q "#" * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 ) -- $
            * ( EOL + -1 )
-local CommentLaTeX =
-  P ( piton.comment_latex )
-  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces"
-  * L ( ( 1 - P "\r" ) ^ 0 )
-  * Lc "}}"
-  * ( EOL + -1 )
 local expression =
   P { "E" ,
        E = ( "'" * ( P "\\'" + 1 - S "'\r" ) ^ 0 * "'"
@@ -508,7 +508,6 @@ local Main =
      + Identifier
      + Number
      + Word
--- LPEG1['python'] = ( ( space ^ 1 * -1 ) + Main ) ^ 0
 LPEG1['python'] = Main ^ 0
 LPEG2['python'] =
   Ct (
@@ -830,12 +829,6 @@ local LongComment =
                * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0
                * Q "*/"
             ) -- $
-local CommentLaTeX =
-  P(piton.comment_latex)
-  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces"
-  * L ( ( 1 - P "\r" ) ^ 0 )
-  * Lc "}}"
-  * ( EOL + -1 )
 local Main =
        space ^ 1 * -1
      + space ^ 0 * EOL
@@ -944,12 +937,6 @@ local LongComment =
                * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0
                * Q "*/"
             ) -- $
-local CommentLaTeX =
-  P ( piton.comment_latex )
-  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces"
-  * L ( ( 1 - P "\r" ) ^ 0 )
-  * Lc "}}"
-  * ( EOL + -1 )
 local TableField =
        K ( 'Name.Table' , identifier )
      * Q "."
@@ -1041,13 +1028,6 @@ if piton.beamer then Beamer = Compute_Beamer ( 'minimal' , braces ) end
 DetectedCommands = Compute_DetectedCommands ( 'minimal' , braces )
 
 LPEG_cleaner['minimal'] = Compute_LPEG_cleaner ( 'minimal' , braces )
-
-local CommentLaTeX =
-  P ( piton.comment_latex )
-  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces"
-  * L ( ( 1 - P "\r" ) ^ 0 )
-  * Lc "}}"
-  * ( EOL + -1 )
 
 local identifier = letter * alphanum ^ 0
 
@@ -1375,20 +1355,23 @@ function piton.new_language ( lang , definition )
            * keywords * Lc "}}"
      end
      if x[1] == "keywordsprefix" then
-       local prefix = ( ( C ( 1 - P " " ) ^ 1 ) * ( P " " ) ^ 0 ) : match ( x[2] )
+       local prefix = ( ( C ( 1 - P " " ) ^ 1 ) * P " " ^ 0 ) : match ( x[2] )
        Keyword = Keyword + K ( 'Keyword' , P ( prefix ) * alphanum ^ 0 )
      end
   end
   local short_string  = P ( false )
+  local ShortString = P (false )
   local args = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
-               * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + C "nil" )
+               * space ^ 0
+               * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil ) )
+               * space ^ 0
                * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) )
-  local central_pattern
+  local central_pattern = P ( false )
   for _ , x in ipairs ( def_table )
   do if x[1] == "morestring" then
        arg1 , arg2 , arg3 = args : match ( x[2] )
        if arg1 == "b" then
-         central_pattern = Q ( ( P ( "\\" .. arg3 )  + 1 - S ( " " .. char ) ) ^ 1 )
+         central_pattern = Q ( ( P ( "\\" .. arg3 )  + 1 - S ( " " .. arg3 ) ) ^ 1 )
        end
        if arg1 == "d" then
          central_pattern = Q ( ( P ( arg3 .. arg3 )  + 1 - S ( " " .. arg3 ) ) ^ 1 )
@@ -1405,11 +1388,12 @@ function piton.new_language ( lang , definition )
        else prefix = lpeg.B ( 1 - letter - ")" - "]" )
        end
        short_string = short_string +
-             prefix * ( Q ( arg3 ) * ( VisualSpace + central_pattern ) ^ 0 * Q ( arg3 ) )
+         prefix * ( Q ( arg3 ) * ( VisualSpace + central_pattern ) ^ 0 * Q ( arg3 ) )
+       ShortString = ShortString +
+           Lc ( "{" ..  ( arg2 or "\\PitonStyle{ShortString}" ) .. "{" )
+           * short_string * Lc "}}"
      end
   end
-
-  local String = WithStyle ( 'String.Short' , short_string )
 
   local braces = Compute_braces ( String )
   if piton.beamer then Beamer = Compute_Beamer ( lang , braces ) end
@@ -1417,54 +1401,49 @@ function piton.new_language ( lang , definition )
   DetectedCommands = Compute_DetectedCommands ( lang , braces )
 
   LPEG_cleaner[lang] = Compute_LPEG_cleaner ( lang , braces )
+  local Comment = P ( false )
 
-  local CommentLaTeX =
-    P(piton.comment_latex)
-    * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces"
-    * L ( ( 1 - P "\r" ) ^ 0 )
-    * Lc "}}"
-    * ( EOL + -1 )
-
-  local comment = P ( false )
-
-  local sncomment = P ( false )
+  local args = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
+               * space ^ 0
+               * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil ) )
+               * space ^ 0
+               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) )
+               * space ^ 0
+               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + Cc ( nil ) )
 
   for _ , x in ipairs ( def_table )
   do if x[1] == "morecomment"
-     then if ( P "[l]" ) : match ( x[2] )
-          then local mark =
-                ( "[l]" *
-                   ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}"
-                     + C ( ( 1 - P ( " " ) )^ 0 ) )
-                ) : match ( x[2] )
-               if mark == [[\#]] then mark = "#" end -- mandatory
-               comment = comment +
-                 Q ( mark ) * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
+     then local arg1 , arg2 , arg3 , arg4 = args : match ( x[2] )
+          arg2 = arg2 or "\\PitonStyle{Comment}"
+          if arg1 == "l" then
+            if arg3 == [[\#]] then arg3 = "#" end -- mandatory
+            Comment = Comment +
+                Ct ( Cc "Open"
+                     * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
+                     *  Q ( arg3 )
+                     * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
+                * Ct ( Cc "Close" )
+                * ( EOL + -1 )
            end
-           if ( P "[s]" ) : match ( x[2] )
-           then local mark1 , mark2 =
-                ( "[s]" * ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" )
-                        * ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" ) )
-                              : match ( x[2] )
-               sncomment = sncomment +
-                 Q ( mark1 )
+           if arg1 == "s" then
+             Comment = Comment +
+                 Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
+                 * Q ( arg3 )
                  * (
                      CommentMath
-                     + Q ( ( 1 - P ( mark2 ) - S "$\r" ) ^ 1 ) -- $
+                     + Q ( ( 1 - P ( arg4 ) - S "$\r" ) ^ 1 ) -- $
                      + EOL
                    ) ^ 0
-                 * Q ( mark2 )
+                 * Q ( arg4 )
+                 * Ct ( Cc "Close" )
            end
-           if ( P "[n]" ) : match ( x[2] )
-           then local mark1 , mark2 =
-                ( "[n]" * ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" )
-                        * ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" ) )
-                              : match ( x[2] )
-                sncomment = sncomment +
-                 P { "A" ,
-                     A = Q ( mark1 )
+           if arg1 == "n" then
+             Comment = Comment +
+               Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
+                * P { "A" ,
+                     A = Q ( arg3 )
                          * ( V "A"
-                             + Q ( ( 1 - P ( mark1 ) - P ( mark2 )
+                             + Q ( ( 1 - P ( arg3 ) - P ( arg4 )
                                      - S "\r$\"" ) ^ 1 ) -- $
                              + short_string
                              +   "$" -- $
@@ -1472,8 +1451,9 @@ function piton.new_language ( lang , definition )
                                  * "$" -- $
                              + EOL
                            ) ^ 0
-                         * Q ( mark2 )
+                         * Q ( arg4 )
                     }
+               * Ct ( Cc "Close" )
            end
       end
   end
@@ -1490,10 +1470,9 @@ function piton.new_language ( lang , definition )
        + CommentLaTeX
        + Beamer
        + DetectedCommands
-       + WithStyle ( 'Comment' , comment ) * ( EOL + -1 )
-       + WithStyle ( 'Comment' , sncomment )
+       + Comment
        + Delim
-       + String
+       + ShortString
         -- should maybe be after the following line!
        + Keyword * ( Space + Punct + Delim + EOL + -1 )
        + Punct

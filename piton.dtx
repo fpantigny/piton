@@ -5321,6 +5321,80 @@ local CommentMath =
   P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$" -- $
 %    \end{macrocode}
 % 
+%
+% \bigskip
+% \paragraph{EOL}
+%
+% \bigskip
+% The following LPEG will detect the Python prompts when the user is typesetting
+% an interactive session of Python (directly or through |{pyconsole}| of
+% \pkg{pyluatex}). We have to detect that prompt twice. The first detection
+% (called \emph{hasty detection}) will be before the |\@@_begin_line:| because
+% you want to trigger a special background color for that row (and, after the
+% |\@@_begin_line:|, it's too late to change de background).
+%    \begin{macrocode}
+local PromptHastyDetection = 
+  ( # ( P ">>>" + "..." ) * Lc ( '\\@@_prompt:' ) ) ^ -1 
+%    \end{macrocode}
+% We remind that the marker |#| of \textsc{lpeg} specifies that the pattern will be
+% detected but won't consume any character.
+%
+% \medskip
+% With the following \textsc{lpeg}, a style will actually be applied to the
+% prompt (for instance, it's possible to decide to discard these prompts).
+%    \begin{macrocode}
+local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ^ -1  ) 
+%    \end{macrocode}
+%    
+%
+%
+% \bigskip
+% The following \textsc{lpeg} |EOL| is for the end of lines.
+%    \begin{macrocode}
+local EOL = 
+  P "\r" 
+  *
+  (
+    ( space ^ 0 * -1 )
+    + 
+%    \end{macrocode}
+% We recall that each line in the Python code we have to parse will be sent
+% back to LaTeX between a pair |\@@_begin_line:| --
+% |\@@_end_line:|\footnote{Remember that the \texttt{\textbackslash
+% @@\_end\_line:} must be explicit because it will be used as marker in order to
+% delimit the argument of the command \texttt{\textbackslash @@\_begin\_line:}}.
+%    \begin{macrocode}
+    Ct ( 
+         Cc "EOL"
+         * 
+         Ct (
+              Lc "\\@@_end_line:"
+              * BeamerEndEnvironments 
+              * BeamerBeginEnvironments 
+              * PromptHastyDetection
+              * Lc "\\@@_newline: \\@@_begin_line:"
+              * Prompt
+            )
+       )
+  ) 
+  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
+%    \end{macrocode}
+%
+% \bigskip
+% The following \textsc{lpeg} |CommentLaTeX| is for what is called in that
+% document the ``LaTeX comments''. Since the elements that will be catched must
+% be sent to LaTeX with standard LaTeX catcodes, we put the capture (done by
+% the function~|C|) in a table (by using~|Ct|, which is an alias for |lpeg.Ct|).
+%    \begin{macrocode}
+local CommentLaTeX =
+  P(piton.comment_latex) 
+  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces" 
+  * L ( ( 1 - P "\r" ) ^ 0 ) 
+  * Lc "}}" 
+  * ( EOL + -1 )  
+%    \end{macrocode}
+% 
+%
 % 
 % \bigskip
 % \subsubsection{The language Python}
@@ -5592,64 +5666,6 @@ LPEG_cleaner['python'] = Compute_LPEG_cleaner ( 'python' , braces )
 %    \end{macrocode}
 % 
 % 
-% \bigskip
-% \paragraph{EOL}
-%
-% \bigskip
-% The following LPEG will detect the Python prompts when the user is typesetting
-% an interactive session of Python (directly or through |{pyconsole}| of
-% \pkg{pyluatex}). We have to detect that prompt twice. The first detection
-% (called \emph{hasty detection}) will be before the |\@@_begin_line:| because
-% you want to trigger a special background color for that row (and, after the
-% |\@@_begin_line:|, it's too late to change de background).
-%    \begin{macrocode}
-local PromptHastyDetection = 
-  ( # ( P ">>>" + "..." ) * Lc ( '\\@@_prompt:' ) ) ^ -1 
-%    \end{macrocode}
-% We remind that the marker |#| of \textsc{lpeg} specifies that the pattern will be
-% detected but won't consume any character.
-%
-% \medskip
-% With the following \textsc{lpeg}, a style will actually be applied to the
-% prompt (for instance, it's possible to decide to discard these prompts).
-%    \begin{macrocode}
-local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ^ -1  ) 
-%    \end{macrocode}
-%    
-%
-%
-% \bigskip
-% The following \textsc{lpeg} |EOL| is for the end of lines.
-%    \begin{macrocode}
-local EOL = 
-  P "\r" 
-  *
-  (
-    ( space ^ 0 * -1 )
-    + 
-%    \end{macrocode}
-% We recall that each line in the Python code we have to parse will be sent
-% back to LaTeX between a pair |\@@_begin_line:| --
-% |\@@_end_line:|\footnote{Remember that the \texttt{\textbackslash
-% @@\_end\_line:} must be explicit because it will be used as marker in order to
-% delimit the argument of the command \texttt{\textbackslash @@\_begin\_line:}}.
-%    \begin{macrocode}
-    Ct ( 
-         Cc "EOL"
-         * 
-         Ct (
-              Lc "\\@@_end_line:"
-              * BeamerEndEnvironments 
-              * BeamerBeginEnvironments 
-              * PromptHastyDetection
-              * Lc "\\@@_newline: \\@@_begin_line:"
-              * Prompt
-            )
-       )
-  ) 
-  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
-%    \end{macrocode}
-%
 % 
 % \bigskip
 % \paragraph{The long strings}
@@ -5743,21 +5759,6 @@ local Comment =
            * ( EOL + -1 )
 %    \end{macrocode}
 % 
-%
-%
-% \bigskip
-% The following \textsc{lpeg} |CommentLaTeX| is for what is called in that
-% document the ``LaTeX comments''. Since the elements that will be catched must
-% be sent to LaTeX with standard LaTeX catcodes, we put the capture (done by
-% the function~|C|) in a table (by using~|Ct|, which is an alias for |lpeg.Ct|).
-%    \begin{macrocode}
-local CommentLaTeX =
-  P ( piton.comment_latex ) 
-  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces" 
-  * L ( ( 1 - P "\r" ) ^ 0 ) 
-  * Lc "}}" 
-  * ( EOL + -1 )  
-%    \end{macrocode}
 % 
 % \bigskip
 % \paragraph{DefFunction}
@@ -5893,7 +5894,6 @@ local Main =
 %
 % Here, we must not put |local|!
 %    \begin{macrocode}
--- LPEG1['python'] = ( ( space ^ 1 * -1 ) + Main ) ^ 0 
 LPEG1['python'] = Main ^ 0 
 %    \end{macrocode}
 %
@@ -6456,21 +6456,6 @@ local LongComment =
 %    \end{macrocode}
 %
 %
-% \bigskip
-% The following \textsc{lpeg} |CommentLaTeX| is for what is called in that
-% document the ``LaTeX comments''. Since the elements that will be catched must
-% be sent to LaTeX with standard LaTeX catcodes, we put the capture (done by
-% the function~|C|) in a table (by using~|Ct|, which is an alias for |lpeg.Ct|).
-%    \begin{macrocode}
-local CommentLaTeX =
-  P(piton.comment_latex) 
-  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces" 
-  * L ( ( 1 - P "\r" ) ^ 0 ) 
-  * Lc "}}" 
-  * ( EOL + -1 )  
-%    \end{macrocode}
-% 
-%
 %
 % 
 % \bigskip
@@ -6660,22 +6645,6 @@ local LongComment =
 %    \end{macrocode}
 %
 %
-% \bigskip
-% The following \textsc{lpeg} |CommentLaTeX| is for what is called in that
-% document the ``LaTeX comments''. Since the elements that will be catched must
-% be sent to LaTeX with standard LaTeX catcodes, we put the capture (done by
-% the function~|C|) in a table (by using~|Ct|, which is an alias for |lpeg.Ct|).
-%    \begin{macrocode}
-local CommentLaTeX =
-  P ( piton.comment_latex ) 
-  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces" 
-  * L ( ( 1 - P "\r" ) ^ 0 ) 
-  * Lc "}}" 
-  * ( EOL + -1 )  
-%    \end{macrocode}
-% 
-%
-%
 % 
 % \bigskip
 % \paragraph{The main LPEG for the language SQL}
@@ -6797,13 +6766,6 @@ if piton.beamer then Beamer = Compute_Beamer ( 'minimal' , braces ) end
 DetectedCommands = Compute_DetectedCommands ( 'minimal' , braces ) 
 
 LPEG_cleaner['minimal'] = Compute_LPEG_cleaner ( 'minimal' , braces ) 
-
-local CommentLaTeX =
-  P ( piton.comment_latex ) 
-  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces" 
-  * L ( ( 1 - P "\r" ) ^ 0 ) 
-  * Lc "}}" 
-  * ( EOL + -1 )  
 
 local identifier = letter * alphanum ^ 0
 
@@ -7345,7 +7307,7 @@ function piton.new_language ( lang , definition )
            * keywords * Lc "}}" 
      end 
      if x[1] == "keywordsprefix" then
-       local prefix = ( ( C ( 1 - P " " ) ^ 1 ) * ( P " " ) ^ 0 ) : match ( x[2] ) 
+       local prefix = ( ( C ( 1 - P " " ) ^ 1 ) * P " " ^ 0 ) : match ( x[2] ) 
        Keyword = Keyword + K ( 'Keyword' , P ( prefix ) * alphanum ^ 0 ) 
      end 
   end    
@@ -7358,7 +7320,9 @@ function piton.new_language ( lang , definition )
   local short_string  = P ( false )
   local ShortString = P (false ) 
   local args = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" 
+               * space ^ 0
                * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil ) ) 
+               * space ^ 0
                * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) ) 
   local central_pattern = P ( false ) 
   for _ , x in ipairs ( def_table )
@@ -7395,64 +7359,54 @@ function piton.new_language ( lang , definition )
   DetectedCommands = Compute_DetectedCommands ( lang , braces ) 
 
   LPEG_cleaner[lang] = Compute_LPEG_cleaner ( lang , braces ) 
-
-  local CommentLaTeX =
-    P(piton.comment_latex) 
-    * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces" 
-    * L ( ( 1 - P "\r" ) ^ 0 ) 
-    * Lc "}}" 
-    * ( EOL + -1 )  
-
+%    \end{macrocode}
+%
+% \bigskip
+% Now, we deal with the comments.
+%    \begin{macrocode}
   local Comment = P ( false ) 
 
-  local opt2 = "[" * ( 1 - P "]" ) ^ 0 * "]" 
+  local args = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" 
+               * space ^ 0 
                * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil ) ) 
+               * space ^ 0
+               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) ) 
+               * space ^ 0
+               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + Cc ( nil ) ) 
 
   for _ , x in ipairs ( def_table )
   do if x[1] == "morecomment"
-     then local style = ( opt2 : match ( x[2] ) ) or "\\PitonStyle{Comment}"
-          if ( P "[l]" ) : match ( x[2] )
-          then local mark = 
-                ( "[l]" * ( "[" * ( ( 1 - P "]" ) ^ 0 ) * "]" ) ^ -1 *
-                   ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" 
-                     + C ( ( 1 - P " " ) ^ 0 ) ) 
-                ) : match ( x[2] ) 
-               if mark == [[\#]] then mark = "#" end -- mandatory
-               Comment = Comment + 
-       Ct ( Cc "Open" * Cc ( "{" .. style .. "{" ) * Cc "}}" ) 
-                *  Q ( mark ) * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
-     * Ct ( Cc "Close" ) 
-                  * ( EOL + -1 )
+     then local arg1 , arg2 , arg3 , arg4 = args : match ( x[2] ) 
+          arg2 = arg2 or "\\PitonStyle{Comment}"
+          if arg1 == "l" then 
+            if arg3 == [[\#]] then arg3 = "#" end -- mandatory
+            Comment = Comment + 
+                Ct ( Cc "Open" 
+                     * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
+                     *  Q ( arg3 ) 
+                     * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
+                * Ct ( Cc "Close" ) 
+                * ( EOL + -1 )
            end 
-           if ( P "[s]" ) : match ( x[2] )
-           then local mark1 , mark2 = 
-                ( "[s]" * ( "[" * ( ( 1 - P "]" ) ^ 0 ) * "]" ) ^ -1
-                        * ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" ) 
-                        * ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" ) )
-                              : match ( x[2] ) 
-               Comment = Comment +
-       Ct ( Cc "Open" * Cc ( "{" .. style .. "{" ) * Cc "}}" ) 
-                 * Q ( mark1 ) 
+           if arg1 == "s" then 
+             Comment = Comment +
+                 Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
+                 * Q ( arg3 ) 
                  * ( 
                      CommentMath 
-                     + Q ( ( 1 - P ( mark2 ) - S "$\r" ) ^ 1 ) -- $
+                     + Q ( ( 1 - P ( arg4 ) - S "$\r" ) ^ 1 ) -- $
                      + EOL 
                    ) ^ 0  
-                 * Q ( mark2 ) 
-     * Ct ( Cc "Close" ) 
+                 * Q ( arg4 ) 
+                 * Ct ( Cc "Close" ) 
            end
-           if ( P "[n]" ) : match ( x[2] )
-           then local mark1 , mark2 = 
-                ( "[n]" * ( "[" * ( ( 1 - P "]" ) ^ 0 ) * "]" ) ^ -1
-                        * ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" ) 
-                        * ( "{" * C ( ( 1 - P "}" ) ^ 1 ) * "}" ) )
-                              : match ( x[2] ) 
-                Comment = Comment +
-       Ct ( Cc "Open" * Cc ( "{" .. style .. "{" ) * Cc "}}" ) 
-              *   P { "A" ,
-                     A = Q ( mark1 ) 
+           if arg1 == "n" then 
+             Comment = Comment +
+               Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
+                * P { "A" ,
+                     A = Q ( arg3 ) 
                          * ( V "A" 
-                             + Q ( ( 1 - P ( mark1 ) - P ( mark2 ) 
+                             + Q ( ( 1 - P ( arg3 ) - P ( arg4 ) 
                                      - S "\r$\"" ) ^ 1 ) -- $
                              + short_string
                              +   "$" -- $
@@ -7460,9 +7414,9 @@ function piton.new_language ( lang , definition )
                                  * "$" -- $
                              + EOL
                            ) ^ 0 
-                         * Q ( mark2 )
+                         * Q ( arg4 )
                     }  
-     * Ct ( Cc "Close" ) 
+               * Ct ( Cc "Close" ) 
            end
       end 
   end 
