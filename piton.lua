@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
--- Version 2.6y of 2024/03/03
+-- Version 2.6a of 2024/03/06
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -1359,8 +1359,8 @@ function piton.new_language ( lang , definition )
        Keyword = Keyword + K ( 'Keyword' , P ( prefix ) * alphanum ^ 0 )
      end
   end
-  local short_string  = P ( false )
-  local ShortString = P (false )
+  local long_string  = P ( false )
+  local LongString = P (false )
   local args = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
                * space ^ 0
                * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil ) )
@@ -1370,28 +1370,30 @@ function piton.new_language ( lang , definition )
   for _ , x in ipairs ( def_table )
   do if x[1] == "morestring" then
        arg1 , arg2 , arg3 = args : match ( x[2] )
+       arg2 = arg2 or "\\PitonStyle{String.Long}"
        if arg1 == "b" then
-         central_pattern = Q ( ( P ( "\\" .. arg3 )  + 1 - S ( " " .. arg3 ) ) ^ 1 )
+         central_pattern = ( P ( "\\" .. arg3 )  + 1 - S ( " \r" .. arg3 ) ) ^ 1
        end
        if arg1 == "d" then
-         central_pattern = Q ( ( P ( arg3 .. arg3 )  + 1 - S ( " " .. arg3 ) ) ^ 1 )
+         central_pattern = ( P ( arg3 .. arg3 )  + 1 - S ( " \r" .. arg3 ) ) ^ 1
        end
        if arg1 == "bd" then
          central_pattern =
-           Q ( ( P ( arg3 .. arg3 ) + P ( "\\" .. arg3 ) + 1 - S ( " " .. arg3 ) ) ^ 1 )
+           ( P ( arg3 .. arg3 ) + P ( "\\" .. arg3 ) + 1 - S ( " \r" .. arg3 ) ) ^ 1
        end
        if arg1 == "m" then
-         central_pattern =  Q ( ( P ( arg3 .. arg3 ) + 1 - S ( " " .. arg3 ) ) ^ 1 )
+         central_pattern = ( P ( arg3 .. arg3 ) + 1 - S ( " \r" .. arg3 ) ) ^ 1
        end
        if arg1 == "m"
        then prefix = P ( false )
        else prefix = lpeg.B ( 1 - letter - ")" - "]" )
        end
-       short_string = short_string +
-         prefix * ( Q ( arg3 ) * ( VisualSpace + central_pattern ) ^ 0 * Q ( arg3 ) )
-       ShortString = ShortString +
-           Lc ( "{" ..  ( arg2 or "\\PitonStyle{ShortString}" ) .. "{" )
-           * short_string * Lc "}}"
+       long_string = long_string +
+         prefix * ( Q ( arg3 ) * ( VisualSpace + Q ( central_pattern ) + EOL ) ^ 0 * Q ( arg3 ) )
+       LongString = LongString +
+          Ct ( Cc "Open" * Cc ( "{" ..  arg2 .. "{" ) * Cc "}}" )
+          * long_string
+          * Ct ( Cc "Close" )
      end
   end
 
@@ -1445,7 +1447,7 @@ function piton.new_language ( lang , definition )
                          * ( V "A"
                              + Q ( ( 1 - P ( arg3 ) - P ( arg4 )
                                      - S "\r$\"" ) ^ 1 ) -- $
-                             + short_string
+                             + long_string
                              +   "$" -- $
                                  * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) --$
                                  * "$" -- $
@@ -1472,7 +1474,7 @@ function piton.new_language ( lang , definition )
        + DetectedCommands
        + Comment
        + Delim
-       + ShortString
+       + LongString
         -- should maybe be after the following line!
        + Keyword * ( Space + Punct + Delim + EOL + -1 )
        + Punct
