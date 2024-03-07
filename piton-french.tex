@@ -621,18 +621,32 @@ mot-clé \piton{def} dans un listing Python précédent). La valeur initiale de 
 fait que ces noms de fonctions sont formatés comme du texte courant (en noir). Néanmoins, il est possible de
 changer la valeur de ce style, comme tous les autres styles, avec la commande |\SetPitonStyle|.
 
-
 \medskip
-Dans l'exemple suivant, on prend comme valeur de ce style |UserFunction| la valeur initiale du style
-|Name.Function| (qui s'applique au nom des fonctions \emph{au moment de leur définition}).
+Dans l'exemple suivant, on règle les styles |Name.Function| et |UserFunction| de manière à que ce, quand on clique
+sur le nom d'une fonction Python précédemment définie par l'utilisateur, on soit renvoyé vers la définition
+(informatique) de cette fonction. Cette programmation utilise les fonctions |\hypertarget| et |\hyperlink| de \pkg{hyperref}.
 
 \begingroup
 
+\NewDocumentCommand{\MyDefFunction}{m}{\hypertarget{piton:#1}{\color[HTML]{CC00FF}{#1}}}
+\NewDocumentCommand{\MyUserFunction}{m}{\hyperlink{piton:#1}{#1}}
+
+\SetPitonStyle
+  {
+    Name.Function = \MyDefFunction ,
+    UserFunction = \MyUserFunction
+  }
+
+\medskip
 \begin{Verbatim}
-\SetPitonStyle{~emphase#UserFunction@ = \color[HTML]{CC00FF}}
+\NewDocumentCommand{\MyDefFunction}{m}
+   {\hypertarget{piton:~#1}{\color[HTML]{CC00FF}{~#1}}}
+\NewDocumentCommand{\MyUserFunction}{m}{\hyperlink{piton:~#1}{~#1}}
+
+\SetPitonStyle{Name.Function = \MyDefFunction, ~emphase#UserFunction@ = \MyUserFunction}
 \end{Verbatim}
 
-\SetPitonStyle{UserFunction = \color[HTML]{CC00FF}}
+\bigskip
 
 \begin{Piton}
 def transpose(v,i,j):
@@ -647,10 +661,6 @@ def passe(v):
 \end{Piton}
 
 \endgroup
-
-\medskip
-Comme on le voit, le nom |transpose| a été mis en évidence comme étant le nom d'une fonction définie précédemment
-par l'utilisateur (d'où le nom |UserFunction| pour ce style).
 
 \PitonClearUserFunctions[Python]
 
@@ -2148,6 +2158,8 @@ tel qu'il est appliqué au langage Python par Pygments.\footnote{Voir \url{https
   Name.Decorator & les décorateurs (instructions débutant par \verb|@|) \\
   Name.Namespace & le nom des modules (= bibliothèques extérieures) \\
   Name.Class & le nom des classes au moment de leur définition, c'est-à-dire après le mot-clé \verb|class| \\
+  Name.Function & le nom des fonctions définies par l'utilisateur \emph{au moment de leur définition} (après le
+                  mot-clé |def|) \\
   UserFunction & le nom des fonctions précédemment définies par l'utilisateur (la valeur initiale de ce paramètre est
                  vide et ces éléments sont affichés en noir --- ou plutôt dans la couleur courante) \\
   Exception & les exceptions prédéfinies (ex.: \texttt{SyntaxError}) \\
@@ -2386,7 +2398,7 @@ Comment.LaTeX & les commentaires commençant par \texttt{\#>} qui sont composés
 \end{center}
 
 \bigskip
-Ce langage «|minimal|» est proposé par \pkg{piton} à l'utilisateur final pour qu'il y a puisse y ajouter des
+Ce langage «|minimal|» est proposé par \pkg{piton} à l'utilisateur final pour qu'il puisse y ajouter des
 formatages de mots-clés avec la commande |\SetPitonIdentifier| (cf. \ref{SetPitonIdentifier},
 p.~\pageref{SetPitonIdentifier}) et créer par exemple un langage pour pseudo-code.
 

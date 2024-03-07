@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
--- Version 2.6a of 2024/03/06
+-- Version 2.7 of 2024/03/06
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -1359,42 +1359,50 @@ function piton.new_language ( lang , definition )
        Keyword = Keyword + K ( 'Keyword' , P ( prefix ) * alphanum ^ 0 )
      end
   end
-  local long_string  = P ( false )
-  local LongString = P (false )
   local args = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
                * space ^ 0
                * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil ) )
                * space ^ 0
                * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) )
+               * space ^ 0
+               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + Cc ( nil ) )
+  local long_string  = P ( false )
+  local LongString = P (false )
   local central_pattern = P ( false )
-  for _ , x in ipairs ( def_table )
-  do if x[1] == "morestring" then
-       arg1 , arg2 , arg3 = args : match ( x[2] )
-       arg2 = arg2 or "\\PitonStyle{String.Long}"
-       if arg1 == "b" then
-         central_pattern = ( P ( "\\" .. arg3 )  + 1 - S ( " \r" .. arg3 ) ) ^ 1
-       end
-       if arg1 == "d" then
-         central_pattern = ( P ( arg3 .. arg3 )  + 1 - S ( " \r" .. arg3 ) ) ^ 1
-       end
-       if arg1 == "bd" then
-         central_pattern =
-           ( P ( arg3 .. arg3 ) + P ( "\\" .. arg3 ) + 1 - S ( " \r" .. arg3 ) ) ^ 1
-       end
-       if arg1 == "m" then
-         central_pattern = ( P ( arg3 .. arg3 ) + 1 - S ( " \r" .. arg3 ) ) ^ 1
-       end
-       if arg1 == "m"
-       then prefix = P ( false )
-       else prefix = lpeg.B ( 1 - letter - ")" - "]" )
-       end
-       long_string = long_string +
-         prefix * ( Q ( arg3 ) * ( VisualSpace + Q ( central_pattern ) + EOL ) ^ 0 * Q ( arg3 ) )
-       LongString = LongString +
-          Ct ( Cc "Open" * Cc ( "{" ..  arg2 .. "{" ) * Cc "}}" )
-          * long_string
-          * Ct ( Cc "Close" )
-     end
+  for _ , x in ipairs ( def_table ) do
+    if x[1] == "morestring" then
+      arg1 , arg2 , arg3 , arg4 = args : match ( x[2] )
+      arg2 = arg2 or "\\PitonStyle{String.Long}"
+      if arg1 == "s" then
+        long_string =
+          Q ( arg3 )
+          * ( Q ( ( 1 - P ( arg4 ) - S "$\r" ) ^ 1 ) -- $
+              + EOL
+            ) ^ 0
+          * Q ( arg4 )
+      else
+        central_pattern = 1 - S ( " \r" .. arg3 )
+        if arg1 : match "b" then
+          central_pattern = P ( "\\" .. arg3 )  + central_pattern
+        end
+        if arg1 : match "d" or arg1 == "m" then
+          central_pattern = P ( arg3 .. arg3 )  + central_pattern
+        end
+        if arg1 == "m"
+        then prefix = P ( false )
+        else prefix = lpeg.B ( 1 - letter - ")" - "]" )
+        end
+        long_string = long_string +
+           prefix
+           * Q ( arg3 )
+           * ( VisualSpace + Q ( central_pattern ^ 1 ) + EOL ) ^ 0
+           * Q ( arg3 )
+      end
+      LongString = LongString +
+         Ct ( Cc "Open" * Cc ( "{" ..  arg2 .. "{" ) * Cc "}}" )
+         * long_string
+         * Ct ( Cc "Close" )
+    end
   end
 
   local braces = Compute_braces ( String )
@@ -1405,19 +1413,12 @@ function piton.new_language ( lang , definition )
   LPEG_cleaner[lang] = Compute_LPEG_cleaner ( lang , braces )
   local Comment = P ( false )
 
-  local args = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
-               * space ^ 0
-               * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil ) )
-               * space ^ 0
-               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) )
-               * space ^ 0
-               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + Cc ( nil ) )
-
   for _ , x in ipairs ( def_table )
   do if x[1] == "morecomment"
      then local arg1 , arg2 , arg3 , arg4 = args : match ( x[2] )
           arg2 = arg2 or "\\PitonStyle{Comment}"
-          if arg1 == "l" then
+          if arg1 : match "i" then arg2 = "\\PitonStyle{Discard}" end
+          if arg1 : match "l" then
             if arg3 == [[\#]] then arg3 = "#" end -- mandatory
             Comment = Comment +
                 Ct ( Cc "Open"
@@ -1427,7 +1428,7 @@ function piton.new_language ( lang , definition )
                 * Ct ( Cc "Close" )
                 * ( EOL + -1 )
            end
-           if arg1 == "s" then
+           if arg1 : match "s" then
              Comment = Comment +
                  Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
                  * Q ( arg3 )
@@ -1439,7 +1440,7 @@ function piton.new_language ( lang , definition )
                  * Q ( arg4 )
                  * Ct ( Cc "Close" )
            end
-           if arg1 == "n" then
+           if arg1 : match "n" then
              Comment = Comment +
                Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
                 * P { "A" ,
@@ -1475,7 +1476,6 @@ function piton.new_language ( lang , definition )
        + Comment
        + Delim
        + LongString
-        -- should maybe be after the following line!
        + Keyword * ( Space + Punct + Delim + EOL + -1 )
        + Punct
        + K ( 'Identifier' , letter * alphanum ^ 0 )

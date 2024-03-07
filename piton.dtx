@@ -659,17 +659,31 @@
 % any other style, with the command |\SetPitonStyle|.
 %
 % \medskip
-% In the following example, we fix as value for that style |UserFunction| the
-% initial value of the style |Name.Function| (which applies to the name of
-% the functions, \emph{at the moment of their definition}).
+% In the following example, we tune the styles |Name.Function| and |UserFunction|
+% so as to have clickable names of functions linked to the (informatic)
+% definition of the function.
 %
 % \begingroup
 %
+% \NewDocumentCommand{\MyDefFunction}{m}{\hypertarget{piton:#1}{\color[HTML]{CC00FF}{#1}}}
+% \NewDocumentCommand{\MyUserFunction}{m}{\hyperlink{piton:#1}{#1}}
+%
+% \SetPitonStyle
+%   {
+%     Name.Function = \MyDefFunction ,
+%     UserFunction = \MyUserFunction
+%   }
+%
+% \medskip
 % \begin{Verbatim}
-% \SetPitonStyle{~emphase#UserFunction@ = \color[HTML]{CC00FF}}
+% \NewDocumentCommand{\MyDefFunction}{m}
+%    {\hypertarget{piton:~#1}{\color[HTML]{CC00FF}{~#1}}}
+% \NewDocumentCommand{\MyUserFunction}{m}{\hyperlink{piton:~#1}{~#1}}
+%
+% \SetPitonStyle{Name.Function = \MyDefFunction, ~emphase#UserFunction@ = \MyUserFunction}
 % \end{Verbatim}
 %
-% \SetPitonStyle{UserFunction = \color[HTML]{CC00FF}}
+% \bigskip
 %
 % \begin{Piton}
 % def transpose(v,i,j):
@@ -684,10 +698,6 @@
 % \end{Piton}
 %
 % \endgroup
-%
-% As one see, the name |transpose| has been highlighted because it's the name of
-% a Python function previously defined by the user (hence the name
-% |UserFunction| for that style).
 %
 % \PitonClearUserFunctions[Python]
 %
@@ -4318,6 +4328,7 @@
   {
     Comment ,
     Comment.LaTeX ,
+    Discard ,
     Exception ,
     FormattingType ,    
     Identifier ,
@@ -4437,6 +4448,7 @@
     Prompt             = , 
     ParseAgain.noCR    = \@@_piton_no_cr:n , 
     ParseAgain         = \@@_piton:n ,
+    Discard            = \use_none:n 
   }
 %    \end{macrocode}
 % The last styles |ParseAgain.noCR| and |ParseAgain| should be considered as 
@@ -4470,14 +4482,14 @@
     \tl_if_novalue:nTF { #1 }
       { 
         \clist_map_inline:Nn \l_tmpa_clist 
-          { \cs_set:cpn { pitonIdentifier _ ##1 } { #3 } }
+          { \cs_set:cpn { PitonIdentifier _ ##1 } { #3 } }
       }
       {
         \str_set:Nx \l_tmpa_str { \str_lowercase:n { #1 } }
         \str_if_eq:onT \l_tmpa_str { current-language }
           { \str_set_eq:NN \l_tmpa_str \l_piton_language_str }
         \clist_map_inline:Nn \l_tmpa_clist 
-          { \cs_set:cpn { pitonIdentifier _ \l_tmpa_str _ ##1 } { #3 } }
+          { \cs_set:cpn { PitonIdentifier _ \l_tmpa_str _ ##1 } { #3 } }
       }
   } 
 %    \end{macrocode}
@@ -4485,8 +4497,8 @@
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_identifier:n #1
   { 
-    \cs_if_exist_use:cF { pitonIdentifier _ \l_piton_language_str _ #1 } 
-      { \cs_if_exist_use:c { pitonIdentifier_ #1 } }
+    \cs_if_exist_use:cF { PitonIdentifier _ \l_piton_language_str _ #1 } 
+      { \cs_if_exist_use:c { PitonIdentifier _ #1 } }
     { #1 } 
   } 
 %    \end{macrocode}
@@ -7390,7 +7402,12 @@ function piton.new_language ( lang , definition )
   do if x[1] == "morecomment"
      then local arg1 , arg2 , arg3 , arg4 = args : match ( x[2] ) 
           arg2 = arg2 or "\\PitonStyle{Comment}"
-          if arg1 == "l" then 
+%    \end{macrocode}
+% If the letter |i| is present in the first argument (eg: 
+% |morecomment = [si]{(*}{*)}|, then the corresponding comments are discarded. 
+%    \begin{macrocode}
+          if arg1 : match "i" then arg2 = "\\PitonStyle{Discard}" end
+          if arg1 : match "l" then 
             if arg3 == [[\#]] then arg3 = "#" end -- mandatory
             Comment = Comment + 
                 Ct ( Cc "Open" 
@@ -7400,7 +7417,7 @@ function piton.new_language ( lang , definition )
                 * Ct ( Cc "Close" ) 
                 * ( EOL + -1 )
            end 
-           if arg1 == "s" then 
+           if arg1 : match "s" then 
              Comment = Comment +
                  Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
                  * Q ( arg3 ) 
@@ -7412,7 +7429,7 @@ function piton.new_language ( lang , definition )
                  * Q ( arg4 ) 
                  * Ct ( Cc "Close" ) 
            end
-           if arg1 == "n" then 
+           if arg1 : match "n" then 
              Comment = Comment +
                Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
                 * P { "A" ,
@@ -7448,7 +7465,6 @@ function piton.new_language ( lang , definition )
        + Comment 
        + Delim
        + LongString
-        -- should maybe be after the following line!
        + Keyword * ( Space + Punct + Delim + EOL + -1 ) 
        + Punct 
        + K ( 'Identifier' , letter * alphanum ^ 0 )

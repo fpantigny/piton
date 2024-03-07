@@ -19,7 +19,7 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{2.6a}
+\def\PitonFileVersion{2.7}
 \def\PitonFileDate{2024/03/06}
 
 
@@ -1180,6 +1180,7 @@
     Prompt             = ,
     ParseAgain.noCR    = \__piton_piton_no_cr:n ,
     ParseAgain         = \__piton_piton:n ,
+    Discard            = \use_none:n
   }
 \AtBeginDocument
   {
@@ -1192,20 +1193,20 @@
     \tl_if_novalue:nTF { #1 }
       {
         \clist_map_inline:Nn \l_tmpa_clist
-          { \cs_set:cpn { pitonIdentifier _ ##1 } { #3 } }
+          { \cs_set:cpn { PitonIdentifier _ ##1 } { #3 } }
       }
       {
         \str_set:Nx \l_tmpa_str { \str_lowercase:n { #1 } }
         \str_if_eq:onT \l_tmpa_str { current-language }
           { \str_set_eq:NN \l_tmpa_str \l_piton_language_str }
         \clist_map_inline:Nn \l_tmpa_clist
-          { \cs_set:cpn { pitonIdentifier _ \l_tmpa_str _ ##1 } { #3 } }
+          { \cs_set:cpn { PitonIdentifier _ \l_tmpa_str _ ##1 } { #3 } }
       }
   }
 \cs_new_protected:Npn \__piton_identifier:n #1
   {
-    \cs_if_exist_use:cF { pitonIdentifier _ \l_piton_language_str _ #1 }
-      { \cs_if_exist_use:c { pitonIdentifier_ #1 } }
+    \cs_if_exist_use:cF { PitonIdentifier _ \l_piton_language_str _ #1 }
+      { \cs_if_exist_use:c { PitonIdentifier _ #1 } }
     { #1 }
   }
 \keys_define:nn { PitonOptions }
