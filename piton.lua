@@ -1342,6 +1342,7 @@ function piton.new_language ( lang , definition )
   do if x[1] == "morekeywords"
         or x[1] == "otherkeywords"
         or x[1] == "moredirectives"
+        or x[1] == "moretexcs"
      then
         local keywords = P ( false )
         local style = "\\PitonStyle{Keyword}"
@@ -1349,13 +1350,17 @@ function piton.new_language ( lang , definition )
         style =  option : match ( x[2] ) or style
         local n = tonumber (style )
         if n then
-         if n > 1 then style = "\\PitonStyle{Keyword" .. style .. "}"
+         if n > 1 then style = "\\PitonStyle{Keyword" .. style .. "}" end
         end
-        for _ , word in ipairs ( split_clist : match ( x[2] ) )
-        do if sensitive
-           then keywords = Q ( word  ) + keywords
-           else keywords = keyword_to_lpeg ( word ) + keywords
-           end
+        for _ , word in ipairs ( split_clist : match ( x[2] ) ) do
+          if x[1] == "moretexcs" then
+            keywords = Q ( "\\" .. word ) + keywords
+          else
+            if sensitive
+            then keywords = Q ( word  ) + keywords
+            else keywords = keyword_to_lpeg ( word ) + keywords
+            end
+          end
         end
         Keyword = Keyword +
            Lc ( "{" .. style .. "{" ) * keywords * Lc "}}"

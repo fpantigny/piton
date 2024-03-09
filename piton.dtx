@@ -7311,6 +7311,7 @@ function piton.new_language ( lang , definition )
   do if x[1] == "morekeywords" 
         or x[1] == "otherkeywords" 
         or x[1] == "moredirectives" 
+        or x[1] == "moretexcs"
      then
         local keywords = P ( false )
 %    \end{macrocode}
@@ -7324,17 +7325,21 @@ function piton.new_language ( lang , definition )
         end 
 %    \end{macrocode}
 %    \begin{macrocode}
-        for _ , word in ipairs ( split_clist : match ( x[2] ) )
-        do if sensitive 
+        for _ , word in ipairs ( split_clist : match ( x[2] ) ) do
+          if x[1] == "moretexcs" then
+            keywords = Q ( "\\" .. word ) + keywords
+          else 
+            if sensitive 
 %    \end{macrocode}
 % The documentation of \pkg{lstlistings} specifies that, for the key
 % |otherkeywords|, if a keyword is a prefix of another keyword, then the prefix
 % must appear first. However, for the \text{lpeg}, it's rather the contrary.
 % That's why, here, we add the new element \emph{on the left}.
 %    \begin{macrocode}
-           then keywords = Q ( word  ) + keywords
-           else keywords = keyword_to_lpeg ( word ) + keywords
-           end 
+            then keywords = Q ( word  ) + keywords
+            else keywords = keyword_to_lpeg ( word ) + keywords
+            end
+          end 
         end
         Keyword = Keyword + 
            Lc ( "{" .. style .. "{" ) * keywords * Lc "}}" 
