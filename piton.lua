@@ -1138,16 +1138,15 @@ function piton.ParseTer ( language , code )
   return piton.Parse ( language , s )
 end
 local function gobble ( n , code )
-  if n==0
+  if n == 0
   then return code
-  else
-       return ( Ct (
-                     ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
-                       * ( C "\r"
-                       * ( 1 - P "\r" ) ^ (-n)
-                       * C ( ( 1 - P "\r" ) ^ 0 )
-                      ) ^ 0
-                   ) / table.concat ) : match ( code )
+  else return
+       ( Ct (
+              ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
+                * ( C "\r" * ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
+            ) ^ 0 )
+         / table.concat
+       ) : match ( code )
   end
 end
 local AutoGobbleLPEG =
@@ -1340,8 +1339,18 @@ function piton.new_language ( lang , definition )
   end
   local Keyword = P ( false )
   for _ , x in ipairs ( def_table )
-  do if x[1] == "morekeywords" or x[1] == "otherkeywords" then
+  do if x[1] == "morekeywords"
+        or x[1] == "otherkeywords"
+        or x[1] == "moredirectives"
+     then
         local keywords = P ( false )
+        local style = "\\PitonStyle{Keyword}"
+        if x[1] == "moredirectives" then style = "\\PitonStyle{directive}" end
+        style =  option : match ( x[2] ) or style
+        local n = tonumber (style )
+        if n then
+         if n > 1 then style = "\\PitonStyle{Keyword" .. style .. "}"
+        end
         for _ , word in ipairs ( split_clist : match ( x[2] ) )
         do if sensitive
            then keywords = Q ( word  ) + keywords
@@ -1349,10 +1358,7 @@ function piton.new_language ( lang , definition )
            end
         end
         Keyword = Keyword +
-           Lc ( "{"
-                 ..  ( option : match ( x[2] ) or "\\PitonStyle{Keyword}" )
-                 .. "{" )
-           * keywords * Lc "}}"
+           Lc ( "{" .. style .. "{" ) * keywords * Lc "}}"
      end
      if x[1] == "keywordsprefix" then
        local prefix = ( ( C ( 1 - P " " ) ^ 1 ) * P " " ^ 0 ) : match ( x[2] )
@@ -1411,54 +1417,90 @@ function piton.new_language ( lang , definition )
   DetectedCommands = Compute_DetectedCommands ( lang , braces )
 
   LPEG_cleaner[lang] = Compute_LPEG_cleaner ( lang , braces )
-  local Comment = P ( false )
+  local CommentDelim = P ( false )
 
-  for _ , x in ipairs ( def_table )
-  do if x[1] == "morecomment"
-     then local arg1 , arg2 , arg3 , arg4 = args : match ( x[2] )
-          arg2 = arg2 or "\\PitonStyle{Comment}"
-          if arg1 : match "i" then arg2 = "\\PitonStyle{Discard}" end
-          if arg1 : match "l" then
-            if arg3 == [[\#]] then arg3 = "#" end -- mandatory
-            Comment = Comment +
-                Ct ( Cc "Open"
-                     * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
-                     *  Q ( arg3 )
-                     * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
-                * Ct ( Cc "Close" )
-                * ( EOL + -1 )
-           end
-           if arg1 : match "s" then
-             Comment = Comment +
-                 Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
-                 * Q ( arg3 )
-                 * (
-                     CommentMath
-                     + Q ( ( 1 - P ( arg4 ) - S "$\r" ) ^ 1 ) -- $
-                     + EOL
-                   ) ^ 0
-                 * Q ( arg4 )
-                 * Ct ( Cc "Close" )
-           end
-           if arg1 : match "n" then
-             Comment = Comment +
-               Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
-                * P { "A" ,
-                     A = Q ( arg3 )
-                         * ( V "A"
-                             + Q ( ( 1 - P ( arg3 ) - P ( arg4 )
-                                     - S "\r$\"" ) ^ 1 ) -- $
-                             + long_string
-                             +   "$" -- $
-                                 * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) --$
-                                 * "$" -- $
-                             + EOL
-                           ) ^ 0
-                         * Q ( arg4 )
-                    }
-               * Ct ( Cc "Close" )
-           end
+  for _ , x in ipairs ( def_table ) do
+    if x[1] == "morecomment" then
+      local arg1 , arg2 , arg3 , arg4 = args : match ( x[2] )
+      arg2 = arg2 or "\\PitonStyle{Comment}"
+      if arg1 : match "i" then arg2 = "\\PitonStyle{Discard}" end
+      if arg1 : match "l" then
+        if arg3 == [[\#]] then arg3 = "#" end -- mandatory
+        CommentDelim = CommentDelim +
+            Ct ( Cc "Open"
+                 * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
+                 *  Q ( arg3 )
+                 * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
+            * Ct ( Cc "Close" )
+            * ( EOL + -1 )
       end
+      if arg1 : match "s" then
+        CommentDelim = CommentDelim +
+            Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
+            * Q ( arg3 )
+            * (
+                CommentMath
+                + Q ( ( 1 - P ( arg4 ) - S "$\r" ) ^ 1 ) -- $
+                + EOL
+              ) ^ 0
+            * Q ( arg4 )
+            * Ct ( Cc "Close" )
+      end
+      if arg1 : match "n" then
+        CommentDelim = CommentDelim +
+          Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
+           * P { "A" ,
+                A = Q ( arg3 )
+                    * ( V "A"
+                        + Q ( ( 1 - P ( arg3 ) - P ( arg4 )
+                                - S "\r$\"" ) ^ 1 ) -- $
+                        + long_string
+                        +   "$" -- $
+                            * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) --$
+                            * "$" -- $
+                        + EOL
+                      ) ^ 0
+                    * Q ( arg4 )
+               }
+          * Ct ( Cc "Close" )
+      end
+    end
+    local args = ( C ( P "*" ^ -2 ) + Cc ( nil ) ) * space ^ 0 * args
+    if x[1] == "moredelim" then
+      local arg1 , arg2 , arg3 , arg4 , arg5 = args : match ( x[2] )
+      local MyFun = Q
+      if arg1 == "*" or arg1 == "**" then
+        MyFun = function ( x ) return K ( 'ParseAgain.noCR' , x ) end
+      end
+      local left_delim
+      if arg2 : match "i" then
+        left_delim = P ( arg4 )
+      else
+        left_delim = Q ( arg4 )
+      end
+      if arg2 : match "l" then
+        CommentDelim = CommentDelim +
+            Ct ( Cc "Open" * Cc ( "{" .. arg3 .. "{" ) * Cc "}}" )
+            * left_delim
+            * ( MyFun ( ( 1 - P "\r" ) ^ 1 ) ) ^ 0
+            * Ct ( Cc "Close" )
+            * ( EOL + -1 )
+      end
+      if arg2 : match "s" then
+        local right_delim
+        if arg2 : match "i" then
+          right_delim = P ( arg5 )
+        else
+          right_delim = Q ( arg5 )
+        end
+        CommentDelim = CommentDelim +
+            Ct ( Cc "Open" * Cc ( "{" .. arg3 .. "{" ) * Cc "}}" )
+            * left_delim
+            * ( MyFun ( ( 1 - P ( arg5 ) - "\r" ) ^ 1 ) + EOL ) ^ 0
+            * right_delim
+            * Ct ( Cc "Close" )
+      end
+    end
   end
 
   local Delim = Q ( S "{[()]}" )
@@ -1473,7 +1515,7 @@ function piton.new_language ( lang , definition )
        + CommentLaTeX
        + Beamer
        + DetectedCommands
-       + Comment
+       + CommentDelim
        + Delim
        + LongString
        + Keyword * ( Space + Punct + Delim + EOL + -1 )

@@ -4336,6 +4336,14 @@
     Interpol.Inside ,
     Keyword ,
     Keyword.Constant ,
+    Keyword2 ,
+    Keyword3 ,
+    Keyword4 ,
+    Keyword5 ,
+    Keyword6 ,
+    Keyword7 ,
+    Keyword8 ,
+    Keyword9 ,
     Name.Builtin ,      
     Name.Class ,
     Name.Constructor ,
@@ -4356,7 +4364,12 @@
     String.Long ,
     String.Short ,     
     TypeParameter ,    
-    UserFunction 
+    UserFunction ,
+%    \end{macrocode}
+% Now, specific styles for the languages created with |\NewPitonLanguage| with
+% the syntax of \pkg{listings}.
+%    \begin{macrocode}
+    directive
   }  
 
 \clist_map_inline:Nn \g_@@_styles_clist  
@@ -4444,6 +4457,7 @@
     TypeParameter      = \color[HTML]{336666} \itshape ,
     Preproc            = \color[HTML]{AA6600} \slshape ,
     Identifier         = \@@_identifier:n , 
+    directive          = \color[HTML]{AA6600} ,
     UserFunction       = , 
     Prompt             = , 
     ParseAgain.noCR    = \@@_piton_no_cr:n , 
@@ -6954,16 +6968,15 @@ end
 % value of~$n$.
 %    \begin{macrocode}
 local function gobble ( n , code )
-  if n==0 
+  if n == 0 
   then return code
-  else 
-       return ( Ct ( 
-                     ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 ) 
-                       * ( C "\r" 
-                       * ( 1 - P "\r" ) ^ (-n)
-                       * C ( ( 1 - P "\r" ) ^ 0 )
-                      ) ^ 0 
-                   ) / table.concat ) : match ( code ) 
+  else return 
+       ( Ct ( 
+              ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 ) 
+                * ( C "\r" * ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
+            ) ^ 0 ) 
+         / table.concat 
+       ) : match ( code ) 
   end
 end
 %    \end{macrocode}
@@ -7292,11 +7305,25 @@ function piton.new_language ( lang , definition )
   end 
   local Keyword = P ( false )  
 %    \end{macrocode}
-% Now, we actually treat all the keywords.
+% Now, we actually treat all the keywords and also the key |moredirectives|.
 %    \begin{macrocode}
   for _ , x in ipairs ( def_table )
-  do if x[1] == "morekeywords" or x[1] == "otherkeywords" then
-        local keywords = P ( false ) 
+  do if x[1] == "morekeywords" 
+        or x[1] == "otherkeywords" 
+        or x[1] == "moredirectives" 
+     then
+        local keywords = P ( false )
+%    \end{macrocode}
+%    \begin{macrocode}
+        local style = "\\PitonStyle{Keyword}"
+        if x[1] == "moredirectives" then style = "\\PitonStyle{directive}" end
+        style =  option : match ( x[2] ) or style
+        local n = tonumber (style )
+        if n then 
+         if n > 1 then style = "\\PitonStyle{Keyword" .. style .. "}" end
+        end 
+%    \end{macrocode}
+%    \begin{macrocode}
         for _ , word in ipairs ( split_clist : match ( x[2] ) )
         do if sensitive 
 %    \end{macrocode}
@@ -7310,10 +7337,7 @@ function piton.new_language ( lang , definition )
            end 
         end
         Keyword = Keyword + 
-           Lc ( "{" 
-                 ..  ( option : match ( x[2] ) or "\\PitonStyle{Keyword}" ) 
-                 .. "{" )
-           * keywords * Lc "}}" 
+           Lc ( "{" .. style .. "{" ) * keywords * Lc "}}" 
      end 
      if x[1] == "keywordsprefix" then
        local prefix = ( ( C ( 1 - P " " ) ^ 1 ) * P " " ^ 0 ) : match ( x[2] ) 
@@ -7393,61 +7417,100 @@ function piton.new_language ( lang , definition )
 %    \end{macrocode}
 %
 % \bigskip
-% Now, we deal with the comments.
+% Now, we deal with the comments and the delims.
 %    \begin{macrocode}
-  local Comment = P ( false ) 
+  local CommentDelim = P ( false ) 
 
-
-  for _ , x in ipairs ( def_table )
-  do if x[1] == "morecomment"
-     then local arg1 , arg2 , arg3 , arg4 = args : match ( x[2] ) 
-          arg2 = arg2 or "\\PitonStyle{Comment}"
+  for _ , x in ipairs ( def_table ) do
+    if x[1] == "morecomment" then 
+      local arg1 , arg2 , arg3 , arg4 = args : match ( x[2] ) 
+      arg2 = arg2 or "\\PitonStyle{Comment}"
 %    \end{macrocode}
 % If the letter |i| is present in the first argument (eg: 
 % |morecomment = [si]{(*}{*)}|, then the corresponding comments are discarded. 
 %    \begin{macrocode}
-          if arg1 : match "i" then arg2 = "\\PitonStyle{Discard}" end
-          if arg1 : match "l" then 
-            if arg3 == [[\#]] then arg3 = "#" end -- mandatory
-            Comment = Comment + 
-                Ct ( Cc "Open" 
-                     * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
-                     *  Q ( arg3 ) 
-                     * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
-                * Ct ( Cc "Close" ) 
-                * ( EOL + -1 )
-           end 
-           if arg1 : match "s" then 
-             Comment = Comment +
-                 Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
-                 * Q ( arg3 ) 
-                 * ( 
-                     CommentMath 
-                     + Q ( ( 1 - P ( arg4 ) - S "$\r" ) ^ 1 ) -- $
-                     + EOL 
-                   ) ^ 0  
-                 * Q ( arg4 ) 
-                 * Ct ( Cc "Close" ) 
-           end
-           if arg1 : match "n" then 
-             Comment = Comment +
-               Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
-                * P { "A" ,
-                     A = Q ( arg3 ) 
-                         * ( V "A" 
-                             + Q ( ( 1 - P ( arg3 ) - P ( arg4 ) 
-                                     - S "\r$\"" ) ^ 1 ) -- $
-                             + long_string
-                             +   "$" -- $
-                                 * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) --$
-                                 * "$" -- $
-                             + EOL
-                           ) ^ 0 
-                         * Q ( arg4 )
-                    }  
-               * Ct ( Cc "Close" ) 
-           end
+      if arg1 : match "i" then arg2 = "\\PitonStyle{Discard}" end
+      if arg1 : match "l" then 
+        if arg3 == [[\#]] then arg3 = "#" end -- mandatory
+        CommentDelim = CommentDelim + 
+            Ct ( Cc "Open" 
+                 * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
+                 *  Q ( arg3 ) 
+                 * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
+            * Ct ( Cc "Close" ) 
+            * ( EOL + -1 )
       end 
+      if arg1 : match "s" then 
+        CommentDelim = CommentDelim +
+            Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
+            * Q ( arg3 ) 
+            * ( 
+                CommentMath 
+                + Q ( ( 1 - P ( arg4 ) - S "$\r" ) ^ 1 ) -- $
+                + EOL 
+              ) ^ 0  
+            * Q ( arg4 ) 
+            * Ct ( Cc "Close" ) 
+      end
+      if arg1 : match "n" then 
+        CommentDelim = CommentDelim +
+          Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
+           * P { "A" ,
+                A = Q ( arg3 ) 
+                    * ( V "A" 
+                        + Q ( ( 1 - P ( arg3 ) - P ( arg4 ) 
+                                - S "\r$\"" ) ^ 1 ) -- $
+                        + long_string
+                        +   "$" -- $
+                            * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) --$
+                            * "$" -- $
+                        + EOL
+                      ) ^ 0 
+                    * Q ( arg4 )
+               }  
+          * Ct ( Cc "Close" ) 
+      end
+    end 
+%    \end{macrocode}
+% For the keys |moredelim|, we have to add another argument in first position,
+% equal to |*| or |**|.
+%    \begin{macrocode}
+    local args = ( C ( P "*" ^ -2 ) + Cc ( nil ) ) * space ^ 0 * args
+    if x[1] == "moredelim" then 
+      local arg1 , arg2 , arg3 , arg4 , arg5 = args : match ( x[2] ) 
+      local MyFun = Q 
+      if arg1 == "*" or arg1 == "**" then
+        MyFun = function ( x ) return K ( 'ParseAgain.noCR' , x ) end
+      end
+      local left_delim 
+      if arg2 : match "i" then
+        left_delim = P ( arg4 ) 
+      else 
+        left_delim = Q ( arg4 )
+      end 
+      if arg2 : match "l" then 
+        CommentDelim = CommentDelim +
+            Ct ( Cc "Open" * Cc ( "{" .. arg3 .. "{" ) * Cc "}}" ) 
+            * left_delim
+            * ( MyFun ( ( 1 - P "\r" ) ^ 1 ) ) ^ 0  
+            * Ct ( Cc "Close" ) 
+            * ( EOL + -1 ) 
+      end
+      if arg2 : match "s" then 
+        local right_delim 
+        if arg2 : match "i" then
+          right_delim = P ( arg5 )
+        else 
+          right_delim = Q ( arg5 )
+        end 
+        CommentDelim = CommentDelim +
+            Ct ( Cc "Open" * Cc ( "{" .. arg3 .. "{" ) * Cc "}}" ) 
+            * left_delim
+            * ( MyFun ( ( 1 - P ( arg5 ) - "\r" ) ^ 1 ) + EOL ) ^ 0  
+            * right_delim
+            * Ct ( Cc "Close" ) 
+      end
+    end 
   end 
 
   local Delim = Q ( S "{[()]}" )
@@ -7462,7 +7525,7 @@ function piton.new_language ( lang , definition )
        + CommentLaTeX
        + Beamer
        + DetectedCommands
-       + Comment 
+       + CommentDelim
        + Delim
        + LongString
        + Keyword * ( Space + Punct + Delim + EOL + -1 ) 

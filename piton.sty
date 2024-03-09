@@ -1083,6 +1083,7 @@
   {
     Comment ,
     Comment.LaTeX ,
+    Discard ,
     Exception ,
     FormattingType ,
     Identifier ,
@@ -1110,7 +1111,8 @@
     String.Long ,
     String.Short ,
     TypeParameter ,
-    UserFunction
+    UserFunction ,
+    directive
   }
 
 \clist_map_inline:Nn \g__piton_styles_clist
@@ -1176,6 +1178,7 @@
     TypeParameter      = \color[HTML]{336666} \itshape ,
     Preproc            = \color[HTML]{AA6600} \slshape ,
     Identifier         = \__piton_identifier:n ,
+    directive          = \color[HTML]{AA6600} ,
     UserFunction       = ,
     Prompt             = ,
     ParseAgain.noCR    = \__piton_piton_no_cr:n ,
