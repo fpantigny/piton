@@ -7233,22 +7233,73 @@ function piton.new_language ( lang , definition )
 % now in the Lua table |def_table|. We will use it several times.
 %
 % \medskip
+% The following \textsc{lpeg} will be used to extract arguments in the values of
+% the keys (|morekeywords|, |morecomment|, |morestring|, etc.).
+%    \begin{macrocode}
+  local tex_braced_arg = "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" 
+  local tex_arg = tex_braced_arg + C ( 1 ) 
+  local tex_option_arg =  "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil ) 
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+  local args_for_morekeywords 
+    = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" 
+       * space ^ 0 
+       * tex_option_arg
+       * space ^ 0
+       * tex_arg
+       * space ^ 0
+       * ( tex_braced_arg + Cc ( nil ) ) 
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+  local args_for_moredelims
+    = ( C ( P "*" ^ -2 ) + Cc ( nil ) ) * space ^ 0 
+      * args_for_morekeywords
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+  local args_for_morecomment
+    = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" 
+       * space ^ 0 
+       * tex_option_arg 
+       * space ^ 0
+       * C ( P ( 1 ) ^ 0 ) * -1
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+  local args_for_tag 
+    = ( P "*" ^ -2 ) 
+       * space ^ 0
+       * ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ 0 
+       * space ^ 0
+       * tex_arg
+       * space ^ 0
+       * tex_arg
+%    \end{macrocode}
+%
+%
 % \bigskip
 % We scan the definition of the language (i.e. the table |def_table|) in order
 % to detect the potential key |sensitive|. Indeed, we have to catch that key
 % before the treatment of the keywords of the language. We will also look for
-% the potential keys |alsodigit| and |alsoletter|. 
+% the potential keys |alsodigit|, |alsoletter| and |tag|. 
 %    \begin{macrocode}
   local sensitive = true 
-  for _ , x in ipairs ( def_table )
-  do if x[1] == "sensitive"
-     then if x[2] == nil or ( P "true" ) : match ( x[2] ) 
-          then sensitive = true 
-          else if ( P "false" ) : match ( x[2] ) then sensitive = false end
-          end
-     end
-     if x[1] == "alsodigit" then x[2] : gsub ( "." , add_to_digit ) end 
-     if x[1] == "alsoletter" then x[2] : gsub ( "." , add_to_letter ) end 
+  local left_tag , right_tag 
+  for _ , x in ipairs ( def_table ) do
+    if x[1] == "sensitive" then 
+      if x[2] == nil or ( P "true" ) : match ( x[2] ) then 
+        sensitive = true 
+      else 
+        if ( P "false" + P "f" ) : match ( x[2] ) then sensitive = false end
+      end
+    end
+    if x[1] == "alsodigit" then x[2] : gsub ( "." , add_to_digit ) end 
+    if x[1] == "alsoletter" then x[2] : gsub ( "." , add_to_letter ) end 
+    if x[1] == "tag" then
+      left_tag , right_tag = args_for_tag : match ( x[2] ) 
+    end 
   end
 %    \end{macrocode}
 % Now, the \textsc{lpeg} for the numbers. Of course, it uses |digit| previously
@@ -7275,11 +7326,6 @@ function piton.new_language ( lang , definition )
 % Now, we scan the definition of the language (i.e. the table |def_table|) for
 % the keywords.
 %
-% The following LPEG catches the optional argument (between square brackets) in
-% first position.
-%    \begin{macrocode}
-  local option = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" 
-%    \end{macrocode}
 %
 % The following LPEG does \emph{not} catch the optional argument between square
 % brackets in first position.
@@ -7318,7 +7364,7 @@ function piton.new_language ( lang , definition )
 %    \begin{macrocode}
         local style = "\\PitonStyle{Keyword}"
         if x[1] == "moredirectives" then style = "\\PitonStyle{directive}" end
-        style =  option : match ( x[2] ) or style
+        style =  tex_option_arg : match ( x[2] ) or style
         local n = tonumber (style )
         if n then 
          if n > 1 then style = "\\PitonStyle{Keyword" .. style .. "}" end
@@ -7351,15 +7397,6 @@ function piton.new_language ( lang , definition )
   end    
 %    \end{macrocode}
 %
-%    \begin{macrocode}
-  local args = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" 
-               * space ^ 0 
-               * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil ) ) 
-               * space ^ 0
-               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) ) 
-               * space ^ 0
-               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + Cc ( nil ) ) 
-%    \end{macrocode}
 % 
 % \bigskip
 % Now, we scan the definition of the language (i.e. the table |def_table|) for
@@ -7370,7 +7407,7 @@ function piton.new_language ( lang , definition )
   local central_pattern = P ( false ) 
   for _ , x in ipairs ( def_table ) do
     if x[1] == "morestring" then
-      arg1 , arg2 , arg3 , arg4 = args : match ( x[2] ) 
+      arg1 , arg2 , arg3 , arg4 = args_for_morekeywords : match ( x[2] ) 
       arg2 = arg2 or "\\PitonStyle{String.Long}"
       if arg1 == "s" then
         long_string =
@@ -7428,7 +7465,7 @@ function piton.new_language ( lang , definition )
 
   for _ , x in ipairs ( def_table ) do
     if x[1] == "morecomment" then 
-      local arg1 , arg2 , arg3 , arg4 = args : match ( x[2] ) 
+      local arg1 , arg2 , other_args = args_for_morecomment : match ( x[2] ) 
       arg2 = arg2 or "\\PitonStyle{Comment}"
 %    \end{macrocode}
 % If the letter |i| is present in the first argument (eg: 
@@ -7436,6 +7473,8 @@ function piton.new_language ( lang , definition )
 %    \begin{macrocode}
       if arg1 : match "i" then arg2 = "\\PitonStyle{Discard}" end
       if arg1 : match "l" then 
+        local arg3 = ( tex_arg + C ( P ( 1 ) ^ 0 ) * -1 )
+                     : match ( other_args ) 
         if arg3 == [[\#]] then arg3 = "#" end -- mandatory
         CommentDelim = CommentDelim + 
             Ct ( Cc "Open" 
@@ -7444,45 +7483,48 @@ function piton.new_language ( lang , definition )
                  * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
             * Ct ( Cc "Close" ) 
             * ( EOL + -1 )
-      end 
-      if arg1 : match "s" then 
-        CommentDelim = CommentDelim +
+      else 
+        local arg3 , arg4 = 
+          ( tex_arg * space ^ 0 * tex_arg ) : match ( other_args )
+        if arg1 : match "s" then 
+          CommentDelim = CommentDelim +
+              Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
+              * Q ( arg3 ) 
+              * ( 
+                  CommentMath 
+                  + Q ( ( 1 - P ( arg4 ) - S "$\r" ) ^ 1 ) -- $
+                  + EOL 
+                ) ^ 0  
+              * Q ( arg4 ) 
+              * Ct ( Cc "Close" ) 
+        end
+        if arg1 : match "n" then 
+          CommentDelim = CommentDelim +
             Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
-            * Q ( arg3 ) 
-            * ( 
-                CommentMath 
-                + Q ( ( 1 - P ( arg4 ) - S "$\r" ) ^ 1 ) -- $
-                + EOL 
-              ) ^ 0  
-            * Q ( arg4 ) 
+             * P { "A" ,
+                  A = Q ( arg3 ) 
+                      * ( V "A" 
+                          + Q ( ( 1 - P ( arg3 ) - P ( arg4 ) 
+                                  - S "\r$\"" ) ^ 1 ) -- $
+                          + long_string
+                          +   "$" -- $
+                              * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) --$
+                              * "$" -- $
+                          + EOL
+                        ) ^ 0 
+                      * Q ( arg4 )
+                 }  
             * Ct ( Cc "Close" ) 
-      end
-      if arg1 : match "n" then 
-        CommentDelim = CommentDelim +
-          Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
-           * P { "A" ,
-                A = Q ( arg3 ) 
-                    * ( V "A" 
-                        + Q ( ( 1 - P ( arg3 ) - P ( arg4 ) 
-                                - S "\r$\"" ) ^ 1 ) -- $
-                        + long_string
-                        +   "$" -- $
-                            * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) --$
-                            * "$" -- $
-                        + EOL
-                      ) ^ 0 
-                    * Q ( arg4 )
-               }  
-          * Ct ( Cc "Close" ) 
+        end
       end
     end 
 %    \end{macrocode}
 % For the keys |moredelim|, we have to add another argument in first position,
 % equal to |*| or |**|.
 %    \begin{macrocode}
-    local args = ( C ( P "*" ^ -2 ) + Cc ( nil ) ) * space ^ 0 * args
     if x[1] == "moredelim" then 
-      local arg1 , arg2 , arg3 , arg4 , arg5 = args : match ( x[2] ) 
+      local arg1 , arg2 , arg3 , arg4 , arg5 
+        = args_for_moredelims : match ( x[2] )  
       local MyFun = Q 
       if arg1 == "*" or arg1 == "**" then
         MyFun = function ( x ) return K ( 'ParseAgain.noCR' , x ) end
@@ -7521,6 +7563,21 @@ function piton.new_language ( lang , definition )
   local Delim = Q ( S "{[()]}" )
   local Punct = Q ( S ",:;!\\'\"" )
 
+  if left_tag then
+    Keyword = Q ( left_tag ) 
+              * (   Space 
+                  + LongString 
+                  + Q "/" ^ -1  * Keyword 
+                  + Punct 
+                  + K ( 'Identifier' , letter * alphanum ^ 0 )
+                  + Number 
+                  + Q ( ( ( 1 - space ) - S ( "'\"\r[({})]" .. right_tag ) - digit ) ^ 1 )
+                ) ^ 0 
+              * Q ( right_tag ) 
+  else 
+    Keyword = Keyword * ( Space + Punct + Delim + EOL + -1 ) 
+  end 
+
   local Main = 
          space ^ 1 * -1
        + space ^ 0 * EOL 
@@ -7533,7 +7590,7 @@ function piton.new_language ( lang , definition )
        + CommentDelim
        + Delim
        + LongString
-       + Keyword * ( Space + Punct + Delim + EOL + -1 ) 
+       + Keyword
        + Punct 
        + K ( 'Identifier' , letter * alphanum ^ 0 )
        + Number

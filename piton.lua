@@ -1298,16 +1298,38 @@ function piton.new_language ( lang , definition )
                 * ( "=" * space ^ 0 * C ( strict_braces ) ) ^ -1 )
       }
   local def_table = cut_definition : match ( definition )
+  local args = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
+               * space ^ 0
+               * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil ) )
+               * space ^ 0
+               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) )
+               * space ^ 0
+               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + Cc ( nil ) )
+  local stars_args = ( C ( P "*" ^ -2 ) + Cc ( nil ) ) * space ^ 0 * args
+  local args_for_tag
+            = ( P "*" ^ -2 )
+               * space ^ 0
+               * ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ 0
+               * space ^ 0
+               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) )
+               * space ^ 0
+               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) )
+  local option = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
   local sensitive = true
-  for _ , x in ipairs ( def_table )
-  do if x[1] == "sensitive"
-     then if x[2] == nil or ( P "true" ) : match ( x[2] )
-          then sensitive = true
-          else if ( P "false" ) : match ( x[2] ) then sensitive = false end
-          end
-     end
-     if x[1] == "alsodigit" then x[2] : gsub ( "." , add_to_digit ) end
-     if x[1] == "alsoletter" then x[2] : gsub ( "." , add_to_letter ) end
+  local left_tag , right_tag
+  for _ , x in ipairs ( def_table ) do
+    if x[1] == "sensitive" then
+      if x[2] == nil or ( P "true" ) : match ( x[2] ) then
+        sensitive = true
+      else
+        if ( P "false" ) : match ( x[2] ) then sensitive = false end
+      end
+    end
+    if x[1] == "alsodigit" then x[2] : gsub ( "." , add_to_digit ) end
+    if x[1] == "alsoletter" then x[2] : gsub ( "." , add_to_letter ) end
+    if x[1] == "tag" then
+      left_tag , right_tag = args_for_tag : match ( x[2] )
+    end
   end
   local Number =
     K ( 'Number' ,
@@ -1320,7 +1342,6 @@ function piton.new_language ( lang , definition )
   local alphanum = letter + digit
   local identifier = letter * alphanum ^ 0
   local Identifier = K ( 'Identifier' , identifier )
-  local option = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
   local split_clist =
     P { "E" ,
          E = ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ -1
@@ -1370,13 +1391,6 @@ function piton.new_language ( lang , definition )
        Keyword = Keyword + K ( 'Keyword' , P ( prefix ) * alphanum ^ 0 )
      end
   end
-  local args = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
-               * space ^ 0
-               * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil ) )
-               * space ^ 0
-               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) )
-               * space ^ 0
-               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + Cc ( nil ) )
   local long_string  = P ( false )
   local LongString = P (false )
   local central_pattern = P ( false )
@@ -1470,9 +1484,8 @@ function piton.new_language ( lang , definition )
           * Ct ( Cc "Close" )
       end
     end
-    local args = ( C ( P "*" ^ -2 ) + Cc ( nil ) ) * space ^ 0 * args
     if x[1] == "moredelim" then
-      local arg1 , arg2 , arg3 , arg4 , arg5 = args : match ( x[2] )
+      local arg1 , arg2 , arg3 , arg4 , arg5 = stars_args : match ( x[2] )
       local MyFun = Q
       if arg1 == "*" or arg1 == "**" then
         MyFun = function ( x ) return K ( 'ParseAgain.noCR' , x ) end
@@ -1510,6 +1523,17 @@ function piton.new_language ( lang , definition )
 
   local Delim = Q ( S "{[()]}" )
   local Punct = Q ( S ",:;!\\'\"" )
+
+  if left_tag then
+    tex.print ( "Valeur de left tag :" .. left_tag )
+    Keyword = Q ( left_tag )
+              * ( Keyword
+                  + LongString
+                  + Punct
+                  + Number
+                  + C ( ( 1 - P ( right_tag ) ) ^ 1 ) ) ^ 0
+              * Q ( right_tag )
+  end
 
   local Main =
          space ^ 1 * -1
