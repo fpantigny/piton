@@ -97,10 +97,11 @@ local Number =
       + digit ^ 1
     )
 local Word
-if piton.begin_escape ~= nil
-then Word = Q ( ( ( 1 - space - P ( piton.begin_escape ) - P ( piton.end_escape ) )
+if piton.begin_escape then
+  Word = Q ( ( 1 - space - piton.begin_escape - piton.end_escape
                    - S "'\"\r[({})]" - digit ) ^ 1 )
-else Word = Q ( ( ( 1 - space ) - S "'\"\r[({})]" - digit ) ^ 1 )
+else
+  Word = Q ( ( 1 - space - S "'\"\r[({})]" - digit ) ^ 1 )
 end
 local Space = Q " " ^ 1
 
@@ -119,7 +120,7 @@ local function Compute_braces ( lpeg_string ) return
     P { "E" ,
          E =
              (
-               P "{" * V "E" * P "}"
+               "{" * V "E" * "}"
                +
                lpeg_string
                +
@@ -137,10 +138,10 @@ local function Compute_DetectedCommands ( lang , braces ) return
    * Ct ( Cc "Close" )
 end
 local function Compute_LPEG_cleaner ( lang , braces ) return
-  Ct ( ( piton.ListCommands * P "{"
+  Ct ( ( piton.ListCommands * "{"
           * (  braces
               / ( function ( s ) return LPEG_cleaner[lang] : match ( s ) end ) )
-          * P "}"
+          * "}"
          + EscapeClean
          +  C ( P ( 1 ) )
         ) ^ 0 ) / table.concat
@@ -159,37 +160,37 @@ BeamerBeginEnvironments =
       L
         (
           P "\\begin{" * BeamerNamesEnvironments * "}"
-          * ( P "<" * ( 1 - P ">" ) ^ 0 * P ">" ) ^ -1
+          * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
         )
-      * P "\r"
+      * "\r"
     ) ^ 0
 BeamerEndEnvironments =
     ( space ^ 0 *
-      L ( P "\\end{" * BeamerNamesEnvironments * P "}" )
-      * P "\r"
+      L ( P "\\end{" * BeamerNamesEnvironments * "}" )
+      * "\r"
     ) ^ 0
 local function Compute_Beamer ( lang , braces )
-  local lpeg = L ( P "\\pause" * ( P "[" * ( 1 - P "]" ) ^ 0 * P "]" ) ^ -1 )
+  local lpeg = L ( P "\\pause" * ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ -1 )
   lpeg = lpeg +
       Ct ( Cc "Open"
             * C ( ( P "\\uncover" + "\\only" + "\\alert" + "\\visible"
                     + "\\invisible" + "\\action" )
-                  * ( P "<" * ( 1 - P ">" ) ^ 0 * P ">" ) ^ -1
+                  * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
                   * P "{"
                 )
             * Cc "}"
          )
        * ( braces / ( function ( s ) return LPEG1[lang] : match ( s ) end ) )
-       * P "}"
+       * "}"
        * Ct ( Cc "Close" )
   lpeg = lpeg +
-    L ( P "\\alt" * P "<" * ( 1 - P ">" ) ^ 0 * P ">" * P "{" )
+    L ( P "\\alt" * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
      * K ( 'ParseAgain.noCR' , braces )
      * L ( P "}{" )
      * K ( 'ParseAgain.noCR' , braces )
      * L ( P "}" )
   lpeg = lpeg +
-      L ( ( P "\\temporal" ) * P "<" * ( 1 - P ">" ) ^ 0 * P ">" * P "{" )
+      L ( ( P "\\temporal" ) * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
       * K ( 'ParseAgain.noCR' , braces )
       * L ( P "}{" )
       * K ( 'ParseAgain.noCR' , braces )
@@ -201,7 +202,7 @@ local function Compute_Beamer ( lang , braces )
         Ct ( Cc "Open"
              * C (
                     P ( "\\begin{" .. x .. "}" )
-                    * ( P "<" * ( 1 - P ">") ^ 0 * P ">" ) ^ -1
+                    * ( "<" * ( 1 - P ">") ^ 0 * ">" ) ^ -1
                   )
              * Cc ( "\\end{" .. x ..  "}" )
             )
@@ -320,9 +321,9 @@ local FromImport =
 local PercentInterpol =
   K ( 'String.Interpol' ,
       P "%"
-      * ( P "(" * alphanum ^ 1 * P ")" ) ^ -1
+      * ( "(" * alphanum ^ 1 * ")" ) ^ -1
       * ( S "-#0 +" ) ^ 0
-      * ( digit ^ 1 + P "*" ) ^ -1
+      * ( digit ^ 1 + "*" ) ^ -1
       * ( "." * ( digit ^ 1 + "*" ) ) ^ -1
       * ( S "HlL" ) ^ -1
       * S "sdfFeExXorgiGauc%"
@@ -1298,23 +1299,34 @@ function piton.new_language ( lang , definition )
                 * ( "=" * space ^ 0 * C ( strict_braces ) ) ^ -1 )
       }
   local def_table = cut_definition : match ( definition )
-  local args = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
-               * space ^ 0
-               * ( "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil ) )
-               * space ^ 0
-               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) )
-               * space ^ 0
-               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + Cc ( nil ) )
-  local stars_args = ( C ( P "*" ^ -2 ) + Cc ( nil ) ) * space ^ 0 * args
+  local tex_braced_arg = "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}"
+  local tex_arg = tex_braced_arg + C ( 1 )
+  local tex_option_arg =  "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil )
+  local args_for_morekeywords
+    = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
+       * space ^ 0
+       * tex_option_arg
+       * space ^ 0
+       * tex_arg
+       * space ^ 0
+       * ( tex_braced_arg + Cc ( nil ) )
+  local args_for_moredelims
+    = ( C ( P "*" ^ -2 ) + Cc ( nil ) ) * space ^ 0
+      * args_for_morekeywords
+  local args_for_morecomment
+    = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
+       * space ^ 0
+       * tex_option_arg
+       * space ^ 0
+       * C ( P ( 1 ) ^ 0 * -1 )
   local args_for_tag
-            = ( P "*" ^ -2 )
-               * space ^ 0
-               * ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ 0
-               * space ^ 0
-               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) )
-               * space ^ 0
-               * ( "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}" + C ( 1 ) )
-  local option = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
+    = ( P "*" ^ -2 )
+       * space ^ 0
+       * ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ 0
+       * space ^ 0
+       * tex_arg
+       * space ^ 0
+       * tex_arg
   local sensitive = true
   local left_tag , right_tag
   for _ , x in ipairs ( def_table ) do
@@ -1322,7 +1334,7 @@ function piton.new_language ( lang , definition )
       if x[2] == nil or ( P "true" ) : match ( x[2] ) then
         sensitive = true
       else
-        if ( P "false" ) : match ( x[2] ) then sensitive = false end
+        if ( P "false" + P "f" ) : match ( x[2] ) then sensitive = false end
       end
     end
     if x[1] == "alsodigit" then x[2] : gsub ( "." , add_to_digit ) end
@@ -1368,7 +1380,7 @@ function piton.new_language ( lang , definition )
         local keywords = P ( false )
         local style = "\\PitonStyle{Keyword}"
         if x[1] == "moredirectives" then style = "\\PitonStyle{directive}" end
-        style =  option : match ( x[2] ) or style
+        style =  tex_option_arg : match ( x[2] ) or style
         local n = tonumber (style )
         if n then
          if n > 1 then style = "\\PitonStyle{Keyword" .. style .. "}" end
@@ -1396,7 +1408,7 @@ function piton.new_language ( lang , definition )
   local central_pattern = P ( false )
   for _ , x in ipairs ( def_table ) do
     if x[1] == "morestring" then
-      arg1 , arg2 , arg3 , arg4 = args : match ( x[2] )
+      arg1 , arg2 , arg3 , arg4 = args_for_morekeywords : match ( x[2] )
       arg2 = arg2 or "\\PitonStyle{String.Long}"
       if arg1 == "s" then
         long_string =
@@ -1440,10 +1452,12 @@ function piton.new_language ( lang , definition )
 
   for _ , x in ipairs ( def_table ) do
     if x[1] == "morecomment" then
-      local arg1 , arg2 , arg3 , arg4 = args : match ( x[2] )
+      local arg1 , arg2 , other_args = args_for_morecomment : match ( x[2] )
       arg2 = arg2 or "\\PitonStyle{Comment}"
       if arg1 : match "i" then arg2 = "\\PitonStyle{Discard}" end
       if arg1 : match "l" then
+        local arg3 = ( tex_braced_arg + C ( P ( 1 ) ^ 0 * -1 ) )
+                     : match ( other_args )
         if arg3 == [[\#]] then arg3 = "#" end -- mandatory
         CommentDelim = CommentDelim +
             Ct ( Cc "Open"
@@ -1452,40 +1466,44 @@ function piton.new_language ( lang , definition )
                  * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
             * Ct ( Cc "Close" )
             * ( EOL + -1 )
-      end
-      if arg1 : match "s" then
-        CommentDelim = CommentDelim +
+      else
+        local arg3 , arg4 =
+          ( tex_arg * space ^ 0 * tex_arg ) : match ( other_args )
+        if arg1 : match "s" then
+          CommentDelim = CommentDelim +
+              Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
+              * Q ( arg3 )
+              * (
+                  CommentMath
+                  + Q ( ( 1 - P ( arg4 ) - S "$\r" ) ^ 1 ) -- $
+                  + EOL
+                ) ^ 0
+              * Q ( arg4 )
+              * Ct ( Cc "Close" )
+        end
+        if arg1 : match "n" then
+          CommentDelim = CommentDelim +
             Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
-            * Q ( arg3 )
-            * (
-                CommentMath
-                + Q ( ( 1 - P ( arg4 ) - S "$\r" ) ^ 1 ) -- $
-                + EOL
-              ) ^ 0
-            * Q ( arg4 )
+             * P { "A" ,
+                  A = Q ( arg3 )
+                      * ( V "A"
+                          + Q ( ( 1 - P ( arg3 ) - P ( arg4 )
+                                  - S "\r$\"" ) ^ 1 ) -- $
+                          + long_string
+                          +   "$" -- $
+                              * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) --$
+                              * "$" -- $
+                          + EOL
+                        ) ^ 0
+                      * Q ( arg4 )
+                 }
             * Ct ( Cc "Close" )
-      end
-      if arg1 : match "n" then
-        CommentDelim = CommentDelim +
-          Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
-           * P { "A" ,
-                A = Q ( arg3 )
-                    * ( V "A"
-                        + Q ( ( 1 - P ( arg3 ) - P ( arg4 )
-                                - S "\r$\"" ) ^ 1 ) -- $
-                        + long_string
-                        +   "$" -- $
-                            * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) --$
-                            * "$" -- $
-                        + EOL
-                      ) ^ 0
-                    * Q ( arg4 )
-               }
-          * Ct ( Cc "Close" )
+        end
       end
     end
     if x[1] == "moredelim" then
-      local arg1 , arg2 , arg3 , arg4 , arg5 = stars_args : match ( x[2] )
+      local arg1 , arg2 , arg3 , arg4 , arg5
+        = args_for_moredelims : match ( x[2] )
       local MyFun = Q
       if arg1 == "*" or arg1 == "**" then
         MyFun = function ( x ) return K ( 'ParseAgain.noCR' , x ) end
@@ -1524,16 +1542,15 @@ function piton.new_language ( lang , definition )
   local Delim = Q ( S "{[()]}" )
   local Punct = Q ( S ",:;!\\'\"" )
 
+  local Tag = P ( false )
   if left_tag then
-    tex.print ( "Valeur de left tag :" .. left_tag )
-    Keyword = Q ( left_tag )
-              * ( Keyword
-                  + LongString
-                  + Punct
-                  + Number
-                  + C ( ( 1 - P ( right_tag ) ) ^ 1 ) ) ^ 0
-              * Q ( right_tag )
+    Tag = Q ( left_tag * other ^ 0 )
+          * ( ( ( 1 - P ( right_tag ) ) ^ 0 )
+            / ( function ( x ) return LPEG1[lang] : match ( x ) end ) )
+          * Q ( right_tag )
   end
+
+  Keyword = Keyword * ( Space + Punct + Delim + EOL + -1 )
 
   local Main =
          space ^ 1 * -1
@@ -1543,18 +1560,17 @@ function piton.new_language ( lang , definition )
        + Escape + EscapeMath
        + CommentLaTeX
        + Beamer
+       + Tag
        + DetectedCommands
        + CommentDelim
        + Delim
        + LongString
-       + Keyword * ( Space + Punct + Delim + EOL + -1 )
+       + Keyword
        + Punct
        + K ( 'Identifier' , letter * alphanum ^ 0 )
        + Number
        + Word
-
   LPEG1[lang] = Main ^ 0
-
   LPEG2[lang] =
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
