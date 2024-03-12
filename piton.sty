@@ -1296,6 +1296,13 @@
     \token_to_str:N \piton\ but~there~is~no~environment~
     {piton}.~This~error~is~fatal.
   }
+\__piton_msg_new:nn { bad~version~of~piton.lua }
+  {
+    Bad~number~version~of~'piton.lua'\\
+    The~file~'piton.lua'~loaded~has~not~the~same~number~of~
+    version~as~the~file~'piton.sty'.~You~can~go~on~but~you~should~
+    address~that~issue.
+  }
 \__piton_msg_new:nn { key~identifiers~deprecated }
   {
     The~key~'identifiers'~in~the~command~\token_to_str:N PitonOptions\
@@ -1428,8 +1435,20 @@
     in~Beamer.\\
     If~you~go~on,~that~argument~will~be~ignored.
   }
+\cs_new_protected:Npn \__piton_test_version:n #1
+  {
+    \str_if_eq:VnF \PitonFileVersion { #1 }
+      { \__piton_error:n { bad~version~of~piton.lua } }
+  }
 \hook_gput_code:nnn { begindocument } { . }
-  { \lua_now:e { require("piton.lua") } }
+  {
+    \lua_now:n
+      {
+        require("piton.lua")
+        tex.sprint ( luatexbase.catcodetables.CatcodeTableExpl ,
+                     "\\__piton_test_version:n {" .. piton_version .. "}" )
+      }
+  }
 \ExplSyntaxOff
 \begin{luacode*}
     lpeg.locale(lpeg)

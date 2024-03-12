@@ -77,7 +77,7 @@
 % \iffalse
 %</STY>
 %<*LUA>
--- Version 2.7 of 2024/03/06
+piton_version = "2.7" -- 2024/03/06
 %</LUA>
 %\fi
 %
@@ -4670,10 +4670,21 @@
     {piton}.~This~error~is~fatal.
   }
 %    \end{macrocode}
+%
 % 
 % \bigskip
 % \subsubsection{The error messages of the package}
 % 
+%    \begin{macrocode}
+\@@_msg_new:nn { bad~version~of~piton.lua }
+  {
+    Bad~number~version~of~'piton.lua'\\
+    The~file~'piton.lua'~loaded~has~not~the~same~number~of~
+    version~as~the~file~'piton.sty'.~You~can~go~on~but~you~should~
+    address~that~issue.
+  }
+%    \end{macrocode}
+%
 %    \begin{macrocode}
 \@@_msg_new:nn { key~identifiers~deprecated }
   {
@@ -4857,10 +4868,27 @@
 % \bigskip
 % \subsubsection{We load piton.lua}
 %
+%
+% \bigskip
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_test_version:n #1
+  { 
+    \str_if_eq:VnF \PitonFileVersion { #1 } 
+      { \@@_error:n { bad~version~of~piton.lua } }
+  }
+%    \end{macrocode}
+%
 % \bigskip
 %    \begin{macrocode}
 \hook_gput_code:nnn { begindocument } { . }
-  { \lua_now:e { require("piton.lua") } }
+  { 
+    \lua_now:n 
+      { 
+        require("piton.lua") 
+        tex.sprint ( luatexbase.catcodetables.CatcodeTableExpl ,
+                     "\\@@_test_version:n {" .. piton_version .. "}" ) 
+      } 
+  }
 %    \end{macrocode}
 % 
 % \bigskip
@@ -5155,6 +5183,7 @@ local VisualSpace = space * Lc "\\l_@@_space_tl"
 % \paragraph{Several tools for the construction of the main LPEG}
 %
 %    \begin{macrocode}
+local LPEG0 = { }
 local LPEG1 = { }
 local LPEG2 = { }
 local LPEG_cleaner = { }
@@ -5816,24 +5845,20 @@ local expression =
 % \piton{def MyFunction(a,b,x=10,n:int): return n}
 % \end{center}
 % the \textsc{lpeg} |Params| will be used to catch the chunk\enskip |a,b,x=10,n:int|.
-% 
-% Or course, a |Params| is simply a comma-separated list of |Param|, and that's
-% why we define first the \textsc{lpeg} |Param|.
 %
 % \medskip
 %    \begin{macrocode}
-local Param = 
-  SkipSpace * ( Identifier + Q "*args" + Q "**kwargs" ) * SkipSpace
-   * ( 
-         K ( 'InitialValues' , "=" * expression )
-       + Q ":" * SkipSpace * K ( 'Name.Type' , letter ^ 1  ) 
-     ) ^ -1
+local Params = 
+  P { "E" , 
+       E = ( V "F" * ( Q "," * V "F" ) ^ 0 ) ^ -1 ,
+       F = SkipSpace * ( Identifier + Q "*args" + Q "**kwargs" ) * SkipSpace
+           * ( 
+                 K ( 'InitialValues' , "=" * expression )
+               + Q ":" * SkipSpace * K ( 'Name.Type' , letter ^ 1 ) 
+             ) ^ -1
+    }
 %    \end{macrocode}
 % 
-% \medskip
-%    \begin{macrocode}
-local Params = ( Param * ( Q "," * Param ) ^ 0 ) ^ -1
-%    \end{macrocode}
 % 
 % \bigskip
 % The following \textsc{lpeg} |DefFunction| catches a keyword |def| and the
@@ -7562,32 +7587,31 @@ function piton.new_language ( lang , definition )
   end 
 
   local Delim = Q ( S "{[()]}" )
-  local Punct = Q ( S ",:;!\\'\"" )
-
-  local Tag = P ( false ) 
-  if left_tag then
-    Tag = Q ( left_tag * other ^ 0 ) 
-          * ( ( ( 1 - P ( right_tag ) ) ^ 0 )
-            / ( function ( x ) return LPEG1[lang] : match ( x ) end ) )
-          * Q ( right_tag ) 
-  end 
-
-  Keyword = Keyword * ( Space + Punct + Delim + EOL + -1 ) 
-
+  local Punct = Q ( S "=,:;!\\'\"" )
+%    \end{macrocode}
+%
+%
+%    \begin{macrocode}
+%    \end{macrocode}
+%
+%
+%    \begin{macrocode}
   local Main = 
          space ^ 1 * -1
+%    \end{macrocode}
+% The spaces at the end of the lines are discarded.
+%    \begin{macrocode}
        + space ^ 0 * EOL 
        + Space 
        + Tab
        + Escape + EscapeMath 
        + CommentLaTeX
        + Beamer
-       + Tag 
        + DetectedCommands
        + CommentDelim
        + Delim
        + LongString
-       + Keyword
+       + Keyword * ( Space + Punct + Delim + EOL + -1 ) 
        + Punct 
        + K ( 'Identifier' , letter * alphanum ^ 0 )
        + Number
@@ -7600,6 +7624,15 @@ function piton.new_language ( lang , definition )
   LPEG1[lang] = Main ^ 0 
 %    \end{macrocode}
 %
+%
+% \bigskip
+% If the key |tag| has been used, then |left_tag| (and also |right_tag|) is non nil.
+%    \begin{macrocode}
+  if left_tag then
+  end 
+%    \end{macrocode}
+% 
+% 
 % The \textsc{lpeg} |LPEG2[lang]| is used to format general chunks of code.
 %    \begin{macrocode}
   LPEG2[lang] = 
@@ -7612,11 +7645,64 @@ function piton.new_language ( lang , definition )
          * -1 
          * Lc '\\@@_end_line:' 
        )
-
+%    \end{macrocode}
+%
+% 
+%    \begin{macrocode}
+  if left_tag then
+    local Tag = Q ( left_tag * other ^ 0 ) 
+                * ( ( ( 1 - P ( right_tag ) ) ^ 0 )
+                  / ( function ( x ) return LPEG0[lang] : match ( x ) end ) )
+                * Q ( right_tag ) 
+    MainWithoutTag
+            = space ^ 1 * -1
+            + space ^ 0 * EOL 
+            + Space 
+            + Tab
+            + Escape + EscapeMath 
+            + CommentLaTeX
+            + Beamer
+            + DetectedCommands
+            + CommentDelim
+            + Delim
+            + LongString
+            + Keyword * ( Space + Punct + Delim + EOL + -1 ) 
+            + Punct 
+            + K ( 'Identifier' , letter * alphanum ^ 0 )
+            + Number
+            + Word 
+    LPEG0[lang] = MainWithoutTag ^ 0 
+    MainWithTag 
+            = space ^ 1 * -1
+            + space ^ 0 * EOL 
+            + Space 
+            + Tab
+            + Escape + EscapeMath 
+            + CommentLaTeX
+            + Beamer
+            + DetectedCommands
+            + CommentDelim
+            + Tag 
+            + Delim
+            + Punct 
+            + K ( 'Identifier' , letter * alphanum ^ 0 )
+            + Word 
+    LPEG1[lang] = MainWithTag ^ 0 
+    LPEG2[lang] = 
+      Ct (
+           ( space ^ 0 * P "\r" ) ^ -1 
+           * BeamerBeginEnvironments 
+           * Lc '\\@@_begin_line:'
+           * SpaceIndentation ^ 0 
+           * LPEG1[lang]
+           * -1 
+           * Lc '\\@@_end_line:' 
+         )
+  end
 end
 %</LUA>
 %    \end{macrocode}
-% 
+%
 %
 % 
 % \vspace{1cm}

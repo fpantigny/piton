@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
--- Version 2.7 of 2024/03/06
+piton_version = "2.7" -- 2024/03/06
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -113,6 +113,7 @@ local Tab = "\t" * Lc "\\l__piton_tab_tl"
 local SpaceIndentation = Lc "\\__piton_an_indentation_space:" * Q " "
 local Delim = Q ( S "[({})]" )
 local VisualSpace = space * Lc "\\l__piton_space_tl"
+local LPEG0 = { }
 local LPEG1 = { }
 local LPEG2 = { }
 local LPEG_cleaner = { }
@@ -458,13 +459,15 @@ local expression =
              + "[" * V "F" * "]"
              + ( 1 - S "{}()[]\r\"'" ) ) ^ 0
     }
-local Param =
-  SkipSpace * ( Identifier + Q "*args" + Q "**kwargs" ) * SkipSpace
-   * (
-         K ( 'InitialValues' , "=" * expression )
-       + Q ":" * SkipSpace * K ( 'Name.Type' , letter ^ 1  )
-     ) ^ -1
-local Params = ( Param * ( Q "," * Param ) ^ 0 ) ^ -1
+local Params =
+  P { "E" ,
+       E = ( V "F" * ( Q "," * V "F" ) ^ 0 ) ^ -1 ,
+       F = SkipSpace * ( Identifier + Q "*args" + Q "**kwargs" ) * SkipSpace
+           * (
+                 K ( 'InitialValues' , "=" * expression )
+               + Q ":" * SkipSpace * K ( 'Name.Type' , letter ^ 1 )
+             ) ^ -1
+    }
 local DefFunction =
   K ( 'Keyword' , "def" )
   * Space
@@ -1540,18 +1543,7 @@ function piton.new_language ( lang , definition )
   end
 
   local Delim = Q ( S "{[()]}" )
-  local Punct = Q ( S ",:;!\\'\"" )
-
-  local Tag = P ( false )
-  if left_tag then
-    Tag = Q ( left_tag * other ^ 0 )
-          * ( ( ( 1 - P ( right_tag ) ) ^ 0 )
-            / ( function ( x ) return LPEG1[lang] : match ( x ) end ) )
-          * Q ( right_tag )
-  end
-
-  Keyword = Keyword * ( Space + Punct + Delim + EOL + -1 )
-
+  local Punct = Q ( S "=,:;!\\'\"" )
   local Main =
          space ^ 1 * -1
        + space ^ 0 * EOL
@@ -1560,17 +1552,18 @@ function piton.new_language ( lang , definition )
        + Escape + EscapeMath
        + CommentLaTeX
        + Beamer
-       + Tag
        + DetectedCommands
        + CommentDelim
        + Delim
        + LongString
-       + Keyword
+       + Keyword * ( Space + Punct + Delim + EOL + -1 )
        + Punct
        + K ( 'Identifier' , letter * alphanum ^ 0 )
        + Number
        + Word
   LPEG1[lang] = Main ^ 0
+  if left_tag then
+  end
   LPEG2[lang] =
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
@@ -1581,6 +1574,55 @@ function piton.new_language ( lang , definition )
          * -1
          * Lc '\\__piton_end_line:'
        )
-
+  if left_tag then
+    local Tag = Q ( left_tag * other ^ 0 )
+                * ( ( ( 1 - P ( right_tag ) ) ^ 0 )
+                  / ( function ( x ) return LPEG0[lang] : match ( x ) end ) )
+                * Q ( right_tag )
+    MainWithoutTag
+            = space ^ 1 * -1
+            + space ^ 0 * EOL
+            + Space
+            + Tab
+            + Escape + EscapeMath
+            + CommentLaTeX
+            + Beamer
+            + DetectedCommands
+            + CommentDelim
+            + Delim
+            + LongString
+            + Keyword * ( Space + Punct + Delim + EOL + -1 )
+            + Punct
+            + K ( 'Identifier' , letter * alphanum ^ 0 )
+            + Number
+            + Word
+    LPEG0[lang] = MainWithoutTag ^ 0
+    MainWithTag
+            = space ^ 1 * -1
+            + space ^ 0 * EOL
+            + Space
+            + Tab
+            + Escape + EscapeMath
+            + CommentLaTeX
+            + Beamer
+            + DetectedCommands
+            + CommentDelim
+            + Tag
+            + Delim
+            + Punct
+            + K ( 'Identifier' , letter * alphanum ^ 0 )
+            + Word
+    LPEG1[lang] = MainWithTag ^ 0
+    LPEG2[lang] =
+      Ct (
+           ( space ^ 0 * P "\r" ) ^ -1
+           * BeamerBeginEnvironments
+           * Lc '\\__piton_begin_line:'
+           * SpaceIndentation ^ 0
+           * LPEG1[lang]
+           * -1
+           * Lc '\\__piton_end_line:'
+         )
+  end
 end
 
