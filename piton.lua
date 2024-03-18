@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "2.7" -- 2024/03/06
+piton_version = "2.6b" -- 2024/03/18
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -476,7 +476,7 @@ local DefFunction =
   * Q "("  * Params * Q ")"
   * SkipSpace
   * ( Q "->" * SkipSpace * K ( 'Name.Type' , identifier ) ) ^ -1
-  * K ( 'ParseAgain' , ( 1 - S ":\r" ) ^ 0 )
+  * K ( 'ParseAgain.noCR' , ( 1 - S ":\r" ) ^ 0 )
   * Q ":"
   * ( SkipSpace
       * ( EOL + CommentLaTeX + Comment ) -- in all cases, that contains an EOL

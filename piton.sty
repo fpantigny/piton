@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{2.7}
-\def\PitonFileDate{2024/03/06}
+\def\PitonFileVersion{2.6b}
+\def\PitonFileDate{2024/03/18}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -298,7 +298,6 @@
         \__piton_replace_spaces:n { #1 }
         \strut \hfil
       }
-    \tl_log:n { Contenu : #1.}
     \hbox_set:Nn \l_tmpa_box
       {
         \skip_horizontal:N \l__piton_left_margin_dim
@@ -758,6 +757,8 @@
     \group_begin:
     \cs_set_protected:Npn \__piton_begin_line: { }
     \cs_set_protected:Npn \__piton_end_line: { }
+    \cs_set:cpn { pitonStyle _ \l_piton_language_str  _ Prompt } { }
+    \cs_set:cpn { pitonStyle _ Prompt } { }
     \bool_lazy_or:nnTF
       \l__piton_break_lines_in_piton_bool
       \l__piton_break_lines_in_Piton_bool
@@ -787,6 +788,8 @@
     \group_begin:
     \cs_set_protected:Npn \__piton_begin_line: { }
     \cs_set_protected:Npn \__piton_end_line: { }
+    \cs_set:cpn { pitonStyle _ \l_piton_language_str  _ Prompt } { }
+    \cs_set:cpn { pitonStyle _ Prompt } { }
     \cs_set_protected:Npn \__piton_newline:
       { \msg_fatal:nn { piton } { cr~not~allowed } }
     \bool_lazy_or:nnTF
@@ -1444,7 +1447,7 @@
   {
     \lua_now:n
       {
-        require("piton.lua")
+        require ( "piton" )
         tex.sprint ( luatexbase.catcodetables.CatcodeTableExpl ,
                      "\\__piton_test_version:n {" .. piton_version .. "}" )
       }
