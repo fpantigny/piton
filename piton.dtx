@@ -3361,6 +3361,7 @@ piton_version = "2.6b" -- 2024/03/18
 \bool_set_true:N \l_@@_label_empty_lines_bool 
 \int_new:N \l_@@_number_lines_start_int
 \bool_new:N \l_@@_resume_bool 
+\bool_new:N \l_@@_split_on_empty_lines_bool
 %    \end{macrocode}
 % 
 %
@@ -3445,12 +3446,14 @@ piton_version = "2.6b" -- 2024/03/18
 %    \begin{macrocode}
 \keys_define:nn { PitonOptions }
   {
+%    \end{macrocode}
+% First, we put keys that should be avalaible only in the preamble.
+%    \begin{macrocode}
     detected-commands .code:n =  
        \lua_now:n { piton.addListCommands('#1') } ,
     detected-commands .value_required:n = true , 
     detected-commands .usage:n = preamble , 
 %    \end{macrocode}
-% First, we put keys that should be avalaible only in the preamble.
 %
 % Remark that the command |\lua_escape:n| is fully expandable. That's why we use
 % |\lua_now:e|.
@@ -3502,6 +3505,9 @@ piton_version = "2.6b" -- 2024/03/18
     env-gobble       .value_forbidden:n = true ,
     tabs-auto-gobble .code:n            = \int_set:Nn \l_@@_gobble_int { -3 } , 
     tabs-auto-gobble .value_forbidden:n = true ,
+
+    split-on-empty-lines .bool_set:N = \l_@@_split_on_empty_lines_bool ,
+    split-on-empty-lines .default:n = true ,
  
     marker .code:n = 
       \bool_lazy_or:nnTF
@@ -4016,7 +4022,8 @@ piton_version = "2.6b" -- 2024/03/18
 %    \end{macrocode}
 % We count with Lua the number of lines of the argument. The result will be
 % stored by Lua in |\l_@@_nb_lines_int|. That information will be used to allow
-% or disallow page breaks. We use the technic of |token.scan_argument| for optimisation.
+% or disallow page breaks. The use of |token.scan_argument| avoids problems with
+% the delimiters of the Lua string.
 %    \begin{macrocode}
             \lua_now:n { piton.CountLines(token.scan_argument()) } { ##1 }  
 %    \end{macrocode}
@@ -4027,11 +4034,6 @@ piton_version = "2.6b" -- 2024/03/18
             \@@_compute_width:
             \ttfamily
             \dim_zero:N \parskip 
-%    \end{macrocode}
-% |\g_@@_footnote_bool| is raised when the package \pkg{piton} has been loaded
-% with the key |footnote| \emph{or} the key |footnotehyper|.
-%    \begin{macrocode}
-            \bool_if:NT \g_@@_footnote_bool { \savenotes } 
 %    \end{macrocode}
 % 
 % Now, the key |write|.
@@ -4051,24 +4053,16 @@ piton_version = "2.6b" -- 2024/03/18
                     \seq_gput_left:NV \g_@@_write_seq \l_@@_write_str
                   }
               }  
-            \vtop \bgroup % modified 2024/03/02
 %    \end{macrocode}
-% Now, the main job. We use |token.scan_argument()| for optimisation.
+% \bigskip
+% Now, the main job.
 %    \begin{macrocode}
-            \lua_now:e 
-              { 
-                piton.GobbleParse
-                  ( 
-                    '\l_piton_language_str' , 
-                    \int_use:N \l_@@_gobble_int ,
-                    token.scan_argument ( )
-                  ) 
-              } 
+            \bool_if:NTF \l_@@_split_on_empty_lines_bool
+              \@@_split_gobble_parse:n 
+              \@@_gobble_parse:n 
               { ##1 }
-            \vspace { 2.5 pt } 
-            \egroup
-            \bool_if:NT \g_@@_footnote_bool { \endsavenotes } 
 %    \end{macrocode}
+%
 % If the user has used the key |width| with the special value~|min|, we write on
 % the |aux| file the value of |\l_@@_line_width_dim| (largest width of the lines
 % of code of the environment).
@@ -4117,6 +4111,40 @@ piton_version = "2.6b" -- 2024/03/18
 %    \end{macrocode}
 % This is the end of the definition of the command |\NewPitonEnvironment|.
 %
+% \bigskip
+% The argument is provided by curryfication.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_gobble_parse:n 
+  {
+    \lua_now:e 
+      { 
+        piton.GobbleParse
+          ( 
+            '\l_piton_language_str' , 
+            \int_use:N \l_@@_gobble_int ,
+            token.scan_argument ( )
+          ) 
+      } 
+  }
+%    \end{macrocode}
+%
+% \bigskip
+% The argument is provided by curryfication.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_split_gobble_parse:n 
+  {
+    \lua_now:e 
+      { 
+        piton.SplitGobbleParse
+          ( 
+            '\l_piton_language_str' , 
+            \int_use:N \l_@@_gobble_int ,
+            token.scan_argument ( )
+          ) 
+      } 
+  }
+%    \end{macrocode}
+% 
 % \bigskip
 % Now, we define the environment |{Piton}|, which is the main environment
 % provided by the package \pkg{piton}. Of course, you use
@@ -4889,7 +4917,8 @@ piton_version = "2.6b" -- 2024/03/18
       { 
         require ( "piton" ) 
         tex.sprint ( luatexbase.catcodetables.CatcodeTableExpl ,
-                     "\\@@_test_version:n {" .. piton_version .. "}" ) 
+                     "\\@@_test_version:n {" .. piton_version ..  "}" ) 
+
       } 
   }
 %    \end{macrocode}
@@ -6782,11 +6811,11 @@ LPEG2['sql'] =
   Ct (
        ( space ^ 0 * "\r" ) ^ -1 
        * BeamerBeginEnvironments 
-       * Lc '\\@@_begin_line:'
+       * Lc [[ \@@_begin_line: ]]
        * SpaceIndentation ^ 0 
        * LPEG1['sql']
        * -1 
-       * Lc '\\@@_end_line:' 
+       * Lc [[ \@@_end_line: ]]
      )
 %    \end{macrocode}
 %
@@ -6848,11 +6877,11 @@ LPEG2['minimal'] =
   Ct (
        ( space ^ 0 * "\r" ) ^ -1 
        * BeamerBeginEnvironments 
-       * Lc '\\@@_begin_line:'
+       * Lc [[ \@@_begin_line: ]]
        * SpaceIndentation ^ 0 
        * LPEG1['minimal']
        * -1 
-       * Lc '\\@@_end_line:' 
+       * Lc [[ \@@_end_line: ]]
      )
 
 % \bigskip
@@ -6871,8 +6900,8 @@ function piton.Parse ( language , code )
   local t = LPEG2[language] : match ( code ) 
   if t == nil 
   then 
-    tex.sprint(luatexbase.catcodetables.CatcodeTableExpl,
-               "\\@@_error:n { syntax~error }")
+    tex.sprint( luatexbase.catcodetables.CatcodeTableExpl,
+                [[ \@@_error:n { syntax~error } ]] )
     return -- to exit in force the function
   end 
   local left_stack = {}
@@ -6977,7 +7006,7 @@ end
 % that have been inserted when the key |break-lines| is in force.
 %    \begin{macrocode}
 function piton.ParseTer ( language , code )
-  local s = ( Cs ( ( P '\\@@_breakable_space:' / ' ' + 1 ) ^ 0 ) ) 
+  local s = ( Cs ( ( P [[ \@@_breakable_space: ]] / ' ' + 1 ) ^ 0 ) ) 
             : match ( code )
   return piton.Parse ( language , s )
 end
@@ -6990,26 +7019,6 @@ end
 % We deal now with preprocessors of the function |Parse| which are needed when
 % the ``gobble mechanism'' is used.
 % 
-%
-% \bigskip
-% The function |gobble| gobbles $n$ characters on the left of the code. It uses
-% a \textsc{lpeg} that we have to compute dynamically because if depends on the
-% value of~$n$.
-%    \begin{macrocode}
-local function gobble ( n , code )
-  if n == 0 
-  then return code
-  else return 
-       ( Ct ( 
-              ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 ) 
-                * ( C "\r" * ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
-            ) ^ 0 ) 
-         / table.concat 
-       ) : match ( code ) 
-  end
-end
-%    \end{macrocode}
-%
 % 
 % \bigskip
 % The following \textsc{lpeg} returns as capture the minimal number of spaces at
@@ -7053,8 +7062,7 @@ local EnvGobbleLPEG =
       ( ( 1 - P "\r" ) ^ 0 * "\r" ) ^ 0
     * Ct ( C " " ^ 0 * -1 ) / table.getn 
 %    \end{macrocode}
-% 
-% \bigskip
+%
 %    \begin{macrocode}
 local function remove_before_cr ( input_string )
     local match_result = ( P "\r" ) : match ( input_string )
@@ -7068,23 +7076,58 @@ end
 %    \end{macrocode}
 %
 % \bigskip
+% The function |gobble| gobbles $n$ characters on the left of the code. The
+% negative values of $n$ have special significations.
+%    \begin{macrocode}
+local function gobble ( n , code )
+  code = remove_before_cr ( code ) 
+  if n == 0 then 
+    return code
+  else 
+    if n == -1 then 
+      n = AutoGobbleLPEG : match ( code )
+    else 
+      if n == -2 then 
+        n = EnvGobbleLPEG : match ( code )
+      else 
+        if n == -3 then 
+          n = TabsAutoGobbleLPEG : match ( code ) 
+        end
+      end
+    end
+%    \end{macrocode}
+% We will now use a \textsc{lpeg} that we have to compute dynamically because it
+% depends on the value of~$n$.
+%    \begin{macrocode}
+    return 
+    ( Ct ( 
+           ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 ) 
+             * ( C "\r" * ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
+         ) ^ 0 ) 
+      / table.concat 
+    ) : match ( code ) 
+  end
+end
+%    \end{macrocode}
+%
+% 
+% \bigskip
+%
+% \bigskip
 % In the following code, |n| is the value of |\l_@@_gobble_int|.
 %    \begin{macrocode}
 function piton.GobbleParse ( language , n , code )
-  code = remove_before_cr ( code )
-  if n == -1 
-  then n = AutoGobbleLPEG : match ( code )
-  else if n == -2
-       then n = EnvGobbleLPEG : match ( code )
-       else if n == -3
-            then n = TabsAutoGobbleLPEG : match ( code )
-            end
-       end
-  end
   piton.last_code = gobble ( n , code )
-  piton.Parse ( language , piton.last_code )
   piton.last_language = language
 %    \end{macrocode}
+%    \begin{macrocode}
+  tex.sprint(luatexbase.catcodetables.CatcodeTableExpl ,
+   [[ \bool_if:NT \g_@@_footnote_bool { \savenotes } \vtop \bgroup ]] )
+  piton.Parse ( language , piton.last_code )
+  tex.sprint(luatexbase.catcodetables.CatcodeTableExpl ,
+   [[ \vspace { 2.5 pt } \egroup \bool_if:NT \g_@@_footnote_bool { \endsavenotes } \par ]] )
+%    \end{macrocode}
+%
 % Now, if the final user has used the key |write| to write the code of the
 % environment on an external file.
 %    \begin{macrocode}
@@ -7096,6 +7139,37 @@ function piton.GobbleParse ( language , n , code )
 end 
 %    \end{macrocode}
 %
+% \bigskip
+% The function |GobbleParsePar| is merely the function |GobbleParse| with the
+% insertion of a |\par| in the TeX flow after.
+%    \begin{macrocode}
+local function GobbleParsePar ( language , n , code )
+  piton.GobbleParse ( language , n , code ) 
+  tex.sprint [[ \par ]] 
+end 
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+function piton.SplitGobbleParse ( language , n , code )
+  P { "E" ,
+      E = ( V "F" * ( P " " ^ 0 * "\r" ) ^ 1  ) ^ 0 * V "F" ,
+%    \end{macrocode}
+% The non-terminal |F| corresponds to a chunk of the informatic code.
+%    \begin{macrocode}
+      F = C ( V "G" ^ 0 ) 
+%    \end{macrocode}
+% The second argument of |GobbleParsePar| is the argument |gobble|: we put that
+% argument to~$0$ because we will have gobbled previously the whole argument
+% |code| (see below).
+%    \begin{macrocode}
+          / ( function ( x ) GobbleParsePar ( language , 0 , x ) end ) , 
+      G = ( 1 - P "\r" ) ^ 0 * "\r" - ( P " " ^ 0 * "\r" ) 
+    } : match ( gobble ( n , code ) ) 
+end 
+%    \end{macrocode}
+%
+% 
 % \bigskip
 % The following public Lua function is provided to the developper. 
 %    \begin{macrocode}
@@ -7115,7 +7189,7 @@ function piton.CountLines ( code )
   for i in code : gmatch ( "\r" ) do count = count + 1 end 
   tex.sprint ( 
       luatexbase.catcodetables.expl , 
-      '\\int_set:Nn \\l_@@_nb_lines_int {' .. count .. '}' )
+      [[ \int_set:Nn  \l_@@_nb_lines_int { ]] .. count .. '}' )
 end 
 %    \end{macrocode}
 %
@@ -7131,7 +7205,7 @@ function piton.CountNonEmptyLines ( code )
      ) : match ( code )
   tex.sprint( 
       luatexbase.catcodetables.expl , 
-      '\\int_set:Nn \\l_@@_nb_non_empty_lines_int {' .. count .. '}' )
+      [[ \int_set:Nn  \l_@@_nb_non_empty_lines_int { ]] .. count .. '}' )
 end 
 %    \end{macrocode}
 %
@@ -7143,7 +7217,7 @@ function piton.CountLinesFile ( name )
   for line in io.lines ( name ) do count = count + 1 end
   tex.sprint ( 
       luatexbase.catcodetables.expl , 
-      '\\int_set:Nn \\l_@@_nb_lines_int {' .. count .. '}' )
+      [[ \int_set:Nn \l_@@_nb_lines_int { ]] .. count .. '}' )
 end 
 %    \end{macrocode}
 %
@@ -7159,7 +7233,7 @@ function piton.CountNonEmptyLinesFile ( name )
   end
   tex.sprint ( 
       luatexbase.catcodetables.expl , 
-      '\\int_set:Nn \\l_@@_nb_non_empty_lines_int {' .. count .. '}' )
+      [[ \int_set:Nn \l_@@_nb_non_empty_lines_int { ]] .. count .. '}' )
 end 
 %    \end{macrocode}
 %
@@ -7189,16 +7263,16 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
   end
   if first_line == -1 
   then tex.sprint ( luatexbase.catcodetables.expl ,
-                    "\\@@_error:n { begin~marker~not~found }" )
+                    [[ \@@_error:n { begin~marker~not~found } ]] )
   else if last_found == false
        then tex.sprint ( luatexbase.catcodetables.expl ,
-                         "\\@@_error:n { end~marker~not~found }" )
+                         [[ \@@_error:n { end~marker~not~found } ]] )
        end
   end
   tex.sprint ( 
       luatexbase.catcodetables.expl , 
-      '\\int_set:Nn \\l_@@_first_line_int {' .. first_line .. ' + 2 }' 
-      .. '\\int_set:Nn \\l_@@_last_line_int {' .. count .. ' }' )
+      [[ \int_set:Nn \l_@@_first_line_int { ]] .. first_line .. ' + 2 }' 
+      .. [[ \int_set:Nn \l_@@_last_line_int { ]] .. count .. ' }' )
 end
 %    \end{macrocode}
 %
@@ -7236,7 +7310,7 @@ function piton.new_language ( lang , definition )
 % \bigskip
 % Of course, the \textsc{lpeg} |b_braces| is for balanced braces (without the
 % question of strings of an informatic language). In fact, it \emph{won't} be
-% used for an informic language (as dealt by \pkg{piton}) but for LaTeX
+% used for an informatic language (as dealt by \pkg{piton}) but for LaTeX
 % instructions; 
 %    \begin{macrocode}
   local strict_braces  =
@@ -7391,18 +7465,18 @@ function piton.new_language ( lang , definition )
         local keywords = P ( false )
 %    \end{macrocode}
 %    \begin{macrocode}
-        local style = "\\PitonStyle{Keyword}"
-        if x[1] == "moredirectives" then style = "\\PitonStyle{directive}" end
+        local style = [[ \PitonStyle{Keyword} ]]
+        if x[1] == "moredirectives" then style = [[ \PitonStyle{directive} ]] end
         style =  tex_option_arg : match ( x[2] ) or style
         local n = tonumber (style )
         if n then 
-         if n > 1 then style = "\\PitonStyle{Keyword" .. style .. "}" end
+         if n > 1 then style = [[ \PitonStyle{Keyword ]] .. style .. "}" end
         end 
 %    \end{macrocode}
 %    \begin{macrocode}
         for _ , word in ipairs ( split_clist : match ( x[2] ) ) do
           if x[1] == "moretexcs" then
-            keywords = Q ( "\\" .. word ) + keywords
+            keywords = Q ( [[ \ ]] .. word ) + keywords
           else 
             if sensitive 
 %    \end{macrocode}
@@ -7437,7 +7511,7 @@ function piton.new_language ( lang , definition )
   for _ , x in ipairs ( def_table ) do
     if x[1] == "morestring" then
       arg1 , arg2 , arg3 , arg4 = args_for_morekeywords : match ( x[2] ) 
-      arg2 = arg2 or "\\PitonStyle{String.Long}"
+      arg2 = arg2 or [[ \PitonStyle{String.Long} ]]
       if arg1 == "s" then
         long_string =
           Q ( arg3 ) 
@@ -7448,7 +7522,7 @@ function piton.new_language ( lang , definition )
       else  
         central_pattern = 1 - S ( " \r" .. arg3 ) 
         if arg1 : match "b" then 
-          central_pattern = P ( "\\" .. arg3 )  + central_pattern
+          central_pattern = P ( [[ \ ]] .. arg3 )  + central_pattern
         end
 %    \end{macrocode}
 % In fact, the specifier |d| is point-less: when it is not in force, it's still
@@ -7495,12 +7569,12 @@ function piton.new_language ( lang , definition )
   for _ , x in ipairs ( def_table ) do
     if x[1] == "morecomment" then 
       local arg1 , arg2 , other_args = args_for_morecomment : match ( x[2] ) 
-      arg2 = arg2 or "\\PitonStyle{Comment}"
+      arg2 = arg2 or [[ \PitonStyle{Comment} ]]
 %    \end{macrocode}
 % If the letter |i| is present in the first argument (eg: 
 % |morecomment = [si]{(*}{*)}|, then the corresponding comments are discarded. 
 %    \begin{macrocode}
-      if arg1 : match "i" then arg2 = "\\PitonStyle{Discard}" end
+      if arg1 : match "i" then arg2 = [[ \PitonStyle{Discard} ]] end
       if arg1 : match "l" then 
         local arg3 = ( tex_braced_arg + C ( P ( 1 ) ^ 0 * -1 ) )
                      : match ( other_args ) 
@@ -7642,11 +7716,11 @@ function piton.new_language ( lang , definition )
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1 
          * BeamerBeginEnvironments 
-         * Lc '\\@@_begin_line:'
+         * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * LPEG1[lang]
          * -1 
-         * Lc '\\@@_end_line:' 
+         * Lc [[ \@@_end_line: ]]
        )
 %    \end{macrocode}
 %
@@ -7695,11 +7769,11 @@ function piton.new_language ( lang , definition )
       Ct (
            ( space ^ 0 * P "\r" ) ^ -1 
            * BeamerBeginEnvironments 
-           * Lc '\\@@_begin_line:'
+           * Lc [[ \@@_begin_line: ]]
            * SpaceIndentation ^ 0 
            * LPEG1[lang]
            * -1 
-           * Lc '\\@@_end_line:' 
+           * Lc [[ \@@_end_line: ]]
          )
   end
 end

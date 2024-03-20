@@ -217,9 +217,9 @@ environnements similaires à |{Piton}| en utilisant la commande |\NewPitonEnviro
 \ref{NewPitonEnvironment} p.~\pageref{NewPitonEnvironment}.
 
 \item La commande \colorbox{gray!20}{\ttfamily \textbackslash PitonInputFile} doit être utilisée pour insérer et
-composer un fichier extérieur.
+composer un fichier externe.
 
-Il est possible de n'insérer qu'une partie du fichier : cf. partie~\ref{part-of-a-file},
+Il est possible de n'insérer qu'une partie de ce fichier : cf. partie~\ref{part-of-a-file},
 p.~\pageref{part-of-a-file}.
 
 La clé |path| de la commande |\PitonOptions| permet de spécifier un chemin pour le fichier à inclure. 
@@ -1557,7 +1557,7 @@ La variable L3 |\l_piton_language_str| contient le nom du langage courant (en mi
 
 \colorbox{yellow!50}{\textbf{Nouveau 2.6}}\par\nobreak
 
-L'extension \pkg{piton} fournit une function Lua |piton.get_last_code| sans argument permettant de récupérer le
+L'extension \pkg{piton} fournit une fonction Lua |piton.get_last_code| sans argument permettant de récupérer le
 code contenu dans le dernier environnement de \pkg{piton}. 
 \begin{itemize}
 \item Les retours à la ligne (présents dans l'environnement de départ) apparaissent comme des caractères |\r|
@@ -1571,7 +1571,7 @@ p.~\pageref{gobble}).
 partie~\ref{detected-commands}) et aux éléments insérés avec le mécanisme «|escape|» (cf. partie~\ref{escape}).
 
 \item |piton.get_last_code| est une fonction Lua et non une chaîne de caractères : les traitements présentés
-précédemment son exécutés lorsque la fonction est appelée. De ce fait, il peut être judicieux de sotcker la valeur
+précédemment sont exécutés lorsque la fonction est appelée. De ce fait, il peut être judicieux de stocker la valeur  
 renvoyée par |piton.get_last_code()| dans une variable Lua si on doit l'utiliser plusieurs fois.
 \end{itemize}
 

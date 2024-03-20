@@ -431,6 +431,7 @@
 \bool_set_true:N \l__piton_label_empty_lines_bool
 \int_new:N \l__piton_number_lines_start_int
 \bool_new:N \l__piton_resume_bool
+\bool_new:N \l__piton_split_on_empty_lines_bool
 \keys_define:nn { PitonOptions / marker }
   {
     beginning .code:n = \cs_set:Nn \__piton_marker_beginning:n { #1 } ,
@@ -545,6 +546,9 @@
     env-gobble       .value_forbidden:n = true ,
     tabs-auto-gobble .code:n            = \int_set:Nn \l__piton_gobble_int { -3 } ,
     tabs-auto-gobble .value_forbidden:n = true ,
+
+    split-on-empty-lines .bool_set:N = \l__piton_split_on_empty_lines_bool ,
+    split-on-empty-lines .default:n = true ,
 
     marker .code:n =
       \bool_lazy_or:nnTF
@@ -899,7 +903,6 @@
             \__piton_compute_width:
             \ttfamily
             \dim_zero:N \parskip
-            \bool_if:NT \g__piton_footnote_bool { \savenotes }
             \str_if_empty:NTF \l__piton_path_write_str
               { \lua_now:e { piton.write = "\l__piton_write_str" } }
               {
@@ -915,20 +918,10 @@
                     \seq_gput_left:NV \g__piton_write_seq \l__piton_write_str
                   }
               }
-            \vtop \bgroup % modified 2024/03/02
-            \lua_now:e
-              {
-                piton.GobbleParse
-                  (
-                    '\l_piton_language_str' ,
-                    \int_use:N \l__piton_gobble_int ,
-                    token.scan_argument ( )
-                  )
-              }
+            \bool_if:NTF \l__piton_split_on_empty_lines_bool
+              \__piton_split_gobble_parse:n
+              \__piton_gobble_parse:n
               { ##1 }
-            \vspace { 2.5 pt }
-            \egroup
-            \bool_if:NT \g__piton_footnote_bool { \endsavenotes }
             \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
             \end { #1 }
             \__piton_write_aux:
@@ -948,6 +941,30 @@
       }
       { #4 }
     \AddToHook { env / #1 / begin } { \char_set_catcode_other:N \^^M }
+  }
+\cs_new_protected:Npn \__piton_gobble_parse:n
+  {
+    \lua_now:e
+      {
+        piton.GobbleParse
+          (
+            '\l_piton_language_str' ,
+            \int_use:N \l__piton_gobble_int ,
+            token.scan_argument ( )
+          )
+      }
+  }
+\cs_new_protected:Npn \__piton_split_gobble_parse:n
+  {
+    \lua_now:e
+      {
+        piton.SplitGobbleParse
+          (
+            '\l_piton_language_str' ,
+            \int_use:N \l__piton_gobble_int ,
+            token.scan_argument ( )
+          )
+      }
   }
 \bool_if:NTF \g__piton_beamer_bool
   {
@@ -1449,7 +1466,8 @@
       {
         require ( "piton" )
         tex.sprint ( luatexbase.catcodetables.CatcodeTableExpl ,
-                     "\\__piton_test_version:n {" .. piton_version .. "}" )
+                     "\\__piton_test_version:n {" .. piton_version ..  "}" )
+
       }
   }
 \ExplSyntaxOff

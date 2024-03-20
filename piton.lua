@@ -1002,11 +1002,11 @@ LPEG2['sql'] =
   Ct (
        ( space ^ 0 * "\r" ) ^ -1
        * BeamerBeginEnvironments
-       * Lc '\\__piton_begin_line:'
+       * Lc [[ \__piton_begin_line: ]]
        * SpaceIndentation ^ 0
        * LPEG1['sql']
        * -1
-       * Lc '\\__piton_end_line:'
+       * Lc [[ \__piton_end_line: ]]
      )
 local Punct = Q ( S ",:;!\\" )
 
@@ -1062,19 +1062,19 @@ LPEG2['minimal'] =
   Ct (
        ( space ^ 0 * "\r" ) ^ -1
        * BeamerBeginEnvironments
-       * Lc '\\__piton_begin_line:'
+       * Lc [[ \__piton_begin_line: ]]
        * SpaceIndentation ^ 0
        * LPEG1['minimal']
        * -1
-       * Lc '\\__piton_end_line:'
+       * Lc [[ \__piton_end_line: ]]
      )
 
 function piton.Parse ( language , code )
   local t = LPEG2[language] : match ( code )
   if t == nil
   then
-    tex.sprint(luatexbase.catcodetables.CatcodeTableExpl,
-               "\\__piton_error:n { syntax~error }")
+    tex.sprint( luatexbase.catcodetables.CatcodeTableExpl,
+                [[ \__piton_error:n { syntax~error } ]] )
     return -- to exit in force the function
   end
   local left_stack = {}
@@ -1137,21 +1137,9 @@ function piton.ParseBis ( language , code )
   return piton.Parse ( language , s )
 end
 function piton.ParseTer ( language , code )
-  local s = ( Cs ( ( P '\\__piton_breakable_space:' / ' ' + 1 ) ^ 0 ) )
+  local s = ( Cs ( ( P [[ \__piton_breakable_space: ]] / ' ' + 1 ) ^ 0 ) )
             : match ( code )
   return piton.Parse ( language , s )
-end
-local function gobble ( n , code )
-  if n == 0
-  then return code
-  else return
-       ( Ct (
-              ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
-                * ( C "\r" * ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
-            ) ^ 0 )
-         / table.concat
-       ) : match ( code )
-  end
 end
 local AutoGobbleLPEG =
       (  (
@@ -1186,25 +1174,56 @@ local function remove_before_cr ( input_string )
         return input_string
     end
 end
-function piton.GobbleParse ( language , n , code )
+local function gobble ( n , code )
   code = remove_before_cr ( code )
-  if n == -1
-  then n = AutoGobbleLPEG : match ( code )
-  else if n == -2
-       then n = EnvGobbleLPEG : match ( code )
-       else if n == -3
-            then n = TabsAutoGobbleLPEG : match ( code )
-            end
-       end
+  if n == 0 then
+    return code
+  else
+    if n == -1 then
+      n = AutoGobbleLPEG : match ( code )
+    else
+      if n == -2 then
+        n = EnvGobbleLPEG : match ( code )
+      else
+        if n == -3 then
+          n = TabsAutoGobbleLPEG : match ( code )
+        end
+      end
+    end
+    return
+    ( Ct (
+           ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
+             * ( C "\r" * ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
+         ) ^ 0 )
+      / table.concat
+    ) : match ( code )
   end
+end
+function piton.GobbleParse ( language , n , code )
   piton.last_code = gobble ( n , code )
-  piton.Parse ( language , piton.last_code )
   piton.last_language = language
+  tex.sprint(luatexbase.catcodetables.CatcodeTableExpl ,
+   [[ \bool_if:NT \g__piton_footnote_bool { \savenotes } \vtop \bgroup ]] )
+  piton.Parse ( language , piton.last_code )
+  tex.sprint(luatexbase.catcodetables.CatcodeTableExpl ,
+   [[ \vspace { 2.5 pt } \egroup \bool_if:NT \g__piton_footnote_bool { \endsavenotes } \par ]] )
   if piton.write ~= ''
   then local file = assert ( io.open ( piton.write , piton.write_mode ) )
        file:write ( piton.get_last_code ( ) )
        file:close ( )
   end
+end
+local function GobbleParsePar ( language , n , code )
+  piton.GobbleParse ( language , n , code )
+  tex.sprint [[ \par ]]
+end
+function piton.SplitGobbleParse ( language , n , code )
+  P { "E" ,
+      E = ( V "F" * ( P " " ^ 0 * "\r" ) ^ 1  ) ^ 0 * V "F" ,
+      F = C ( V "G" ^ 0 )
+          / ( function ( x ) GobbleParsePar ( language , 0 , x ) end ) ,
+      G = ( 1 - P "\r" ) ^ 0 * "\r" - ( P " " ^ 0 * "\r" )
+    } : match ( gobble ( n , code ) )
 end
 function piton.get_last_code ( )
   return LPEG_cleaner[piton.last_language] : match ( piton.last_code )
@@ -1214,7 +1233,7 @@ function piton.CountLines ( code )
   for i in code : gmatch ( "\r" ) do count = count + 1 end
   tex.sprint (
       luatexbase.catcodetables.expl ,
-      '\\int_set:Nn \\l__piton_nb_lines_int {' .. count .. '}' )
+      [[ \int_set:Nn  \l__piton_nb_lines_int { ]] .. count .. '}' )
 end
 function piton.CountNonEmptyLines ( code )
   local count = 0
@@ -1227,7 +1246,7 @@ function piton.CountNonEmptyLines ( code )
      ) : match ( code )
   tex.sprint(
       luatexbase.catcodetables.expl ,
-      '\\int_set:Nn \\l__piton_nb_non_empty_lines_int {' .. count .. '}' )
+      [[ \int_set:Nn  \l__piton_nb_non_empty_lines_int { ]] .. count .. '}' )
 end
 function piton.CountLinesFile ( name )
   local count = 0
@@ -1235,7 +1254,7 @@ function piton.CountLinesFile ( name )
   for line in io.lines ( name ) do count = count + 1 end
   tex.sprint (
       luatexbase.catcodetables.expl ,
-      '\\int_set:Nn \\l__piton_nb_lines_int {' .. count .. '}' )
+      [[ \int_set:Nn \l__piton_nb_lines_int { ]] .. count .. '}' )
 end
 function piton.CountNonEmptyLinesFile ( name )
   local count = 0
@@ -1246,7 +1265,7 @@ function piton.CountNonEmptyLinesFile ( name )
   end
   tex.sprint (
       luatexbase.catcodetables.expl ,
-      '\\int_set:Nn \\l__piton_nb_non_empty_lines_int {' .. count .. '}' )
+      [[ \int_set:Nn \l__piton_nb_non_empty_lines_int { ]] .. count .. '}' )
 end
 function piton.ComputeRange(marker_beginning,marker_end,file_name)
   local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( marker_beginning )
@@ -1268,16 +1287,16 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
   end
   if first_line == -1
   then tex.sprint ( luatexbase.catcodetables.expl ,
-                    "\\__piton_error:n { begin~marker~not~found }" )
+                    [[ \__piton_error:n { begin~marker~not~found } ]] )
   else if last_found == false
        then tex.sprint ( luatexbase.catcodetables.expl ,
-                         "\\__piton_error:n { end~marker~not~found }" )
+                         [[ \__piton_error:n { end~marker~not~found } ]] )
        end
   end
   tex.sprint (
       luatexbase.catcodetables.expl ,
-      '\\int_set:Nn \\l__piton_first_line_int {' .. first_line .. ' + 2 }'
-      .. '\\int_set:Nn \\l__piton_last_line_int {' .. count .. ' }' )
+      [[ \int_set:Nn \l__piton_first_line_int { ]] .. first_line .. ' + 2 }'
+      .. [[ \int_set:Nn \l__piton_last_line_int { ]] .. count .. ' }' )
 end
 function piton.new_language ( lang , definition )
   lang = string.lower ( lang )
@@ -1381,16 +1400,16 @@ function piton.new_language ( lang , definition )
         or x[1] == "moretexcs"
      then
         local keywords = P ( false )
-        local style = "\\PitonStyle{Keyword}"
-        if x[1] == "moredirectives" then style = "\\PitonStyle{directive}" end
+        local style = [[ \PitonStyle{Keyword} ]]
+        if x[1] == "moredirectives" then style = [[ \PitonStyle{directive} ]] end
         style =  tex_option_arg : match ( x[2] ) or style
         local n = tonumber (style )
         if n then
-         if n > 1 then style = "\\PitonStyle{Keyword" .. style .. "}" end
+         if n > 1 then style = [[ \PitonStyle{Keyword ]] .. style .. "}" end
         end
         for _ , word in ipairs ( split_clist : match ( x[2] ) ) do
           if x[1] == "moretexcs" then
-            keywords = Q ( "\\" .. word ) + keywords
+            keywords = Q ( [[ \ ]] .. word ) + keywords
           else
             if sensitive
             then keywords = Q ( word  ) + keywords
@@ -1412,7 +1431,7 @@ function piton.new_language ( lang , definition )
   for _ , x in ipairs ( def_table ) do
     if x[1] == "morestring" then
       arg1 , arg2 , arg3 , arg4 = args_for_morekeywords : match ( x[2] )
-      arg2 = arg2 or "\\PitonStyle{String.Long}"
+      arg2 = arg2 or [[ \PitonStyle{String.Long} ]]
       if arg1 == "s" then
         long_string =
           Q ( arg3 )
@@ -1423,7 +1442,7 @@ function piton.new_language ( lang , definition )
       else
         central_pattern = 1 - S ( " \r" .. arg3 )
         if arg1 : match "b" then
-          central_pattern = P ( "\\" .. arg3 )  + central_pattern
+          central_pattern = P ( [[ \ ]] .. arg3 )  + central_pattern
         end
         if arg1 : match "d" or arg1 == "m" then
           central_pattern = P ( arg3 .. arg3 )  + central_pattern
@@ -1456,8 +1475,8 @@ function piton.new_language ( lang , definition )
   for _ , x in ipairs ( def_table ) do
     if x[1] == "morecomment" then
       local arg1 , arg2 , other_args = args_for_morecomment : match ( x[2] )
-      arg2 = arg2 or "\\PitonStyle{Comment}"
-      if arg1 : match "i" then arg2 = "\\PitonStyle{Discard}" end
+      arg2 = arg2 or [[ \PitonStyle{Comment} ]]
+      if arg1 : match "i" then arg2 = [[ \PitonStyle{Discard} ]] end
       if arg1 : match "l" then
         local arg3 = ( tex_braced_arg + C ( P ( 1 ) ^ 0 * -1 ) )
                      : match ( other_args )
@@ -1568,11 +1587,11 @@ function piton.new_language ( lang , definition )
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
          * BeamerBeginEnvironments
-         * Lc '\\__piton_begin_line:'
+         * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * LPEG1[lang]
          * -1
-         * Lc '\\__piton_end_line:'
+         * Lc [[ \__piton_end_line: ]]
        )
   if left_tag then
     local Tag = Q ( left_tag * other ^ 0 )
@@ -1617,11 +1636,11 @@ function piton.new_language ( lang , definition )
       Ct (
            ( space ^ 0 * P "\r" ) ^ -1
            * BeamerBeginEnvironments
-           * Lc '\\__piton_begin_line:'
+           * Lc [[ \__piton_begin_line: ]]
            * SpaceIndentation ^ 0
            * LPEG1[lang]
            * -1
-           * Lc '\\__piton_end_line:'
+           * Lc [[ \__piton_end_line: ]]
          )
   end
 end
