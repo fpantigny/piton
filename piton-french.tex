@@ -156,6 +156,10 @@ d'installer \pkg{piton} avec une distribution TeX comme MiKTeX, TeX~Live ou MacT
 
 \section{Utilisation de l'extension}
 
+L'extension \pkg{piton} n'est utilisable qu'avec LuaLaTeX : si un autre moteur de compilation (comme |latex|,
+|pdflatex| ou |xelatex|) est utilisé, une erreur fatale sera levée.
+
+
 \subsection{Choix du langage}
 
 L'extension \pkg{piton} prend en charge quatre langages informatiques : Python, OCaml, SQL et C, ou plutôt \CC. Il
@@ -182,16 +186,13 @@ Dans la suite de ce document, on parlera de Python mais les fonctionnalités s'a
 
 \subsection{Chargement de l'extension}
 
-L'extension \pkg{piton} se charge simplement avec la commande |\usepackage| : |\usepackage{piton}|.
 
-On a cependant deux remarques à formuler :
-\begin{itemize}
-\item l'extension \pkg{piton} utilise l'extension \pkg{xcolor} (mais \pkg{piton} ne charge pas \pkg{xcolor} : si
-\pkg{xcolor} n'est pas chargée avant le |\begin{document}|, une erreur fatale sera levée) ;
+L'extension \pkg{piton} se charge simplement avec |\usepackage{piton}|.
 
-\item l'extension \pkg{piton} n'est utilisable qu'avec LuaLaTeX : si un autre moteur de compilation (comme |latex|,
-|pdflatex| ou |xelatex|) est utilisé, une erreur fatale sera levée.
-\end{itemize}
+\smallskip
+Si, à la fin du prambule, l'extension \pkg{xcolor} n'a pas été chargée (par l'utilisateur ou par une extension
+chargée dans le préambule), \pkg{piton} charge l'extension \pkg{xcolor} avec |\usepackage{xcolor}|, c'est-à-dire
+sans aucune option. L'extension \pkg{piton} ne charge pas d'autre extension.
 
 \subsection{Les commandes et environnements à la disposition de l'utilisateur}
 

@@ -146,21 +146,19 @@ piton_version = "2.6b" -- 2024/03/18
 % 
 % \section{Use of the package}
 %
+% The package \pkg{piton} must be used with LuaLaTeX exclusively: if another
+% LaTeX engine (|latex|, |pdflatex|, |xelatex|,\dots ) is used, a fatal error
+% will be raised.
+%
 % \subsection{Loading the package}
 % 
-% The package \pkg{piton} should be loaded with the classical command
-% |\usepackage|: |\usepackage{piton}|.
+% The package \pkg{piton} should be loaded by: |\usepackage{piton}|.
 %
 % \smallskip
-% Nevertheless, we have two remarks:
-% \begin{itemize}
-% \item the package \pkg{piton} uses the package \pkg{xcolor} (but \pkg{piton}
-% does \emph{not} load \pkg{xcolor}: if \pkg{xcolor} is not loaded before the
-% |\begin{document}|, a fatal error will be raised).
-% \item the package \pkg{piton} must be used with LuaLaTeX exclusively: if
-% another LaTeX engine (|latex|, |pdflatex|, |xelatex|,\dots ) is used, a
-% fatal error will be raised.
-% \end{itemize}
+% If, at the end of the preamble, the package \pkg{xcolor} has not been loaded
+% (by the final user or by another package), \pkg{piton} loads \pkg{xcolor} with
+% the instruction |\usepackage{xcolor}| (that is to say without any option).
+% The package \pkg{piton} doesn't load any other package.
 %
 % \subsection{Choice of the computer language}
 %
@@ -2593,31 +2591,18 @@ piton_version = "2.6b" -- 2024/03/18
 % 
 % \bigskip
 %    \begin{macrocode}
-\@ifclassloaded { beamer } { \bool_gset_true:N \g_@@_beamer_bool } { }
-\@ifpackageloaded { beamerarticle } { \bool_gset_true:N \g_@@_beamer_bool } { }
+\IfClassLoadedTF { beamer } { \bool_gset_true:N \g_@@_beamer_bool } { }
+\IfPackageLoadedTF { beamerarticle } { \bool_gset_true:N \g_@@_beamer_bool } { }
 \lua_now:n { piton = piton~or~{ } }
 \bool_if:NT \g_@@_beamer_bool { \lua_now:n { piton.beamer = true } } 
 %    \end{macrocode}
 % 
 % \bigskip
 %    \begin{macrocode}
-\hook_gput_code:nnn { begindocument } { . }
-  {
-    \@ifpackageloaded { xcolor }
-      { }
-      { \msg_fatal:nn { piton } { xcolor~not~loaded } }
-  }
+\hook_gput_code:nnn { begindocument / before } { . }
+  { \IfPackageLoadedTF { xcolor } { } { \usepackage { xcolor } } }
 %    \end{macrocode}
 %
-%    \begin{macrocode}     
-\@@_msg_new:nn { xcolor~not~loaded }
-  {
-    xcolor~not~loaded \\
-    The~package~'xcolor'~is~required~by~'piton'.\\
-    This~error~is~fatal.
-  }
-%    \end{macrocode}
-% 
 %
 %    \begin{macrocode}
 \@@_msg_new:nn { footnote~with~footnotehyper~package }
@@ -2652,10 +2637,10 @@ piton_version = "2.6b" -- 2024/03/18
 % The class \cls{beamer} has its own system to extract footnotes and that's why
 % we have nothing to do if \cls{beamer} is used. 
 %    \begin{macrocode}
-    \@ifclassloaded { beamer }
+    \IfClassLoadedTF { beamer }
       { \bool_gset_false:N \g_@@_footnote_bool }
       { 
-        \@ifpackageloaded { footnotehyper }
+        \IfPackageLoadedTF { footnotehyper }
           { \@@_error:n { footnote~with~footnotehyper~package } }
           { \usepackage { footnote } }
       }
@@ -2669,10 +2654,10 @@ piton_version = "2.6b" -- 2024/03/18
 % The class \cls{beamer} has its own system to extract footnotes and that's why
 % we have nothing to do if \cls{beamer} is used. 
 %    \begin{macrocode}
-    \@ifclassloaded { beamer }
+    \IfClassLoadedTF { beamer }
       { \bool_gset_false:N \g_@@_footnote_bool }
       { 
-        \@ifpackageloaded { footnote }
+        \IfPackageLoadedTF { footnote }
           { \@@_error:n { footnotehyper~with~footnote~package } }
           { \usepackage { footnotehyper } }
         \bool_gset_true:N \g_@@_footnote_bool 
@@ -5287,7 +5272,8 @@ local BeamerEndEnvironments = P ( true )
 % \bigskip
 %    \begin{macrocode}
 local list_beamer_env =
-  { "uncoverenv" , "onlyenv" , "visibleenv" , "invisibleenv" , "alertenv" , "actionenv" }
+  { "uncoverenv" , "onlyenv" , "visibleenv" , 
+    "invisibleenv" , "alertenv" , "actionenv" }
 %    \end{macrocode}
 %
 % \bigskip
@@ -5886,7 +5872,7 @@ local Params =
        F = SkipSpace * ( Identifier + Q "*args" + Q "**kwargs" ) * SkipSpace
            * ( 
                  K ( 'InitialValues' , "=" * expression )
-               + Q ":" * SkipSpace * K ( 'Name.Type' , letter ^ 1 ) 
+               + Q ":" * SkipSpace * K ( 'Name.Type' , identifier ) 
              ) ^ -1
     }
 %    \end{macrocode}
@@ -6059,7 +6045,9 @@ local OneFieldDefinition =
 local OneField = 
     K ( 'Name.Field' , identifier ) * SkipSpace
   * Q "=" * SkipSpace
-  * ( expression_for_fields / ( function ( s ) return LPEG1['ocaml'] : match ( s ) end ) )
+  * ( expression_for_fields 
+      / ( function ( s ) return LPEG1['ocaml'] : match ( s ) end ) 
+    )
   * SkipSpace
 
 local Record = 
@@ -7122,10 +7110,10 @@ function piton.GobbleParse ( language , n , code )
 %    \end{macrocode}
 %    \begin{macrocode}
   tex.sprint(luatexbase.catcodetables.CatcodeTableExpl ,
-   [[ \bool_if:NT \g_@@_footnote_bool { \savenotes } \vtop \bgroup ]] )
+   [[ \bool_if:NT \g_@@_footnote_bool \savenotes \vtop \bgroup ]] )
   piton.Parse ( language , piton.last_code )
   tex.sprint(luatexbase.catcodetables.CatcodeTableExpl ,
-   [[ \vspace { 2.5 pt } \egroup \bool_if:NT \g_@@_footnote_bool { \endsavenotes } \par ]] )
+   [[ \vspace { 2.5 pt } \egroup \bool_if:NT \g_@@_footnote_bool \endsavenotes \par ]] )
 %    \end{macrocode}
 %
 % Now, if the final user has used the key |write| to write the code of the

@@ -151,7 +151,8 @@ local Beamer = P ( false )
 local BeamerBeginEnvironments = P ( true )
 local BeamerEndEnvironments = P ( true )
 local list_beamer_env =
-  { "uncoverenv" , "onlyenv" , "visibleenv" , "invisibleenv" , "alertenv" , "actionenv" }
+  { "uncoverenv" , "onlyenv" , "visibleenv" ,
+    "invisibleenv" , "alertenv" , "actionenv" }
 local BeamerNamesEnvironments = P ( false )
 for _ , x in ipairs ( list_beamer_env ) do
   BeamerNamesEnvironments = BeamerNamesEnvironments + x
@@ -465,7 +466,7 @@ local Params =
        F = SkipSpace * ( Identifier + Q "*args" + Q "**kwargs" ) * SkipSpace
            * (
                  K ( 'InitialValues' , "=" * expression )
-               + Q ":" * SkipSpace * K ( 'Name.Type' , letter ^ 1 )
+               + Q ":" * SkipSpace * K ( 'Name.Type' , identifier )
              ) ^ -1
     }
 local DefFunction =
@@ -555,7 +556,9 @@ local OneFieldDefinition =
 local OneField =
     K ( 'Name.Field' , identifier ) * SkipSpace
   * Q "=" * SkipSpace
-  * ( expression_for_fields / ( function ( s ) return LPEG1['ocaml'] : match ( s ) end ) )
+  * ( expression_for_fields
+      / ( function ( s ) return LPEG1['ocaml'] : match ( s ) end )
+    )
   * SkipSpace
 
 local Record =
@@ -1203,10 +1206,10 @@ function piton.GobbleParse ( language , n , code )
   piton.last_code = gobble ( n , code )
   piton.last_language = language
   tex.sprint(luatexbase.catcodetables.CatcodeTableExpl ,
-   [[ \bool_if:NT \g__piton_footnote_bool { \savenotes } \vtop \bgroup ]] )
+   [[ \bool_if:NT \g__piton_footnote_bool \savenotes \vtop \bgroup ]] )
   piton.Parse ( language , piton.last_code )
   tex.sprint(luatexbase.catcodetables.CatcodeTableExpl ,
-   [[ \vspace { 2.5 pt } \egroup \bool_if:NT \g__piton_footnote_bool { \endsavenotes } \par ]] )
+   [[ \vspace { 2.5 pt } \egroup \bool_if:NT \g__piton_footnote_bool \endsavenotes \par ]] )
   if piton.write ~= ''
   then local file = assert ( io.open ( piton.write , piton.write_mode ) )
        file:write ( piton.get_last_code ( ) )

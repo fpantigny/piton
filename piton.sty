@@ -103,22 +103,12 @@
     That~key~will~be~ignored.
   }
 \ProcessKeysOptions { piton / package }
-\@ifclassloaded { beamer } { \bool_gset_true:N \g__piton_beamer_bool } { }
-\@ifpackageloaded { beamerarticle } { \bool_gset_true:N \g__piton_beamer_bool } { }
+\IfClassLoadedTF { beamer } { \bool_gset_true:N \g__piton_beamer_bool } { }
+\IfPackageLoadedTF { beamerarticle } { \bool_gset_true:N \g__piton_beamer_bool } { }
 \lua_now:n { piton = piton~or~{ } }
 \bool_if:NT \g__piton_beamer_bool { \lua_now:n { piton.beamer = true } }
-\hook_gput_code:nnn { begindocument } { . }
-  {
-    \@ifpackageloaded { xcolor }
-      { }
-      { \msg_fatal:nn { piton } { xcolor~not~loaded } }
-  }
-\__piton_msg_new:nn { xcolor~not~loaded }
-  {
-    xcolor~not~loaded \\
-    The~package~'xcolor'~is~required~by~'piton'.\\
-    This~error~is~fatal.
-  }
+\hook_gput_code:nnn { begindocument / before } { . }
+  { \IfPackageLoadedTF { xcolor } { } { \usepackage { xcolor } } }
 \__piton_msg_new:nn { footnote~with~footnotehyper~package }
   {
     Footnote~forbidden.\\
@@ -140,20 +130,20 @@
   }
 \bool_if:NT \g__piton_footnote_bool
   {
-    \@ifclassloaded { beamer }
+    \IfClassLoadedTF { beamer }
       { \bool_gset_false:N \g__piton_footnote_bool }
       {
-        \@ifpackageloaded { footnotehyper }
+        \IfPackageLoadedTF { footnotehyper }
           { \__piton_error:n { footnote~with~footnotehyper~package } }
           { \usepackage { footnote } }
       }
   }
 \bool_if:NT \g__piton_footnotehyper_bool
   {
-    \@ifclassloaded { beamer }
+    \IfClassLoadedTF { beamer }
       { \bool_gset_false:N \g__piton_footnote_bool }
       {
-        \@ifpackageloaded { footnote }
+        \IfPackageLoadedTF { footnote }
           { \__piton_error:n { footnotehyper~with~footnote~package } }
           { \usepackage { footnotehyper } }
         \bool_gset_true:N \g__piton_footnote_bool
