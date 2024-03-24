@@ -2754,12 +2754,21 @@ piton_version = "2.6b" -- 2024/03/18
 %    \end{macrocode}
 %
 % \medskip
+% When the key |split-on-empty-lines| will be in force, then the following token
+% list will be inserted between the chunks of code (the informatic code provided
+% by the final user is split in chunks on the empty lines in the code).
+%    \begin{macrocode}
+\tl_new:N \l_@@_split_separation_tl
+%    \end{macrocode}
+% 
+% \medskip
 % An initial value of |splittable| equal to 100 is equivalent to say that the
 % environments |{Piton}| are unbreakable.
 %    \begin{macrocode}
 \int_set:Nn \l_@@_splittable_int { 100 }
 %    \end{macrocode}
 %
+% 
 % \medskip
 % The following string corresponds to the key |background-color| of |\PitonOptions|.
 %    \begin{macrocode}
@@ -3493,6 +3502,9 @@ piton_version = "2.6b" -- 2024/03/18
 
     split-on-empty-lines .bool_set:N = \l_@@_split_on_empty_lines_bool ,
     split-on-empty-lines .default:n = true ,
+
+    split-separation .tl_set:N         = \l_@@_split_separation_tl ,
+    split-separation .value_required:n = true ,
  
     marker .code:n = 
       \bool_lazy_or:nnTF
@@ -4043,7 +4055,7 @@ piton_version = "2.6b" -- 2024/03/18
 % Now, the main job.
 %    \begin{macrocode}
             \bool_if:NTF \l_@@_split_on_empty_lines_bool
-              \@@_split_gobble_parse:n 
+              \@@_gobble_split_parse:n 
               \@@_gobble_parse:n 
               { ##1 }
 %    \end{macrocode}
@@ -4097,7 +4109,9 @@ piton_version = "2.6b" -- 2024/03/18
 % This is the end of the definition of the command |\NewPitonEnvironment|.
 %
 % \bigskip
-% The argument is provided by curryfication.
+% The following function will be used when the key |split-on-empty-lines| is not
+% in force. It will gobble the spaces at the beginning of the lines and parse
+% the code. The argument is provided by curryfication. 
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_gobble_parse:n 
   {
@@ -4114,13 +4128,16 @@ piton_version = "2.6b" -- 2024/03/18
 %    \end{macrocode}
 %
 % \bigskip
-% The argument is provided by curryfication.
+% The following function will be used when the key |split-on-empty-lines| is in
+% force. It will gobble the spaces at the beginning of the lines (if the key
+% |gobble| is in force), then split the code at the empty lines and, eventually,
+% parse the code. The argument is provided by curryfication.
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_split_gobble_parse:n 
+\cs_new_protected:Npn \@@_gobble_split_parse:n 
   {
     \lua_now:e 
       { 
-        piton.SplitGobbleParse
+        piton.GobbleSplitParse
           ( 
             '\l_piton_language_str' , 
             \int_use:N \l_@@_gobble_int ,
@@ -4840,6 +4857,8 @@ piton_version = "2.6b" -- 2024/03/18
     show-spaces,~
     show-spaces-in-strings,~
     splittable,~
+    split-on-empty-lines,~
+    split-separation,~
     tabs-auto-gobble,~
     tab-size,~
     width~and~write.
@@ -5011,7 +5030,7 @@ end
 % that string. The elements captured will be formatted as L3 code. It will be
 % used to send to LaTeX all the formatting LaTeX instructions we have to insert
 % in order to do the syntactic highlighting (that's the main job of
-% \pkg{piton}). That function will be widely used.
+% \pkg{piton}). That function, unlike the previous one, will be widely used.
 %    \begin{macrocode}
 local function Lc ( string )
   return Cc ( { luatexbase.catcodetables.expl , string } ) 
@@ -5408,7 +5427,7 @@ local CommentMath =
 % |\@@_begin_line:|, it's too late to change de background).
 %    \begin{macrocode}
 local PromptHastyDetection = 
-  ( # ( P ">>>" + "..." ) * Lc ( '\\@@_prompt:' ) ) ^ -1 
+  ( # ( P ">>>" + "..." ) * Lc '\\@@_prompt:' ) ^ -1 
 %    \end{macrocode}
 % We remind that the marker |#| of \textsc{lpeg} specifies that the pattern will be
 % detected but won't consume any character.
@@ -7138,10 +7157,20 @@ end
 %    \end{macrocode}
 %
 % \bigskip
+% The following function will be used when the key |split-on-empty-lines| is in
+% force. With that key, the informatic code is split in chunks at the empty
+% lines (usually between the informatic functions defined in the informatic
+% code). LaTeX will be able to change the page between the chunks.
 %    \begin{macrocode}
-function piton.SplitGobbleParse ( language , n , code )
+function piton.GobbleSplitParse ( language , n , code )
   P { "E" ,
-      E = ( V "F" * ( P " " ^ 0 * "\r" ) ^ 1  ) ^ 0 * V "F" ,
+      E = ( V "F" 
+           * ( P " " ^ 0 * "\r" ) ^ 1 
+             / ( function ( x ) 
+                 tex.sprint ( luatexbase.catcodetables.expl ,
+                              [[ \l_@@_split_separation_tl ]] ) 
+                 end ) 
+          ) ^ 0 * V "F" ,
 %    \end{macrocode}
 % The non-terminal |F| corresponds to a chunk of the informatic code.
 %    \begin{macrocode}
@@ -7152,6 +7181,9 @@ function piton.SplitGobbleParse ( language , n , code )
 % |code| (see below).
 %    \begin{macrocode}
           / ( function ( x ) GobbleParsePar ( language , 0 , x ) end ) , 
+%    \end{macrocode}
+% The non-terminal |G| corresponds to a non-empty line of code.
+%    \begin{macrocode}
       G = ( 1 - P "\r" ) ^ 0 * "\r" - ( P " " ^ 0 * "\r" ) 
     } : match ( gobble ( n , code ) ) 
 end 

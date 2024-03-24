@@ -220,7 +220,7 @@ end
 local CommentMath =
   P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$" -- $
 local PromptHastyDetection =
-  ( # ( P ">>>" + "..." ) * Lc ( '\\__piton_prompt:' ) ) ^ -1
+  ( # ( P ">>>" + "..." ) * Lc '\\__piton_prompt:' ) ^ -1
 local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ^ -1  )
 local EOL =
   P "\r"
@@ -1220,9 +1220,15 @@ local function GobbleParsePar ( language , n , code )
   piton.GobbleParse ( language , n , code )
   tex.sprint [[ \par ]]
 end
-function piton.SplitGobbleParse ( language , n , code )
+function piton.GobbleSplitParse ( language , n , code )
   P { "E" ,
-      E = ( V "F" * ( P " " ^ 0 * "\r" ) ^ 1  ) ^ 0 * V "F" ,
+      E = ( V "F"
+           * ( P " " ^ 0 * "\r" ) ^ 1
+             / ( function ( x )
+                 tex.sprint ( luatexbase.catcodetables.expl ,
+                              [[ \l__piton_split_separation_tl ]] )
+                 end )
+          ) ^ 0 * V "F" ,
       F = C ( V "G" ^ 0 )
           / ( function ( x ) GobbleParsePar ( language , 0 , x ) end ) ,
       G = ( 1 - P "\r" ) ^ 0 * "\r" - ( P " " ^ 0 * "\r" )

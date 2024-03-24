@@ -167,6 +167,7 @@
 \int_new:N \g__piton_line_int
 \tl_new:N \g__piton_aux_tl
 \int_new:N \l__piton_splittable_int
+\tl_new:N \l__piton_split_separation_tl
 \int_set:Nn \l__piton_splittable_int { 100 }
 \clist_new:N \l__piton_bg_color_clist
 \tl_new:N \l__piton_prompt_bg_color_tl
@@ -540,6 +541,9 @@
     split-on-empty-lines .bool_set:N = \l__piton_split_on_empty_lines_bool ,
     split-on-empty-lines .default:n = true ,
 
+    split-separation .tl_set:N         = \l__piton_split_separation_tl ,
+    split-separation .value_required:n = true ,
+
     marker .code:n =
       \bool_lazy_or:nnTF
         \l__piton_in_PitonInputFile_bool
@@ -909,7 +913,7 @@
                   }
               }
             \bool_if:NTF \l__piton_split_on_empty_lines_bool
-              \__piton_split_gobble_parse:n
+              \__piton_gobble_split_parse:n
               \__piton_gobble_parse:n
               { ##1 }
             \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
@@ -944,11 +948,11 @@
           )
       }
   }
-\cs_new_protected:Npn \__piton_split_gobble_parse:n
+\cs_new_protected:Npn \__piton_gobble_split_parse:n
   {
     \lua_now:e
       {
-        piton.SplitGobbleParse
+        piton.GobbleSplitParse
           (
             '\l_piton_language_str' ,
             \int_use:N \l__piton_gobble_int ,
@@ -1419,6 +1423,8 @@
     show-spaces,~
     show-spaces-in-strings,~
     splittable,~
+    split-on-empty-lines,~
+    split-separation,~
     tabs-auto-gobble,~
     tab-size,~
     width~and~write.
