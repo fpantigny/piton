@@ -762,6 +762,20 @@ où la clé |splittable| est utilisée.\footnote{Avec la clé |splittable|, un e
   que, en revanche, un environnement de \pkg{tcolorbox} inclus dans un autre environnement de \pkg{tcolorbox} n'est
   pas sécable, même quand les deux utilisent la clé |breakable|.}
 
+
+\bigskip
+\colorbox{yellow!50}{\textbf{Nouveau 2.7}}\enskip L'extension \pkg{piton} fournit une option
+\Definition{split-on-empty-lines}. Quand cette clé est active, les listings sont découpés en morceaux au niveau des
+lignes vides du code et chaque morceau est traité par \pkg{piton} comme un listing autonome avant d'être envoyé à
+LaTeX. \textbf{De ce fait, LaTeX peut faire des sauts de page entre les morceaux}. Si la clé |splittable| est
+utilisée, elle reste active dans chaque morceau. Évidemment, l'utilisation conjointe de |split-on-empty-lines| et
+|splittable| n'a d'intérêt que si |splittable| est utilisée avec une valeur différente de $1$ (par example $4$), de
+manière à privilégier les coupures de pages au niveau des lignes vides du listing d'origine.
+
+\smallskip
+La clé \Definition{split-separation} permet de spécifier une liste de tokens LaTeX qui sera insérée entre les
+morceaux. Exemple : |\PitonOptions{split-speration = \hrule\goodbreak}|
+
 \subsubsection{Coupure des lignes}
 
 \label{line-breaks}
