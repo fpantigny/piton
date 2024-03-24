@@ -72,12 +72,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{2.6b}
-\def\PitonFileDate{2024/03/18}
+\def\PitonFileVersion{2.7}
+\def\PitonFileDate{2024/03/24}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "2.6b" -- 2024/03/18
+piton_version = "2.7" -- 2024/03/24
 %</LUA>
 %\fi
 %
@@ -803,6 +803,23 @@ piton_version = "2.6b" -- 2024/03/18
 % environment of \pkg{tcolorbox} included in another environment of
 % \pkg{tcolorbox} is \emph{not} breakable, even when both environments use the
 % key |breakable| of \pkg{tcolorbox}.}
+%
+% \bigskip
+% \colorbox{yellow!50}{\textbf{New 6.27}}\enskip The extension \pkg{piton}
+% provides a key \Definition{split-on-empty-lines}. When that key is in force,
+% the listings are split in chunks on the empty lines\footnote{The ``empty
+% lines'' are the lines which contain only spaces} of the code and each chunk is
+% treated by \pkg{piton} as an independent listing before being sent to LaTeX.
+% Thus, \textbf{LaTeX is able to add page breaks between the chunks}. If the key
+% |splittable| is used, it's active in each chunk. Of course, the utilisation of
+% both |split-on-empty-lines| and |splittable| makes sens if the key
+% |splittable| with a value different of 1 (for instance 4), so that the pages
+% breaks are prioritised on the empty lines of the original listing.
+%
+% \smallskip
+% The key \Definition{split-separation} specifies a list of LaTeX tokens that
+% will be inserted between the chunks. For example :
+% |\PitonOptions{split-separation = \hrule\goodbreak}|.
 % 
 % \subsubsection{Line breaks}
 % 
@@ -7820,7 +7837,7 @@ end
 %
 % \verb|https://github.com/fpantigny/piton|
 %
-% \subsection*{Changes between versions 2.5 and 2.6}
+% \subsection*{Changes between versions 2.6 and 2.7}
 %
 % New keys |split-on-empty-lines| and |split-separation|
 %

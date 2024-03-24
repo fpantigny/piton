@@ -764,9 +764,12 @@ où la clé |splittable| est utilisée.\footnote{Avec la clé |splittable|, un e
 
 
 \bigskip
+\index{split-on-empty-lines}
+\index{split-separation}
 \colorbox{yellow!50}{\textbf{Nouveau 2.7}}\enskip L'extension \pkg{piton} fournit une option
 \Definition{split-on-empty-lines}. Quand cette clé est active, les listings sont découpés en morceaux au niveau des
-lignes vides du code et chaque morceau est traité par \pkg{piton} comme un listing autonome avant d'être envoyé à
+lignes vides\footnote{Les lignes considérées comme vides sont celles qui ne comportent que des espaces.} du code et
+chaque morceau est traité par \pkg{piton} comme un listing autonome avant d'être envoyé à 
 LaTeX. \textbf{De ce fait, LaTeX peut faire des sauts de page entre les morceaux}. Si la clé |splittable| est
 utilisée, elle reste active dans chaque morceau. Évidemment, l'utilisation conjointe de |split-on-empty-lines| et
 |splittable| n'a d'intérêt que si |splittable| est utilisée avec une valeur différente de $1$ (par example $4$), de
