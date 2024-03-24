@@ -72,12 +72,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{2.7}
+\def\PitonFileVersion{2.7z}
 \def\PitonFileDate{2024/03/24}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "2.7" -- 2024/03/24
+piton_version = "2.7z" -- 2024/03/24
 %</LUA>
 %\fi
 %
@@ -4567,39 +4567,6 @@ piton_version = "2.7" -- 2024/03/24
   } 
 %    \end{macrocode}
 %
-% \bigskip
-%    \begin{macrocode}
-\keys_define:nn { PitonOptions }
-  { identifiers .code:n = \@@_set_identifiers:n { #1 } }
-%    \end{macrocode}
-%
-% \bigskip
-%    \begin{macrocode}
-\keys_define:nn { Piton / identifiers }
-  {
-    names .clist_set:N = \l_@@_identifiers_names_tl ,
-    style .tl_set:N    = \l_@@_style_tl ,
-  }
-%    \end{macrocode}
-%
-% \bigskip
-%    \begin{macrocode}
-\cs_new_protected:Npn \@@_set_identifiers:n #1
-  {
-    \@@_error:n { key~identifiers~deprecated }
-    \@@_gredirect_none:n { key~identifiers~deprecated }
-    \clist_clear_new:N \l_@@_identifiers_names_tl 
-    \tl_clear_new:N \l_@@_style_tl 
-    \keys_set:nn { Piton / identifiers } { #1 }
-    \clist_map_inline:Nn \l_@@_identifiers_names_tl 
-      {
-        \tl_set_eq:cN 
-          { PitonIdentifier _ \l_piton_language_str _ ##1 }
-          \l_@@_style_tl
-      }
-  }
-%    \end{macrocode}
-%
 %
 % \bigskip
 % In particular, we have an highlighting of the indentifiers which are the
@@ -4735,15 +4702,6 @@ piton_version = "2.7" -- 2024/03/24
   }
 %    \end{macrocode}
 %
-%    \begin{macrocode}
-\@@_msg_new:nn { key~identifiers~deprecated }
-  {
-    The~key~'identifiers'~in~the~command~\token_to_str:N PitonOptions\ 
-    is~now~deprecated:~you~should~use~the~command~
-    \token_to_str:N \SetPitonIdentifier\ instead.\\
-    However,~you~can~go~on.
-  }
-%    \end{macrocode}
 % 
 %    \begin{macrocode}
 \@@_msg_new:nn { Unknown~key~for~SetPitonStyle } 

@@ -19,7 +19,7 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{2.7}
+\def\PitonFileVersion{2.7z}
 \def\PitonFileDate{2024/03/24}
 
 
@@ -1234,27 +1234,6 @@
       { \cs_if_exist_use:c { PitonIdentifier _ #1 } }
     { #1 }
   }
-\keys_define:nn { PitonOptions }
-  { identifiers .code:n = \__piton_set_identifiers:n { #1 } }
-\keys_define:nn { Piton / identifiers }
-  {
-    names .clist_set:N = \l__piton_identifiers_names_tl ,
-    style .tl_set:N    = \l__piton_style_tl ,
-  }
-\cs_new_protected:Npn \__piton_set_identifiers:n #1
-  {
-    \__piton_error:n { key~identifiers~deprecated }
-    \__piton_gredirect_none:n { key~identifiers~deprecated }
-    \clist_clear_new:N \l__piton_identifiers_names_tl
-    \tl_clear_new:N \l__piton_style_tl
-    \keys_set:nn { Piton / identifiers } { #1 }
-    \clist_map_inline:Nn \l__piton_identifiers_names_tl
-      {
-        \tl_set_eq:cN
-          { PitonIdentifier _ \l_piton_language_str _ ##1 }
-          \l__piton_style_tl
-      }
-  }
 \cs_new_protected:cpn { pitonStyle _ Name.Function.Internal } #1
   {
     { \PitonStyle { Name.Function } { #1 } }
@@ -1316,13 +1295,6 @@
     The~file~'piton.lua'~loaded~has~not~the~same~number~of~
     version~as~the~file~'piton.sty'.~You~can~go~on~but~you~should~
     address~that~issue.
-  }
-\__piton_msg_new:nn { key~identifiers~deprecated }
-  {
-    The~key~'identifiers'~in~the~command~\token_to_str:N PitonOptions\
-    is~now~deprecated:~you~should~use~the~command~
-    \token_to_str:N \SetPitonIdentifier\ instead.\\
-    However,~you~can~go~on.
   }
 \__piton_msg_new:nn { Unknown~key~for~SetPitonStyle }
   {
