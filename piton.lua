@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "2.7z" -- 2024/03/24
+piton_version = "2.7zz" -- 2024/03/25
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -1077,7 +1077,7 @@ function piton.Parse ( language , code )
   if t == nil
   then
     tex.sprint( luatexbase.catcodetables.CatcodeTableExpl,
-                [[ \__piton_error:n { syntax~error } ]] )
+                [[ \__piton_error_or_warning:n { syntax~error } ]] )
     return -- to exit in force the function
   end
   local left_stack = {}
@@ -1114,7 +1114,7 @@ function piton.Parse ( language , code )
      end
   end
 end
-function piton.ParseFile ( language , name , first_line , last_line )
+function piton.ParseFile ( language , name , first_line , last_line , split )
   local s = ''
   local i = 0
   for line in io.lines ( name )
@@ -1133,14 +1133,18 @@ function piton.ParseFile ( language , name , first_line , last_line )
             end
        end
   end
-  piton.Parse ( language , s )
+  if split then
+    piton.GobbleSplitParse ( language , 0 , code )
+  else
+    piton.Parse ( language , s )
+  end
 end
 function piton.ParseBis ( language , code )
   local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( code )
   return piton.Parse ( language , s )
 end
 function piton.ParseTer ( language , code )
-  local s = ( Cs ( ( P [[ \__piton_breakable_space: ]] / ' ' + 1 ) ^ 0 ) )
+  local s = ( Cs ( ( P [[\__piton_breakable_space: ]] / ' ' + 1 ) ^ 0 ) )
             : match ( code )
   return piton.Parse ( language , s )
 end
@@ -1193,13 +1197,17 @@ local function gobble ( n , code )
         end
       end
     end
-    return
-    ( Ct (
-           ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
-             * ( C "\r" * ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
-         ) ^ 0 )
-      / table.concat
-    ) : match ( code )
+    if n == 0 then
+      return code
+    else
+      return
+      ( Ct (
+             ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
+               * ( C "\r" * ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
+           ) ^ 0 )
+        / table.concat
+      ) : match ( code )
+    end
   end
 end
 function piton.GobbleParse ( language , n , code )
@@ -1296,10 +1304,10 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
   end
   if first_line == -1
   then tex.sprint ( luatexbase.catcodetables.expl ,
-                    [[ \__piton_error:n { begin~marker~not~found } ]] )
+                    [[ \__piton_error_or_warning:n { begin~marker~not~found } ]] )
   else if last_found == false
        then tex.sprint ( luatexbase.catcodetables.expl ,
-                         [[ \__piton_error:n { end~marker~not~found } ]] )
+                         [[ \__piton_error_or_warning:n { end~marker~not~found } ]] )
        end
   end
   tex.sprint (

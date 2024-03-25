@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{2.7z}
-\def\PitonFileDate{2024/03/24}
+\def\PitonFileVersion{2.7zz}
+\def\PitonFileDate{2024/03/25}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -37,13 +37,26 @@
 \cs_new_protected:Npn \__piton_fatal:n { \msg_fatal:nn { piton } }
 \cs_new_protected:Npn \__piton_fatal:nn { \msg_fatal:nnn { piton } }
 \cs_new_protected:Npn \__piton_msg_new:nn { \msg_new:nnn { piton } }
-\cs_new_protected:Npn \__piton_msg_new:nnn { \msg_new:nnnn { piton } }
 \cs_new_protected:Npn \__piton_gredirect_none:n #1
   {
     \group_begin:
     \globaldefs = 1
     \msg_redirect_name:nnn { piton } { #1 } { none }
     \group_end:
+  }
+\cs_new_protected:Npn \__piton_msg_new:nnn #1 #2 #3
+  {
+    \bool_if:NTF \g__piton_messages_for_Overleaf_bool
+      { \msg_new:nnn { piton } { #1 } { #2 \\ #3 } }
+      { \msg_new:nnnn { piton } { #1 } { #2 } { #3 } }
+  }
+\cs_new_protected:Npn \__piton_error_or_warning:n
+  { \bool_if:NTF \g__piton_messages_for_Overleaf_bool \__piton_warning:n \__piton_error:n }
+\bool_new:N \g__piton_messages_for_Overleaf_bool
+\bool_gset:Nn \g__piton_messages_for_Overleaf_bool
+  {
+       \str_if_eq_p:on \c_sys_jobname_str { _region_ }  % for Emacs
+    || \str_if_eq_p:on \c_sys_jobname_str { output }   % for Overleaf
   }
 \__piton_msg_new:nn { LuaLaTeX~mandatory }
   {
@@ -59,7 +72,7 @@
 \__piton_msg_new:nnn { piton.lua~not~found }
   {
     The~file~'piton.lua'~can't~be~found.\\
-    The~package~'piton'~won't~be~loaded.\\
+    This~eror~is~fatal.\\
     If~you~want~to~know~how~to~retrieve~the~file~'piton.lua',~type~H~<return>.
   }
   {
@@ -68,7 +81,7 @@
     'piton.lua'.
   }
 \file_if_exist:nF { piton.lua }
-  { \msg_critical:nn { piton } { piton.lua~not~found } }
+  { \msg_fatal:nn { piton } { piton.lua~not~found } }
 \bool_new:N \g__piton_footnotehyper_bool
 \bool_new:N \g__piton_footnote_bool
 \bool_new:N \g__piton_math_comments_bool
@@ -381,9 +394,9 @@
           { \l__piton_nb_lines_int - \g__piton_line_int } > \l__piton_splittable_int
           {
             \egroup
-            \bool_if:NT \g__piton_footnote_bool { \endsavenotes }
+            \bool_if:NT \g__piton_footnote_bool \endsavenotes
             \par \mode_leave_vertical:
-            \bool_if:NT \g__piton_footnote_bool { \savenotes }
+            \bool_if:NT \g__piton_footnote_bool \savenotes
             \vtop \bgroup
           }
      }
@@ -996,7 +1009,7 @@
       {
         \bool_if:NTF \g__piton_beamer_bool
           { \begin { uncoverenv } < #1 > }
-          { \__piton_error:n { overlay~without~beamer } }
+          { \__piton_error_or_warning:n { overlay~without~beamer } }
       }
     \group_begin:
       \int_zero_new:N \l__piton_first_line_int
@@ -1015,7 +1028,7 @@
           && ! \str_if_empty_p:N \l__piton_begin_range_str
         }
         {
-          \__piton_error:n { bad~range~specification }
+          \__piton_error_or_warning:n { bad~range~specification }
           \int_zero:N \l__piton_first_line_int
           \int_set_eq:NN \l__piton_last_line_int \c_max_int
         }
@@ -1047,7 +1060,7 @@
       \__piton_compute_left_margin:no { CountNonEmptyLinesFile } \l__piton_file_name_str
       \__piton_compute_width:
       \ttfamily
-      \bool_if:NT \g__piton_footnote_bool { \savenotes }
+      \bool_if:NT \g__piton_footnote_bool \savenotes
       \vtop \bgroup
       \lua_now:e
         {
@@ -1055,10 +1068,11 @@
            '\l_piton_language_str' ,
            '\l__piton_file_name_str' ,
            \int_use:N \l__piton_first_line_int ,
-           \int_use:N \l__piton_last_line_int )
+           \int_use:N \l__piton_last_line_int ) ,
+           \bool_if:NTF \l__piton_split_on_empty_lines_bool { 1 } { nil }
         }
       \egroup
-      \bool_if:NT \g__piton_footnote_bool { \endsavenotes }
+      \bool_if:NT \g__piton_footnote_bool \endsavenotes
       \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
     \group_end:
     \tl_if_novalue:nF { #1 }
@@ -1361,7 +1375,7 @@
     The~file~'#1'~is~unknown.\\
     Your~command~\token_to_str:N \PitonInputFile\ will~be~discarded.
   }
-\msg_new:nnnn { piton } { Unknown~key~for~PitonOptions }
+\__piton_msg_new:nnn { Unknown~key~for~PitonOptions }
   {
     Unknown~key. \\
     The~key~'\l_keys_key_str'~is~unknown~for~\token_to_str:N \PitonOptions.~
@@ -1435,7 +1449,6 @@
         require ( "piton" )
         tex.sprint ( luatexbase.catcodetables.CatcodeTableExpl ,
                      "\\__piton_test_version:n {" .. piton_version ..  "}" )
-
       }
   }
 \ExplSyntaxOff

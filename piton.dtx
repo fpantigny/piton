@@ -72,12 +72,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{2.7z}
-\def\PitonFileDate{2024/03/24}
+\def\PitonFileVersion{2.7zz}
+\def\PitonFileDate{2024/03/25}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "2.7z" -- 2024/03/24
+piton_version = "2.7zz" -- 2024/03/25
 %</LUA>
 %\fi
 %
@@ -359,9 +359,8 @@ piton_version = "2.7z" -- 2024/03/24
 % the part~\ref{API}, p.~\pageref{API}).} of the current environment in
 % that file. At the first use of a file by \pkg{piton}, it is erased.
 %
-% \item \index{path-write}\colorbox{yellow!50}{\bfseries New 2.5}\enskip The key
-% \Definition{path-write} specifies a path where the files written by the key
-% |write| will be written.
+% \item \index{path-write} The key \Definition{path-write} specifies a path
+% where the files written by the key |write| will be written.
 %
 % \item \index{line-numbers} The key \Definition{line-numbers} activates the
 % line numbering in the environments |{Piton}| and in the listings resulting
@@ -2479,13 +2478,46 @@ piton_version = "2.7z" -- 2024/03/24
 \cs_new_protected:Npn \@@_fatal:n { \msg_fatal:nn { piton } }
 \cs_new_protected:Npn \@@_fatal:nn { \msg_fatal:nnn { piton } }
 \cs_new_protected:Npn \@@_msg_new:nn { \msg_new:nnn { piton } }
-\cs_new_protected:Npn \@@_msg_new:nnn { \msg_new:nnnn { piton } }
 \cs_new_protected:Npn \@@_gredirect_none:n #1 
   {
     \group_begin:
     \globaldefs = 1
     \msg_redirect_name:nnn { piton } { #1 } { none }
     \group_end:
+  }
+%    \end{macrocode}
+%
+% With Overleaf, by default, a document is compiled in non-stop mode. When there
+% is an error, there is no way to the user to use the key H in order to have
+% more information. That's why we decide to put that piece of information (for
+% the messages with such information) in the main part of the message when the
+% key |messages-for-Overleaf| is used (at load-time).
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_msg_new:nnn #1 #2 #3
+  {
+    \bool_if:NTF \g_@@_messages_for_Overleaf_bool
+      { \msg_new:nnn { piton } { #1 } { #2 \\ #3 } }
+      { \msg_new:nnnn { piton } { #1 } { #2 } { #3 } }
+  }
+%    \end{macrocode}
+% 
+% \bigskip
+% We also create a command which will generate usually an error but only a
+% warning on Overleaf. The argument is given by curryfication.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_error_or_warning:n 
+  { \bool_if:NTF \g_@@_messages_for_Overleaf_bool \@@_warning:n \@@_error:n }
+%    \end{macrocode}
+% 
+% We try to detect whether the compilation is done on Overleaf. We use
+% |\c_sys_jobname_str| because, with Overleaf, the value of |\c_sys_jobname_str|
+% is always ``|output|''.
+%    \begin{macrocode}
+\bool_new:N \g_@@_messages_for_Overleaf_bool
+\bool_gset:Nn \g_@@_messages_for_Overleaf_bool
+  { 
+       \str_if_eq_p:on \c_sys_jobname_str { _region_ }  % for Emacs
+    || \str_if_eq_p:on \c_sys_jobname_str { output }   % for Overleaf
   }
 %    \end{macrocode}
 %
@@ -2513,7 +2545,7 @@ piton_version = "2.7z" -- 2024/03/24
 \@@_msg_new:nnn { piton.lua~not~found }
   { 
     The~file~'piton.lua'~can't~be~found.\\ 
-    The~package~'piton'~won't~be~loaded.\\
+    This~eror~is~fatal.\\
     If~you~want~to~know~how~to~retrieve~the~file~'piton.lua',~type~H~<return>.
   }
   {
@@ -2526,8 +2558,9 @@ piton_version = "2.7z" -- 2024/03/24
 % \bigskip
 %    \begin{macrocode}
 \file_if_exist:nF { piton.lua }
-  { \msg_critical:nn { piton } { piton.lua~not~found } }
+  { \msg_fatal:nn { piton } { piton.lua~not~found } }
 %    \end{macrocode}
+%
 %
 %
 % \bigskip
@@ -2707,7 +2740,7 @@ piton_version = "2.7z" -- 2024/03/24
 %    \end{macrocode}
 % 
 % \medskip
-% Each time the command |\PitonInputFile| or an environment of \pkg{piton} is
+% Each time the command |\PitonInputFilement of \pkg{piton} is
 % used, the code of that environment will be stored in the following global string.
 %    \begin{macrocode}
 \tl_new:N \g_piton_last_code_tl
@@ -3103,6 +3136,7 @@ piton_version = "2.7z" -- 2024/03/24
 % \bigskip
 % \subsubsection{Treatment of a line of code}
 % 
+% The following command is only used once.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_replace_spaces:n #1 
   {
@@ -3320,9 +3354,9 @@ piton_version = "2.7z" -- 2024/03/24
           { \l_@@_nb_lines_int - \g_@@_line_int } > \l_@@_splittable_int 
           {
             \egroup
-            \bool_if:NT \g_@@_footnote_bool { \endsavenotes } 
+            \bool_if:NT \g_@@_footnote_bool \endsavenotes 
             \par \mode_leave_vertical: 
-            \bool_if:NT \g_@@_footnote_bool { \savenotes } 
+            \bool_if:NT \g_@@_footnote_bool \savenotes 
             \vtop \bgroup
           }
      }
@@ -4223,7 +4257,7 @@ piton_version = "2.7z" -- 2024/03/24
       {
         \bool_if:NTF \g_@@_beamer_bool
           { \begin { uncoverenv } < #1 > }     
-          { \@@_error:n { overlay~without~beamer } }
+          { \@@_error_or_warning:n { overlay~without~beamer } }
       }
     \group_begin:
       \int_zero_new:N \l_@@_first_line_int
@@ -4242,7 +4276,7 @@ piton_version = "2.7z" -- 2024/03/24
           && ! \str_if_empty_p:N \l_@@_begin_range_str
         }
         { 
-          \@@_error:n { bad~range~specification } 
+          \@@_error_or_warning:n { bad~range~specification } 
           \int_zero:N \l_@@_first_line_int
           \int_set_eq:NN \l_@@_last_line_int \c_max_int
         }
@@ -4287,7 +4321,7 @@ piton_version = "2.7z" -- 2024/03/24
       \@@_compute_left_margin:no { CountNonEmptyLinesFile } \l_@@_file_name_str
       \@@_compute_width:
       \ttfamily
-      \bool_if:NT \g_@@_footnote_bool { \savenotes } 
+      \bool_if:NT \g_@@_footnote_bool \savenotes 
       \vtop \bgroup 
       \lua_now:e
         { 
@@ -4295,10 +4329,11 @@ piton_version = "2.7z" -- 2024/03/24
            '\l_piton_language_str' ,
            '\l_@@_file_name_str' ,
            \int_use:N \l_@@_first_line_int , 
-           \int_use:N \l_@@_last_line_int ) 
+           \int_use:N \l_@@_last_line_int ) ,
+           \bool_if:NTF \l_@@_split_on_empty_lines_bool { 1 } { nil } 
         } 
       \egroup 
-      \bool_if:NT \g_@@_footnote_bool { \endsavenotes } 
+      \bool_if:NT \g_@@_footnote_bool \endsavenotes 
       \bool_if:NT \l_@@_width_min_bool \@@_width_to_aux:
     \group_end:
 %    \end{macrocode}
@@ -4798,7 +4833,7 @@ piton_version = "2.7z" -- 2024/03/24
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
-\msg_new:nnnn { piton } { Unknown~key~for~PitonOptions }
+\@@_msg_new:nnn { Unknown~key~for~PitonOptions }
   { 
     Unknown~key. \\
     The~key~'\l_keys_key_str'~is~unknown~for~\token_to_str:N \PitonOptions.~
@@ -4897,7 +4932,6 @@ piton_version = "2.7z" -- 2024/03/24
         require ( "piton" ) 
         tex.sprint ( luatexbase.catcodetables.CatcodeTableExpl ,
                      "\\@@_test_version:n {" .. piton_version ..  "}" ) 
-
       } 
   }
 %    \end{macrocode}
@@ -6883,7 +6917,7 @@ function piton.Parse ( language , code )
   if t == nil 
   then 
     tex.sprint( luatexbase.catcodetables.CatcodeTableExpl,
-                [[ \@@_error:n { syntax~error } ]] )
+                [[ \@@_error_or_warning:n { syntax~error } ]] )
     return -- to exit in force the function
   end 
   local left_stack = {}
@@ -6939,10 +6973,10 @@ end
 %
 % \bigskip
 % The function |ParseFile| will be used by the LaTeX command |\PitonInputFile|.
-% That function merely reads the whole file (that is to say all its lines) and
+% That function merely reads the file (between |first_line| and |last_line|) and
 % then apply the function~|Parse| to the resulting Lua string.
 %    \begin{macrocode}
-function piton.ParseFile ( language , name , first_line , last_line )
+function piton.ParseFile ( language , name , first_line , last_line , split )
   local s = ''
   local i = 0 
   for line in io.lines ( name ) 
@@ -6964,7 +6998,11 @@ function piton.ParseFile ( language , name , first_line , last_line )
             end
        end
   end
-  piton.Parse ( language , s )
+  if split then
+    piton.GobbleSplitParse ( language , 0 , code ) 
+  else
+    piton.Parse ( language , s )    
+  end
 end
 %    \end{macrocode}
 % 
@@ -6988,7 +7026,11 @@ end
 % that have been inserted when the key |break-lines| is in force.
 %    \begin{macrocode}
 function piton.ParseTer ( language , code )
-  local s = ( Cs ( ( P [[ \@@_breakable_space: ]] / ' ' + 1 ) ^ 0 ) ) 
+%    \end{macrocode}
+% Be careful: we have to write |[[\@@_breakable_space: ]]| with a space after
+% the name of the LaTeX command |\@@_breakable_space:|. 
+%    \begin{macrocode}
+  local s = ( Cs ( ( P [[\@@_breakable_space: ]] / ' ' + 1 ) ^ 0 ) ) 
             : match ( code )
   return piton.Parse ( language , s )
 end
@@ -7078,16 +7120,24 @@ local function gobble ( n , code )
       end
     end
 %    \end{macrocode}
+% We have a second test |if n == 0| because the, even if the key like
+% |auto-gobble| is in force, it's possible that, in fact, there is no space to gobble...
+%    \begin{macrocode}
+    if n == 0 then
+      return code
+    else
+%    \end{macrocode}
 % We will now use a \textsc{lpeg} that we have to compute dynamically because it
 % depends on the value of~$n$.
 %    \begin{macrocode}
-    return 
-    ( Ct ( 
-           ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 ) 
-             * ( C "\r" * ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
-         ) ^ 0 ) 
-      / table.concat 
-    ) : match ( code ) 
+      return 
+      ( Ct ( 
+             ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 ) 
+               * ( C "\r" * ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
+           ) ^ 0 ) 
+        / table.concat 
+      ) : match ( code ) 
+    end 
   end
 end
 %    \end{macrocode}
@@ -7258,10 +7308,10 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
   end
   if first_line == -1 
   then tex.sprint ( luatexbase.catcodetables.expl ,
-                    [[ \@@_error:n { begin~marker~not~found } ]] )
+                    [[ \@@_error_or_warning:n { begin~marker~not~found } ]] )
   else if last_found == false
        then tex.sprint ( luatexbase.catcodetables.expl ,
-                         [[ \@@_error:n { end~marker~not~found } ]] )
+                         [[ \@@_error_or_warning:n { end~marker~not~found } ]] )
        end
   end
   tex.sprint ( 
