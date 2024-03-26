@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{2.7zz}
-\def\PitonFileDate{2024/03/25}
+\def\PitonFileVersion{2.7zzz}
+\def\PitonFileDate{2024/03/26}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -916,7 +916,8 @@
                 \lua_now:e
                   { piton.write = "\l__piton_path_write_str / \l__piton_write_str" }
               }
-            \str_if_empty:NF \l__piton_write_str
+            \str_if_empty:NTF \l__piton_write_str
+              { \lua_now:n { piton.write = '' } }
               {
                 \seq_if_in:NVTF \g__piton_write_seq \l__piton_write_str
                   { \lua_now:n { piton.write_mode = "a" } }
@@ -1060,19 +1061,20 @@
       \__piton_compute_left_margin:no { CountNonEmptyLinesFile } \l__piton_file_name_str
       \__piton_compute_width:
       \ttfamily
-      \bool_if:NT \g__piton_footnote_bool \savenotes
-      \vtop \bgroup
+      % \bool_if:NT \g__piton_footnote_bool \savenotes
+      % \vtop \bgroup
+      \leavevmode
       \lua_now:e
         {
           piton.ParseFile(
            '\l_piton_language_str' ,
            '\l__piton_file_name_str' ,
            \int_use:N \l__piton_first_line_int ,
-           \int_use:N \l__piton_last_line_int ) ,
-           \bool_if:NTF \l__piton_split_on_empty_lines_bool { 1 } { nil }
+           \int_use:N \l__piton_last_line_int ,
+           \bool_if:NTF \l__piton_split_on_empty_lines_bool { 1 } { 0 } )
         }
-      \egroup
-      \bool_if:NT \g__piton_footnote_bool \endsavenotes
+      % \egroup
+      % \bool_if:NT \g__piton_footnote_bool \endsavenotes
       \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
     \group_end:
     \tl_if_novalue:nF { #1 }

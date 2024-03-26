@@ -72,12 +72,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{2.7zz}
-\def\PitonFileDate{2024/03/25}
+\def\PitonFileVersion{2.7zzz}
+\def\PitonFileDate{2024/03/26}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "2.7zz" -- 2024/03/25
+piton_version = "2.7zzz" -- 2024/03/26
 %</LUA>
 %\fi
 %
@@ -2740,7 +2740,7 @@ piton_version = "2.7zz" -- 2024/03/25
 %    \end{macrocode}
 % 
 % \medskip
-% Each time the command |\PitonInputFilement of \pkg{piton} is
+% Each time the command |\PitonInputFilement| of \pkg{piton} is
 % used, the code of that environment will be stored in the following global string.
 %    \begin{macrocode}
 \tl_new:N \g_piton_last_code_tl
@@ -4092,7 +4092,8 @@ piton_version = "2.7zz" -- 2024/03/25
                 \lua_now:e 
                   { piton.write = "\l_@@_path_write_str / \l_@@_write_str" } 
               } 
-            \str_if_empty:NF \l_@@_write_str
+            \str_if_empty:NTF \l_@@_write_str
+              { \lua_now:n { piton.write = '' } }
               { 
                 \seq_if_in:NVTF \g_@@_write_seq \l_@@_write_str 
                   { \lua_now:n { piton.write_mode = "a" } }
@@ -4321,19 +4322,20 @@ piton_version = "2.7zz" -- 2024/03/25
       \@@_compute_left_margin:no { CountNonEmptyLinesFile } \l_@@_file_name_str
       \@@_compute_width:
       \ttfamily
-      \bool_if:NT \g_@@_footnote_bool \savenotes 
-      \vtop \bgroup 
+      % \bool_if:NT \g_@@_footnote_bool \savenotes 
+      % \vtop \bgroup 
+      \leavevmode
       \lua_now:e
         { 
           piton.ParseFile(
            '\l_piton_language_str' ,
            '\l_@@_file_name_str' ,
            \int_use:N \l_@@_first_line_int , 
-           \int_use:N \l_@@_last_line_int ) ,
-           \bool_if:NTF \l_@@_split_on_empty_lines_bool { 1 } { nil } 
+           \int_use:N \l_@@_last_line_int ,
+           \bool_if:NTF \l_@@_split_on_empty_lines_bool { 1 } { 0 } ) 
         } 
-      \egroup 
-      \bool_if:NT \g_@@_footnote_bool \endsavenotes 
+      % \egroup 
+      % \bool_if:NT \g_@@_footnote_bool \endsavenotes 
       \bool_if:NT \l_@@_width_min_bool \@@_width_to_aux:
     \group_end:
 %    \end{macrocode}
@@ -4993,6 +4995,12 @@ function piton.close_brace ()
 end 
 %    \end{macrocode}
 %
+%    \begin{macrocode}
+local function sprintL3 ( s ) 
+      tex.sprint ( luatexbase.catcodetables.expl , s ) 
+end 
+%    \end{uncoverenv}
+% 
 % \bigskip
 % \subsubsection{Special functions dealing with LPEG}
 %
@@ -6616,7 +6624,7 @@ LPEG2['c'] =
 %    \begin{macrocode}
 local function LuaKeyword ( name ) 
 return 
-   Lc "{\\PitonStyle{Keyword}{" 
+   Lc [[{\PitonStyle{Keyword}{]]
    * Q ( Cmt ( 
                C ( identifier ) , 
                function ( s , i , a ) return string.upper ( a ) == name end 
@@ -6916,8 +6924,7 @@ function piton.Parse ( language , code )
   local t = LPEG2[language] : match ( code ) 
   if t == nil 
   then 
-    tex.sprint( luatexbase.catcodetables.CatcodeTableExpl,
-                [[ \@@_error_or_warning:n { syntax~error } ]] )
+    sprintL3 [[ \@@_error_or_warning:n { syntax~error } ]] 
     return -- to exit in force the function
   end 
   local left_stack = {}
@@ -6998,8 +7005,8 @@ function piton.ParseFile ( language , name , first_line , last_line , split )
             end
        end
   end
-  if split then
-    piton.GobbleSplitParse ( language , 0 , code ) 
+  if split == 1 then
+    piton.GobbleSplitParse ( language , 0 , s ) 
   else
     piton.Parse ( language , s )    
   end
@@ -7148,25 +7155,24 @@ end
 % \bigskip
 % In the following code, |n| is the value of |\l_@@_gobble_int|.
 %    \begin{macrocode}
-function piton.GobbleParse ( language , n , code )
+function piton.GobbleParse ( lang , n , code )
   piton.last_code = gobble ( n , code )
-  piton.last_language = language
+  piton.last_language = lang
 %    \end{macrocode}
 %    \begin{macrocode}
-  tex.sprint(luatexbase.catcodetables.CatcodeTableExpl ,
-   [[ \bool_if:NT \g_@@_footnote_bool \savenotes \vtop \bgroup ]] )
-  piton.Parse ( language , piton.last_code )
-  tex.sprint(luatexbase.catcodetables.CatcodeTableExpl ,
-   [[ \vspace { 2.5 pt } \egroup \bool_if:NT \g_@@_footnote_bool \endsavenotes \par ]] )
+  sprintL3 [[ \bool_if:NT \g_@@_footnote_bool \savenotes \vtop \bgroup ]] 
+  piton.Parse ( lang , piton.last_code )
+  sprintL3  
+    [[\vspace{2.5pt}\egroup\bool_if:NT\g_@@_footnote_bool\endsavenotes\par]] 
 %    \end{macrocode}
 %
 % Now, if the final user has used the key |write| to write the code of the
 % environment on an external file.
 %    \begin{macrocode}
-  if piton.write ~= ''
-  then local file = assert ( io.open ( piton.write , piton.write_mode ) )
-       file:write ( piton.get_last_code ( ) ) 
-       file:close ( )
+  if piton.write and piton.write ~= '' then 
+    local file = assert ( io.open ( piton.write , piton.write_mode ) )
+    file:write ( piton.get_last_code ( ) ) 
+    file:close ( )
   end
 end 
 %    \end{macrocode}
@@ -7175,8 +7181,8 @@ end
 % The function |GobbleParsePar| is merely the function |GobbleParse| with the
 % insertion of a |\par| in the TeX flow after.
 %    \begin{macrocode}
-local function GobbleParsePar ( language , n , code )
-  piton.GobbleParse ( language , n , code ) 
+local function GobbleParsePar ( lang , n , code )
+  piton.GobbleParse ( lang , n , code ) 
   tex.sprint [[ \par ]] 
 end 
 %    \end{macrocode}
@@ -7187,13 +7193,17 @@ end
 % lines (usually between the informatic functions defined in the informatic
 % code). LaTeX will be able to change the page between the chunks.
 %    \begin{macrocode}
-function piton.GobbleSplitParse ( language , n , code )
+function piton.GobbleSplitParse ( lang , n , code )
   P { "E" ,
       E = ( V "F" 
-           * ( P " " ^ 0 * "\r" ) ^ 1 
+           * ( P " " ^ 0 * "\r" 
+               / ( function ( x ) 
+                   sprintL3 [[ \int_gincr:N \g_@@_visual_line_int ]] 
+                   end 
+                 )
+             ) ^ 1 
              / ( function ( x ) 
-                 tex.sprint ( luatexbase.catcodetables.expl ,
-                              [[ \l_@@_split_separation_tl ]] ) 
+                 sprintL3 [[ \l_@@_split_separation_tl \int_gzero:N \g_@@_line_int ]] 
                  end ) 
           ) ^ 0 * V "F" ,
 %    \end{macrocode}
@@ -7205,7 +7215,7 @@ function piton.GobbleSplitParse ( language , n , code )
 % argument to~$0$ because we will have gobbled previously the whole argument
 % |code| (see below).
 %    \begin{macrocode}
-          / ( function ( x ) GobbleParsePar ( language , 0 , x ) end ) , 
+          / ( function ( x ) GobbleParsePar ( lang , 0 , x ) end ) , 
 %    \end{macrocode}
 % The non-terminal |G| corresponds to a non-empty line of code.
 %    \begin{macrocode}
@@ -7232,9 +7242,7 @@ end
 function piton.CountLines ( code )
   local count = 0 
   for i in code : gmatch ( "\r" ) do count = count + 1 end 
-  tex.sprint ( 
-      luatexbase.catcodetables.expl , 
-      [[ \int_set:Nn  \l_@@_nb_lines_int { ]] .. count .. '}' )
+  sprintL3 ( [[ \int_set:Nn  \l_@@_nb_lines_int { ]] .. count .. '}' )
 end 
 %    \end{macrocode}
 %
@@ -7248,9 +7256,7 @@ function piton.CountNonEmptyLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  tex.sprint( 
-      luatexbase.catcodetables.expl , 
-      [[ \int_set:Nn  \l_@@_nb_non_empty_lines_int { ]] .. count .. '}' )
+  sprintL3 ( [[ \int_set:Nn  \l_@@_nb_non_empty_lines_int { ]] .. count .. '}' )
 end 
 %    \end{macrocode}
 %
@@ -7258,11 +7264,8 @@ end
 %    \begin{macrocode}
 function piton.CountLinesFile ( name )
   local count = 0 
-  io.open ( name ) 
   for line in io.lines ( name ) do count = count + 1 end
-  tex.sprint ( 
-      luatexbase.catcodetables.expl , 
-      [[ \int_set:Nn \l_@@_nb_lines_int { ]] .. count .. '}' )
+  sprintL3 ( [[ \int_set:Nn \l_@@_nb_lines_int { ]] .. count .. '}' )
 end 
 %    \end{macrocode}
 %
@@ -7272,13 +7275,11 @@ end
 function piton.CountNonEmptyLinesFile ( name )
   local count = 0 
   for line in io.lines ( name ) 
-  do if not ( ( P " " ^ 0 * -1 ) : match ( line ) ) 
-     then count = count + 1 
+  do if not ( ( P " " ^ 0 * -1 ) : match ( line ) ) then
+       count = count + 1 
      end
   end
-  tex.sprint ( 
-      luatexbase.catcodetables.expl , 
-      [[ \int_set:Nn \l_@@_nb_non_empty_lines_int { ]] .. count .. '}' )
+  sprintL3 ( [[ \int_set:Nn \l_@@_nb_non_empty_lines_int { ]] .. count .. '}' )
 end 
 %    \end{macrocode}
 %
@@ -7307,15 +7308,12 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
      count = count + 1 
   end
   if first_line == -1 
-  then tex.sprint ( luatexbase.catcodetables.expl ,
-                    [[ \@@_error_or_warning:n { begin~marker~not~found } ]] )
+  then sprintL3 [[ \@@_error_or_warning:n { begin~marker~not~found } ]] 
   else if last_found == false
-       then tex.sprint ( luatexbase.catcodetables.expl ,
-                         [[ \@@_error_or_warning:n { end~marker~not~found } ]] )
+       then sprintL3 [[ \@@_error_or_warning:n { end~marker~not~found } ]] 
        end
   end
-  tex.sprint ( 
-      luatexbase.catcodetables.expl , 
+  sprintL3 ( 
       [[ \int_set:Nn \l_@@_first_line_int { ]] .. first_line .. ' + 2 }' 
       .. [[ \int_set:Nn \l_@@_last_line_int { ]] .. count .. ' }' )
 end

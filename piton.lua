@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "2.7zz" -- 2024/03/25
+piton_version = "2.7zzz" -- 2024/03/26
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -30,6 +30,9 @@ function piton.open_brace ()
 end
 function piton.close_brace ()
    tex.sprint("}")
+end
+local function sprintL3 ( s )
+      tex.sprint ( luatexbase.catcodetables.expl , s )
 end
 local P, S, V, C, Ct, Cc = lpeg.P, lpeg.S, lpeg.V, lpeg.C, lpeg.Ct, lpeg.Cc
 local Cs , Cg , Cmt , Cb = lpeg.Cs, lpeg.Cg , lpeg.Cmt , lpeg.Cb
@@ -872,7 +875,7 @@ LPEG2['c'] =
      )
 local function LuaKeyword ( name )
 return
-   Lc "{\\PitonStyle{Keyword}{"
+   Lc [[{\PitonStyle{Keyword}{]]
    * Q ( Cmt (
                C ( identifier ) ,
                function ( s , i , a ) return string.upper ( a ) == name end
@@ -1076,8 +1079,7 @@ function piton.Parse ( language , code )
   local t = LPEG2[language] : match ( code )
   if t == nil
   then
-    tex.sprint( luatexbase.catcodetables.CatcodeTableExpl,
-                [[ \__piton_error_or_warning:n { syntax~error } ]] )
+    sprintL3 [[ \__piton_error_or_warning:n { syntax~error } ]]
     return -- to exit in force the function
   end
   local left_stack = {}
@@ -1133,8 +1135,8 @@ function piton.ParseFile ( language , name , first_line , last_line , split )
             end
        end
   end
-  if split then
-    piton.GobbleSplitParse ( language , 0 , code )
+  if split == 1 then
+    piton.GobbleSplitParse ( language , 0 , s )
   else
     piton.Parse ( language , s )
   end
@@ -1210,35 +1212,38 @@ local function gobble ( n , code )
     end
   end
 end
-function piton.GobbleParse ( language , n , code )
+function piton.GobbleParse ( lang , n , code )
   piton.last_code = gobble ( n , code )
-  piton.last_language = language
-  tex.sprint(luatexbase.catcodetables.CatcodeTableExpl ,
-   [[ \bool_if:NT \g__piton_footnote_bool \savenotes \vtop \bgroup ]] )
-  piton.Parse ( language , piton.last_code )
-  tex.sprint(luatexbase.catcodetables.CatcodeTableExpl ,
-   [[ \vspace { 2.5 pt } \egroup \bool_if:NT \g__piton_footnote_bool \endsavenotes \par ]] )
-  if piton.write ~= ''
-  then local file = assert ( io.open ( piton.write , piton.write_mode ) )
-       file:write ( piton.get_last_code ( ) )
-       file:close ( )
+  piton.last_language = lang
+  sprintL3 [[ \bool_if:NT \g__piton_footnote_bool \savenotes \vtop \bgroup ]]
+  piton.Parse ( lang , piton.last_code )
+  sprintL3
+    [[\vspace{2.5pt}\egroup\bool_if:NT\g__piton_footnote_bool\endsavenotes\par]]
+  if piton.write and piton.write ~= '' then
+    local file = assert ( io.open ( piton.write , piton.write_mode ) )
+    file:write ( piton.get_last_code ( ) )
+    file:close ( )
   end
 end
-local function GobbleParsePar ( language , n , code )
-  piton.GobbleParse ( language , n , code )
+local function GobbleParsePar ( lang , n , code )
+  piton.GobbleParse ( lang , n , code )
   tex.sprint [[ \par ]]
 end
-function piton.GobbleSplitParse ( language , n , code )
+function piton.GobbleSplitParse ( lang , n , code )
   P { "E" ,
       E = ( V "F"
-           * ( P " " ^ 0 * "\r" ) ^ 1
+           * ( P " " ^ 0 * "\r"
+               / ( function ( x )
+                   sprintL3 [[ \int_gincr:N \g__piton_visual_line_int ]]
+                   end
+                 )
+             ) ^ 1
              / ( function ( x )
-                 tex.sprint ( luatexbase.catcodetables.expl ,
-                              [[ \l__piton_split_separation_tl ]] )
+                 sprintL3 [[ \l__piton_split_separation_tl \int_gzero:N \g__piton_line_int ]]
                  end )
           ) ^ 0 * V "F" ,
       F = C ( V "G" ^ 0 )
-          / ( function ( x ) GobbleParsePar ( language , 0 , x ) end ) ,
+          / ( function ( x ) GobbleParsePar ( lang , 0 , x ) end ) ,
       G = ( 1 - P "\r" ) ^ 0 * "\r" - ( P " " ^ 0 * "\r" )
     } : match ( gobble ( n , code ) )
 end
@@ -1248,9 +1253,7 @@ end
 function piton.CountLines ( code )
   local count = 0
   for i in code : gmatch ( "\r" ) do count = count + 1 end
-  tex.sprint (
-      luatexbase.catcodetables.expl ,
-      [[ \int_set:Nn  \l__piton_nb_lines_int { ]] .. count .. '}' )
+  sprintL3 ( [[ \int_set:Nn  \l__piton_nb_lines_int { ]] .. count .. '}' )
 end
 function piton.CountNonEmptyLines ( code )
   local count = 0
@@ -1261,28 +1264,21 @@ function piton.CountNonEmptyLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  tex.sprint(
-      luatexbase.catcodetables.expl ,
-      [[ \int_set:Nn  \l__piton_nb_non_empty_lines_int { ]] .. count .. '}' )
+  sprintL3 ( [[ \int_set:Nn  \l__piton_nb_non_empty_lines_int { ]] .. count .. '}' )
 end
 function piton.CountLinesFile ( name )
   local count = 0
-  io.open ( name )
   for line in io.lines ( name ) do count = count + 1 end
-  tex.sprint (
-      luatexbase.catcodetables.expl ,
-      [[ \int_set:Nn \l__piton_nb_lines_int { ]] .. count .. '}' )
+  sprintL3 ( [[ \int_set:Nn \l__piton_nb_lines_int { ]] .. count .. '}' )
 end
 function piton.CountNonEmptyLinesFile ( name )
   local count = 0
   for line in io.lines ( name )
-  do if not ( ( P " " ^ 0 * -1 ) : match ( line ) )
-     then count = count + 1
+  do if not ( ( P " " ^ 0 * -1 ) : match ( line ) ) then
+       count = count + 1
      end
   end
-  tex.sprint (
-      luatexbase.catcodetables.expl ,
-      [[ \int_set:Nn \l__piton_nb_non_empty_lines_int { ]] .. count .. '}' )
+  sprintL3 ( [[ \int_set:Nn \l__piton_nb_non_empty_lines_int { ]] .. count .. '}' )
 end
 function piton.ComputeRange(marker_beginning,marker_end,file_name)
   local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( marker_beginning )
@@ -1303,15 +1299,12 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
      count = count + 1
   end
   if first_line == -1
-  then tex.sprint ( luatexbase.catcodetables.expl ,
-                    [[ \__piton_error_or_warning:n { begin~marker~not~found } ]] )
+  then sprintL3 [[ \__piton_error_or_warning:n { begin~marker~not~found } ]]
   else if last_found == false
-       then tex.sprint ( luatexbase.catcodetables.expl ,
-                         [[ \__piton_error_or_warning:n { end~marker~not~found } ]] )
+       then sprintL3 [[ \__piton_error_or_warning:n { end~marker~not~found } ]]
        end
   end
-  tex.sprint (
-      luatexbase.catcodetables.expl ,
+  sprintL3 (
       [[ \int_set:Nn \l__piton_first_line_int { ]] .. first_line .. ' + 2 }'
       .. [[ \int_set:Nn \l__piton_last_line_int { ]] .. count .. ' }' )
 end
