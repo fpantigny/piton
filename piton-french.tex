@@ -345,17 +345,17 @@ Ces $n$ caractères ne sont pas nécessairement des espaces.
 du nombre d'espaces successifs débutant chaque ligne (non vide) de l'environnement |{Piton}| et applique |gobble|
 avec cette valeur de~$n$.
 
-\item \index{env-gobble}\index{gobble!env-gobble}
-Quand la clé \Definition{env-gobble} est activée, \pkg{piton} analyse la dernière ligne de l'environnement,
-c'est-à-dire celle qui contient le |\end{Piton}| et détermine si cette ligne ne comporte que des espaces suivis par
-|\end{Piton}|. Si c'est le cas, \pkg{piton} calcule le nombre $n$ de ces espaces et applique |gobble| avec cette
-valeur de~$n$. Le nom de cette clé vient de \emph{environment gobble}: le nombre d'espaces à retirer ne dépend que
-de la position des délimiteurs |\begin{Piton}| et |\end{Piton}| de l'environnement.
+\item \index{env-gobble}\index{gobble!env-gobble} Quand la clé \Definition{env-gobble} est activée, \pkg{piton}
+analyse la dernière ligne de l'environnement, c'est-à-dire celle qui contient le |\end{Piton}| et détermine si
+cette ligne ne comporte que des espaces suivis par |\end{Piton}|. Si c'est le cas, \pkg{piton} calcule le nombre
+$n$ de ces espaces et applique |gobble| avec cette valeur de~$n$. Le nom de cette clé vient de \emph{environment
+  gobble}: le nombre d'espaces à retirer ne dépend que de la position des délimiteurs |\begin{Piton}| et
+|\end{Piton}| de l'environnement.
 
 \item \index{write} La clé \Definition{write} prend en argument un nom de fichier (avec l'extension) et écrit le
 contenu\footnote{En fait, il ne s'agit pas exactement du contenu de l'environnement mais de la valeur renvoyée par
   l'instruction Lua 
-  |piton.get_last_code()| qui en est une version dans les surcharges de formatage LaTeX (voir la partie \ref{API}, p.~\pageref{API}).} de l'environnement courant dans ce fichier. À la première utilisation du fichier par \pkg{piton}, celui-ci
+  |piton.get_last_code()| qui en est une version sans les surcharges de formatage LaTeX (voir la partie \ref{API}, p.~\pageref{API}).} de l'environnement courant dans ce fichier. À la première utilisation du fichier par \pkg{piton}, celui-ci
 est effacé.
 
 \item \index{path-write} La clé \Definition{path-write} indique un chemin où seront écrits les fichiers écrits par
@@ -368,28 +368,30 @@ Cette clé propose en fait plusieurs sous-clés.
 \begin{itemize}
 \item La clé \Definition{line-numbers/skip-empty-lines} demande que les lignes vides (qui ne contiennent que des
 espaces) soient considérées comme non existantes en ce qui concerne la numérotation des lignes (si la clé
-|/absolute| est active, la clé |/skip-empty-lines| n'a pas d'effet dans |\PitonInputFile|). La valeur initiale de
-cette clé est |true| (et non |false|).\footnote{Avec le langage Python, les lignes vides des \emph{docstrings} sont
+|/absolute|, décrite plus bas, est active, la clé |/skip-empty-lines| n'a pas d'effet dans |\PitonInputFile|). La
+valeur initiale de cette clé est |true| (et non |false|).\footnote{Avec le langage Python, les lignes vides des \emph{docstrings} sont
   prises en compte.}
 
-\item La clé \Definition{line/numbers/label-empty-lines} demande que les labels (c'est-à-dire les numéros) des lignes vides
-soient affichés. Si la clé |/skip-empty-lines| est active, la clé |/label-empty-lines| est sans effet. La
-valeur initiale de cette clé est |true|.
+\item La clé \Definition{line/numbers/label-empty-lines} demande que les labels (c'est-à-dire les numéros) des
+lignes vides soient affichés. Si la clé |/skip-empty-lines| est active, la clé |/label-empty-lines| est sans effet.
+La valeur initiale de cette clé est |true|.
 
-\item La clé \Definition{line-numbers/absolute} demande, pour les listings générés par |\PitonInputFile|, que les numéros de
-lignes affichés soient absolus (c'est-à-dire ceux du fichier d'origine). Elle n'a d'intérêt que si on n'insère qu'une
-partie du fichier (cf. part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}). La clé |/absolute| est sans effet dans les environnements |{Piton}|.
+\item La clé \Definition{line-numbers/absolute} demande, pour les listings générés par |\PitonInputFile|, que les
+numéros de lignes affichés soient absolus (c'est-à-dire ceux du fichier d'origine). Elle n'a d'intérêt que si on
+n'insère qu'une partie du fichier (cf. partie~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}). La clé
+|/absolute| est sans effet dans les environnements |{Piton}|.
 
-\item La clé \Definition{line-numbers/resume} reprend la numérotation là où elle avait été laissée au dernier listing. En fait,
-la clé |line-numbers/resume| a un alias, qui est |resume| tout court. 
+\item La clé \Definition{line-numbers/resume} reprend la numérotation là où elle avait été laissée au dernier
+listing. En fait, la clé |line-numbers/resume| a un alias, qui est |resume| tout court (car on peut être amené à
+l'utiliser souvent).
 
 \item La clé \Definition{line-numbers/start} impose que la numérotation commence à ce numéro. 
 
-\item La clé \Definition{line-numbers/sep} est la distance horizontale entre les numéros de lignes (insérés par |line-numbers|)
-et les lignes du code informatique. La valeur initiale est 0.7~em.
+\item La clé \Definition{line-numbers/sep} est la distance horizontale entre les numéros de lignes (insérés par
+|line-numbers|) et les lignes du code informatique. La valeur initiale est 0.7~em.
 \end{itemize}
 
-Pour la commmodité, un dispositif de factorisation du préfixe |line-numbers| est disponible, c'est-à-dire que l'on
+Pour la commodité, un dispositif de factorisation du préfixe |line-numbers| est disponible, c'est-à-dire que l'on
 peut écrire :
 
 \begin{Verbatim}
@@ -777,7 +779,9 @@ manière à privilégier les coupures de pages au niveau des lignes vides du lis
 
 \smallskip
 La clé \Definition{split-separation} permet de spécifier une liste de tokens LaTeX qui sera insérée entre les
-morceaux. Exemple : |\PitonOptions{split-speration = \hrule\goodbreak}|
+morceaux. La valeur initiale est |\vspace{\baselineskip} \vspace{-1.25pt}|. Avec cette valeur, les morceaux de code
+s'enchaînent avec une ligne vides entre les deux (même si, en fait, plusieurs lignes vides les séparaient dans
+le code initial).
 
 \subsubsection{Coupure des lignes}
 

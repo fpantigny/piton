@@ -73,11 +73,11 @@
 %<*STY>
 % \fi
 \def\PitonFileVersion{2.7zzz}
-\def\PitonFileDate{2024/03/26}
+\def\PitonFileDate{2024/03/27}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "2.7zzz" -- 2024/03/26
+piton_version = "2.7zzz" -- 2024/03/27
 %</LUA>
 %\fi
 %
@@ -370,10 +370,10 @@ piton_version = "2.7zzz" -- 2024/03/26
 % \begin{itemize}
 % \item With the key \Definition{line-numbers/skip-empty-lines}, the empty lines
 % (which contains only spaces) are considered as non existent for the line
-% numbering (if the key |/absolute| is in force, the key |/skip-empty-lines| is
-% no-op in |\PitonInputFile|). The initial value of that key is |true| (and not
-% |false|).\footnote{For the language Python, the empty lines in the docstrings
-% are taken into account (by design).}
+% numbering (if the key |/absolute|, described below, is in force, the key
+% |/skip-empty-lines| is no-op in |\PitonInputFile|). The initial value of that
+% key is |true| (and not |false|).\footnote{For the language Python, the empty
+% lines in the docstrings are taken into account (by design).}
 % \item With the key \Definition{line-numbers/label-empty-lines}, the labels
 % (that is to say the numbers) of the empty lines are displayed. If the key
 % |/skip-empty-line| is in force, the clé |/label-empty-lines| is no-op. The
@@ -813,12 +813,14 @@ piton_version = "2.7zzz" -- 2024/03/26
 % |splittable| is used, it's active in each chunk. Of course, the utilisation of
 % both |split-on-empty-lines| and |splittable| makes sens if the key
 % |splittable| with a value different of 1 (for instance 4), so that the pages
-% breaks are prioritised on the empty lines of the original listing.
+% breaks are prioritised on the empty lines of the original listing. With the
+% value, the chunks are typeset with an empty line between them (even if, in
+% fact, there are several empty lines between them in the initial code).
 %
 % \smallskip
 % The key \Definition{split-separation} specifies a list of LaTeX tokens that
-% will be inserted between the chunks. For example :
-% |\PitonOptions{split-separation = \hrule\goodbreak}|.
+% will be inserted between the chunks. The initial value is 
+% |\vspace{\baselineskip} \vspace{-1.25pt}|.
 % 
 % \subsubsection{Line breaks}
 % 
@@ -2740,7 +2742,7 @@ piton_version = "2.7zzz" -- 2024/03/26
 %    \end{macrocode}
 % 
 % \medskip
-% Each time the command |\PitonInputFilement| of \pkg{piton} is
+% Each time the command |\PitonInputFile| of \pkg{piton} is
 % used, the code of that environment will be stored in the following global string.
 %    \begin{macrocode}
 \tl_new:N \g_piton_last_code_tl
@@ -2809,6 +2811,7 @@ piton_version = "2.7zzz" -- 2024/03/26
 % by the final user is split in chunks on the empty lines in the code).
 %    \begin{macrocode}
 \tl_new:N \l_@@_split_separation_tl
+\tl_set:Nn \l_@@_split_separation_tl { \vspace{\baselineskip} \vspace{-1.25pt} }
 %    \end{macrocode}
 % 
 % \medskip
@@ -3212,7 +3215,6 @@ piton_version = "2.7zzz" -- 2024/03/26
                 \l_@@_skip_empty_lines_bool 
               }
               { \int_gincr:N \g_@@_visual_line_int }
-
             \bool_if:nT
               { 
                 ! \str_if_eq_p:nn { #1 } { \PitonStyle {Prompt}{} } 
@@ -3220,7 +3222,6 @@ piton_version = "2.7zzz" -- 2024/03/26
                 ( ! \l_@@_skip_empty_lines_bool && \l_@@_label_empty_lines_bool ) 
               }
               \@@_print_number: 
-
           }
 %    \end{macrocode}
 % If there is a background, we must remind that there is a left margin of 0.5~em
@@ -3711,6 +3712,13 @@ piton_version = "2.7zzz" -- 2024/03/26
 \int_new:N \g_@@_visual_line_int 
 %    \end{macrocode}
 % 
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_incr_visual_line: 
+  { 
+    \bool_if:NF \l_@@_skip_empty_lines_bool
+      { \int_gincr:N \g_@@_visual_line_int }
+  }
+%    \end{macrocode}
 % 
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_print_number:
@@ -4303,7 +4311,7 @@ piton_version = "2.7zzz" -- 2024/03/26
             { \l_@@_number_lines_start_int - 1 } 
         }
 %    \end{macrocode}
-% The following case arise when the code |line-numbers/absolute| is in force
+% The following case arises when the code |line-numbers/absolute| is in force
 % without the use of a marked range.
 %    \begin{macrocode}
       \int_compare:nNnT \g_@@_visual_line_int < \c_zero_int 
@@ -4322,9 +4330,7 @@ piton_version = "2.7zzz" -- 2024/03/26
       \@@_compute_left_margin:no { CountNonEmptyLinesFile } \l_@@_file_name_str
       \@@_compute_width:
       \ttfamily
-      % \bool_if:NT \g_@@_footnote_bool \savenotes 
-      % \vtop \bgroup 
-      \leavevmode
+      % \leavevmode
       \lua_now:e
         { 
           piton.ParseFile(
@@ -4334,8 +4340,6 @@ piton_version = "2.7zzz" -- 2024/03/26
            \int_use:N \l_@@_last_line_int ,
            \bool_if:NTF \l_@@_split_on_empty_lines_bool { 1 } { 0 } ) 
         } 
-      % \egroup 
-      % \bool_if:NT \g_@@_footnote_bool \endsavenotes 
       \bool_if:NT \l_@@_width_min_bool \@@_width_to_aux:
     \group_end:
 %    \end{macrocode}
@@ -6929,20 +6933,18 @@ function piton.Parse ( language , code )
   end 
   local left_stack = {}
   local right_stack = {}
-  for _ , one_item in ipairs ( t ) 
-  do 
-     if one_item[1] == "EOL"
-     then 
-          for _ , s in ipairs ( right_stack ) 
-            do tex.sprint ( s ) 
-            end
-          for _ , s in ipairs ( one_item[2] ) 
-            do tex.tprint ( s )
-            end
-          for _ , s in ipairs ( left_stack ) 
-            do tex.sprint ( s ) 
-            end
-     else 
+  for _ , one_item in ipairs ( t ) do 
+    if one_item[1] == "EOL" then 
+      for _ , s in ipairs ( right_stack ) do 
+        tex.sprint ( s ) 
+      end
+      for _ , s in ipairs ( one_item[2] ) do 
+        tex.tprint ( s )
+      end
+      for _ , s in ipairs ( left_stack ) do 
+        tex.sprint ( s ) 
+      end
+    else 
 %    \end{macrocode}
 %
 % Here is an example of an item beginning with |"Open"|.
@@ -6956,22 +6958,20 @@ function piton.Parse ( language , code )
 % |\begin{uncover}<2>| and |right_stack| will be for the elements like
 % |\end{cover}|. 
 %    \begin{macrocode}
-          if one_item[1] == "Open"
-          then
-               tex.sprint( one_item[2] ) 
-               table.insert ( left_stack , one_item[2] )
-               table.insert ( right_stack , one_item[3] )
-          else 
-               if one_item[1] == "Close"
-               then
-                    tex.sprint ( right_stack[#right_stack] ) 
-                    left_stack[#left_stack] = nil
-                    right_stack[#right_stack] = nil
-               else 
-                    tex.tprint ( one_item )  
-               end 
-          end 
-     end 
+      if one_item[1] == "Open" then
+        tex.sprint( one_item[2] ) 
+        table.insert ( left_stack , one_item[2] )
+        table.insert ( right_stack , one_item[3] )
+      else 
+        if one_item[1] == "Close" then
+          tex.sprint ( right_stack[#right_stack] ) 
+          left_stack[#left_stack] = nil
+          right_stack[#right_stack] = nil
+        else 
+          tex.tprint ( one_item )  
+        end 
+      end 
+    end 
   end 
 end
 %    \end{macrocode}
@@ -6986,29 +6986,32 @@ end
 function piton.ParseFile ( language , name , first_line , last_line , split )
   local s = ''
   local i = 0 
-  for line in io.lines ( name ) 
-  do i = i + 1 
-     if i >= first_line
-     then s = s .. '\r' .. line 
-     end
-     if i >= last_line then break end 
+  for line in io.lines ( name ) do 
+    i = i + 1 
+    if i >= first_line then 
+      s = s .. '\r' .. line 
+    end
+    if i >= last_line then break end 
   end
 %    \end{macrocode}
 % We extract the BOM of utf-8, if present.
 %    \begin{macrocode}
-  if string.byte ( s , 1 ) == 13
-  then if string.byte ( s , 2 ) == 239
-       then if string.byte ( s , 3 ) == 187
-            then if string.byte ( s , 4 ) == 191
-                 then s = string.sub ( s , 5 , -1 )
-                 end 
-            end
-       end
+  if string.byte ( s , 1 ) == 13 then 
+    if string.byte ( s , 2 ) == 239 then 
+      if string.byte ( s , 3 ) == 187 then 
+        if string.byte ( s , 4 ) == 191 then 
+          s = string.sub ( s , 5 , -1 )
+        end 
+      end
+    end
   end
   if split == 1 then
     piton.GobbleSplitParse ( language , 0 , s ) 
   else
+    sprintL3 [[ \bool_if:NT \g_@@_footnote_bool \savenotes \vtop \bgroup ]] 
     piton.Parse ( language , s )    
+    sprintL3  
+      [[\vspace{2.5pt}\egroup\bool_if:NT\g_@@_footnote_bool\endsavenotes\par]] 
   end
 end
 %    \end{macrocode}
@@ -7019,9 +7022,9 @@ end
 % The following command will be used by the user command |\piton|.
 % For that command, we have to undo the duplication of the symbols |#|.
 %    \begin{macrocode}
-function piton.ParseBis ( language , code )
+function piton.ParseBis ( lang , code )
   local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( code )
-  return piton.Parse ( language , s ) 
+  return piton.Parse ( lang , s ) 
 end
 %    \end{macrocode}
 %
@@ -7032,14 +7035,14 @@ end
 % element. In that case, you have to remove the potential |\@@_breakable_space:|
 % that have been inserted when the key |break-lines| is in force.
 %    \begin{macrocode}
-function piton.ParseTer ( language , code )
+function piton.ParseTer ( lang , code )
 %    \end{macrocode}
 % Be careful: we have to write |[[\@@_breakable_space: ]]| with a space after
 % the name of the LaTeX command |\@@_breakable_space:|. 
 %    \begin{macrocode}
   local s = ( Cs ( ( P [[\@@_breakable_space: ]] / ' ' + 1 ) ^ 0 ) ) 
             : match ( code )
-  return piton.Parse ( language , s )
+  return piton.Parse ( lang , s )
 end
 %    \end{macrocode}
 % 
@@ -7097,11 +7100,10 @@ local EnvGobbleLPEG =
 %    \begin{macrocode}
 local function remove_before_cr ( input_string )
     local match_result = ( P "\r" ) : match ( input_string )
-    if match_result 
-    then
-        return string.sub ( input_string , match_result ) 
+    if match_result then
+      return string.sub ( input_string , match_result ) 
     else
-        return input_string 
+      return input_string 
     end
 end
 %    \end{macrocode}
@@ -7167,23 +7169,13 @@ function piton.GobbleParse ( lang , n , code )
 %    \end{macrocode}
 %
 % Now, if the final user has used the key |write| to write the code of the
-% environment on an external file.
+% environment on an external file.  
 %    \begin{macrocode}
   if piton.write and piton.write ~= '' then 
     local file = assert ( io.open ( piton.write , piton.write_mode ) )
     file:write ( piton.get_last_code ( ) ) 
     file:close ( )
   end
-end 
-%    \end{macrocode}
-%
-% \bigskip
-% The function |GobbleParsePar| is merely the function |GobbleParse| with the
-% insertion of a |\par| in the TeX flow after.
-%    \begin{macrocode}
-local function GobbleParsePar ( lang , n , code )
-  piton.GobbleParse ( lang , n , code ) 
-  tex.sprint [[ \par ]] 
 end 
 %    \end{macrocode}
 %
@@ -7197,10 +7189,7 @@ function piton.GobbleSplitParse ( lang , n , code )
   P { "E" ,
       E = ( V "F" 
            * ( P " " ^ 0 * "\r" 
-               / ( function ( x ) 
-                   sprintL3 [[ \int_gincr:N \g_@@_visual_line_int ]] 
-                   end 
-                 )
+               / ( function ( x ) sprintL3 [[ \@@_incr_visual_line: ]] end )
              ) ^ 1 
              / ( function ( x ) 
                  sprintL3 [[ \l_@@_split_separation_tl \int_gzero:N \g_@@_line_int ]] 
@@ -7211,11 +7200,11 @@ function piton.GobbleSplitParse ( lang , n , code )
 %    \begin{macrocode}
       F = C ( V "G" ^ 0 ) 
 %    \end{macrocode}
-% The second argument of |GobbleParsePar| is the argument |gobble|: we put that
-% argument to~$0$ because we will have gobbled previously the whole argument
+% The second argument of |.pitonGobbleParse| is the argument |gobble|: we put
+% that argument to~$0$ because we will have gobbled previously the whole argument
 % |code| (see below).
 %    \begin{macrocode}
-          / ( function ( x ) GobbleParsePar ( lang , 0 , x ) end ) , 
+          / ( function ( x ) piton.GobbleParse ( lang , 0 , x ) end ) , 
 %    \end{macrocode}
 % The non-terminal |G| corresponds to a non-empty line of code.
 %    \begin{macrocode}

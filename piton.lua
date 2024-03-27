@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "2.7zzz" -- 2024/03/26
+piton_version = "2.7zzz" -- 2024/03/27
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -1084,71 +1084,70 @@ function piton.Parse ( language , code )
   end
   local left_stack = {}
   local right_stack = {}
-  for _ , one_item in ipairs ( t )
-  do
-     if one_item[1] == "EOL"
-     then
-          for _ , s in ipairs ( right_stack )
-            do tex.sprint ( s )
-            end
-          for _ , s in ipairs ( one_item[2] )
-            do tex.tprint ( s )
-            end
-          for _ , s in ipairs ( left_stack )
-            do tex.sprint ( s )
-            end
-     else
-          if one_item[1] == "Open"
-          then
-               tex.sprint( one_item[2] )
-               table.insert ( left_stack , one_item[2] )
-               table.insert ( right_stack , one_item[3] )
-          else
-               if one_item[1] == "Close"
-               then
-                    tex.sprint ( right_stack[#right_stack] )
-                    left_stack[#left_stack] = nil
-                    right_stack[#right_stack] = nil
-               else
-                    tex.tprint ( one_item )
-               end
-          end
-     end
+  for _ , one_item in ipairs ( t ) do
+    if one_item[1] == "EOL" then
+      for _ , s in ipairs ( right_stack ) do
+        tex.sprint ( s )
+      end
+      for _ , s in ipairs ( one_item[2] ) do
+        tex.tprint ( s )
+      end
+      for _ , s in ipairs ( left_stack ) do
+        tex.sprint ( s )
+      end
+    else
+      if one_item[1] == "Open" then
+        tex.sprint( one_item[2] )
+        table.insert ( left_stack , one_item[2] )
+        table.insert ( right_stack , one_item[3] )
+      else
+        if one_item[1] == "Close" then
+          tex.sprint ( right_stack[#right_stack] )
+          left_stack[#left_stack] = nil
+          right_stack[#right_stack] = nil
+        else
+          tex.tprint ( one_item )
+        end
+      end
+    end
   end
 end
 function piton.ParseFile ( language , name , first_line , last_line , split )
   local s = ''
   local i = 0
-  for line in io.lines ( name )
-  do i = i + 1
-     if i >= first_line
-     then s = s .. '\r' .. line
-     end
-     if i >= last_line then break end
+  for line in io.lines ( name ) do
+    i = i + 1
+    if i >= first_line then
+      s = s .. '\r' .. line
+    end
+    if i >= last_line then break end
   end
-  if string.byte ( s , 1 ) == 13
-  then if string.byte ( s , 2 ) == 239
-       then if string.byte ( s , 3 ) == 187
-            then if string.byte ( s , 4 ) == 191
-                 then s = string.sub ( s , 5 , -1 )
-                 end
-            end
-       end
+  if string.byte ( s , 1 ) == 13 then
+    if string.byte ( s , 2 ) == 239 then
+      if string.byte ( s , 3 ) == 187 then
+        if string.byte ( s , 4 ) == 191 then
+          s = string.sub ( s , 5 , -1 )
+        end
+      end
+    end
   end
   if split == 1 then
     piton.GobbleSplitParse ( language , 0 , s )
   else
+    sprintL3 [[ \bool_if:NT \g__piton_footnote_bool \savenotes \vtop \bgroup ]]
     piton.Parse ( language , s )
+    sprintL3
+      [[\vspace{2.5pt}\egroup\bool_if:NT\g__piton_footnote_bool\endsavenotes\par]]
   end
 end
-function piton.ParseBis ( language , code )
+function piton.ParseBis ( lang , code )
   local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( code )
-  return piton.Parse ( language , s )
+  return piton.Parse ( lang , s )
 end
-function piton.ParseTer ( language , code )
+function piton.ParseTer ( lang , code )
   local s = ( Cs ( ( P [[\__piton_breakable_space: ]] / ' ' + 1 ) ^ 0 ) )
             : match ( code )
-  return piton.Parse ( language , s )
+  return piton.Parse ( lang , s )
 end
 local AutoGobbleLPEG =
       (  (
@@ -1176,11 +1175,10 @@ local EnvGobbleLPEG =
     * Ct ( C " " ^ 0 * -1 ) / table.getn
 local function remove_before_cr ( input_string )
     local match_result = ( P "\r" ) : match ( input_string )
-    if match_result
-    then
-        return string.sub ( input_string , match_result )
+    if match_result then
+      return string.sub ( input_string , match_result )
     else
-        return input_string
+      return input_string
     end
 end
 local function gobble ( n , code )
@@ -1225,25 +1223,18 @@ function piton.GobbleParse ( lang , n , code )
     file:close ( )
   end
 end
-local function GobbleParsePar ( lang , n , code )
-  piton.GobbleParse ( lang , n , code )
-  tex.sprint [[ \par ]]
-end
 function piton.GobbleSplitParse ( lang , n , code )
   P { "E" ,
       E = ( V "F"
            * ( P " " ^ 0 * "\r"
-               / ( function ( x )
-                   sprintL3 [[ \int_gincr:N \g__piton_visual_line_int ]]
-                   end
-                 )
+               / ( function ( x ) sprintL3 [[ \__piton_incr_visual_line: ]] end )
              ) ^ 1
              / ( function ( x )
                  sprintL3 [[ \l__piton_split_separation_tl \int_gzero:N \g__piton_line_int ]]
                  end )
           ) ^ 0 * V "F" ,
       F = C ( V "G" ^ 0 )
-          / ( function ( x ) GobbleParsePar ( lang , 0 , x ) end ) ,
+          / ( function ( x ) piton.GobbleParse ( lang , 0 , x ) end ) ,
       G = ( 1 - P "\r" ) ^ 0 * "\r" - ( P " " ^ 0 * "\r" )
     } : match ( gobble ( n , code ) )
 end

@@ -20,7 +20,7 @@
 %% -------------------------------------------
 %% 
 \def\PitonFileVersion{2.7zzz}
-\def\PitonFileDate{2024/03/26}
+\def\PitonFileDate{2024/03/27}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -181,6 +181,7 @@
 \tl_new:N \g__piton_aux_tl
 \int_new:N \l__piton_splittable_int
 \tl_new:N \l__piton_split_separation_tl
+\tl_set:Nn \l__piton_split_separation_tl { \vspace{\baselineskip} \vspace{-1.25pt} }
 \int_set:Nn \l__piton_splittable_int { 100 }
 \clist_new:N \l__piton_bg_color_clist
 \tl_new:N \l__piton_prompt_bg_color_tl
@@ -314,7 +315,6 @@
                 \l__piton_skip_empty_lines_bool
               }
               { \int_gincr:N \g__piton_visual_line_int }
-
             \bool_if:nT
               {
                 ! \str_if_eq_p:nn { #1 } { \PitonStyle {Prompt}{} }
@@ -322,7 +322,6 @@
                 ( ! \l__piton_skip_empty_lines_bool && \l__piton_label_empty_lines_bool )
               }
               \__piton_print_number:
-
           }
         \clist_if_empty:NF \l__piton_bg_color_clist
           {
@@ -678,6 +677,11 @@
 \NewDocumentCommand \__piton_fake_PitonOptions { }
   { \keys_set:nn { PitonOptions } }
 \int_new:N \g__piton_visual_line_int
+\cs_new_protected:Npn \__piton_incr_visual_line:
+  {
+    \bool_if:NF \l__piton_skip_empty_lines_bool
+      { \int_gincr:N \g__piton_visual_line_int }
+  }
 \cs_new_protected:Npn \__piton_print_number:
   {
     \hbox_overlap_left:n
@@ -1061,9 +1065,7 @@
       \__piton_compute_left_margin:no { CountNonEmptyLinesFile } \l__piton_file_name_str
       \__piton_compute_width:
       \ttfamily
-      % \bool_if:NT \g__piton_footnote_bool \savenotes
-      % \vtop \bgroup
-      \leavevmode
+      % \leavevmode
       \lua_now:e
         {
           piton.ParseFile(
@@ -1073,8 +1075,6 @@
            \int_use:N \l__piton_last_line_int ,
            \bool_if:NTF \l__piton_split_on_empty_lines_bool { 1 } { 0 } )
         }
-      % \egroup
-      % \bool_if:NT \g__piton_footnote_bool \endsavenotes
       \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
     \group_end:
     \tl_if_novalue:nF { #1 }
