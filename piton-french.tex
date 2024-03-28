@@ -372,9 +372,10 @@ espaces) soient considérées comme non existantes en ce qui concerne la numéro
 valeur initiale de cette clé est |true| (et non |false|).\footnote{Avec le langage Python, les lignes vides des \emph{docstrings} sont
   prises en compte.}
 
-\item La clé \Definition{line/numbers/label-empty-lines} demande que les labels (c'est-à-dire les numéros) des
+\item La clé \Definition{line-numbers/label-empty-lines} demande que les labels (c'est-à-dire les numéros) des
 lignes vides soient affichés. Si la clé |/skip-empty-lines| est active, la clé |/label-empty-lines| est sans effet.
-La valeur initiale de cette clé est |true|.
+La valeur initiale de cette clé est |true|.\footnote{Quand la clé |split-on-empty-lines| est activée, les labels des
+  lignes vides ne sont jamais imprimés.}
 
 \item La clé \Definition{line-numbers/absolute} demande, pour les listings générés par |\PitonInputFile|, que les
 numéros de lignes affichés soient absolus (c'est-à-dire ceux du fichier d'origine). Elle n'a d'intérêt que si on
@@ -741,47 +742,54 @@ def carré(x):
 \subsubsection{Coupure des pages}
 
 \index{splittable}
+\index{split-on-empty-lines}
+\index{split-separation}
 
 Par défaut les listings produits par l'environnement |{Piton}| et par la commande |\PitonInputFile| sont
 insécables.
 
-Néanmoins, la commande |\PitonOptions| propose la clé \Definition{splittable} pour autoriser de telles coupures.
+
+Néanmoins, la commande |\PitonOptions| propose les clés |split-on-empty-lines| et |splittable| pour autoriser de
+telles coupures. 
 
 \begin{itemize}
-\item Si la clé |splittable| est utilisée sans valeur, les listings sont sécables n'importe où.
+\item \colorbox{yellow!50}{\textbf{Nouveau 2.7}}\par\nobreak
 
-\item Si la clé |splittable| est utilisée avec une valeur numérique $n$ (qui doit être un entier naturel non nul),
-alors les listings seront sécables mais aucune coupure ne pourra avoir lieu entre les $n$~premières lignes, ni
-entre les $n$~dernières. De ce fait, |splittable=1| est équivalent à |splittable|.
+La clé \Definition{split-on-empty-lines} autorise les coupures sur les lignes vides\footnote{Les lignes considérées
+  comme vides sont celles qui ne comportent que des espaces.} du listing. Dans les listings informatiques, les
+lignes vides séparent le plus souvent les définitions des fonctions informatiques et il est donc souvent judicieux
+de pouvoir couper au niveau de ces lignes.
+
+Quand la clé |split-on-empty-lines| est activée, le travail effectué va en fait un plus loin que d'autoriser une
+coupure de page : les lignes vides successives sont supprimées et remplacées par le contenu du paramètre
+correspondant à la clé \Definition{split-separation}. 
+La valeur initiale de ce paramètre est |\vspace{\baselineskip}\vspace{-1.25pt}|, ce qui, au final, correspond à
+une ligne vide dans le PDF final (cet espace vertical est supprimé s'il tombe au niveau d'un saut de page).
+
+\medskip
+\item La clé |split-on-empty-lines| peut bien sûr être insuffisante et c'est pourquoi \pkg{piton} propose la clé
+\Definition{splittable}. 
+
+Quand la clé |splittable| est utilisée avec la valeur numérique $n$ (qui doit être un entier naturel non nul) le
+listing, ou bien chaque partie de ce listing située entre des lignes vides (quand |split-on-empty-lines| est
+utilisée), pourra être coupé n'importe où avec cette exception qu'aucune coupure ne pourra avoir lieu entre les
+$n$~premières lignes, ni entre les $n$~dernières. Par exemple, |splittable = 4| pourrait être un réglage raisonnable.
+
+Employée sans argument, la clé |splittable| est équivalente à |splittable = 1|, et les listings sont alors sécables
+n'importe où (ce n'est pas recommandable). 
+
 \end{itemize}
 
 \medskip
 \emph{Remarque}\par\nobreak
 
 Même avec une couleur de fond (fixée avec |background-color|), les sauts de page sont possibles, à partir du moment
-où la clé |splittable| est utilisée.\footnote{Avec la clé |splittable|, un environnement |{Piton}| est sécable même dans un environnement de
-  \pkg{tcolorbox} (à partir du moment où la clé |breakable| de \pkg{tcolorbox} est utilisée). On précise cela parce
-  que, en revanche, un environnement de \pkg{tcolorbox} inclus dans un autre environnement de \pkg{tcolorbox} n'est
-  pas sécable, même quand les deux utilisent la clé |breakable|.}
+où |split-on-empty-lines| ou |splittable| est utilisée.\footnote{Avec la clé |splittable|, un environnement
+  |{Piton}| est sécable même dans un environnement de \pkg{tcolorbox} (à partir du moment où la clé |breakable| de
+  \pkg{tcolorbox} est utilisée). On précise cela parce que, en revanche, un environnement de \pkg{tcolorbox} inclus
+  dans un autre environnement de \pkg{tcolorbox} n'est pas sécable, même quand les deux utilisent la clé
+  |breakable|.}
 
-
-\bigskip
-\index{split-on-empty-lines}
-\index{split-separation}
-\colorbox{yellow!50}{\textbf{Nouveau 2.7}}\enskip L'extension \pkg{piton} fournit une option
-\Definition{split-on-empty-lines}. Quand cette clé est active, les listings sont découpés en morceaux au niveau des
-lignes vides\footnote{Les lignes considérées comme vides sont celles qui ne comportent que des espaces.} du code et
-chaque morceau est traité par \pkg{piton} comme un listing autonome avant d'être envoyé à 
-LaTeX. \textbf{De ce fait, LaTeX peut faire des sauts de page entre les morceaux}. Si la clé |splittable| est
-utilisée, elle reste active dans chaque morceau. Évidemment, l'utilisation conjointe de |split-on-empty-lines| et
-|splittable| n'a d'intérêt que si |splittable| est utilisée avec une valeur différente de $1$ (par example $4$), de
-manière à privilégier les coupures de pages au niveau des lignes vides du listing d'origine.
-
-\smallskip
-La clé \Definition{split-separation} permet de spécifier une liste de tokens LaTeX qui sera insérée entre les
-morceaux. La valeur initiale est |\vspace{\baselineskip} \vspace{-1.25pt}|. Avec cette valeur, les morceaux de code
-s'enchaînent avec une ligne vides entre les deux (même si, en fait, plusieurs lignes vides les séparaient dans
-le code initial).
 
 \subsubsection{Coupure des lignes}
 

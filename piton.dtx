@@ -73,11 +73,11 @@
 %<*STY>
 % \fi
 \def\PitonFileVersion{2.7zzz}
-\def\PitonFileDate{2024/03/27}
+\def\PitonFileDate{2024/03/28}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "2.7zzz" -- 2024/03/27
+piton_version = "2.7zzz" -- 2024/03/28
 %</LUA>
 %\fi
 %
@@ -377,7 +377,8 @@ piton_version = "2.7zzz" -- 2024/03/27
 % \item With the key \Definition{line-numbers/label-empty-lines}, the labels
 % (that is to say the numbers) of the empty lines are displayed. If the key
 % |/skip-empty-line| is in force, the clé |/label-empty-lines| is no-op. The
-% initial value of that key is~|true|.
+% initial value of that key is~|true|.\footnote{When the key
+% |split-on-empty-lines| is in force, the labels of the empty are never printed.}
 % \item With the key \Definition{line-numbers/absolute}, in the listings
 % generated in |\PitonInputFile|, the numbers of the lines displayed are
 % \emph{absolute} (that is to say: they are the numbers of the lines in the
@@ -782,45 +783,51 @@ piton_version = "2.7zzz" -- 2024/03/27
 % By default, the listings produced by the environment |{Piton}| and the command
 % |\PitonInputFile| are not breakable.
 %
-% However, the command |\PitonOptions| provides the key \Definition{splittable}
-% to allow such breaks.
+% However, the command |\PitonOptions| provides the keys |split-on-empty-lines|
+% and |splittable| to allow such breaks.
 %
 % \begin{itemize}
-% \item If the key |splittable| is used without any value, the
-% listings are breakable everywhere.
-% \item If the key |splittable| is used with a numeric value~$n$ (which must be
-% a non-negative integer number), the listings are breakable but no break will
-% occur within the first $n$ lines and within the last $n$ lines. Therefore,
-% |splittable=1| is equivalent to |splittable|.
-% \end{itemize}
+% \item \colorbox{yellow!50}{\textbf{New 2.7}}\par\nobreak
+% The key \Definition{split-on-empty-lines} allows breaks on the empty
+% lines\footnote{The ``empty lines'' are the lines which contains only spaes.} in
+% the listing. In the informatic listings, the empty lines usually seperate the
+% definitions of the informatic functions and it's pertinent to allow breaks
+% between these functions.
+%
+% In fact, when the key |split-on-empty-lines| is in force, the work goes a
+% little further than merely allowing page breaks: several successive empty lines
+% are deleted and replaced by the content of the parameter corresponding to the
+% key \Definition{split-separation}. The initial value of this parameter is
+% |\vspace{\baselineskip}\vspace{-1.25pt}| which corresponds eventually to an
+% empty line in the final PDF (this vertical space is deleted if it occurs on a
+% page break).
+%
+% \item Of course, the key |split-on-empty-lines| may not be sufficient and
+% that's why \pkg{piton} provides the key \Definition{splittable}.
+%
+% When the key |splittable| is used with the numeric value~$n$ (which must be a
+% positive integer) the listing, or each part of the listing delimited by empty
+% lines (when |split-on-empty-lines| is in force) may be broken anywhere with
+% the restriction that no break will occur within the $n$ first lines of
+% the listing or within the $n$ last lines. For example, a tuning with
+% |splittable = 4| may be a good choice.
+%
+% When used without value, the key |splittable| is equivalent to 
+% |splittable = 1| and the listings may be broken anywhere (it's probably 
+% not recommandable).
+% \end{itemize} 
+% 
+%
 %
 % \medskip
 % Even with a background color (set by the key |background-color|), the pages
-% breaks are allowed, as soon as the key |splittable| is in force.\footnote{With
-% the key |splittable|, the environments \texttt{\{Piton\}} are breakable, even
-% within a (breakable) environment of \pkg{tcolorbox}. Remind that an
-% environment of \pkg{tcolorbox} included in another environment of
-% \pkg{tcolorbox} is \emph{not} breakable, even when both environments use the
-% key |breakable| of \pkg{tcolorbox}.}
+% breaks are allowed, as soon as the key |split-on-empty-lines| or the key
+% |splittable| is in force.\footnote{With the key |splittable|, the environments
+% \texttt{\{Piton\}} are breakable, even within a (breakable) environment of
+% \pkg{tcolorbox}. Remind that an environment of \pkg{tcolorbox} included in
+% another environment of \pkg{tcolorbox} is \emph{not} breakable, even when both
+% environments use the key |breakable| of \pkg{tcolorbox}.}
 %
-% \bigskip
-% \colorbox{yellow!50}{\textbf{New 6.27}}\enskip The extension \pkg{piton}
-% provides a key \Definition{split-on-empty-lines}. When that key is in force,
-% the listings are split in chunks on the empty lines\footnote{The ``empty
-% lines'' are the lines which contain only spaces} of the code and each chunk is
-% treated by \pkg{piton} as an independent listing before being sent to LaTeX.
-% Thus, \textbf{LaTeX is able to add page breaks between the chunks}. If the key
-% |splittable| is used, it's active in each chunk. Of course, the utilisation of
-% both |split-on-empty-lines| and |splittable| makes sens if the key
-% |splittable| with a value different of 1 (for instance 4), so that the pages
-% breaks are prioritised on the empty lines of the original listing. With the
-% value, the chunks are typeset with an empty line between them (even if, in
-% fact, there are several empty lines between them in the initial code).
-%
-% \smallskip
-% The key \Definition{split-separation} specifies a list of LaTeX tokens that
-% will be inserted between the chunks. The initial value is 
-% |\vspace{\baselineskip} \vspace{-1.25pt}|.
 % 
 % \subsubsection{Line breaks}
 % 
