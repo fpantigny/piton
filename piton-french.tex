@@ -760,12 +760,12 @@ La clé \Definition{split-on-empty-lines} autorise les coupures sur les lignes v
 lignes vides séparent le plus souvent les définitions des fonctions informatiques et il est donc souvent judicieux
 de pouvoir couper au niveau de ces lignes.
 
-Quand la clé |split-on-empty-lines| est activée, le travail effectué va en fait un plus loin : les lignes vides
+Quand la clé |split-on-empty-lines| est activée, le travail effectué va en fait un peu plus loin : les lignes vides
 successives sont supprimées et remplacées par le contenu du paramètre correspondant à la clé
 \Definition{split-separation}. 
 
 La valeur initiale de ce paramètre est |\vspace{\baselineskip}\vspace{-1.25pt}|, ce qui, au final, correspond à une
-ligne vide dans le PDF final (cet espace vertical est supprimé s'il tombe au niveau d'un saut de page).
+ligne vide dans le PDF produit (cet espace vertical est supprimé s'il tombe au niveau d'un saut de page).
 
 \medskip
 \item La clé |split-on-empty-lines| peut bien sûr être insuffisante et c'est pourquoi \pkg{piton} propose la clé
@@ -948,8 +948,8 @@ def fibo(n):
 \end{Piton}
 
 \vspace{1cm}
-\index{marker/include-line}
-La clé \Definition{marker/include-line} demande que les lignes contenant les marqueurs soient également insérées.
+\index{marker/include-lines}
+La clé \Definition{marker/include-lines} demande que les lignes contenant les marqueurs soient également insérées.
 
 \begin{Verbatim}
 \PitonInputFile[~emphase#marker/include-lines@,range = Exercice 1]{~textsl#nom_du_fichier@}
