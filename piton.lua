@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "2.7a" -- 2024/03/30
+piton_version = "2.7xxx" -- 2024/04/08
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
