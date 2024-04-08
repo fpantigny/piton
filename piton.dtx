@@ -3547,8 +3547,19 @@ piton_version = "2.7xxx" -- 2024/04/08
     language         .code:n = 
       \str_set:Nx \l_piton_language_str { \str_lowercase:n { #1 } } , 
     language         .value_required:n  = true ,
-    path             .code:n            = \@@_store_path:n { #1 } ,
+    path .code:n = 
+      \seq_clear:N \l_@@_path_seq
+      \clist_map_inline:nn { #1 }
+        { 
+          \str_set:Nn \l_tmpa_str { ##1 } 
+          \seq_put_right:No \l_@@_path_seq \l_tmpa_str 
+        } ,
     path             .value_required:n  = true , 
+%    \end{macrocode}
+% The initial value of the key |path| is not empty: it's |.|, that is to say a
+% comma separated list with only one component which is |.|, the current directory.
+%    \begin{macrocode}
+    path             .initial:n         = . ,
     path-write       .str_set:N         = \l_@@_path_write_str ,
     path-write       .value_required:n  = true , 
     gobble           .int_set:N         = \l_@@_gobble_int , 
@@ -3684,21 +3695,6 @@ piton_version = "2.7xxx" -- 2024/04/08
   }
 %    \end{macrocode}
 %
-% \bigskip
-% The argument of the following command is the value provided by the final user
-% to the key |path|. It's a list a comma-separated list of pathes. It will be
-% stored in |\l_@@_path_seq| as a sequence of \emph{strings} (type |str|).
-%    \begin{macrocode}
-\cs_new_protected:Npn \@@_store_path:n #1
-  {
-    \seq_clear:N \l_@@_path_seq
-    \clist_map_inline:nn { #1 }
-      { 
-        \str_set:Nn \l_tmpa_str { ##1 } 
-        \seq_put_right:No \l_@@_path_seq \l_tmpa_str 
-      }
-  }
-%    \end{macrocode}
 % 
 %
 % \bigskip
@@ -3711,6 +3707,8 @@ piton_version = "2.7xxx" -- 2024/04/08
   }
 %    \end{macrocode}
 %
+% 
+% 
 % \bigskip
 % When using |\NewPitonEnvironment| a user may use |\PitonOptions| inside.
 % However, the set of keys available should be different that in standard
@@ -4268,25 +4266,14 @@ piton_version = "2.7xxx" -- 2024/04/08
 % the path (specified by the key |path|).
 %    \begin{macrocode}
     \bool_set_false:N \l_tmpa_bool
-    \seq_if_empty:NTF \l_@@_path_seq
-      { 
-        \str_set:Nn \l_@@_file_name_str { #3 }
+    \seq_map_inline:Nn \l_@@_path_seq 
+      {
+        \str_set:Nn \l_@@_file_name_str { ##1 / #3 }
         \file_if_exist:nT { \l_@@_file_name_str }
           { 
             \@@_input_file:nn { #1 } { #2 } 
             \bool_set_true:N \l_tmpa_bool
-          }
-      }
-      {
-        \seq_map_inline:Nn \l_@@_path_seq 
-          {
-            \str_set:Nn \l_@@_file_name_str { ##1 / #3 }
-            \file_if_exist:nT { \l_@@_file_name_str }
-              { 
-                \@@_input_file:nn { #1 } { #2 } 
-                \bool_set_true:N \l_tmpa_bool
-                \seq_map_break:
-              }
+            \seq_map_break:
           }
       }
     \bool_if:NF \l_tmpa_bool

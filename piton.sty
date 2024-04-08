@@ -537,8 +537,15 @@
     language         .code:n =
       \str_set:Nx \l_piton_language_str { \str_lowercase:n { #1 } } ,
     language         .value_required:n  = true ,
-    path             .code:n            = \__piton_store_path:n { #1 } ,
+    path .code:n =
+      \seq_clear:N \l__piton_path_seq
+      \clist_map_inline:nn { #1 }
+        {
+          \str_set:Nn \l_tmpa_str { ##1 }
+          \seq_put_right:No \l__piton_path_seq \l_tmpa_str
+        } ,
     path             .value_required:n  = true ,
+    path             .initial:n         = . ,
     path-write       .str_set:N         = \l__piton_path_write_str ,
     path-write       .value_required:n  = true ,
     gobble           .int_set:N         = \l__piton_gobble_int ,
@@ -667,15 +674,6 @@
     \bool_if:NTF \l__piton_in_PitonInputFile_bool
       { #1 }
       { \__piton_error:n { Invalid~key } }
-  }
-\cs_new_protected:Npn \__piton_store_path:n #1
-  {
-    \seq_clear:N \l__piton_path_seq
-    \clist_map_inline:nn { #1 }
-      {
-        \str_set:Nn \l_tmpa_str { ##1 }
-        \seq_put_right:No \l__piton_path_seq \l_tmpa_str
-      }
   }
 \NewDocumentCommand \PitonOptions { m }
   {
@@ -1007,25 +1005,14 @@
   {
     \group_begin:
     \bool_set_false:N \l_tmpa_bool
-    \seq_if_empty:NTF \l__piton_path_seq
+    \seq_map_inline:Nn \l__piton_path_seq
       {
-        \str_set:Nn \l__piton_file_name_str { #3 }
+        \str_set:Nn \l__piton_file_name_str { ##1 / #3 }
         \file_if_exist:nT { \l__piton_file_name_str }
           {
             \__piton_input_file:nn { #1 } { #2 }
             \bool_set_true:N \l_tmpa_bool
-          }
-      }
-      {
-        \seq_map_inline:Nn \l__piton_path_seq
-          {
-            \str_set:Nn \l__piton_file_name_str { ##1 / #3 }
-            \file_if_exist:nT { \l__piton_file_name_str }
-              {
-                \__piton_input_file:nn { #1 } { #2 }
-                \bool_set_true:N \l_tmpa_bool
-                \seq_map_break:
-              }
+            \seq_map_break:
           }
       }
     \bool_if:NF \l_tmpa_bool
