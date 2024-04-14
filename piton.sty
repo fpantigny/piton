@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{2.7xxx}
-\def\PitonFileDate{2024/04/08}
+\def\PitonFileVersion{2.8}
+\def\PitonFileDate{2024/04/14}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -1001,7 +1001,7 @@
       { \keys_set:nn { PitonOptions } { #1 } }
       { }
   }
-\NewDocumentCommand { \PitonInputFile } { d < > O { } m }
+\NewDocumentCommand { \PitonInputFileTF } { d < > O { } m m m }
   {
     \group_begin:
     \bool_set_false:N \l_tmpa_bool
@@ -1015,10 +1015,17 @@
             \seq_map_break:
           }
       }
-    \bool_if:NF \l_tmpa_bool
-      { \msg_error:nnn { piton } { Unknown~file } { #3 } }
+    \bool_if:NTF \l_tmpa_bool { #4 } { #5 }
     \group_end:
   }
+\cs_new_protected:Npn \__piton_unknown_file:n #1
+  { \msg_error:nnn { piton } { Unknown~file } { #1 } }
+\NewDocumentCommand { \PitonInputFile } { d < > O { } m }
+  { \PitonInputFileTF < #1 >  [ #2 ] { #3 } { } { \__piton_unknown_file:n { #3 } } }
+\NewDocumentCommand { \PitonInputFileT } { d < > O { } m m }
+  { \PitonInputFileTF < #1 >  [ #2 ] { #3 } { #4 } { \__piton_unknown_file:n { #3 } } }
+\NewDocumentCommand { \PitonInputFileF } { d < > O { } m m }
+  { \PitonInputFileTF < #1 >  [ #2 ] { #3 } { } { #4 } }
 \cs_new_protected:Npn \__piton_input_file:nn #1 #2
   {
     \tl_if_novalue:nF { #1 }

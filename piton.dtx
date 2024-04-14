@@ -72,12 +72,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{2.7xxx}
-\def\PitonFileDate{2024/04/08}
+\def\PitonFileVersion{2.8}
+\def\PitonFileDate{2024/04/14}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "2.7xxx" -- 2024/04/08
+piton_version = "2.8" -- 2024/04/14
 %</LUA>
 %\fi
 %
@@ -211,8 +211,21 @@ piton_version = "2.7xxx" -- 2024/04/08
 % It's possible to insert only a part of the file: cf.
 % part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}. 
 %
-% The key |path| of the command |\PitonOptions| specifies a path where the files
-% included by |\PitonInputFile| will be searched.
+%
+% \colorbox{yellow!50}{\bfseries New 2.8}\par\nobreak
+%
+% 
+% The key |path| of the command |\PitonOptions| specifies a \emph{list} of
+% pathes where the files included by |\PitonInputFile| will be searched. That
+% list is comma separated.
+%
+% The extension \pkg{piton} also provides the commands
+% \colorbox{gray!20}{\ttfamily \textbackslash PitonInputFileT},
+% \colorbox{gray!20}{\ttfamily \textbackslash PitonInputFileF} and
+% \colorbox{gray!20}{\ttfamily \textbackslash PitonInputFileTF} with
+% supplementary arguments corresponding to the letters~|T| and~|F|. Those
+% arguments will be exectued if the file to include has been found (letter~|T|)
+% or not found (letter~|F|).
 % \end{itemize}
 %
 % \subsection{The syntax of the command \textbackslash piton}
@@ -1046,9 +1059,6 @@ piton_version = "2.7xxx" -- 2024/04/08
 %
 % \label{SetPitonIdentifier}
 %
-% \colorbox{yellow!50}{\bfseries Modification 2.4}\par\nobreak
-%
-% \smallskip
 % The command |\SetPitonIdentifier| allows to change the formatting of some
 % identifiers.
 %
@@ -4258,7 +4268,7 @@ piton_version = "2.7xxx" -- 2024/04/08
 % the environment |{Piton}|. In fact, it's simpler because there isn't the
 % problem of catching the content of the environment in a verbatim mode.
 %    \begin{macrocode}
-\NewDocumentCommand { \PitonInputFile } { d < > O { } m }
+\NewDocumentCommand { \PitonInputFileTF } { d < > O { } m m m }
   {
     \group_begin:
 %    \end{macrocode}
@@ -4276,12 +4286,26 @@ piton_version = "2.7xxx" -- 2024/04/08
             \seq_map_break:
           }
       }
-    \bool_if:NF \l_tmpa_bool
-      { \msg_error:nnn { piton } { Unknown~file } { #3 } } 
+    \bool_if:NTF \l_tmpa_bool { #4 } { #5 }
     \group_end:
   }
 %    \end{macrocode}
 %
+% \medskip
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_unknown_file:n #1 
+  { \msg_error:nnn { piton } { Unknown~file } { #1 } }
+%    \end{macrocode}
+% 
+%    \begin{macrocode}
+\NewDocumentCommand { \PitonInputFile } { d < > O { } m }
+  { \PitonInputFileTF < #1 >  [ #2 ] { #3 } { } { \@@_unknown_file:n { #3 } } }
+\NewDocumentCommand { \PitonInputFileT } { d < > O { } m m }
+  { \PitonInputFileTF < #1 >  [ #2 ] { #3 } { #4 } { \@@_unknown_file:n { #3 } } }
+\NewDocumentCommand { \PitonInputFileF } { d < > O { } m m }
+  { \PitonInputFileTF < #1 >  [ #2 ] { #3 } { } { #4 } }
+%    \end{macrocode}
+% 
 % The following command uses as implicit argument the name of the file in
 % |\l_@@_file_name_str|. 
 %    \begin{macrocode}
@@ -7861,6 +7885,13 @@ end
 % repository:
 %
 % \verb|https://github.com/fpantigny/piton|
+%
+% \subsection*{Changes between versions 2.7 and 2.8}
+%
+% The key |path| now accepts a \emph{list} of pathes where the files to include
+% will be searched.
+%
+% New commands |\PitonInputFileT|, |\PitonInputFileF| and |\PitonInputFileTF|.
 %
 % \subsection*{Changes between versions 2.6 and 2.7}
 %

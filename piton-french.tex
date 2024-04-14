@@ -223,7 +223,18 @@ composer un fichier externe.
 Il est possible de n'insérer qu'une partie de ce fichier : cf. partie~\ref{part-of-a-file},
 p.~\pageref{part-of-a-file}.
 
-La clé |path| de la commande |\PitonOptions| permet de spécifier un chemin pour le fichier à inclure. 
+
+\colorbox{yellow!50}{\textbf{Nouveau 2.8}}\par\nobreak
+
+La clé |path| de la commande |\PitonOptions| permet de spécifier une \emph{liste} de chemins où sera recherché le
+fichier à inclure (dans cette liste, les chemins sont séparés par des virgules).
+
+L'extension \pkg{piton} propose aussi des commandes \colorbox{gray!20}{\ttfamily\textbackslash PitonInputFileT}, 
+\colorbox{gray!20}{\ttfamily \textbackslash PitonInputFileF} et
+\colorbox{gray!20}{\ttfamily \textbackslash PitonInputFileTF} avec des arguments correspondant aux lettres |T| et
+|F|, arguments qui seront executés dans le
+cas où le fichier a été trouvé (lettre |T|) ou pas (lettre |F|).
+
 \end{itemize}
 
 
@@ -992,9 +1003,6 @@ structuré correctement!):
 \indexcommand{SetPitonIdentifier}
 \label{SetPitonIdentifier}
 
-\colorbox{yellow!50}{\bfseries Modification 2.4}\par\nobreak
-
-\smallskip
 La commande |\SetPitonIdentifier| permet de changer le formatage de certains identificateurs.
 
 \smallskip
