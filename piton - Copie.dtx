@@ -72,12 +72,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.0}
-\def\PitonFileDate{2024/05/01}
+\def\PitonFileVersion{2.8}
+\def\PitonFileDate{2024/04/14}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.0" -- 2024/05/01
+piton_version = "2.8" -- 2024/04/14
 %</LUA>
 %\fi
 %
@@ -211,6 +211,10 @@ piton_version = "3.0" -- 2024/05/01
 % It's possible to insert only a part of the file: cf.
 % part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}. 
 %
+%
+% \colorbox{yellow!50}{\bfseries New 2.8}\par\nobreak
+%
+% 
 % The key |path| of the command |\PitonOptions| specifies a \emph{list} of
 % pathes where the files included by |\PitonInputFile| will be searched. That
 % list is comma separated.
@@ -220,7 +224,7 @@ piton_version = "3.0" -- 2024/05/01
 % \colorbox{gray!20}{\ttfamily \textbackslash PitonInputFileF} and
 % \colorbox{gray!20}{\ttfamily \textbackslash PitonInputFileTF} with
 % supplementary arguments corresponding to the letters~|T| and~|F|. Those
-% arguments will be executed if the file to include has been found (letter~|T|)
+% arguments will be exectued if the file to include has been found (letter~|T|)
 % or not found (letter~|F|).
 % \end{itemize}
 %
@@ -779,136 +783,6 @@ piton_version = "3.0" -- 2024/05/01
 %     return x*x
 % \end{Python}
 %
-% \section{Definition of new languages with the syntax of listings}
-%
-% \indexcommand{NewPitonLanguage}
-% \index{listings@\pkg{listings} (extension)}
-% 
-% \colorbox{yellow!50}{\textbf{New 3.0}}
-%
-% \medskip
-% The package \pkg{listings} is a famous LaTeX package to format informatic
-% listings.
-%
-% That package provides a command |\lstdefinelanguage| which allows the user to
-% define new langages. That command is also used by \pkg{listings} itself to
-% provide the definition of the predefined languages in \pkg{listings} (in fact,
-% for this task, \pkg{listings} uses a command called |\lst@definelanguage| but
-% that command has the same syntax as |\lstdefinelanguage|). 
-%
-% \medskip
-% The package \pkg{piton} provides a command |\NewPitonLanguage| to define new
-% languages (avaiblable in |\piton|, |{Piton}|, etc.) with a syntax which is
-% almost the same as the syntax of~|\lstdefinelanguage|.
-%
-% \medskip
-% For example, in the file |lstlang1.sty|, which is one of the definition files
-% of \pkg{listings}, we find the following instructions (in version 1.10a).
-% 
-%\begin{Verbatim}[formatcom=\small\color{gray}]
-% \lst~@definelanguage{Java}%
-%   {morekeywords={abstract,boolean,break,byte,case,catch,char,class,%
-%       const,continue,default,do,double,else,extends,false,final,%
-%       finally,float,for,goto,if,implements,import,instanceof,int,%
-%       interface,label,long,native,new,null,package,private,protected,%
-%       public,return,short,static,super,switch,synchronized,this,throw,%
-%       throws,transient,true,try,void,volatile,while},%
-%    sensitive,%
-%    morecomment=[l]//,%
-%    morecomment=[s]{/*}{*/},%
-%    morestring=[b]",%
-%    morestring=[b]',%
-%   }[keywords,comments,strings]
-% \end{Verbatim}
-%
-% \medskip
-% In order to define a language called |Java| for \pkg{piton}, one has only to
-% write the following code {\bfseries where the last argument of
-% |\lst@definelanguage|, between square brackets, has been discarded} (in fact,
-% the symbols \verb+%+ may be deleted without any problem).
-%
-% \begin{Verbatim}[formatcom=\small\color{gray}]
-% ~emphase#\NewPitonLanguage@{Java}%
-%   {morekeywords={abstract,boolean,break,byte,case,catch,char,class,%
-%       const,continue,default,do,double,else,extends,false,final,%
-%       finally,float,for,goto,if,implements,import,instanceof,int,%
-%       interface,label,long,native,new,null,package,private,protected,%
-%       public,return,short,static,super,switch,synchronized,this,throw,%
-%       throws,transient,true,try,void,volatile,while},%
-%    sensitive,%
-%    morecomment=[l]//,%
-%    morecomment=[s]{/*}{*/},%
-%    morestring=[b]",%
-%    morestring=[b]',%
-%   }
-% \end{Verbatim}
-%
-% 
-% \NewPitonLanguage{Java}
-%   {morekeywords={abstract,boolean,break,byte,case,catch,char,class,
-%       const,continue,default,do,double,else,extends,false,final,
-%       finally,float,for,goto,if,implements,import,instanceof,int,
-%       interface,label,long,native,new,null,package,private,protected,
-%       public,return,short,static,super,switch,synchronized,this,throw,
-%       throws,transient,true,try,void,volatile,while},
-%    sensitive,
-%    morecomment=[l]//,
-%    morecomment=[s]{/*}{*/},
-%    morestring=[b]",
-%    morestring=[b]',
-%   }
-%
-% \medskip
-% It's possible to use the language Java like any other langage defined by
-% \pkg{piton}.
-%
-% Here is an example of code formatted in an environment |{Piton}| with
-% the key |language=Java|.\footnote{We recall that, for \pkg{piton}, the names
-% of the informatic languages are case-insensitive. Hence, it's possible to
-% write, for instance, |language=java|.}
-%
-% 
-% \bigskip
-% \begingroup
-% \small
-% \PitonOptions{split-on-empty-lines}
-% \begin{Piton}[language = java]
-% public class Cipher {
-%     public static void main(String[] args) {
-%         String str = "The quick brown fox Jumped over the lazy Dog";
-%         System.out.println( Cipher.encode( str, 12 ));
-%         System.out.println( Cipher.decode( Cipher.encode( str, 12), 12 ));
-%     }
-%
-%     public static String decode(String enc, int offset) {
-%         return encode(enc, 26-offset);
-%     }
-%
-%     public static String encode(String enc, int offset) {
-%         offset = offset % 26 + 26;
-%         StringBuilder encoded = new StringBuilder();
-%         for (char i : enc.toCharArray()) {
-%             if (Character.isLetter(i)) {
-%                 if (Character.isUpperCase(i)) {
-%                     encoded.append((char) ('A' + (i - 'A' + offset) % 26 ));
-%                 } else {
-%                     encoded.append((char) ('a' + (i - 'a' + offset) % 26 ));
-%                 }
-%             } else {
-%                 encoded.append(i);
-%             }
-%         }
-%         return encoded.toString();
-%     }
-% }
-% \end{Piton}
-% \endgroup
-%
-% \bigskip 
-% We redirect the reader to the documentation of the package
-% \pkg{listings} for the description of the keys |morekeywords|, |sensitive|,
-% |morecomment|, |morestring|, etc.
-%
 %
 % \section{Advanced features}
 %
@@ -926,7 +800,8 @@ piton_version = "3.0" -- 2024/05/01
 % and |splittable| to allow such breaks.
 %
 % \begin{itemize}
-% \item The key \Definition{split-on-empty-lines} allows breaks on the empty
+% \item \colorbox{yellow!50}{\textbf{New 2.7}}\par\nobreak
+% The key \Definition{split-on-empty-lines} allows breaks on the empty
 % lines\footnote{The ``empty lines'' are the lines which contains only spaes.} in
 % the listing. In the informatic listings, the empty lines usually seperate the
 % definitions of the informatic functions and it's pertinent to allow breaks
@@ -3942,18 +3817,8 @@ piton_version = "3.0" -- 2024/05/01
       { \@@_NewPitonLanguage:nnn { #1 } { #2 } }
 %    \end{macrocode}
 % The two last arguments are provided by curryfication.
-%    \begin{macrocode}
       { \@@_NewPitonLanguage:nnnnn { #1 } { #2 } { #3 } }
   }
-%    \end{macrocode}
-% 
-% \bigskip
-% The following property list will contain the definitions of the informatic
-% languages as provided by the final user. However, if a language is defined
-% over another base language, the corresponding list will contain the \emph{whole}
-% definition of the language.
-%    \begin{macrocode}
-\prop_new:N \g_@@_languages_prop
 %    \end{macrocode}
 % 
 % \bigskip
@@ -3967,30 +3832,16 @@ piton_version = "3.0" -- 2024/05/01
 % that is to say, for example : |[AspectJ]{Java}|. We use |\tl_if_blank:nF|
 % because the final user may have written |\NewPitonLanguage[ ]{Java}{...}|.
 %    \begin{macrocode}
-    \tl_set:Nx \l_tmpa_tl 
-      { 
-        \tl_if_blank:nF { #1 } { [ \str_lowercase:n { #1 } ] } 
-        \str_lowercase:n { #2 } 
-      }
+    \tl_set:Nx \l_tmpa_tl { \tl_if_blank:nF { #1 } { [ #1 ] } #2 }
 %    \end{macrocode}
 % We store in LaTeX the definition of the language because some languages may be
 % defined with that language as base language.
 %    \begin{macrocode}
-    \prop_gput:Non \g_@@_languages_prop \l_tmpa_tl { #3 }
+    \tl_set:cn { piton __ language _ \l_tmpa_tl } { #3 }
 %    \end{macrocode}
-% The Lua part of the package \pkg{piton} will be loaded in a
-% |\AtBeginDocument|. Hence, we will put also in a |\AtBeginDocument| the
-% utilisation of the Lua function |piton.new_language| (which does the main job).
+%
 %    \begin{macrocode}
-    \exp_args:NV \@@_NewPitonLanguage:nn \l_tmpa_tl { #3 }
-  }
-%    \end{macrocode}
-% 
-%    \begin{macrocode}
-\cs_new_protected:Npn \@@_NewPitonLanguage:nn #1 #2
-  {
-    \hook_gput_code:nnn { begindocument } { . }
-      { \lua_now:e { piton.new_language("#1","\lua_escape:n{#2}") } }
+    \lua_now:e { piton.new_language("\l_tmpa_tl","\lua_escape:n{#3}") } 
   }
 %    \end{macrocode}
 %
@@ -4004,23 +3855,16 @@ piton_version = "3.0" -- 2024/05/01
 % is to say, for example : |[AspectJ]{Java}|. We use |\tl_if_blank:nF| because
 % the final user may have used |\NewPitonLanguage[Handel]{C}[ ]{C}{...}|
 %    \begin{macrocode}
-    \tl_set:Nx \l_tmpa_tl 
-      { 
-         \tl_if_blank:nF { #3 } { [ \str_lowercase:n { #3 } ] } 
-         \str_lowercase:n { #4 }
-      } 
+    \tl_set:Nx \l_tmpa_tl { \tl_if_blank:nF { #3 } { [ #3 ] } #4 } 
 %    \end{macrocode}
 % We retrieve in |\l_tmpb_tl| the definition (as provided by the final user) of
-% that base language. Caution: |\g_@@_languages_prop| does not contain all the
-% languages provided by \pkg{piton} but only those defined by using
-% |\NewPitonLanguage|. 
+% that base language.
 %    \begin{macrocode}
-     \prop_get:NoNTF \g_@@_languages_prop \l_tmpa_tl \l_tmpb_tl 
+    \tl_set_eq:Nc \l_tmpb_tl { piton __ language _ \l_tmpa_tl }
 %    \end{macrocode}
 % We can now define the new language by using the previous function.
 %    \begin{macrocode}
-       { \@@_NewPitonLanguage:nnno { #1 } { #2 } { #5 } \l_tmpb_tl }
-       { \@@_error:n { Language~not~defined } }
+    \@@_NewPitonLanguage:nnno { #1 } { #2 } { #5 } \l_tmpb_tl 
   }
 %    \end{macrocode}
 %
@@ -5010,18 +4854,6 @@ piton_version = "3.0" -- 2024/05/01
 % 
 % \bigskip
 % \subsubsection{The error messages of the package}
-% 
-%
-%    \begin{macrocode}
-\@@_msg_new:nn { Language~not~defined }
-  { 
-    Language~not~defined \\
-    The~language~'\l_tmpa_tl'~has~not~been~defined~previoulsy.\\
-    If~you~go~on,~your~command~\token_to_str:N \NewPitonLanguage\ 
-    will~be~ignored.
-  }
-%    \end{macrocode}
-%
 % 
 %    \begin{macrocode}
 \@@_msg_new:nn { bad~version~of~piton.lua }
@@ -8121,13 +7953,6 @@ end
 % repository:
 %
 % \verb|https://github.com/fpantigny/piton|
-%
-% \subsection*{Changes between versions 2.8 and 3.0}
-%
-% New command |\NewPitonLanguage|. Thanks to that command, it's now possible to
-% define new langages with the syntax used by \pkg{listings}. Therefore, it's
-% possible to say that virtually all the informatic languages are now supported
-% by \pkg{piton}.
 %
 % \subsection*{Changes between versions 2.7 and 2.8}
 %

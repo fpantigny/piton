@@ -70,10 +70,16 @@
       }
   } 
 
-
-
 \usepackage{makeidx}
 \makeindex
+
+\NewDocumentCommand{\Definition}{m}
+  {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily \vphantom{gl}#1}}}
+
+\NewDocumentCommand{\DefinitionCommande}{m}
+  {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily
+        \vphantom{gl}\textbackslash #1}}}
+
 
 \NewDocumentCommand{\indexcommand}{m}{\index{#1@\texttt{\textbackslash #1}}}
 
@@ -223,9 +229,6 @@ composer un fichier externe.
 Il est possible de n'insérer qu'une partie de ce fichier : cf. partie~\ref{part-of-a-file},
 p.~\pageref{part-of-a-file}.
 
-
-\colorbox{yellow!50}{\textbf{Nouveau 2.8}}\par\nobreak
-
 La clé |path| de la commande |\PitonOptions| permet de spécifier une \emph{liste} de chemins où sera recherché le
 fichier à inclure (dans cette liste, les chemins sont séparés par des virgules).
 
@@ -330,8 +333,6 @@ simplement de la fonte mono-chasse courante (\pkg{piton} utilise simplement en i
 
 \subsection{Les clés de la commande \textbackslash PitonOptions}
 
-\NewDocumentCommand{\Definition}{m}
-  {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily \vphantom{gl}#1}}}
 
 \indexcommand{PitonOptions}
 
@@ -742,6 +743,130 @@ def carré(x):
     return x*x
 \end{Python}
 
+\section{Définition de nouveaux langages avec la syntaxe de listings}
+
+\indexcommand{NewPitonLanguage}
+\index{listings@\pkg{listings} (extension)}
+
+\colorbox{yellow!50}{\textbf{Nouveau 3.0}}
+
+\medskip
+L'extension \pkg{listings} est une célèbre extension LaTeX pour formater des codes informatiques.  
+
+\medskip
+Elle propose une commande |\lstdefinelanguage| pour définir de nouveaux langages. Cette commande est aussi
+utilisée en interne par \pkg{listings} pour sa définition des languages (en fait, pour cela, \pkg{listings} utilise
+une commande nommée |\lst@definelanguage| mais celle-ci a la même syntaxe que |\lstdefinelanguage|).
+
+\medskip
+L'extension \pkg{piton} propose une commande \DefinitionCommande{NewPitonLanguage} pour définir de nouveaux
+langages (utilisables avec les outils de \pkg{piton}) avec quasiment la même syntaxe que |\lstdefinelanguage|.
+
+\medskip
+Par exemple, dans le fichier |lstlang1.sty|, qui est un des fichiers de definition des langages proposés par défaut
+par \pkg{listings}, on trouve les instructions suivantes (dans la version 1.10a).
+
+\begin{Verbatim}[formatcom=\small\color{gray}]
+\lst~@definelanguage{Java}%
+  {morekeywords={abstract,boolean,break,byte,case,catch,char,class,%
+      const,continue,default,do,double,else,extends,false,final,%
+      finally,float,for,goto,if,implements,import,instanceof,int,%
+      interface,label,long,native,new,null,package,private,protected,%
+      public,return,short,static,super,switch,synchronized,this,throw,%
+      throws,transient,true,try,void,volatile,while},%
+   sensitive,%
+   morecomment=[l]//,%
+   morecomment=[s]{/*}{*/},%
+   morestring=[b]",%
+   morestring=[b]',%
+  }[keywords,comments,strings]
+\end{Verbatim}
+
+\medskip
+Pour définir un language nommé |Java| pour \pkg{piton}, il suffit d'écrire le code suivant, 
+{\bfseries où le dernier argument de |\lst@definelanguage|, qui est entre crochets, a été supprimé} 
+(en fait, les symboles \verb+%+ pourraient être supprimés sans problème).
+
+\begin{Verbatim}[formatcom=\small\color{gray}]
+~emphase#\NewPitonLanguage@{Java}%
+  {morekeywords={abstract,boolean,break,byte,case,catch,char,class,%
+      const,continue,default,do,double,else,extends,false,final,%
+      finally,float,for,goto,if,implements,import,instanceof,int,%
+      interface,label,long,native,new,null,package,private,protected,%
+      public,return,short,static,super,switch,synchronized,this,throw,%
+      throws,transient,true,try,void,volatile,while},%
+   sensitive,%
+   morecomment=[l]//,%
+   morecomment=[s]{/*}{*/},%
+   morestring=[b]",%
+   morestring=[b]',%
+  }
+\end{Verbatim}
+
+
+\NewPitonLanguage{Java}
+  {morekeywords={abstract,boolean,break,byte,case,catch,char,class,
+      const,continue,default,do,double,else,extends,false,final,
+      finally,float,for,goto,if,implements,import,instanceof,int,
+      interface,label,long,native,new,null,package,private,protected,
+      public,return,short,static,super,switch,synchronized,this,throw,
+      throws,transient,true,try,void,volatile,while},
+   sensitive,
+   morecomment=[l]//,
+   morecomment=[s]{/*}{*/},
+   morestring=[b]",
+   morestring=[b]',
+  }
+
+
+\medskip
+On peut alors utiliser le language Java comme n'importe quel autre langage prédéfini de \pkg{piton}. 
+
+Voici un exemple de code Java formaté dans un environnement~|{Piton}| avec la clé~|language=Java|.\footnote{On
+  rappelle que, pour \pkg{piton}, les noms de langages informatiques ne sont pas sensibles à la casse, ce qui fait
+  que l'on aurait pu aussi bien utiliser : |language=java|.}
+
+\bigskip
+\begingroup
+\small
+\PitonOptions{split-on-empty-lines}
+\begin{Piton}[language = Java]
+public class Cipher {
+    public static void main(String[] args) {
+        String str = "The quick brown fox Jumped over the lazy Dog";
+        System.out.println( Cipher.encode( str, 12 ));
+        System.out.println( Cipher.decode( Cipher.encode( str, 12), 12 ));
+    }
+
+    public static String decode(String enc, int offset) {
+        return encode(enc, 26-offset);
+    }
+
+    public static String encode(String enc, int offset) {
+        offset = offset % 26 + 26;
+        StringBuilder encoded = new StringBuilder();
+        for (char i : enc.toCharArray()) {
+            if (Character.isLetter(i)) {
+                if (Character.isUpperCase(i)) {
+                    encoded.append((char) ('A' + (i - 'A' + offset) % 26 ));
+                } else {
+                    encoded.append((char) ('a' + (i - 'a' + offset) % 26 ));
+                }
+            } else {
+                encoded.append(i);
+            }
+        }
+        return encoded.toString();
+    }
+}
+\end{Piton}
+\endgroup
+
+\bigskip
+On renvoie à la documentation de l'extension \pkg{listings} pour la signification des clés |morekeywords|,
+|sensitive|, |morecomment|, |morestring|, etc.
+
+
 
 \section{Fonctionnalités avancées}
 
@@ -756,7 +881,7 @@ def carré(x):
 \index{split-on-empty-lines}
 \index{split-separation}
 
-Par défaut les listings produits par l'environnement |{Piton}| et par la commande |\PitonInputFile| sont
+Par défaut, les listings produits par l'environnement |{Piton}| et par la commande |\PitonInputFile| sont
 insécables.
 
 
@@ -764,9 +889,7 @@ Néanmoins, la commande |\PitonOptions| propose les clés |split-on-empty-lines|
 telles coupures. 
 
 \begin{itemize}
-\item \colorbox{yellow!50}{\textbf{Nouveau 2.7}}\par\nobreak
-
-La clé \Definition{split-on-empty-lines} autorise les coupures sur les lignes vides\footnote{Les lignes considérées
+\item La clé \Definition{split-on-empty-lines} autorise les coupures sur les lignes vides\footnote{Les lignes considérées
   comme vides sont celles qui ne comportent que des espaces.} du listing. Dans les listings informatiques, les
 lignes vides séparent le plus souvent les définitions des fonctions informatiques et il est donc souvent judicieux
 de pouvoir couper au niveau de ces lignes.

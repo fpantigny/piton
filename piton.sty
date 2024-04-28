@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{2.8}
-\def\PitonFileDate{2024/04/14}
+\def\PitonFileVersion{3.0}
+\def\PitonFileDate{2024/05/01}
 
 
 \NeedsTeXFormat{LaTeX2e}
@@ -723,8 +723,42 @@
           { \dim_eval:n { \g__piton_tmp_width_dim } }
       }
   }
-\NewDocumentCommand { \NewPitonLanguage } { m m }
-  { \lua_now:e { piton.new_language("#1","\lua_escape:n{#2}") } }
+\NewDocumentCommand { \NewPitonLanguage } { O { } m ! o }
+  {
+    \tl_if_novalue:nTF { #3 }
+      { \__piton_NewPitonLanguage:nnn { #1 } { #2 } }
+      { \__piton_NewPitonLanguage:nnnnn { #1 } { #2 } { #3 } }
+  }
+\prop_new:N \g__piton_languages_prop
+\cs_new_protected:Npn \__piton_NewPitonLanguage:nnn #1 #2 #3
+  {
+    \tl_set:Nx \l_tmpa_tl
+      {
+        \tl_if_blank:nF { #1 } { [ \str_lowercase:n { #1 } ] }
+        \str_lowercase:n { #2 }
+      }
+    \prop_gput:Non \g__piton_languages_prop \l_tmpa_tl { #3 }
+    \exp_args:NV \__piton_NewPitonLanguage:nn \l_tmpa_tl { #3 }
+  }
+\cs_new_protected:Npn \__piton_NewPitonLanguage:nn #1 #2
+  {
+    \hook_gput_code:nnn { begindocument } { . }
+      { \lua_now:e { piton.new_language("#1","\lua_escape:n{#2}") } }
+  }
+\cs_new_protected:Npn \__piton_NewPitonLanguage:nnnnn #1 #2 #3 #4 #5
+  {
+    \tl_set:Nx \l_tmpa_tl
+      {
+         \tl_if_blank:nF { #3 } { [ \str_lowercase:n { #3 } ] }
+         \str_lowercase:n { #4 }
+      }
+     \prop_get:NoNTF \g__piton_languages_prop \l_tmpa_tl \l_tmpb_tl
+       { \__piton_NewPitonLanguage:nnno { #1 } { #2 } { #5 } \l_tmpb_tl }
+       { \__piton_error:n { Language~not~defined } }
+  }
+\cs_new_protected:Npn \__piton_NewPitonLanguage:nnnn #1 #2 #3 #4
+  { \__piton_NewPitonLanguage:nnn { #1 } { #2 } { #4 , #3 } }
+\cs_generate_variant:Nn \__piton_NewPitonLanguage:nnnn { n n n o }
 \NewDocumentCommand { \piton } { }
   { \peek_meaning:NTF \bgroup \__piton_piton_standard \__piton_piton_verbatim }
 \NewDocumentCommand { \__piton_piton_standard } { m }
@@ -1322,6 +1356,13 @@
     There~is~an~environment~{Piton}~and~a~command~
     \token_to_str:N \piton\ but~there~is~no~environment~
     {piton}.~This~error~is~fatal.
+  }
+\__piton_msg_new:nn { Language~not~defined }
+  {
+    Language~not~defined \\
+    The~language~'\l_tmpa_tl'~has~not~been~defined~previoulsy.\\
+    If~you~go~on,~your~command~\token_to_str:N \NewPitonLanguage\
+    will~be~ignored.
   }
 \__piton_msg_new:nn { bad~version~of~piton.lua }
   {
