@@ -20,8 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.0" -- 2024/05/01
-
+piton_version = "3.0" -- 2024/04/29
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
 piton.comment_latex = "#" .. piton.comment_latex
@@ -1401,16 +1400,16 @@ function piton.new_language ( lang , definition )
         or x[1] == "moretexcs"
      then
         local keywords = P ( false )
-        local style = [[ \PitonStyle{Keyword} ]]
-        if x[1] == "moredirectives" then style = [[ \PitonStyle{directive} ]] end
+        local style = [[\PitonStyle{Keyword}]]
+        if x[1] == "moredirectives" then style = [[ \PitonStyle{Directive} ]] end
         style =  tex_option_arg : match ( x[2] ) or style
-        local n = tonumber (style )
+        local n = tonumber ( style )
         if n then
-         if n > 1 then style = [[ \PitonStyle{Keyword ]] .. style .. "}" end
+          if n > 1 then style = [[\PitonStyle{Keyword]] .. style .. "}" end
         end
         for _ , word in ipairs ( split_clist : match ( x[2] ) ) do
           if x[1] == "moretexcs" then
-            keywords = Q ( [[ \ ]] .. word ) + keywords
+            keywords = Q ( [[\]] .. word ) + keywords
           else
             if sensitive
             then keywords = Q ( word  ) + keywords
@@ -1432,35 +1431,30 @@ function piton.new_language ( lang , definition )
   for _ , x in ipairs ( def_table ) do
     if x[1] == "morestring" then
       arg1 , arg2 , arg3 , arg4 = args_for_morekeywords : match ( x[2] )
-      arg2 = arg2 or [[ \PitonStyle{String.Long} ]]
-      if arg1 == "s" then
-        long_string =
-          Q ( arg3 )
-          * ( Q ( ( 1 - P ( arg4 ) - S "$\r" ) ^ 1 ) -- $
-              + EOL
-            ) ^ 0
-          * Q ( arg4 )
-      else
-        central_pattern = 1 - S ( " \r" .. arg3 )
-        if arg1 : match "b" then
-          central_pattern = P ( [[ \ ]] .. arg3 )  + central_pattern
-        end
-        if arg1 : match "d" or arg1 == "m" then
-          central_pattern = P ( arg3 .. arg3 )  + central_pattern
-        end
-        if arg1 == "m"
-        then prefix = P ( false )
-        else prefix = lpeg.B ( 1 - letter - ")" - "]" )
-        end
-        long_string = long_string +
-           prefix
-           * Q ( arg3 )
-           * ( VisualSpace + Q ( central_pattern ^ 1 ) + EOL ) ^ 0
-           * Q ( arg3 )
+      arg2 = arg2 or [[\PitonStyle{String.Long}]]
+      if arg1 ~= "s" then
+        arg4 = arg3
       end
+      central_pattern = 1 - S ( " \r" .. arg4 )
+      if arg1 : match "b" then
+        central_pattern = P ( [[\]] .. arg3 ) + central_pattern
+      end
+      if arg1 : match "d" or arg1 == "m" then
+        central_pattern = P ( arg3 .. arg3 ) + central_pattern
+      end
+      if arg1 == "m"
+      then prefix = lpeg.B ( 1 - letter - ")" - "]" )
+      else prefix = P ( true )
+      end
+     local pattern =
+         prefix
+         * Q ( arg3 )
+         * ( VisualSpace + Q ( central_pattern ^ 1 ) + EOL ) ^ 0
+         * Q ( arg4 )
+      long_string = long_string + pattern
       LongString = LongString +
          Ct ( Cc "Open" * Cc ( "{" ..  arg2 .. "{" ) * Cc "}}" )
-         * long_string
+         * pattern
          * Ct ( Cc "Close" )
     end
   end
@@ -1476,8 +1470,8 @@ function piton.new_language ( lang , definition )
   for _ , x in ipairs ( def_table ) do
     if x[1] == "morecomment" then
       local arg1 , arg2 , other_args = args_for_morecomment : match ( x[2] )
-      arg2 = arg2 or [[ \PitonStyle{Comment} ]]
-      if arg1 : match "i" then arg2 = [[ \PitonStyle{Discard} ]] end
+      arg2 = arg2 or [[\PitonStyle{Comment}]]
+      if arg1 : match "i" then arg2 = [[\PitonStyle{Discard}]] end
       if arg1 : match "l" then
         local arg3 = ( tex_braced_arg + C ( P ( 1 ) ^ 0 * -1 ) )
                      : match ( other_args )
@@ -1574,8 +1568,8 @@ function piton.new_language ( lang , definition )
        + Beamer
        + DetectedCommands
        + CommentDelim
-       + Delim
        + LongString
+       + Delim
        + Keyword * ( Space + Punct + Delim + EOL + -1 )
        + Punct
        + K ( 'Identifier' , letter * alphanum ^ 0 )
@@ -1588,11 +1582,11 @@ function piton.new_language ( lang , definition )
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
          * BeamerBeginEnvironments
-         * Lc [[ \__piton_begin_line: ]]
+         * Lc [[\__piton_begin_line:]]
          * SpaceIndentation ^ 0
          * LPEG1[lang]
          * -1
-         * Lc [[ \__piton_end_line: ]]
+         * Lc [[\__piton_end_line:]]
        )
   if left_tag then
     local Tag = Q ( left_tag * other ^ 0 )
@@ -1637,11 +1631,11 @@ function piton.new_language ( lang , definition )
       Ct (
            ( space ^ 0 * P "\r" ) ^ -1
            * BeamerBeginEnvironments
-           * Lc [[ \__piton_begin_line: ]]
+           * Lc [[\__piton_begin_line:]]
            * SpaceIndentation ^ 0
            * LPEG1[lang]
            * -1
-           * Lc [[ \__piton_end_line: ]]
+           * Lc [[\__piton_end_line:]]
          )
   end
 end

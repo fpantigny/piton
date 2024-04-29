@@ -59,6 +59,13 @@
 
 \NewDocumentCommand{\indexenv}{m}{\index{#1@\texttt{\{#1\}}}}
 
+\NewDocumentCommand{\Definition}{m}
+  {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily \vphantom{gl}#1}}}
+
+\NewDocumentCommand{\DefinitionCommand}{m}
+  {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily
+        \vphantom{gl}\textbackslash #1}}}
+
 
 \PitonOptions{gobble=2}
 
@@ -73,11 +80,11 @@
 %<*STY>
 % \fi
 \def\PitonFileVersion{3.0}
-\def\PitonFileDate{2024/05/01}
+\def\PitonFileDate{2024/04/29}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.0" -- 2024/05/01
+piton_version = "3.0" -- 2024/04/29
 %</LUA>
 %\fi
 %
@@ -90,9 +97,8 @@ piton_version = "3.0" -- 2024/05/01
 % \maketitle
 %
 % \begin{abstract}
-% The package \pkg{piton} provides tools to typeset computer listings in Python,
-% OCaml, C and SQL with syntactic highlighting by using the Lua library LPEG. It
-% requires LuaLaTeX.
+% The package \pkg{piton} provides tools to typeset computer listings, with
+% syntactic highlighting, by using the Lua library LPEG. It requires LuaLaTeX.
 % \end{abstract}
 % 
 % 
@@ -103,12 +109,12 @@ piton_version = "3.0" -- 2024/05/01
 % The package \pkg{piton} uses the Lua library LPEG\footnote{LPEG is a
 % pattern-matching library for Lua, written in C, based on \emph{parsing
 % expression grammars}:
-% \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} for parsing Python, OCaml, C
-% or SQL listings and typesets them with syntactic highlighting. Since it uses
-% the Lua of LuaLaTeX, it works with |lualatex| only (and won't work with the
-% other engines: |latex|, |pdflatex| and |xelatex|). It does not use external
-% program and the compilation does not require |--shell-escape|. The compilation
-% is very fast since all the parsing is done by the library LPEG, written in C. 
+% \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} for parsing informatic
+% listings and typesets them with syntactic highlighting. Since it uses the Lua
+% of LuaLaTeX, it works with |lualatex| only (and won't work with the other
+% engines: |latex|, |pdflatex| and |xelatex|). It does not use external program
+% and the compilation does not require |--shell-escape|. The compilation is very
+% fast since all the parsing is done by the library LPEG, written in C. 
 % 
 % \bigskip
 % Here is an example of code typeset by \pkg{piton}, with the environment |{Piton}|.
@@ -134,6 +140,15 @@ piton_version = "3.0" -- 2024/05/01
 %             s += (-1)**k/(2*k+1)*x**(2*k+1)
 %         return s 
 %    \end{Piton}
+%
+%
+% \bigskip
+% The main alternatives to the package \pkg{piton} are probably the packages
+% \pkg{listings} and \pkg{minted}.
+% 
+% \bigskip
+% The name of this extension (\pkg{piton}) has been choosen arbitrarily by
+% reference to the pitons used by the climbers in alpinism.
 % 
 % 
 % \section{Installation}
@@ -158,13 +173,22 @@ piton_version = "3.0" -- 2024/05/01
 % If, at the end of the preamble, the package \pkg{xcolor} has not been loaded
 % (by the final user or by another package), \pkg{piton} loads \pkg{xcolor} with
 % the instruction |\usepackage{xcolor}| (that is to say without any option).
-% The package \pkg{piton} doesn't load any other package.
+% The package \pkg{piton} doesn't load any other package. It does not any
+% exterior program.
 %
 % \subsection{Choice of the computer language}
 %
-% In current version, the package \pkg{piton} supports four computer languages:
-% Python, OCaml, SQL and C (in fact \CC). It supports also a special language
-% called ``|minimal|'': cf. p.~\pageref{minimal}.
+% The package \pkg{piton} supports two kinds of languages:
+% \begin{itemize}
+% \item the languages natively supported by \pkg{piton}, which are Python, OCaml,
+% C~(in fact \CC), SQL and a language called |minimal|\footnote{That language
+% |minimal| may be used to format pseudo-codes: cf. p.~\pageref{minimal}};
+% \item the languages defined by the final user by using the built-in command
+% |\NewPitonLanguage| described p.~\pageref{NewPitonLanguage} (the parsers of
+% those languages can't be as precise as those of the native languages supported
+% by \pkg{piton}).
+% \end{itemize}
+% 
 %
 % \smallskip
 % By default, the language used is Python.
@@ -172,7 +196,12 @@ piton_version = "3.0" -- 2024/05/01
 % \smallskip
 % \index{language (key)}
 % It's possible to change the current language with the command |\PitonOptions|
-% and its key |language|: |\PitonOptions{language = C}|.
+% and its key |language|: |\PitonOptions{language = OCaml}|.
+%
+% \smallskip
+% In fact, for \pkg{piton}, the names of the informatic languages are always
+% \textbf{case-insensitive}. In this example, we might have written |Ocaml| or
+% |ocaml|. 
 %
 % \smallskip
 % For the developpers, let's say that the name of the current language is stored
@@ -186,7 +215,7 @@ piton_version = "3.0" -- 2024/05/01
 %
 % \indexenv{Piton}
 % 
-% The package \pkg{piton} provides several tools to typeset Python code: the
+% The package \pkg{piton} provides several tools to typeset Python codes: the
 % command |\piton|, the environment |{Piton}| and the command |\PitonInputFile|.
 %
 % \begin{itemize}\setlength{\fboxsep}{1pt}
@@ -211,9 +240,9 @@ piton_version = "3.0" -- 2024/05/01
 % It's possible to insert only a part of the file: cf.
 % part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}. 
 %
-% The key |path| of the command |\PitonOptions| specifies a \emph{list} of
-% pathes where the files included by |\PitonInputFile| will be searched. That
-% list is comma separated.
+% The key \Definition{path} of the command |\PitonOptions| specifies a
+% \emph{list} of pathes where the files included by |\PitonInputFile| will be
+% searched. That list is comma separated.
 %
 % The extension \pkg{piton} also provides the commands
 % \colorbox{gray!20}{\ttfamily \textbackslash PitonInputFileT},
@@ -319,8 +348,6 @@ piton_version = "3.0" -- 2024/05/01
 % \subsection{The keys of the command \textbackslash PitonOptions}
 %
 %
-% \NewDocumentCommand{\Definition}{m}
-%   {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily \vphantom{gl}#1}}}
 %
 % \indexcommand{PitonOptions}
 % 
@@ -550,10 +577,11 @@ piton_version = "3.0" -- 2024/05/01
 %
 % \subsubsection{Notion of style}
 %
-% The package \pkg{piton} provides the command |\SetPitonStyle| to customize the
-% different styles used to format the syntactic elements of the Python listings.
-% The customizations done by that command are limited to the current TeX
-% group.\footnote{We remind that a LaTeX environment is, in particular, a TeX group.}
+% The package \pkg{piton} provides the command
+% \DefinitionCommand{SetPitonStyle} to customize the different styles used to
+% format the syntactic elements of the Python listings. The customizations done
+% by that command are limited to the current TeX group.\footnote{We remind that
+% a LaTeX environment is, in particular, a TeX group.}
 %
 % \bigskip
 % \indexcommand{SetPitonStyle}
@@ -597,8 +625,9 @@ piton_version = "3.0" -- 2024/05/01
 %
 % \bigskip
 % \indexcommand{PitonStyle}
-% The command |\PitonStyle| takes in as argument the name of a style and allows
-% to retrieve the value (as a list of LaTeX instructions) of that style.
+% The command \DefinitionCommand{PitonStyle} takes in as argument the name of a
+% style and allows to retrieve the value (as a list of LaTeX instructions) of
+% that style.
 %
 % \smallskip
 % For example, it's possible to write |{\PitonStyle{Keyword}{function}}| and we
@@ -622,11 +651,12 @@ piton_version = "3.0" -- 2024/05/01
 % \SetPitonStyle{Comment = \color{gray}}
 % \end{Verbatim}
 % all the comments will be composed in gray in all the listings, whatever
-% informatic language they use (Python, C, OCaml, etc.).
+% informatic language they use (Python, C, OCaml, etc. or a language defined by
+% the command |\NewPitonLanguage|).
 % 
 % \bigskip
 % But it's also possible to define a style locally for a given informatic
-% langage by providing the name of that language as optional argument (between
+% language by providing the name of that language as optional argument (between
 % square brackets) to the command |\SetPitonStyle|.\footnote{We recall, that, in
 % the package \pkg{piton}, the names of the informatic languages are
 % case-insensitive.}
@@ -690,7 +720,7 @@ piton_version = "3.0" -- 2024/05/01
 % \SetPitonStyle{Name.Function = \MyDefFunction, ~emphase#UserFunction@ = \MyUserFunction}
 % \end{Verbatim}
 %
-% \bigskip
+% \smallskip
 %
 % \begin{Piton}
 % def transpose(v,i,j):
@@ -706,6 +736,10 @@ piton_version = "3.0" -- 2024/05/01
 %
 % \endgroup
 %
+% \medskip
+% (Some \textsc{pdf} viewers display a frame around the clickable word
+% |transpose| but other do not.)
+%
 % \PitonClearUserFunctions[Python]
 %
 % \bigskip
@@ -713,12 +747,12 @@ piton_version = "3.0" -- 2024/05/01
 % Of course, the list of the names of Python functions previously défined is
 % kept in the memory of LuaLaTeX (in a global way, that is to say independently
 % of the TeX groups). The extension \pkg{piton} provides a command to clear that
-% list : it's the command |\PitonClearUserFunctions|. When it is used without
-% argument, that command is applied to all the informatic languages used by the
-% user but it's also possible to use it with an optional argument (between
-% square brackets) which is a list of informatic languages to which the command
-% will be applied.\footnote{We remind that, in \pkg{piton}, the name of the
-% informatic languages are case-insensitive.}
+% list : it's the command \DefinitionCommand{PitonClearUserFunctions}. When it
+% is used without argument, that command is applied to all the informatic
+% languages used by the user but it's also possible to use it with an optional
+% argument (between square brackets) which is a list of informatic languages to
+% which the command will be applied.\footnote{We remind that, in \pkg{piton},
+% the name of the informatic languages are case-insensitive.}
 % \end{small}
 % 
 % \subsection{Creation of new environments}
@@ -732,9 +766,10 @@ piton_version = "3.0" -- 2024/05/01
 % |\newenvironment| (of standard LaTeX) or |\NewDocumentEnvironment| (of
 % LaTeX3). 
 %
-% That's why \pkg{piton} provides a command |\NewPitonEnvironment|. That
-% command takes in three mandatory arguments. 
-
+% That's why \pkg{piton} provides a command
+% \DefinitionCommand{NewPitonEnvironment}. That command takes in three mandatory
+% arguments.
+%
 % That command has the same syntax as the classical environment
 % |\NewDocumentEnvironment|.\footnote{However, the specifier of argument |b|
 % (used to catch the body of the environment as a LaTeX argument) is
@@ -782,8 +817,8 @@ piton_version = "3.0" -- 2024/05/01
 % \section{Definition of new languages with the syntax of listings}
 %
 % \indexcommand{NewPitonLanguage}
+% \label{NewPitonLanguage}
 % \index{listings@\pkg{listings} (extension)}
-% 
 % \colorbox{yellow!50}{\textbf{New 3.0}}
 %
 % \medskip
@@ -791,15 +826,20 @@ piton_version = "3.0" -- 2024/05/01
 % listings.
 %
 % That package provides a command |\lstdefinelanguage| which allows the user to
-% define new langages. That command is also used by \pkg{listings} itself to
+% define new languages. That command is also used by \pkg{listings} itself to
 % provide the definition of the predefined languages in \pkg{listings} (in fact,
 % for this task, \pkg{listings} uses a command called |\lst@definelanguage| but
 % that command has the same syntax as |\lstdefinelanguage|). 
 %
 % \medskip
-% The package \pkg{piton} provides a command |\NewPitonLanguage| to define new
-% languages (avaiblable in |\piton|, |{Piton}|, etc.) with a syntax which is
-% almost the same as the syntax of~|\lstdefinelanguage|.
+% The package \pkg{piton} provides a command
+% \DefinitionCommand{NewPitonLanguage} to define new languages (avaiblable in
+% |\piton|, |{Piton}|, etc.) with a syntax which is almost the same as the
+% syntax of~|\lstdefinelanguage|.
+%
+% Let's precise that \pkg{piton} does \emph{not} use that command to define the
+% languages provided natively (Python, OCaml, \CC, SQL and |minimal|), which
+% allows more powerful parsers.
 %
 % \medskip
 % For example, in the file |lstlang1.sty|, which is one of the definition files
@@ -859,7 +899,7 @@ piton_version = "3.0" -- 2024/05/01
 %   }
 %
 % \medskip
-% It's possible to use the language Java like any other langage defined by
+% It's possible to use the language Java like any other language defined by
 % \pkg{piton}.
 %
 % Here is an example of code formatted in an environment |{Piton}| with
@@ -873,7 +913,7 @@ piton_version = "3.0" -- 2024/05/01
 % \small
 % \PitonOptions{split-on-empty-lines}
 % \begin{Piton}[language = java]
-% public class Cipher {
+% public class Cipher {  // Caesar cipher
 %     public static void main(String[] args) {
 %         String str = "The quick brown fox Jumped over the lazy Dog";
 %         System.out.println( Cipher.encode( str, 12 ));
@@ -904,10 +944,17 @@ piton_version = "3.0" -- 2024/05/01
 % \end{Piton}
 % \endgroup
 %
-% \bigskip 
-% We redirect the reader to the documentation of the package
-% \pkg{listings} for the description of the keys |morekeywords|, |sensitive|,
-% |morecomment|, |morestring|, etc.
+% \bigskip
+
+% The keys of the command |\lstdeflinelanguage| of \pkg{listings} supported by |\NewPitonLanguage| are:
+% |morekeywords|, |otherkeywords|, |sensitive|, |keywordsprefix|, |moretexcs|,
+% |morestring| (with the letters |b|,
+% |d|, |s| and |m|), |morecomment| (with the letters |i|, |l|, |s| and |n|),
+% |moredelim| (with the letters |i|,
+% |l|, |s|, |*| and |**|), |moredirectives|, |tag|, |alsodigit| and |alsoletter|.
+%
+% For the description of those keys, we redirect the reader to the documentation
+% of the package \pkg{listings} (type |texdoc| |listings| in a terminal). 
 %
 %
 % \section{Advanced features}
@@ -1184,16 +1231,16 @@ piton_version = "3.0" -- 2024/05/01
 %
 % \label{SetPitonIdentifier}
 %
-% The command |\SetPitonIdentifier| allows to change the formatting of some
-% identifiers.
+% The command \DefinitionCommand{SetPitonIdentifier} allows to change the
+% formatting of some identifiers.
 %
 % \smallskip
 % That command takes in three arguments: 
 %
 % \begin{itemize}
 % \item The optionnal argument (within square brackets) specifies the informatic
-% langage. If this argument is not present, the tunings done by
-% |\SetPitonIdentifier| will apply to all the informatic langages of
+% language. If this argument is not present, the tunings done by
+% |\SetPitonIdentifier| will apply to all the informatic languages of
 % \pkg{piton}.\footnote{We recall, that, in the package \pkg{piton}, the
 % names of the informatic languages are case-insensitive.}
 %
@@ -1312,9 +1359,9 @@ piton_version = "3.0" -- 2024/05/01
 %
 % \begin{itemize}
 % \item It's possible to change the syntatic mark (which, by default, is |#>|).
-% For this purpose, there is a key |comment-latex| available only in the
-% preamble of the document, allows to choice the characters which,
-% preceded by |#|, will be the syntatic marker.
+% For this purpose, there is a key \Definition{comment-latex} available only in
+% the preamble of the document, allows to choice the characters which, preceded
+% by |#|, will be the syntatic marker.
 %
 % For example, if the preamble contains the following instruction:
 % 
@@ -1385,7 +1432,7 @@ piton_version = "3.0" -- 2024/05/01
 % \index{detected-commands (key)}
 % \label{detected-commands}
 %
-% The key |detected-commands| of |\PitonOptions| allow to specify a
+% The key \Definition{detected-commands} of |\PitonOptions| allows to specify a
 % (comma-separated) list of names of LaTeX commands that will be detected 
 % directly by \pkg{piton}.
 %
@@ -1396,7 +1443,7 @@ piton_version = "3.0" -- 2024/05/01
 % backslash (eg. |detected-commands = { emph, textbf }|). 
 %
 % \item These commands must be LaTeX commands with only one (mandatory) argument
-% between braces (and these braces must be explicit). 
+% between braces (and these braces must appear explicitly in the informatic listing). 
 % \end{itemize}
 %
 % \medskip
@@ -1500,7 +1547,7 @@ piton_version = "3.0" -- 2024/05/01
 % of LaTeX, they are, in particular, composed within a TeX group and therefore,
 % they can't be used to change the formatting of other lexical units.
 %
-% In the langages where the character \verb|$| does not play a important role,
+% In the languages where the character \verb|$| does not play a important role,
 % it's possible to activate that mechanism ``|escape-math|'' with the character
 % \verb|$|:
 % \begin{Verbatim}
@@ -1734,15 +1781,15 @@ piton_version = "3.0" -- 2024/05/01
 % package \pkg{footnote} or the package \pkg{footnotehyper}.
 %
 % \smallskip
-% If \pkg{piton} is loaded with the option |footnote| (with
+% If \pkg{piton} is loaded with the option \Definition{footnote} (with
 % |\usepackage[footnote]{piton}| or with |\PassOptionsToPackage|), the
 % package \pkg{footnote} is loaded (if it is not yet loaded) and it is used to
 % extract the footnotes.
 %
 % \smallskip
-% If \pkg{piton} is loaded with the option |footnotehyper|, the package
-% \pkg{footnotehyper} is loaded (if it is not yet loaded) ant it is used to
-% extract footnotes.
+% If \pkg{piton} is loaded with the option \Definition{footnotehyper}, the
+% package \pkg{footnotehyper} is loaded (if it is not yet loaded) ant it is used
+% to extract footnotes.
 %
 % \smallskip
 % Caution: The packages \pkg{footnote} and \pkg{footnotehyper} are incompatible.
@@ -1766,15 +1813,15 @@ piton_version = "3.0" -- 2024/05/01
 % PEP~8), \pkg{piton} accepts the characters of tabulation (that is to say the
 % characters U+0009) at the beginning of the lines. Each character U+0009 is
 % replaced by $n$~spaces. The initial value of $n$ is $4$ but it's possible to
-% change it with the key |tab-size| of |\PitonOptions|.
+% change it with the key \Definition{tab-size} of |\PitonOptions|.
 %
 % \smallskip
-% There exists also a key |tabs-auto-gobble| which computes the minimal value
-% $n$ of the number of consecutive characters U+0009 beginning each (non empty)
-% line of the environment |{Piton}| and applies |gobble| with that value of~$n$
-% (before replacement of the tabulations by spaces, of course). Hence, that key
-% is similar to the key |auto-gobble| but acts on U+0009 instead of U+0020
-% (spaces).
+% There exists also a key \Definition{tabs-auto-gobble} which computes the
+% minimal value $n$ of the number of consecutive characters U+0009 beginning
+% each (non empty) line of the environment |{Piton}| and applies |gobble| with
+% that value of~$n$ (before replacement of the tabulations by spaces, of
+% course). Hence, that key is similar to the key |auto-gobble| but acts on
+% U+0009 instead of U+0020 (spaces).
 %
 %
 % \bigskip
@@ -2464,6 +2511,35 @@ piton_version = "3.0" -- 2024/05/01
 % that language (with the command |\SetPitonIdentifier|: cf. \ref{SetPitonIdentifier},
 % p.~\pageref{SetPitonIdentifier}) in order to create, for example, a language
 % for pseudo-code.
+%
+% \newpage
+% \subsection{The languages defined by \textbackslash NewPitonLanguage}
+%
+% \vspace{1cm}
+% The command |\NewPitonLanguage| which define new informatic languages with the
+% syntax of the extension \pkg{listings} has been described p.~\pageref{NewPitonLanguage}.
+%
+% All the languages defined by the command |\NewPitonLanguage| use the same styles.
+% \vspace{1cm}
+%
+% \begin{center}
+% \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+% \toprule
+% \normalfont Style  & Use \\
+% \midrule
+% Number & the numbers \\
+% String.Long & the strings defined in |\NewPitonLanguage| by the key |morestring| \\
+% Comment & the comments defined in |\NewPitonLanguage| by the key |morecomment|  \\
+% Comment.LaTeX & the comments which are composed by \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
+% Keyword & the keywords defined in |\NewPitonLanguage| by the keys |morekeywords|
+%           and |moretexcs| (and also the  key |sensitive| which specifies whether
+%           the keywords are case-sensitive or not) \\ 
+% Directive & the directives defined in |\NewPitonLanguage| by the key |moredirectives| \\
+% \bottomrule
+% \end{tabularx}
+% \end{center}
+%
+%
 %
 % \newpage
 %
@@ -3963,7 +4039,7 @@ piton_version = "3.0" -- 2024/05/01
 \cs_new_protected:Npn \@@_NewPitonLanguage:nnn #1 #2 #3 
   { 
 %    \end{macrocode}
-% We store in |\l_tmpa_tl| the name of the langage with the potential dialect,
+% We store in |\l_tmpa_tl| the name of the language with the potential dialect,
 % that is to say, for example : |[AspectJ]{Java}|. We use |\tl_if_blank:nF|
 % because the final user may have written |\NewPitonLanguage[ ]{Java}{...}|.
 %    \begin{macrocode}
@@ -4738,7 +4814,7 @@ piton_version = "3.0" -- 2024/05/01
 % Now, specific styles for the languages created with |\NewPitonLanguage| with
 % the syntax of \pkg{listings}.
 %    \begin{macrocode}
-    directive
+    Directive
   }  
 
 \clist_map_inline:Nn \g_@@_styles_clist  
@@ -4826,7 +4902,7 @@ piton_version = "3.0" -- 2024/05/01
     TypeParameter      = \color[HTML]{336666} \itshape ,
     Preproc            = \color[HTML]{AA6600} \slshape ,
     Identifier         = \@@_identifier:n , 
-    directive          = \color[HTML]{AA6600} ,
+    Directive          = \color[HTML]{AA6600} ,
     UserFunction       = , 
     Prompt             = , 
     ParseAgain.noCR    = \@@_piton_no_cr:n , 
@@ -7630,7 +7706,7 @@ function piton.new_language ( lang , definition )
 %    \end{macrocode}
 % 
 % \bigskip
-% Of course, the \textsc{lpeg} |b_braces| is for balanced braces (without the
+% Of course, the \textsc{lpeg} |strict_braces| is for balanced braces (without the
 % question of strings of an informatic language). In fact, it \emph{won't} be
 % used for an informatic language (as dealt by \pkg{piton}) but for LaTeX
 % instructions; 
@@ -7655,7 +7731,7 @@ function piton.new_language ( lang , definition )
   local def_table = cut_definition : match ( definition )
 %    \end{macrocode}
 % The definition of the language, provided by the final user of \pkg{piton} is
-% now in the Lua table |def_table|. We will use it several times.
+% now in the Lua table |def_table|. We will use it \emph{several times}.
 %
 % \medskip
 % The following \textsc{lpeg} will be used to extract arguments in the values of
@@ -7787,18 +7863,18 @@ function piton.new_language ( lang , definition )
         local keywords = P ( false )
 %    \end{macrocode}
 %    \begin{macrocode}
-        local style = [[ \PitonStyle{Keyword} ]]
-        if x[1] == "moredirectives" then style = [[ \PitonStyle{directive} ]] end
+        local style = [[\PitonStyle{Keyword}]]
+        if x[1] == "moredirectives" then style = [[ \PitonStyle{Directive} ]] end
         style =  tex_option_arg : match ( x[2] ) or style
-        local n = tonumber (style )
+        local n = tonumber ( style )
         if n then 
-         if n > 1 then style = [[ \PitonStyle{Keyword ]] .. style .. "}" end
+          if n > 1 then style = [[\PitonStyle{Keyword]] .. style .. "}" end
         end 
 %    \end{macrocode}
 %    \begin{macrocode}
         for _ , word in ipairs ( split_clist : match ( x[2] ) ) do
           if x[1] == "moretexcs" then
-            keywords = Q ( [[ \ ]] .. word ) + keywords
+            keywords = Q ( [[\]] .. word ) + keywords
           else 
             if sensitive 
 %    \end{macrocode}
@@ -7833,44 +7909,42 @@ function piton.new_language ( lang , definition )
   for _ , x in ipairs ( def_table ) do
     if x[1] == "morestring" then
       arg1 , arg2 , arg3 , arg4 = args_for_morekeywords : match ( x[2] ) 
-      arg2 = arg2 or [[ \PitonStyle{String.Long} ]]
-      if arg1 == "s" then
-        long_string =
-          Q ( arg3 ) 
-          * ( Q ( ( 1 - P ( arg4 ) - S "$\r" ) ^ 1 ) -- $
-              + EOL 
-            ) ^ 0  
-          * Q ( arg4 ) 
-      else  
-        central_pattern = 1 - S ( " \r" .. arg3 ) 
-        if arg1 : match "b" then 
-          central_pattern = P ( [[ \ ]] .. arg3 )  + central_pattern
-        end
+      arg2 = arg2 or [[\PitonStyle{String.Long}]]
+      if arg1 ~= "s" then 
+        arg4 = arg3 
+      end 
+      central_pattern = 1 - S ( " \r" .. arg4 ) 
+      if arg1 : match "b" then 
+        central_pattern = P ( [[\]] .. arg3 ) + central_pattern
+      end
 %    \end{macrocode}
 % In fact, the specifier |d| is point-less: when it is not in force, it's still
 % possible to double the delimiter with a correct behaviour of \pkg{piton}
 % since, in that case, \pkg{piton} will compose \emph{two} contiguous strings...
 %    \begin{macrocode}
-        if arg1 : match "d" or arg1 == "m" then 
-          central_pattern = P ( arg3 .. arg3 )  + central_pattern
-        end
-        if arg1 == "m" 
-        then prefix = P ( false ) 
-        else prefix = lpeg.B ( 1 - letter - ")" - "]" ) 
-        end
+      if arg1 : match "d" or arg1 == "m" then 
+        central_pattern = P ( arg3 .. arg3 ) + central_pattern
+      end
+      if arg1 == "m" 
+      then prefix = lpeg.B ( 1 - letter - ")" - "]" ) 
+      else prefix = P ( true ) 
+      end
+%    \end{macrocode}
+% We can write the pattern which matches the string.
+%    \begin{macrocode}
+     local pattern = 
+         prefix 
+         * Q ( arg3 ) 
+         * ( VisualSpace + Q ( central_pattern ^ 1 ) + EOL ) ^ 0 
+         * Q ( arg4 ) 
 %    \end{macrocode}
 % First, we create |long_string| because we need that \textsc{lpeg} in the
 % nested comments.
 %    \begin{macrocode}
-        long_string = long_string +
-           prefix 
-           * Q ( arg3 ) 
-           * ( VisualSpace + Q ( central_pattern ^ 1 ) + EOL ) ^ 0 
-           * Q ( arg3 ) 
-      end
+      long_string = long_string + pattern 
       LongString = LongString +
          Ct ( Cc "Open" * Cc ( "{" ..  arg2 .. "{" ) * Cc "}}" )
-         * long_string 
+         * pattern
          * Ct ( Cc "Close" ) 
     end 
   end
@@ -7891,12 +7965,12 @@ function piton.new_language ( lang , definition )
   for _ , x in ipairs ( def_table ) do
     if x[1] == "morecomment" then 
       local arg1 , arg2 , other_args = args_for_morecomment : match ( x[2] ) 
-      arg2 = arg2 or [[ \PitonStyle{Comment} ]]
+      arg2 = arg2 or [[\PitonStyle{Comment}]]
 %    \end{macrocode}
 % If the letter |i| is present in the first argument (eg: 
 % |morecomment = [si]{(*}{*)}|, then the corresponding comments are discarded. 
 %    \begin{macrocode}
-      if arg1 : match "i" then arg2 = [[ \PitonStyle{Discard} ]] end
+      if arg1 : match "i" then arg2 = [[\PitonStyle{Discard}]] end
       if arg1 : match "l" then 
         local arg3 = ( tex_braced_arg + C ( P ( 1 ) ^ 0 * -1 ) )
                      : match ( other_args ) 
@@ -8008,8 +8082,12 @@ function piton.new_language ( lang , definition )
        + Beamer
        + DetectedCommands
        + CommentDelim
-       + Delim
+%    \end{macrocode}
+% We must put |LongString| before |Delim| because, in PostScript, the strings
+% are delimited by parenthesis and those parenthesis would be catched by |Delim|.
+%    \begin{macrocode}
        + LongString
+       + Delim
        + Keyword * ( Space + Punct + Delim + EOL + -1 ) 
        + Punct 
        + K ( 'Identifier' , letter * alphanum ^ 0 )
@@ -8038,11 +8116,11 @@ function piton.new_language ( lang , definition )
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1 
          * BeamerBeginEnvironments 
-         * Lc [[ \@@_begin_line: ]]
+         * Lc [[\@@_begin_line:]]
          * SpaceIndentation ^ 0 
          * LPEG1[lang]
          * -1 
-         * Lc [[ \@@_end_line: ]]
+         * Lc [[\@@_end_line:]]
        )
 %    \end{macrocode}
 %
@@ -8091,11 +8169,11 @@ function piton.new_language ( lang , definition )
       Ct (
            ( space ^ 0 * P "\r" ) ^ -1 
            * BeamerBeginEnvironments 
-           * Lc [[ \@@_begin_line: ]]
+           * Lc [[\@@_begin_line:]]
            * SpaceIndentation ^ 0 
            * LPEG1[lang]
            * -1 
-           * Lc [[ \@@_end_line: ]]
+           * Lc [[\@@_end_line:]]
          )
   end
 end
@@ -8125,9 +8203,9 @@ end
 % \subsection*{Changes between versions 2.8 and 3.0}
 %
 % New command |\NewPitonLanguage|. Thanks to that command, it's now possible to
-% define new langages with the syntax used by \pkg{listings}. Therefore, it's
-% possible to say that virtually all the informatic languages are now supported
-% by \pkg{piton}.
+% define new informatic languages with the syntax used by \pkg{listings}.
+% Therefore, it's possible to say that virtually all the informatic languages
+% are now supported by \pkg{piton}.
 %
 % \subsection*{Changes between versions 2.7 and 2.8}
 %

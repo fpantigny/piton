@@ -76,7 +76,7 @@
 \NewDocumentCommand{\Definition}{m}
   {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily \vphantom{gl}#1}}}
 
-\NewDocumentCommand{\DefinitionCommande}{m}
+\NewDocumentCommand{\DefinitionCommand}{m}
   {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily
         \vphantom{gl}\textbackslash #1}}}
 
@@ -107,9 +107,8 @@ version~\PitonFileVersion\space de \pkg{piton}, à la date du~\PitonFileDate.}}
 \maketitle
 
 \begin{abstract}
-L'extension \pkg{piton} propose des outils pour composer des codes informatiques en Python, OCaml, C et SQL avec
-une coloration syntaxique en utilisant la bibliothèque Lua LPEG. L'extension \pkg{piton} nécessite l'emploi de
-LuaLaTeX.
+L'extension \pkg{piton} propose des outils pour composer des codes informatiques avec coloration syntaxique. Elle
+nécessite l'emploi de la LuaLaTeX car le travail principal est fait en utilisant la bibliothèque Lua LPEG. 
 \end{abstract}
 
 
@@ -118,8 +117,8 @@ LuaLaTeX.
 
 L'extension \pkg{piton} utilise la librairie Lua nommée LPEG\footnote{LPEG est une librairie de capture de motifs
   (\emph{pattern-matching} en anglais) pour Lua, écrite en C, fondée sur les PEG (\emph{parsing expression
-    grammars}): \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} pour «parser» le code Python, OCaml, C ou SQL et le
-composer avec un coloriage syntaxique. Comme elle utilise le Lua de LuaLaTeX, elle fonctionne uniquement avec |lualatex|
+    grammars}): \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} pour «parser» des listings informatiques avec
+coloriage syntaxique. Comme elle utilise le Lua de LuaLaTeX, elle fonctionne uniquement avec |lualatex| 
 (et ne va pas fonctionner avec les autres moteurs de compilation LaTeX, que ce soit |latex|, |pdflatex| ou
 |xelatex|). Elle n'utilise aucun programme extérieur et la compilation ne requiert donc pas |--shell-escape|. La
 compilation est très rapide puisque tout le travail du parseur est fait par la librairie LPEG, écrite en C.
@@ -149,6 +148,14 @@ def arctan(x,n=10:int):
         return s 
 \end{Piton}
 
+\bigskip
+Les principaux concurrents de l'extension \pkg{piton} sont certainement les extensions bien connues \pkg{listings}
+et \pkg{minted}.
+
+\bigskip
+Le nom de cette extension (\pkg{piton}) a été choisi un peu arbitrairement en référence aux pitons d'alpinisme qui
+servent à gravir les montagnes.
+
 
 
 \section{Installation}
@@ -168,8 +175,16 @@ L'extension \pkg{piton} n'est utilisable qu'avec LuaLaTeX : si un autre moteur d
 
 \subsection{Choix du langage}
 
-L'extension \pkg{piton} prend en charge quatre langages informatiques : Python, OCaml, SQL et C, ou plutôt \CC. Il
-prend aussi en charge un langage minimal appelé «|minimal|» : cf.~p.~\pageref{minimal}.
+Les langages informatiques pris en charge par \pkg{piton} se classent en deux catégories :
+\begin{itemize}
+\item les langages reconnus nativement par \pkg{piton} qui sont au nombre de cinq : Python, OCaml, SQL, C (ou 
+plutôt \CC) et un langage nommé |minimal|\footnote{Le langage |minimal| peut servir pour formater du pseudo-code
+  : cf.~p.~\pageref{minimal}.} ;
+\item les langages définis par l'utilisateur avec la commande |\NewPitonLanguage| décrite
+p.~\pageref{NewPitonLanguage} (les parseurs de ces langages ne pourront jamais être aussi précis que ceux proposés
+nativement par \pkg{piton)}.
+\end{itemize}
+
 
 \smallskip
 Par défaut, le langage est Python.
@@ -179,7 +194,11 @@ Par défaut, le langage est Python.
 On peut changer de langage avec la clé |language| de |\PitonOptions| : 
 
 \smallskip
-|\PitonOptions{language = C}|
+|\PitonOptions{language = OCaml}|
+
+\smallskip
+En fait, le nom des langages, pour \pkg{piton}, est toujours \textbf{insensible à la casse}. Dans cet exemple, on
+aurait tout aussi bien pu écrire |Ocaml| ou |ocaml|.
 
 \smallskip
 Pour les développeurs, précisons que le nom du langage courant est stocké (en minuscules) dans la variable publique
@@ -198,7 +217,8 @@ L'extension \pkg{piton} se charge simplement avec |\usepackage{piton}|.
 \smallskip
 Si, à la fin du prambule, l'extension \pkg{xcolor} n'a pas été chargée (par l'utilisateur ou par une extension
 chargée dans le préambule), \pkg{piton} charge l'extension \pkg{xcolor} avec |\usepackage{xcolor}|, c'est-à-dire
-sans aucune option. L'extension \pkg{piton} ne charge pas d'autre extension.
+sans aucune option. L'extension \pkg{piton} ne charge pas d'autre extension. Elle n'utilise pas de programme
+extérieur. 
 
 \subsection{Les commandes et environnements à la disposition de l'utilisateur}
 
@@ -220,7 +240,7 @@ La syntaxe et les particularités de la commande sont détaillées ci-après.
 \item L'environnement \colorbox{gray!20}{\ttfamily \{Piton\}} doit être utilisé pour composer des codes de
 plusieurs lignes. Comme cet environnement prend son argument selon un mode verbatim, il ne peut pas être utilisé
 dans l'argument d'une commande LaTeX. Pour les besoins de personnalisation, il est possible de définir de nouveaux
-environnements similaires à |{Piton}| en utilisant la commande |\NewPitonEnvironment| : cf. partie
+environnements similaires à |{Piton}| en utilisant la commande \DefinitionCommand{NewPitonEnvironment} : cf. partie
 \ref{NewPitonEnvironment} p.~\pageref{NewPitonEnvironment}.
 
 \item La commande \colorbox{gray!20}{\ttfamily \textbackslash PitonInputFile} doit être utilisée pour insérer et
@@ -229,8 +249,8 @@ composer un fichier externe.
 Il est possible de n'insérer qu'une partie de ce fichier : cf. partie~\ref{part-of-a-file},
 p.~\pageref{part-of-a-file}.
 
-La clé |path| de la commande |\PitonOptions| permet de spécifier une \emph{liste} de chemins où sera recherché le
-fichier à inclure (dans cette liste, les chemins sont séparés par des virgules).
+La clé \Definition{path} de la commande |\PitonOptions| permet de spécifier une \emph{liste} de chemins où sera
+recherché le fichier à inclure (dans cette liste, les chemins sont séparés par des virgules).
 
 L'extension \pkg{piton} propose aussi des commandes \colorbox{gray!20}{\ttfamily\textbackslash PitonInputFileT}, 
 \colorbox{gray!20}{\ttfamily \textbackslash PitonInputFileF} et
@@ -578,8 +598,8 @@ partir de la page \pageref{Semantic}.
 
 \bigskip
 \indexcommand{PitonStyle}
-La commande |\PitonStyle| prend en argument le nom d'un style et permet de récupérer la valeur (en tant que liste
-d'instructions LaTeX) de ce style.
+La commande \DefinitionCommand{PitonStyle} prend en argument le nom d'un style et permet de récupérer la valeur (en
+tant que liste d'instructions LaTeX) de ce style.
 
 \smallskip
 Par exemple, on peut écrire, dans le texte courant, |{\PitonStyle{Keyword}{function}}| et on aura 
@@ -600,7 +620,8 @@ Par exemple, avec la commande
 \begin{Verbatim}
 \SetPitonStyle{Comment = \color{gray}}
 \end{Verbatim}
-tous les commentaires (que ce soit en Python, en C, en OCaml, etc.) seront composés en gris.
+tous les commentaires (que ce soit en Python, en C, en OCaml, etc. ou dans un langage défini avec
+|\NewPitonLanguage|) seront composés en gris. 
 
 \bigskip
 Mais il est aussi possible de définir un style localement pour un certain langage informatique en passant le nom du
@@ -638,7 +659,7 @@ fait que ces noms de fonctions sont formatés comme du texte courant (en noir). 
 changer la valeur de ce style, comme tous les autres styles, avec la commande |\SetPitonStyle|.
 
 \medskip
-Dans l'exemple suivant, on règle les styles |Name.Function| et |UserFunction| de manière à que ce, quand on clique
+Dans l'exemple suivant, on règle les styles |Name.Function| et |UserFunction| de manière à ce que, quand on clique
 sur le nom d'une fonction Python précédemment définie par l'utilisateur, on soit renvoyé vers la définition
 (informatique) de cette fonction. Cette programmation utilise les fonctions |\hypertarget| et |\hyperlink| de \pkg{hyperref}.
 
@@ -662,7 +683,7 @@ sur le nom d'une fonction Python précédemment définie par l'utilisateur, on s
 \SetPitonStyle{Name.Function = \MyDefFunction, ~emphase#UserFunction@ = \MyUserFunction}
 \end{Verbatim}
 
-\bigskip
+\smallskip
 
 \begin{Piton}
 def transpose(v,i,j):
@@ -676,6 +697,10 @@ def passe(v):
             transpose(v,i,i+1)
 \end{Piton}
 
+\medskip
+(Certains lecteurs de \textsc{pdf} affichent un cadre autour du mot |transpose| cliquable et d'autres non.) 
+
+
 \endgroup
 
 \PitonClearUserFunctions[Python]
@@ -684,9 +709,9 @@ def passe(v):
 \begin{small}
 Bien sûr, la liste des noms de fonctions Python précédemment définies est gardée en mémoire de LuaLaTeX (de manière
 globale, c'est-à-dire indépendamment des groupes TeX). L'extension \pkg{piton} fournit une commande qui permet de
-vider cette liste : c'est la commande |\PitonClearUserFunctions|. Quand elle est utilisée sans argument, cette
+vider cette liste : c'est la commande \DefinitionCommand{PitonClearUserFunctions}. Quand elle est utilisée sans argument, cette
 commande s'applique à tous les langages informatiques utilisées par l'utilisateur mais on peut spécifier en
-argument optionnel (entre crochets) une liste de langages informatiques auquels elle s'appliquera.\footnote{On
+argument optionnel (entre crochets) une liste de langages informatiques auxquels elle s'appliquera.\footnote{On
   rappelle que, dans \pkg{piton}, les noms des langages informatiques ne sont pas sensibles à la casse. }
 \end{small}
 
@@ -746,6 +771,7 @@ def carré(x):
 \section{Définition de nouveaux langages avec la syntaxe de listings}
 
 \indexcommand{NewPitonLanguage}
+\label{NewPitonLanguage}
 \index{listings@\pkg{listings} (extension)}
 
 \colorbox{yellow!50}{\textbf{Nouveau 3.0}}
@@ -759,8 +785,12 @@ utilisée en interne par \pkg{listings} pour sa définition des languages (en fa
 une commande nommée |\lst@definelanguage| mais celle-ci a la même syntaxe que |\lstdefinelanguage|).
 
 \medskip
-L'extension \pkg{piton} propose une commande \DefinitionCommande{NewPitonLanguage} pour définir de nouveaux
+L'extension \pkg{piton} propose une commande \DefinitionCommand{NewPitonLanguage} pour définir de nouveaux
 langages (utilisables avec les outils de \pkg{piton}) avec quasiment la même syntaxe que |\lstdefinelanguage|.
+
+\medskip
+Précisons tout de suite que l'extension \pkg{piton} n'utilise \emph{pas} cette commande pour définir les langages
+qu'elle propose nativement (Python, C, OCaml, \CC\ et |minimal|), ce qui permet de proposer des parseurs plus puissants.
 
 \medskip
 Par exemple, dans le fichier |lstlang1.sty|, qui est un des fichiers de definition des langages proposés par défaut
@@ -831,7 +861,7 @@ Voici un exemple de code Java formaté dans un environnement~|{Piton}| avec la c
 \small
 \PitonOptions{split-on-empty-lines}
 \begin{Piton}[language = Java]
-public class Cipher {
+public class Cipher { // cryptage par le chiffre de César
     public static void main(String[] args) {
         String str = "The quick brown fox Jumped over the lazy Dog";
         System.out.println( Cipher.encode( str, 12 ));
@@ -863,8 +893,12 @@ public class Cipher {
 \endgroup
 
 \bigskip
-On renvoie à la documentation de l'extension \pkg{listings} pour la signification des clés |morekeywords|,
-|sensitive|, |morecomment|, |morestring|, etc.
+Les clés de la commande |\lstdeflinelanguage| de \pkg{listings} prises en charge par |\NewPitonLanguage| sont :
+|morekeywords|, |otherkeywords|, |sensitive|, |keywordsprefix|, |moretexcs|, |morestring| (avec les lettres |b|,
+|d|, |s| et |m|), |morecomment| (avec les lettres |i|, |l|, |s| et |n|), |moredelim| (avec les lettres |i|,
+|l|, |s|, |*| et |**|), |moredirectives|, |tag|, |alsodigit| et |alsoletter|.
+
+Pour la description de ces clés, on renvoie à la documentation de \pkg{listings} (taper |texdoc| |listings| dans un terminal). 
 
 
 
@@ -1126,7 +1160,7 @@ structuré correctement!):
 \indexcommand{SetPitonIdentifier}
 \label{SetPitonIdentifier}
 
-La commande |\SetPitonIdentifier| permet de changer le formatage de certains identificateurs.
+La commande \DefinitionCommand{SetPitonIdentifier} permet de changer le formatage de certains identificateurs.
 
 \smallskip
 Cette commande prend trois arguments : un optionnel et deux obligatoires.
@@ -1251,7 +1285,7 @@ Il y a deux outils pour personnaliser ces commentaires.
 
 \begin{itemize}
 \item Il est possible de changer le marquage syntaxique utilisé (qui vaut initialement~|#>|). Pour ce faire, il
-existe une clé |comment-latex|, \emph{disponible uniquement dans le préambule du document}, qui permet de choisir les
+existe une clé \Definition{comment-latex}, \emph{disponible uniquement dans le préambule du document}, qui permet de choisir les
 caractères qui (précédés par~|#|) serviront de marqueur syntaxique.
 
 Par exemple, avec le réglage suivant (fait dans le préambule du document) :
@@ -1324,8 +1358,8 @@ def carré(x):
 \index{detected-commands (key)}
 \label{detected-commands}
 
-La clé |detected-commands| de |\PitonOptions| permet de spécifier une liste de noms de commandes LaTeX qui seront
-directement détectées par \pkg{piton}.
+La clé \Definition{detected-commands} de |\PitonOptions| permet de spécifier une liste de noms de commandes LaTeX
+qui seront directement détectées par \pkg{piton}.
 
 \begin{itemize}
 \item Cette clé |detected-commands| ne peut être utilisée que dans le préambule du document.
@@ -1334,7 +1368,7 @@ directement détectées par \pkg{piton}.
 (ex. : |detected-commands = { emph , textbf }|). 
 
 \item Ces commandes doivent être des commandes LaTeX à un seul argument obligatoire entre accolades (et ces
-accolades doivent être explicites).
+accolades doivent apparaître explicitement dans le listing).
 \end{itemize}
 
 \medskip
@@ -1671,13 +1705,13 @@ Néanmoins, il est également possible d'extraire les notes de pieds de page ave
 l'extension \pkg{footnotehyper}.
 
 \smallskip
-Si \pkg{piton} est chargée avec l'option |footnote| (avec |\usepackage[footnote]{piton}|) l'extension
+Si \pkg{piton} est chargée avec l'option \Definition{footnote} (avec |\usepackage[footnote]{piton}|) l'extension
 \pkg{footnote} est chargée (si elle ne l'est pas déjà) et elle est utilisée pour extraire les notes de pied de
 page.
 
 \smallskip
-Si \pkg{piton} est chargée avec l'option |footnotehyper|, l'extension \pkg{footnotehyper} est chargée (si
-elle ne l'est pas déjà) et elle est utilisée pour extraire les notes de pied de page.
+Si \pkg{piton} est chargée avec l'option \Definition{footnotehyper}, l'extension \pkg{footnotehyper} est chargée
+(si elle ne l'est pas déjà) et elle est utilisée pour extraire les notes de pied de page.
 
 \smallskip
 Attention : Les extensions \pkg{footnote} et \pkg{footnotehyper} sont incompatibles.
@@ -1698,13 +1732,13 @@ peuvent être mises dans les environnements |{Piton}| : voir un exemple sur la p
 \smallskip
 Même s'il est recommandé d'indenter les listings Python avec des espaces (cf. PEP~8), \pkg{piton} accepte les
 caractères de tabulations (U+0009) en début de ligne. Chaque caractère U+0009 est remplacé par $n$ espaces. La
-valeur initiale de~$n$ est~4 mais on peut la changer avec la clé |tab-size| de |\PitonOptions|.
+valeur initiale de~$n$ est~4 mais on peut la changer avec la clé \Definition{tab-size} de |\PitonOptions|. 
 
 \smallskip
-Il existe aussi une clé |tabs-auto-gobble| qui détermine le nombre minimal de caractères U+0009 débutant chaque
-ligne (non vide) de l'environnement |{Piton}| et applique |gobble| avec cette valeur (avant le remplacement des
-caractères U+0009 par des espaces, bien entendu). Cette clé est donc similaire à la clé |auto-gobble| mais agit sur
-des caractères U+0009 au lieu de caractères U+0020 (espaces).
+Il existe aussi une clé \Definition{tabs-auto-gobble} qui détermine le nombre minimal de caractères U+0009 débutant
+chaque ligne (non vide) de l'environnement |{Piton}| et applique |gobble| avec cette valeur (avant le remplacement
+des caractères U+0009 par des espaces, bien entendu). Cette clé est donc similaire à la clé |auto-gobble| mais agit
+sur des caractères U+0009 au lieu de caractères U+0020 (espaces).
 
 
 \section{API pour les développeurs}
@@ -2563,6 +2597,39 @@ Comment.LaTeX & les commentaires commençant par \texttt{\#>} qui sont composés
 Ce langage «|minimal|» est proposé par \pkg{piton} à l'utilisateur final pour qu'il puisse y ajouter des
 formatages de mots-clés avec la commande |\SetPitonIdentifier| (cf. \ref{SetPitonIdentifier},
 p.~\pageref{SetPitonIdentifier}) et créer par exemple un langage pour pseudo-code.
+
+
+\newpage
+
+\subsection{Les langages définis par la commande \textbackslash NewPitonLanguage}
+
+\indexcommand{NewPitonLanguage}
+
+\vspace{1cm}
+La commande |\NewPitonLanguage| qui permet de définir de nouveaux langages en utilisant la syntaxe de l'extension
+\pkg{listings} a été présentée p.~\pageref{NewPitonLanguage}.
+
+Tous les langages définis avec la commande |\NewPitonLanguage| partagent les mêmes styles.
+
+\vspace{1cm}
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\normalfont Style  & Usage \\
+\midrule
+Number & les nombres \\
+String.Long & les chaînes de caractères définies dans |\NewPitonLanguage| par la clé |morestring| \\
+Comment & les commentaires définis dans |\NewPitonLanguage| par la clé |morecomment|  \\
+Comment.LaTeX & les commentaires qui sont composés par \pkg{piton} comme du code LaTeX (et
+                appelés simplement «commentaires LaTeX» dans ce document) \\
+Keyword & les mots-clés, définis dans |\NewPitonLanguage| par les clés |morekeywords| et |moretexcs| (et également la
+  clé |sensitive| qui indique si les mots-clés sont sensibles à la casse) \\ 
+Directive & les directives définies dans |\NewPitonLanguage| par la clé |moredirectives| \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
 
 
 \newpage
