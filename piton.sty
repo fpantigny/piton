@@ -19,8 +19,9 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{3.0}
-\def\PitonFileDate{2024/04/29}
+\def\PitonFileVersion{3.0a}
+\def\PitonFileDate{2024/04/30}
+
 
 \NeedsTeXFormat{LaTeX2e}
 \RequirePackage{l3keys2e}
@@ -1524,7 +1525,7 @@
     local my_lpeg =
       P {  "E" ,
            E = ( V "F" * ( "," * V "F" ) ^ 0 ) / add ,
-           F = space ^ 0 * ( alpha ^ 1 ) / "\\%0" * space ^ 0
+           F = space ^ 0 * ( ( alpha ^ 1 ) / "\\%0" ) * space ^ 0
         }
     function piton.addListCommands( key_value )
       piton.ListCommands = piton.ListCommands + my_lpeg : match ( key_value )

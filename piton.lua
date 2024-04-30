@@ -20,7 +20,8 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.0" -- 2024/04/29
+piton_version = "3.0a" -- 2024/04/30
+
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
 piton.comment_latex = "#" .. piton.comment_latex
@@ -379,7 +380,15 @@ local DoubleShortString =
          * Q "\""  )
 
 local ShortString = SingleShortString + DoubleShortString
-local braces = Compute_braces ( ShortString )
+local braces =
+  Compute_braces
+   (
+       Q ( P "\"" + "r\"" + "R\"" + "f\"" + "F\"" )
+       * ( "\"" * ( P "\\\"" + 1 - S "\"" ) ^ 0 * "\"" )
+     +
+       Q ( P '\'' + 'r\'' + 'R\'' + 'f\'' + 'F\'' )
+       * ( '\'' * ( P '\\\'' + 1 - S '\'' ) ^ 0 * '\'' )
+   )
 if piton.beamer then Beamer = Compute_Beamer ( 'python' , braces ) end
 DetectedCommands = Compute_DetectedCommands ( 'python' , braces )
 LPEG_cleaner['python'] = Compute_LPEG_cleaner ( 'python' , braces )

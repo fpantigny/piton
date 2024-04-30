@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.0}
-\def\PitonFileDate{2024/04/29}
+\def\PitonFileVersion{3.0a}
+\def\PitonFileDate{2024/04/30}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.0" -- 2024/04/29
+piton_version = "3.0a" -- 2024/04/30
 %</LUA>
 %\fi
 %
@@ -5326,7 +5326,12 @@ piton_version = "3.0" -- 2024/04/29
     local my_lpeg = 
       P {  "E" ,
            E = ( V "F" * ( "," * V "F" ) ^ 0 ) / add ,
-           F = space ^ 0 * ( alpha ^ 1 ) / "\\%0" * space ^ 0 
+%    \end{macrocode}
+% Be careful: in Lua, \verb|/| has no priority over \verb|*|. Of course, we want
+% a behaviour for this comma-seperated list equal to the behaviour of a |clist|
+% of L3.
+%    \begin{macrocode}
+           F = space ^ 0 * ( ( alpha ^ 1 ) / "\\%0" ) * space ^ 0 
         }
     function piton.addListCommands( key_value )
       piton.ListCommands = piton.ListCommands + my_lpeg : match ( key_value ) 
@@ -6095,6 +6100,8 @@ local SingleShortString =
            ) ^ 0 
          * Q "'" )
 
+
+
 local DoubleShortString =
   WithStyle ( 'String.Short' , 
          Q ( P "f\"" + "F\"" ) 
@@ -6125,7 +6132,15 @@ local ShortString = SingleShortString + DoubleShortString
 % \paragraph{Beamer}
 %
 %    \begin{macrocode}
-local braces = Compute_braces ( ShortString ) 
+local braces = 
+  Compute_braces 
+   (
+       Q ( P "\"" + "r\"" + "R\"" + "f\"" + "F\"" ) 
+       * ( "\"" * ( P "\\\"" + 1 - S "\"" ) ^ 0 * "\"" ) 
+     + 
+       Q ( P '\'' + 'r\'' + 'R\'' + 'f\'' + 'F\'' ) 
+       * ( '\'' * ( P '\\\'' + 1 - S '\'' ) ^ 0 * '\'' ) 
+   )
 if piton.beamer then Beamer = Compute_Beamer ( 'python' , braces ) end
 %    \end{macrocode}
 %
