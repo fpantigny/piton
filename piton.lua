@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.0a" -- 2024/04/30
+piton_version = "3.0a" -- 2024/05/12
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -1351,15 +1351,13 @@ function piton.new_language ( lang , definition )
        * space ^ 0
        * C ( P ( 1 ) ^ 0 * -1 )
   local args_for_tag
-    = ( P "*" ^ -2 )
-       * space ^ 0
-       * ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ 0
+    =  tex_option_arg
        * space ^ 0
        * tex_arg
        * space ^ 0
        * tex_arg
   local sensitive = true
-  local left_tag , right_tag
+  local style_tag , left_tag , right_tag
   for _ , x in ipairs ( def_table ) do
     if x[1] == "sensitive" then
       if x[2] == nil or ( P "true" ) : match ( x[2] ) then
@@ -1371,7 +1369,8 @@ function piton.new_language ( lang , definition )
     if x[1] == "alsodigit" then x[2] : gsub ( "." , add_to_digit ) end
     if x[1] == "alsoletter" then x[2] : gsub ( "." , add_to_letter ) end
     if x[1] == "tag" then
-      left_tag , right_tag = args_for_tag : match ( x[2] )
+      style_tag , left_tag , right_tag = args_for_tag : match ( x[2] )
+      style_tag = style_tag or [[\PitonStyle{Tag}]]
     end
   end
   local Number =
@@ -1585,8 +1584,6 @@ function piton.new_language ( lang , definition )
        + Number
        + Word
   LPEG1[lang] = Main ^ 0
-  if left_tag then
-  end
   LPEG2[lang] =
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
@@ -1598,10 +1595,12 @@ function piton.new_language ( lang , definition )
          * Lc [[\__piton_end_line:]]
        )
   if left_tag then
-    local Tag = Q ( left_tag * other ^ 0 )
+    local Tag = Ct ( Cc "Open" * Cc ( "{" .. style_tag .. "{" ) * Cc "}}" )
+                * Q ( left_tag * other ^ 0 )
                 * ( ( ( 1 - P ( right_tag ) ) ^ 0 )
                   / ( function ( x ) return LPEG0[lang] : match ( x ) end ) )
                 * Q ( right_tag )
+                * Ct ( Cc "Close" )
     MainWithoutTag
             = space ^ 1 * -1
             + space ^ 0 * EOL

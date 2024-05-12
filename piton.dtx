@@ -80,11 +80,11 @@
 %<*STY>
 % \fi
 \def\PitonFileVersion{3.0a}
-\def\PitonFileDate{2024/04/30}
+\def\PitonFileDate{2024/05/12}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.0a" -- 2024/04/30
+piton_version = "3.0a" -- 2024/05/12
 %</LUA>
 %\fi
 %
@@ -946,7 +946,7 @@ piton_version = "3.0a" -- 2024/04/30
 %
 % \bigskip
 
-% The keys of the command |\lstdeflinelanguage| of \pkg{listings} supported by |\NewPitonLanguage| are:
+% The keys of the command |\lstdefinelanguage| of \pkg{listings} supported by |\NewPitonLanguage| are:
 % |morekeywords|, |otherkeywords|, |sensitive|, |keywordsprefix|, |moretexcs|,
 % |morestring| (with the letters |b|,
 % |d|, |s| and |m|), |morecomment| (with the letters |i|, |l|, |s| and |n|),
@@ -2516,8 +2516,8 @@ piton_version = "3.0a" -- 2024/04/30
 % \subsection{The languages defined by \textbackslash NewPitonLanguage}
 %
 % \vspace{1cm}
-% The command |\NewPitonLanguage| which define new informatic languages with the
-% syntax of the extension \pkg{listings} has been described p.~\pageref{NewPitonLanguage}.
+% The command |\NewPitonLanguage|, which defines new informatic languages with the
+% syntax of the extension \pkg{listings}, has been described p.~\pageref{NewPitonLanguage}.
 %
 % All the languages defined by the command |\NewPitonLanguage| use the same styles.
 % \vspace{1cm}
@@ -2534,7 +2534,10 @@ piton_version = "3.0a" -- 2024/04/30
 % Keyword & the keywords defined in |\NewPitonLanguage| by the keys |morekeywords|
 %           and |moretexcs| (and also the  key |sensitive| which specifies whether
 %           the keywords are case-sensitive or not) \\ 
-% Directive & the directives defined in |\NewPitonLanguage| by the key |moredirectives| \\
+% Directive & the directives defined in |\NewPitonLanguage| by the key
+% |moredirectives| \\
+% Tag & the ``tags'' defines by the key |tag| (the lexical units detected within
+% the tag will also be formatted with their own style) \\
 % \bottomrule
 % \end{tabularx}
 % \end{center}
@@ -4807,7 +4810,8 @@ piton_version = "3.0a" -- 2024/04/30
     String.Doc ,
     String.Interpol ,
     String.Long ,
-    String.Short ,     
+    String.Short ,    
+    Tag ,  
     TypeParameter ,    
     UserFunction ,
 %    \end{macrocode}
@@ -4903,6 +4907,7 @@ piton_version = "3.0a" -- 2024/04/30
     Preproc            = \color[HTML]{AA6600} \slshape ,
     Identifier         = \@@_identifier:n , 
     Directive          = \color[HTML]{AA6600} ,
+    Tag                = \colorbox{gray!10}, 
     UserFunction       = , 
     Prompt             = , 
     ParseAgain.noCR    = \@@_piton_no_cr:n , 
@@ -7758,6 +7763,15 @@ function piton.new_language ( lang , definition )
 %    \end{macrocode}
 %
 %    \begin{macrocode}
+  local args_for_tag 
+    =  tex_option_arg
+       * space ^ 0 
+       * tex_arg
+       * space ^ 0
+       * tex_arg
+%    \end{macrocode}
+%
+%    \begin{macrocode}
   local args_for_morekeywords 
     = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" 
        * space ^ 0 
@@ -7783,17 +7797,6 @@ function piton.new_language ( lang , definition )
        * C ( P ( 1 ) ^ 0 * -1 )
 %    \end{macrocode}
 %
-%    \begin{macrocode}
-  local args_for_tag 
-    = ( P "*" ^ -2 ) 
-       * space ^ 0
-       * ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ 0 
-       * space ^ 0
-       * tex_arg
-       * space ^ 0
-       * tex_arg
-%    \end{macrocode}
-%
 %
 % \bigskip
 % We scan the definition of the language (i.e. the table |def_table|) in order
@@ -7802,7 +7805,7 @@ function piton.new_language ( lang , definition )
 % the potential keys |alsodigit|, |alsoletter| and |tag|. 
 %    \begin{macrocode}
   local sensitive = true 
-  local left_tag , right_tag 
+  local style_tag , left_tag , right_tag 
   for _ , x in ipairs ( def_table ) do
     if x[1] == "sensitive" then 
       if x[2] == nil or ( P "true" ) : match ( x[2] ) then 
@@ -7814,7 +7817,8 @@ function piton.new_language ( lang , definition )
     if x[1] == "alsodigit" then x[2] : gsub ( "." , add_to_digit ) end 
     if x[1] == "alsoletter" then x[2] : gsub ( "." , add_to_letter ) end 
     if x[1] == "tag" then
-      left_tag , right_tag = args_for_tag : match ( x[2] ) 
+      style_tag , left_tag , right_tag = args_for_tag : match ( x[2] ) 
+      style_tag = style_tag or [[\PitonStyle{Tag}]]
     end 
   end
 %    \end{macrocode}
@@ -8078,11 +8082,7 @@ function piton.new_language ( lang , definition )
   local Punct = Q ( S "=,:;!\\'\"" )
 %    \end{macrocode}
 %
-%
-%    \begin{macrocode}
-%    \end{macrocode}
-%
-%
+% 
 %    \begin{macrocode}
   local Main = 
          space ^ 1 * -1
@@ -8116,14 +8116,6 @@ function piton.new_language ( lang , definition )
   LPEG1[lang] = Main ^ 0 
 %    \end{macrocode}
 %
-%
-% \bigskip
-% If the key |tag| has been used, then |left_tag| (and also |right_tag|) is non nil.
-%    \begin{macrocode}
-  if left_tag then
-  end 
-%    \end{macrocode}
-% 
 % 
 % The \textsc{lpeg} |LPEG2[lang]| is used to format general chunks of code.
 %    \begin{macrocode}
@@ -8139,13 +8131,15 @@ function piton.new_language ( lang , definition )
        )
 %    \end{macrocode}
 %
-% 
+% If the key |tag| has been used.
 %    \begin{macrocode}
   if left_tag then
-    local Tag = Q ( left_tag * other ^ 0 ) 
+    local Tag = Ct ( Cc "Open" * Cc ( "{" .. style_tag .. "{" ) * Cc "}}" ) 
+                * Q ( left_tag * other ^ 0 ) 
                 * ( ( ( 1 - P ( right_tag ) ) ^ 0 )
                   / ( function ( x ) return LPEG0[lang] : match ( x ) end ) )
                 * Q ( right_tag ) 
+                * Ct ( Cc "Close" ) 
     MainWithoutTag
             = space ^ 1 * -1
             + space ^ 0 * EOL 

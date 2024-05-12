@@ -893,7 +893,7 @@ public class Cipher { // cryptage par le chiffre de César
 \endgroup
 
 \bigskip
-Les clés de la commande |\lstdeflinelanguage| de \pkg{listings} prises en charge par |\NewPitonLanguage| sont :
+Les clés de la commande |\lstdefinelanguage| de \pkg{listings} prises en charge par |\NewPitonLanguage| sont :
 |morekeywords|, |otherkeywords|, |sensitive|, |keywordsprefix|, |moretexcs|, |morestring| (avec les lettres |b|,
 |d|, |s| et |m|), |morecomment| (avec les lettres |i|, |l|, |s| et |n|), |moredelim| (avec les lettres |i|,
 |l|, |s|, |*| et |**|), |moredirectives|, |tag|, |alsodigit| et |alsoletter|.
@@ -2606,8 +2606,8 @@ p.~\pageref{SetPitonIdentifier}) et créer par exemple un langage pour pseudo-co
 \indexcommand{NewPitonLanguage}
 
 \vspace{1cm}
-La commande |\NewPitonLanguage| qui permet de définir de nouveaux langages en utilisant la syntaxe de l'extension
-\pkg{listings} a été présentée p.~\pageref{NewPitonLanguage}.
+La commande |\NewPitonLanguage|, qui permet de définir de nouveaux langages en utilisant la syntaxe de l'extension
+\pkg{listings}, a été présentée p.~\pageref{NewPitonLanguage}.
 
 Tous les langages définis avec la commande |\NewPitonLanguage| partagent les mêmes styles.
 
@@ -2619,13 +2619,15 @@ Tous les langages définis avec la commande |\NewPitonLanguage| partagent les m�
 \normalfont Style  & Usage \\
 \midrule
 Number & les nombres \\
-String.Long & les chaînes de caractères définies dans |\NewPitonLanguage| par la clé |morestring| \\
+String.Long & les chaînes de caractères définies dans |\NewPitonLanguage| par la clé |morestring| \\ 
 Comment & les commentaires définis dans |\NewPitonLanguage| par la clé |morecomment|  \\
 Comment.LaTeX & les commentaires qui sont composés par \pkg{piton} comme du code LaTeX (et
                 appelés simplement «commentaires LaTeX» dans ce document) \\
-Keyword & les mots-clés, définis dans |\NewPitonLanguage| par les clés |morekeywords| et |moretexcs| (et également la
-  clé |sensitive| qui indique si les mots-clés sont sensibles à la casse) \\ 
+Keyword & les mots-clés, définis dans |\NewPitonLanguage| par les clés |morekeywords| et |moretexcs| (et également
+          la clé |sensitive| qui indique si les mots-clés sont sensibles à la casse) \\ 
 Directive & les directives définies dans |\NewPitonLanguage| par la clé |moredirectives| \\
+Tag & les «tags» définis par la clé |tag| (les lexèmes détectés à l'intérieur d'un tag seront
+      aussi composés avec leur propre style) \\
 \bottomrule
 \end{tabularx}
 \end{center}
