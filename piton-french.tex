@@ -896,10 +896,21 @@ public class Cipher { // cryptage par le chiffre de César
 Les clés de la commande |\lstdefinelanguage| de \pkg{listings} prises en charge par |\NewPitonLanguage| sont :
 |morekeywords|, |otherkeywords|, |sensitive|, |keywordsprefix|, |moretexcs|, |morestring| (avec les lettres |b|,
 |d|, |s| et |m|), |morecomment| (avec les lettres |i|, |l|, |s| et |n|), |moredelim| (avec les lettres |i|,
-|l|, |s|, |*| et |**|), |moredirectives|, |tag|, |alsodigit| et |alsoletter|.
+|l|, |s|, |*| et |**|), |moredirectives|, |tag|, |alsodigit|, |alsoletter| et |alsoother|.
 
 Pour la description de ces clés, on renvoie à la documentation de \pkg{listings} (taper |texdoc| |listings| dans un terminal). 
 
+\bigskip
+Par exemple, pour formater du code LaTeX, on pourra créer le language suivant : 
+%
+{\color{gray}
+\begin{verbatim}
+\NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoletter = @_ }
+\end{verbatim}
+}
+Initialement, les caractères |@| et |_| sont des considérés comme des lettres car de nombreux langages de
+programmation les autorisent dans les mots-clés et les identificateurs. Avec \verb|alsoletter = @_|, on les retire
+de la catégorie des lettres.
 
 
 \section{Fonctionnalités avancées}
@@ -1416,7 +1427,7 @@ que dans le préambule du document}). Les deux délimiteurs peuvent être identi
 
 \medskip
 On reprend l'exemple précédent de la factorielle et on souhaite surligner en rose l'instruction qui contient l'appel
-récursif. La commande |\highLight| de \pkg{lua-ul} permet de le faire avec la syntaxe |\highLight{LightPink}{...}|.
+récursif. La commande |\highLight| de \pkg{lua-ul} permet de le faire avec la syntaxe |\highLight[LightPink]{...}|.
 Du fait de la présence de l'argument optionnel entre crochets, on ne peut pas utiliser la clé |detected-commands|
 comme précédemment mais on peut utiliser le mécanisme «escape».
 

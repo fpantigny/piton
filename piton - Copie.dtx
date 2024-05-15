@@ -957,18 +957,7 @@ piton_version = "3.0a" -- 2024/05/12
 % For the description of those keys, we redirect the reader to the documentation
 % of the package \pkg{listings} (type |texdoc| |listings| in a terminal). 
 %
-% \bigskip
-% For example, here is a language called ``LaTeX'' to format LaTeX chunks of codes:
-
-% \begin{Verbatim}
-% \NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoletter = ~@_ }
-% \end{Verbatim}
 %
-% Initialy, the characters |@| and |_| are considered as letters because, in
-% many informatic languages, they are allowed in the keywords and the names of
-% the indentifiers. With \verb|alsoletter = @_|, we retrieve them from the
-% category of the letters. 
-% 
 % \section{Advanced features}
 %
 % \subsection{Page breaks and line breaks}
@@ -5233,7 +5222,6 @@ piton_version = "3.0a" -- 2024/05/12
     The~available~keys~are~(in~alphabetic~order):~
     auto-gobble,~
     background-color,~
-    begin-range,~
     break-lines,~
     break-lines-in-piton,~
     break-lines-in-Piton,~
@@ -7729,57 +7717,23 @@ function piton.new_language ( lang , definition )
 % \bigskip
 %    \begin{macrocode}
   local alpha , digit = lpeg.alpha , lpeg.digit 
-  local extra_letters = { "@" , "_" , "$" } -- $
+  local letter = alpha + S "@_$" -- $
 %    \end{macrocode}
 %
+% \bigskip 
+% In the following \textsc{lpeg} we have a problem when we try to add |{| and
+% |}|. 
+%    \begin{macrocode}
+  local other = S "+-*/<>!?:;.()@[]~^=#&\"\'\\$" -- $
+%    \end{macrocode}
 % 
 % \bigskip
-% The command |add_to_letter| (triggered by the key ||) don't write right away
-% in the \textsc{lpeg} pattern of the letters in an intermediate |extra_letters|
-% because we may have to retrieve letters from that ``list'' if there appear in
-% a key |alsoother|.
 %    \begin{macrocode}
   function add_to_letter ( c )
-     if c ~= " " then table.insert ( extra_letters , c ) end
+     if c ~= " " then letter = letter + c end 
   end 
-%    \end{macrocode}
-%
-% For the digits, it's straitforward.
-%    \begin{macrocode}
   function add_to_digit ( c )
      if c ~= " " then digit = digit + c end 
-  end 
-%    \end{macrocode}
-%
-% \bigskip
-% The main use of the key |alsoother| is, for the language LaTeX, when you have
-% to retrieve some characters from the list of letters, in particular |@| and
-% |_| (which, by default, are not allowed in the name of a control sequence in
-% TeX). 
-%
-% \medskip
-% (In the following \textsc{lpeg} we have a problem when we try to add |{| and
-% |}|). 
-%    \begin{macrocode}
-  local other = S ":_@+-*/<>!?;.()[]~^=#&\"\'\\$" -- $
-  local extra_others = { } 
-%    \end{macrocode}
-%
-%    \begin{macrocode}
-  function add_to_other ( c )
-     if c ~= " " then 
-%    \end{macrocode}
-% We will use |extra_others| to retrieve further these characters from the list
-% of the letters. 
-%    \begin{macrocode}
-       extra_others[c] = true 
-%    \end{macrocode}
-% The \textsc{lpeg} pattern |other| will be used in conjonction with the key
-% |tag| (mainly for the language \textsc{html}) for the character |/| in the
-% closing tags |</....>|).
-%    \begin{macrocode}
-       other = other + P "c"
-     end 
   end 
 %    \end{macrocode}
 % 
@@ -7874,7 +7828,6 @@ function piton.new_language ( lang , definition )
     end
     if x[1] == "alsodigit" then x[2] : gsub ( "." , add_to_digit ) end 
     if x[1] == "alsoletter" then x[2] : gsub ( "." , add_to_letter ) end 
-    if x[1] == "alsoother" then x[2] : gsub ( "." , add_to_other ) end 
     if x[1] == "tag" then
       style_tag , left_tag , right_tag = args_for_tag : match ( x[2] ) 
       style_tag = style_tag or [[\PitonStyle{Tag}]]
@@ -7892,16 +7845,6 @@ function piton.new_language ( lang , definition )
         * ( S "eE" * S "+-" ^ -1 * digit ^ 1 ) ^ -1
         + digit ^ 1 
       ) 
-%    \end{macrocode}
-%
-%    \begin{macrocode}
-  local string_extra_letters = ""
-  for _ , x in ipairs ( extra_letters ) do 
-    if not ( extra_others[x] ) then
-     string_extra_letters = string_extra_letters .. x      
-    end 
-  end 
-  local letter = alpha + S ( string_extra_letters ) 
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
@@ -7939,7 +7882,6 @@ function piton.new_language ( lang , definition )
       ) 
   end 
   local Keyword = P ( false )  
-  local PrefixedKeyword = P ( false )  
 %    \end{macrocode}
 % Now, we actually treat all the keywords and also the key |moredirectives|.
 %    \begin{macrocode}
@@ -7968,7 +7910,7 @@ function piton.new_language ( lang , definition )
             if sensitive 
 %    \end{macrocode}
 % The documentation of \pkg{lstlistings} specifies that, for the key
-% |morekeywords|, if a keyword is a prefix of another keyword, then the prefix
+% |otherkeywords|, if a keyword is a prefix of another keyword, then the prefix
 % must appear first. However, for the \text{lpeg}, it's rather the contrary.
 % That's why, here, we add the new element \emph{on the left}.
 %    \begin{macrocode}
@@ -7980,24 +7922,9 @@ function piton.new_language ( lang , definition )
         Keyword = Keyword + 
            Lc ( "{" .. style .. "{" ) * keywords * Lc "}}" 
      end 
-%    \end{macrocode}
-% Of course, the feature with the key |keywordsprefix| is designed for the
-% languages TeX, LaTeX, et \emph{al}. In that case, there is two kinds of
-% keywords (= control sequences).
-% \begin{itemize}
-% \item those beginning with |\| and a sequence of characters of catcode ``|letter|'';
-% \item those beginning by |\| followed by one character ot catcode ``|other|''.
-% \end{itemize}
-% The following code addresses both cases. Of course, the \textsc{lpeg} pattern
-% |letter| must catch only characters of catcode ``|letter|''. That's why we
-% have a key |alsoletter| to add new characters in that category (e.g. |:| when
-% we want to format L3 code). However, the \textsc{lpeg} pattern is allowed to
-% catch \emph{more} than only the characters of catcode ``other'' in TeX.
-%    \begin{macrocode}
      if x[1] == "keywordsprefix" then
        local prefix = ( ( C ( 1 - P " " ) ^ 1 ) * P " " ^ 0 ) : match ( x[2] ) 
-       PrefixedKeyword = PrefixedKeyword 
-          + K ( 'Keyword' , P ( prefix ) * ( letter ^ 1 + other ) )
+       Keyword = Keyword + K ( 'Keyword' , P ( prefix ) * alphanum ^ 0 ) 
      end 
   end    
 %    \end{macrocode}
@@ -8188,9 +8115,7 @@ function piton.new_language ( lang , definition )
 %    \begin{macrocode}
        + LongString
        + Delim
-       + PrefixedKeyword
-       + Keyword * ( -1 + # ( 1 - alphanum ) ) 
-          -- * ( Space + Punct + Delim + Number + Word + EOL + Escape + EscapeMath + -1 ) 
+       + Keyword * ( Space + Punct + Delim + EOL + Escape + EscapeMath + -1 ) 
        + Punct 
        + K ( 'Identifier' , letter * alphanum ^ 0 )
        + Number
@@ -8218,11 +8143,11 @@ function piton.new_language ( lang , definition )
        )
 %    \end{macrocode}
 %
-% If the key |tag| has been used. Of course, this feature is designed for the \textsc{html}.
+% If the key |tag| has been used.
 %    \begin{macrocode}
   if left_tag then
     local Tag = Ct ( Cc "Open" * Cc ( "{" .. style_tag .. "{" ) * Cc "}}" ) 
-                * Q ( left_tag * other ^ 0 ) -- $
+                * Q ( left_tag * other ^ 0 ) 
                 * ( ( ( 1 - P ( right_tag ) ) ^ 0 )
                   / ( function ( x ) return LPEG0[lang] : match ( x ) end ) )
                 * Q ( right_tag ) 
@@ -8239,9 +8164,7 @@ function piton.new_language ( lang , definition )
             + CommentDelim
             + Delim
             + LongString
-            + PrefixedKeyword
-            + Keyword * ( -1 + # ( 1 - alphanum ) ) 
-                      -- * ( Space + Punct + Delim + Number + Word + EOL +  Escape + EscapeMath + -1 ) 
+            + Keyword * ( Space + Punct + Delim + EOL +  Escape + EscapeMath + -1 ) 
             + Punct 
             + K ( 'Identifier' , letter * alphanum ^ 0 )
             + Number

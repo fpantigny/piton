@@ -101,10 +101,21 @@ local Number =
     )
 local Word
 if piton.begin_escape then
-  Word = Q ( ( 1 - space - piton.begin_escape - piton.end_escape
-                   - S "'\"\r[({})]" - digit ) ^ 1 )
+  if piton.begin_escape_math then
+    Word = Q ( ( 1 - space - piton.begin_escape - piton.end_escape
+                   -  piton.begin_escape_math - piton.end_escape_math
+                     - S "'\"\r[({})]" - digit ) ^ 1 )
+  else
+    Word = Q ( ( 1 - space - piton.begin_escape - piton.end_escape
+                     - S "'\"\r[({})]" - digit ) ^ 1 )
+  end
 else
-  Word = Q ( ( 1 - space - S "'\"\r[({})]" - digit ) ^ 1 )
+  if piton.begin_escape_math then
+    Word = Q ( ( 1 - space - piton.begin_escape_math - piton.end_escape_math
+                     - S "'\"\r[({})]" - digit ) ^ 1 )
+  else
+    Word = Q ( ( 1 - space - S "'\"\r[({})]" - digit ) ^ 1 )
+  end
 end
 local Space = Q " " ^ 1
 
@@ -1310,13 +1321,20 @@ end
 function piton.new_language ( lang , definition )
   lang = string.lower ( lang )
   local alpha , digit = lpeg.alpha , lpeg.digit
-  local letter = alpha + S "@_$" -- $
-  local other = S "+-*/<>!?:;.()@[]~^=#&\"\'\\$" -- $
+  local extra_letters = { "@" , "_" , "$" } -- $
   function add_to_letter ( c )
-     if c ~= " " then letter = letter + c end
+     if c ~= " " then table.insert ( extra_letters , c ) end
   end
   function add_to_digit ( c )
      if c ~= " " then digit = digit + c end
+  end
+  local other = S ":_@+-*/<>!?;.()[]~^=#&\"\'\\$" -- $
+  local extra_others = { }
+  function add_to_other ( c )
+     if c ~= " " then
+       extra_others[c] = true
+       other = other + P "c"
+     end
   end
   local strict_braces  =
     P { "E" ,
@@ -1333,6 +1351,12 @@ function piton.new_language ( lang , definition )
   local tex_braced_arg = "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}"
   local tex_arg = tex_braced_arg + C ( 1 )
   local tex_option_arg =  "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil )
+  local args_for_tag
+    =  tex_option_arg
+       * space ^ 0
+       * tex_arg
+       * space ^ 0
+       * tex_arg
   local args_for_morekeywords
     = "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]"
        * space ^ 0
@@ -1350,12 +1374,6 @@ function piton.new_language ( lang , definition )
        * tex_option_arg
        * space ^ 0
        * C ( P ( 1 ) ^ 0 * -1 )
-  local args_for_tag
-    =  tex_option_arg
-       * space ^ 0
-       * tex_arg
-       * space ^ 0
-       * tex_arg
   local sensitive = true
   local style_tag , left_tag , right_tag
   for _ , x in ipairs ( def_table ) do
@@ -1368,6 +1386,7 @@ function piton.new_language ( lang , definition )
     end
     if x[1] == "alsodigit" then x[2] : gsub ( "." , add_to_digit ) end
     if x[1] == "alsoletter" then x[2] : gsub ( "." , add_to_letter ) end
+    if x[1] == "alsoother" then x[2] : gsub ( "." , add_to_other ) end
     if x[1] == "tag" then
       style_tag , left_tag , right_tag = args_for_tag : match ( x[2] )
       style_tag = style_tag or [[\PitonStyle{Tag}]]
@@ -1381,6 +1400,13 @@ function piton.new_language ( lang , definition )
         * ( S "eE" * S "+-" ^ -1 * digit ^ 1 ) ^ -1
         + digit ^ 1
       )
+  local string_extra_letters = ""
+  for _ , x in ipairs ( extra_letters ) do
+    if not ( extra_others[x] ) then
+     string_extra_letters = string_extra_letters .. x
+    end
+  end
+  local letter = alpha + S ( string_extra_letters )
   local alphanum = letter + digit
   local identifier = letter * alphanum ^ 0
   local Identifier = K ( 'Identifier' , identifier )
@@ -1401,6 +1427,7 @@ function piton.new_language ( lang , definition )
       )
   end
   local Keyword = P ( false )
+  local PrefixedKeyword = P ( false )
   for _ , x in ipairs ( def_table )
   do if x[1] == "morekeywords"
         or x[1] == "otherkeywords"
@@ -1430,7 +1457,8 @@ function piton.new_language ( lang , definition )
      end
      if x[1] == "keywordsprefix" then
        local prefix = ( ( C ( 1 - P " " ) ^ 1 ) * P " " ^ 0 ) : match ( x[2] )
-       Keyword = Keyword + K ( 'Keyword' , P ( prefix ) * alphanum ^ 0 )
+       PrefixedKeyword = PrefixedKeyword
+          + K ( 'Keyword' , P ( prefix ) * ( letter ^ 1 + other ) )
      end
   end
   local long_string  = P ( false )
@@ -1578,7 +1606,9 @@ function piton.new_language ( lang , definition )
        + CommentDelim
        + LongString
        + Delim
-       + Keyword * ( Space + Punct + Delim + EOL + -1 )
+       + PrefixedKeyword
+       + Keyword * ( -1 + # ( 1 - alphanum ) )
+          -- * ( Space + Punct + Delim + Number + Word + EOL + Escape + EscapeMath + -1 )
        + Punct
        + K ( 'Identifier' , letter * alphanum ^ 0 )
        + Number
@@ -1596,7 +1626,7 @@ function piton.new_language ( lang , definition )
        )
   if left_tag then
     local Tag = Ct ( Cc "Open" * Cc ( "{" .. style_tag .. "{" ) * Cc "}}" )
-                * Q ( left_tag * other ^ 0 )
+                * Q ( left_tag * other ^ 0 ) -- $
                 * ( ( ( 1 - P ( right_tag ) ) ^ 0 )
                   / ( function ( x ) return LPEG0[lang] : match ( x ) end ) )
                 * Q ( right_tag )
@@ -1613,7 +1643,9 @@ function piton.new_language ( lang , definition )
             + CommentDelim
             + Delim
             + LongString
-            + Keyword * ( Space + Punct + Delim + EOL + -1 )
+            + PrefixedKeyword
+            + Keyword * ( -1 + # ( 1 - alphanum ) )
+                      -- * ( Space + Punct + Delim + Number + Word + EOL +  Escape + EscapeMath + -1 )
             + Punct
             + K ( 'Identifier' , letter * alphanum ^ 0 )
             + Number
