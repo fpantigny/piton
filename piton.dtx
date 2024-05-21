@@ -147,7 +147,7 @@ piton_version = "3.0a" -- 2024/05/12
 % \pkg{listings} and \pkg{minted}.
 % 
 % \bigskip
-% The name of this extension (\pkg{piton}) has been choosen arbitrarily by
+% The name of this extension (\pkg{piton}) has been chosen arbitrarily by
 % reference to the pitons used by the climbers in alpinism.
 % 
 % 
@@ -204,7 +204,7 @@ piton_version = "3.0a" -- 2024/05/12
 % |ocaml|. 
 %
 % \smallskip
-% For the developpers, let's say that the name of the current language is stored
+% For the developers, let's say that the name of the current language is stored
 % (in lower case) in the L3 public variable |\l_piton_language_str|.
 %
 % \smallskip
@@ -241,7 +241,7 @@ piton_version = "3.0a" -- 2024/05/12
 % part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}. 
 %
 % The key \Definition{path} of the command |\PitonOptions| specifies a
-% \emph{list} of pathes where the files included by |\PitonInputFile| will be
+% \emph{list} of paths where the files included by |\PitonInputFile| will be
 % searched. That list is comma separated.
 %
 % The extension \pkg{piton} also provides the commands
@@ -315,7 +315,7 @@ piton_version = "3.0a" -- 2024/05/12
 % \piton{s = 'A string'}.}
 %
 % \bigskip
-% \item {\color{blue} \textsf{Syntaxe} \verb!\piton|...|!}\par\nobreak
+% \item {\color{blue} \textsf{Syntax} \verb!\piton|...|!}\par\nobreak
 %
 % When the argument of the command |\piton| is provided between two identical
 % characters, that argument is taken in a \emph{verbatim mode}. Therefore, with
@@ -360,7 +360,7 @@ piton_version = "3.0a" -- 2024/05/12
 % square brackets).
 %
 % \begin{itemize}
-% \item The key \Definition{language} speficies which computer language is
+% \item The key \Definition{language} specifies which computer language is
 % considered (that key is case-insensitive). Five values are allowed :
 % |Python|, |OCaml|, |C|, |SQL| and |minimal|. The initial value is |Python|.
 % 
@@ -369,7 +369,7 @@ piton_version = "3.0a" -- 2024/05/12
 % 
 % \item \index{gobble}\label{gobble} The key \Definition{gobble} takes in as
 % value a positive integer~$n$: the first $n$ characters are discarded (before
-% the process of highlightning of the code) for each line of the environment
+% the process of highlighting of the code) for each line of the environment
 % |{Piton}|. These characters are not necessarily spaces.
 %
 % \item \index{auto-gobble}\index{gobble!auto-gobble} When the key
@@ -449,7 +449,7 @@ piton_version = "3.0a" -- 2024/05/12
 %
 %
 % \item \index{left-margin} The key \Definition{left-margin} corresponds to a
-% margin on the left. That key may be useful in conjonction with the key
+% margin on the left. That key may be useful in conjunction with the key
 % |line-numbers| if one does not want the numbers in an overlapping position on
 % the left. 
 %
@@ -833,7 +833,7 @@ piton_version = "3.0a" -- 2024/05/12
 %
 % \medskip
 % The package \pkg{piton} provides a command
-% \DefinitionCommand{NewPitonLanguage} to define new languages (avaiblable in
+% \DefinitionCommand{NewPitonLanguage} to define new languages (available in
 % |\piton|, |{Piton}|, etc.) with a syntax which is almost the same as the
 % syntax of~|\lstdefinelanguage|.
 %
@@ -964,9 +964,9 @@ piton_version = "3.0a" -- 2024/05/12
 % \NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoletter = ~@_ }
 % \end{Verbatim}
 %
-% Initialy, the characters |@| and |_| are considered as letters because, in
+% Initially, the characters |@| and |_| are considered as letters because, in
 % many informatic languages, they are allowed in the keywords and the names of
-% the indentifiers. With \verb|alsoletter = @_|, we retrieve them from the
+% the identifiers. With \verb|alsoletter = @_|, we retrieve them from the
 % category of the letters. 
 % 
 % \section{Advanced features}
@@ -987,7 +987,7 @@ piton_version = "3.0a" -- 2024/05/12
 % \begin{itemize}
 % \item The key \Definition{split-on-empty-lines} allows breaks on the empty
 % lines\footnote{The ``empty lines'' are the lines which contains only spaes.} in
-% the listing. In the informatic listings, the empty lines usually seperate the
+% the listing. In the informatic listings, the empty lines usually separate the
 % definitions of the informatic functions and it's pertinent to allow breaks
 % between these functions.
 %
@@ -1042,7 +1042,7 @@ piton_version = "3.0a" -- 2024/05/12
 % \Definition{break-lines-in-Piton}, the line breaks are allowed in the
 % environment |{Piton}| (hence the capital letter |P| in the name) and in the
 % listings produced by |\PitonInputFile|.
-% \item \index{break-lines} The key \Definition{break-lines} is a conjonction of
+% \item \index{break-lines} The key \Definition{break-lines} is a conjunction of
 % the two previous keys. 
 % \end{itemize}
 % 
@@ -1103,7 +1103,7 @@ piton_version = "3.0a" -- 2024/05/12
 % \label{part-of-a-file}
 % \indexcommand{PitonInputFile}
 %
-% The command |\PitonInputFile| inserts (with formating) the content of a file.
+% The command |\PitonInputFile| inserts (with formatting) the content of a file.
 % In fact, it's possible to insert only \emph{a part} of that file. Two
 % mechanisms are provided in this aim.
 % \begin{itemize}
@@ -1250,7 +1250,7 @@ piton_version = "3.0a" -- 2024/05/12
 % That command takes in three arguments: 
 %
 % \begin{itemize}
-% \item The optionnal argument (within square brackets) specifies the informatic
+% \item The optional argument (within square brackets) specifies the informatic
 % language. If this argument is not present, the tunings done by
 % |\SetPitonIdentifier| will apply to all the informatic languages of
 % \pkg{piton}.\footnote{We recall, that, in the package \pkg{piton}, the
@@ -1356,7 +1356,7 @@ piton_version = "3.0a" -- 2024/05/12
 % \item It's also possible to insert LaTeX code almost everywhere in a Python listing.
 % \end{itemize}
 %
-% One should aslo remark that, when the extension \pkg{piton} is used with the
+% One should also remark that, when the extension \pkg{piton} is used with the
 % class \cls{beamer}, \pkg{piton} detects in |{Piton}| many commands and
 % environments of Beamer: cf. \ref{beamer} p.~\pageref{beamer}.
 %
@@ -1370,10 +1370,10 @@ piton_version = "3.0a" -- 2024/05/12
 % comments.
 %
 % \begin{itemize}
-% \item It's possible to change the syntatic mark (which, by default, is |#>|).
+% \item It's possible to change the syntactic mark (which, by default, is |#>|).
 % For this purpose, there is a key \Definition{comment-latex} available only in
 % the preamble of the document, allows to choice the characters which, preceded
-% by |#|, will be the syntatic marker.
+% by |#|, will be the syntactic marker.
 %
 % For example, if the preamble contains the following instruction:
 % 
@@ -1503,7 +1503,7 @@ piton_version = "3.0a" -- 2024/05/12
 % recursive call. With the package \pkg{lua-ul}, we can use the syntax
 % |\highLight[LightPink]{...}|. Because of the optional argument between square
 % brackets, it's not possible to use the key |detected-commands| but it's
-% possible to acheive our goal with the more general mechanism ``escape''.
+% possible to achieve our goal with the more general mechanism ``escape''.
 %
 % \medskip
 % We assume that the preamble of the document contains
@@ -1676,7 +1676,7 @@ piton_version = "3.0a" -- 2024/05/12
 % can't extend on several lines.} of Python are not considered. 
 %
 % \medskip
-% Regarding the fonctions |\alt| and |\temporal| there should be no carriage
+% Regarding the functions |\alt| and |\temporal| there should be no carriage
 % returns in the mandatory arguments of these functions.
 %
 % \medskip
@@ -1753,7 +1753,7 @@ piton_version = "3.0a" -- 2024/05/12
 % not be the best choice because \pkg{piton} will, by design, change (most of
 % the time) the color the different elements of text. One may prefer an environment
 % |{alertenv}| that will change the background color for the elements to be
-% hightlighted. 
+% highlighted. 
 %
 % \smallskip
 % Here is a code that will do that job and add a yellow background. That code
@@ -1866,7 +1866,7 @@ piton_version = "3.0a" -- 2024/05/12
 % \item |piton.get_last_code| is a Lua function and not a Lua string: the
 % treatments outlined above are executed when the function is called. Therefore,
 % it might be judicious to store the value returned by |piton.get_last_code()|
-% in a variable of Lua if it will be used serveral times.
+% in a variable of Lua if it will be used several times.
 % \end{itemize}
 % 
 % \medskip
@@ -2144,7 +2144,7 @@ piton_version = "3.0a" -- 2024/05/12
 % \end{Verbatim}
 %
 % In that tuning, many values given to the keys are empty: that means that the
-% corresponding style won't insert any formating instruction (the element will
+% corresponding style won't insert any formatting instruction (the element will
 % be composed in the standard color, usually in black, etc.). Nevertheless,
 % those entries are mandatory because the initial value of those keys in
 % \pkg{piton} is \emph{not} empty.
@@ -2475,7 +2475,7 @@ piton_version = "3.0a" -- 2024/05/12
 %
 %
 % \bigskip
-% It's possible to automatically capitalize the keywords by modifiying locally
+% It's possible to automatically capitalize the keywords by modifying locally
 % for the language SQL the style |Keywords|.
 % \begin{Verbatim}
 % \SetPitonStyle~emphase#[SQL]@{Keywords = \bfseries \MakeUppercase}
@@ -2780,7 +2780,7 @@ piton_version = "3.0a" -- 2024/05/12
 \@@_msg_new:nnn { piton.lua~not~found }
   { 
     The~file~'piton.lua'~can't~be~found.\\ 
-    This~eror~is~fatal.\\
+    This~error~is~fatal.\\
     If~you~want~to~know~how~to~retrieve~the~file~'piton.lua',~type~H~<return>.
   }
   {
@@ -2807,7 +2807,7 @@ piton_version = "3.0a" -- 2024/05/12
 %
 % \medskip
 % The boolean |\g_@@_footnote_bool| will indicate if the option |footnote| is
-% used, but quicky, it will also be set to |true| if the option |footnotehyper|
+% used, but quickly, it will also be set to |true| if the option |footnotehyper|
 % is used.
 %    \begin{macrocode}
 \bool_new:N \g_@@_footnote_bool
@@ -3025,7 +3025,7 @@ piton_version = "3.0a" -- 2024/05/12
 %    \end{macrocode}
 % 
 % \medskip
-% The following token list will contain the (potential) informations to write
+% The following token list will contain the (potential) information to write
 % on the |aux| (to be used in the next compilation).
 %    \begin{macrocode}
 \tl_new:N \g_@@_aux_tl
@@ -3184,7 +3184,7 @@ piton_version = "3.0a" -- 2024/05/12
 % \medskip
 % If the key |width| is used with the special value~|min|, we will compute the
 % maximal width of the lines of an environment |{Piton}| in |\g_@@_tmp_width_dim|
-% because we need it for the case of the key |width| is used with the spacial
+% because we need it for the case of the key |width| is used with the special
 % value |min|. We need a global variable because, when the key |footnote| is in
 % force, each line when be composed in an environment |{savenotes}| and we need
 % to exit our |\g_@@_tmp_width_dim| from that environment.
@@ -3727,7 +3727,7 @@ piton_version = "3.0a" -- 2024/05/12
 \keys_define:nn { PitonOptions }
   {
 %    \end{macrocode}
-% First, we put keys that should be avalaible only in the preamble.
+% First, we put keys that should be available only in the preamble.
 %    \begin{macrocode}
     detected-commands .code:n =  
        \lua_now:n { piton.addListCommands('#1') } ,
@@ -4981,7 +4981,7 @@ piton_version = "3.0a" -- 2024/05/12
 %
 %
 % \bigskip
-% In particular, we have an highlighting of the indentifiers which are the
+% In particular, we have an highlighting of the identifiers which are the
 % names of Python functions previously defined by the user. Indeed, when a
 % Python function is defined, the style |Name.Function.Internal| is applied to
 % that name. We define now that style (you define it directly and you short-cut
@@ -4996,7 +4996,7 @@ piton_version = "3.0a" -- 2024/05/12
     { \PitonStyle { Name.Function } { #1 } }
 %    \end{macrocode}
 % Now, we specify that the name of the new Python function is a known identifier
-% that will be formated with the Piton style |UserFunction|. Of course,
+% that will be formatted with the Piton style |UserFunction|. Of course,
 % here the affectation is global because we have to exit many groups and even
 % the environments |{Piton}|).
 %    \begin{macrocode}
@@ -5109,7 +5109,7 @@ piton_version = "3.0a" -- 2024/05/12
 \@@_msg_new:nn { Language~not~defined }
   { 
     Language~not~defined \\
-    The~language~'\l_tmpa_tl'~has~not~been~defined~previoulsy.\\
+    The~language~'\l_tmpa_tl'~has~not~been~defined~previously.\\
     If~you~go~on,~your~command~\token_to_str:N \NewPitonLanguage\ 
     will~be~ignored.
   }
@@ -5346,7 +5346,7 @@ piton_version = "3.0a" -- 2024/05/12
            E = ( V "F" * ( "," * V "F" ) ^ 0 ) / add ,
 %    \end{macrocode}
 % Be careful: in Lua, \verb|/| has no priority over \verb|*|. Of course, we want
-% a behaviour for this comma-seperated list equal to the behaviour of a |clist|
+% a behaviour for this comma-separated list equal to the behaviour of a |clist|
 % of L3.
 %    \begin{macrocode}
            F = space ^ 0 * ( ( alpha ^ 1 ) / "\\%0" ) * space ^ 0 
@@ -5426,7 +5426,7 @@ end
 % \emph{which does a capture} of the pattern. That capture will be sent to LaTeX
 % with standard LaTeX catcodes for all the characters: the elements captured
 % will be formatted as normal LaTeX codes. It's suitable for the ``LaTeX
-% comments'' in the environments |{Piton}| and the elements beetween 
+% comments'' in the environments |{Piton}| and the elements between 
 % |begin-escape| and |end-escape|. That function won't be much used.
 %    \begin{macrocode}
 local function L ( pattern )
@@ -5701,7 +5701,7 @@ end
 % \paragraph{Constructions for Beamer}
 %
 % \bigskip
-% If the classe Beamer is used, some environemnts and commands of Beamer are
+% If the class Beamer is used, some environments and commands of Beamer are
 % automatically detected in the listings of \pkg{piton}.
 %    \begin{macrocode}
 local Beamer = P ( false ) 
@@ -5896,7 +5896,7 @@ local EOL =
 %
 % \bigskip
 % The following \textsc{lpeg} |CommentLaTeX| is for what is called in that
-% document the ``LaTeX comments''. Since the elements that will be catched must
+% document the ``LaTeX comments''. Since the elements that will be caught must
 % be sent to LaTeX with standard LaTeX catcodes, we put the capture (done by
 % the function~|C|) in a table (by using~|Ct|, which is an alias for |lpeg.Ct|).
 %    \begin{macrocode}
@@ -5994,7 +5994,7 @@ local DefClass =
   K ( 'Keyword' , "class" ) * Space * K ( 'Name.Class' , identifier ) 
 %    \end{macrocode}
 % 
-% If the word |class| is not followed by a identifier, it will be catched as
+% If the word |class| is not followed by a identifier, it will be caught as
 % keyword by the \textsc{lpeg} |Keyword| (useful if we want to type a
 % list of keywords).
 %
@@ -6033,7 +6033,7 @@ local ImportAs =
 % need a special treatment because the identifier following the keyword |from|
 % must be formatted with the \pkg{piton} style |Name.Namespace| and the
 % following keyword |import| must be formatted with the \pkg{piton} style
-% |Keyword| and must \emph{not} be catched by the \textsc{lpeg} |ImportAs|.
+% |Keyword| and must \emph{not} be caught by the \textsc{lpeg} |ImportAs|.
 %
 % \smallskip
 % Example:\enskip \piton{from math import pi}
@@ -6078,7 +6078,7 @@ local FromImport =
 %
 % \bigskip
 % The interpolations beginning by |%| (even though there is more modern
-% technics now in Python).
+% techniques now in Python).
 %    \begin{macrocode}
 local PercentInterpol =  
   K ( 'String.Interpol' , 
@@ -6098,7 +6098,7 @@ local PercentInterpol =
 % formatted with another \pkg{piton} style that the rest of the
 % string.\footnote{The interpolations are formatted with the \pkg{piton} style
 % |Interpol.Inside|. The initial value of that style is \texttt{\textbackslash
-% @@\_piton:n} wich means that the interpolations are parsed once again by \pkg{piton}.}
+% @@\_piton:n} which means that the interpolations are parsed once again by \pkg{piton}.}
 %    \begin{macrocode}
 local SingleShortString =
   WithStyle ( 'String.Short' ,
@@ -6355,7 +6355,7 @@ local DefFunction =
       * ( EOL + CommentLaTeX + Comment ) -- in all cases, that contains an EOL
       * Tab ^ 0 
       * SkipSpace
-      * StringDoc ^ 0 -- there may be additionnal docstrings 
+      * StringDoc ^ 0 -- there may be additional docstrings 
     ) ^ -1
 %    \end{macrocode}
 % Remark that, in the previous code, |CommentLaTeX| \emph{must} appear
@@ -6364,7 +6364,7 @@ local DefFunction =
 % 
 % \smallskip 
 % If the word |def| is not followed by an identifier and parenthesis, it will be
-% catched as keyword by the \textsc{lpeg} |Keyword| (useful if, for example, the
+% caught as keyword by the \textsc{lpeg} |Keyword| (useful if, for example, the
 % final user wants to speak of the keyword \piton{def}).
 %
 %
@@ -6447,7 +6447,7 @@ local Delim = Q ( P "[|" + "|]" + S "[()]" )
 local Punct = Q ( S ",:;!" )
 %    \end{macrocode}
 % 
-% The identifiers catched by |cap_identifier| begin with a cap. In OCaml, it's
+% The identifiers caught by |cap_identifier| begin with a cap. In OCaml, it's
 % used for the constructors of types and for the modules.
 %    \begin{macrocode}
 local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0 
@@ -6910,7 +6910,7 @@ local DefClass =
   K ( 'Keyword' , "class" ) * Space * K ( 'Name.Class' , identifier ) 
 %    \end{macrocode}
 % 
-% If the word |class| is not followed by a identifier, it will be catched as
+% If the word |class| is not followed by a identifier, it will be caught as
 % keyword by the \textsc{lpeg} |Keyword| (useful if we want to type a
 % list of keywords).
 %
@@ -7064,7 +7064,7 @@ local Operator =
 % In SQL, the keywords are case-insensitive. That's why we have a little
 % complication. We will catch the keywords with the identifiers and, then,
 % distinguish the keywords with a Lua function. However, some keywords will be
-% catched in special LPEG because we want to detect the names of the SQL tables.
+% caught in special LPEG because we want to detect the names of the SQL tables.
 %    \begin{macrocode}
 local function Set ( list )
   local set = { }
@@ -7090,7 +7090,7 @@ local set_builtins = Set
  }
 %    \end{macrocode}
 %
-% The \textsc{lpeg} |Identifer| will catch the identifiers of the fields  
+% The \textsc{lpeg} |Identifier| will catch the identifiers of the fields  
 % but also the keywords and the built-in functions of SQL. If will \emph{not}
 % catch the names of the SQL tables.
 %    \begin{macrocode}
@@ -7500,7 +7500,7 @@ local TabsAutoGobbleLPEG =
 % The following \textsc{lpeg} returns as capture the number of spaces at the
 % last line, that is to say before the |\end{Piton}| (and usually it's also the
 % number of spaces before the corresponding |\begin{Piton}| because that's the
-% traditionnal way to indent in LaTeX). 
+% traditional way to indent in LaTeX). 
 %    \begin{macrocode}
 local EnvGobbleLPEG =
       ( ( 1 - P "\r" ) ^ 0 * "\r" ) ^ 0
@@ -7625,7 +7625,7 @@ end
 %
 % 
 % \bigskip
-% The following public Lua function is provided to the developper. 
+% The following public Lua function is provided to the developer. 
 %    \begin{macrocode}
 function piton.get_last_code ( ) 
   return LPEG_cleaner[piton.last_language] : match ( piton.last_code ) 
@@ -7774,7 +7774,7 @@ function piton.new_language ( lang , definition )
 %    \begin{macrocode}
        extra_others[c] = true 
 %    \end{macrocode}
-% The \textsc{lpeg} pattern |other| will be used in conjonction with the key
+% The \textsc{lpeg} pattern |other| will be used in conjunction with the key
 % |tag| (mainly for the language \textsc{html}) for the character |/| in the
 % closing tags |</....>|).
 %    \begin{macrocode}
@@ -7986,7 +7986,7 @@ function piton.new_language ( lang , definition )
 % keywords (= control sequences).
 % \begin{itemize}
 % \item those beginning with |\| and a sequence of characters of catcode ``|letter|'';
-% \item those beginning by |\| followed by one character ot catcode ``|other|''.
+% \item those beginning by |\| followed by one character of catcode ``|other|''.
 % \end{itemize}
 % The following code addresses both cases. Of course, the \textsc{lpeg} pattern
 % |letter| must catch only characters of catcode ``|letter|''. That's why we
@@ -8184,7 +8184,7 @@ function piton.new_language ( lang , definition )
        + CommentDelim
 %    \end{macrocode}
 % We must put |LongString| before |Delim| because, in PostScript, the strings
-% are delimited by parenthesis and those parenthesis would be catched by |Delim|.
+% are delimited by parenthesis and those parenthesis would be caught by |Delim|.
 %    \begin{macrocode}
        + LongString
        + Delim
@@ -8307,7 +8307,7 @@ end
 %
 % \subsection*{Changes between versions 2.7 and 2.8}
 %
-% The key |path| now accepts a \emph{list} of pathes where the files to include
+% The key |path| now accepts a \emph{list} of paths where the files to include
 % will be searched.
 %
 % New commands |\PitonInputFileT|, |\PitonInputFileF| and |\PitonInputFileTF|.
@@ -8413,7 +8413,7 @@ end
 % 
 % New key |show-spaces-in-string| and modification of the key |show-spaces|.
 %
-% When the class \cls{beamer} is used, the environements |{uncoverenv}|,
+% When the class \cls{beamer} is used, the environments |{uncoverenv}|,
 % |{onlyenv}|, |{visibleenv}| and |{invisibleenv}|
 %
 %
