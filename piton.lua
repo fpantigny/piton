@@ -20,7 +20,8 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.0a" -- 2024/05/12
+piton_version = "3.0x" -- 2024/05/22
+
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
@@ -505,7 +506,7 @@ local DefFunction =
       * ( EOL + CommentLaTeX + Comment ) -- in all cases, that contains an EOL
       * Tab ^ 0
       * SkipSpace
-      * StringDoc ^ 0 -- there may be additionnal docstrings
+      * StringDoc ^ 0 -- there may be additional docstrings
     ) ^ -1
 local ExceptionInConsole = Exception *  Q ( ( 1 - P "\r" ) ^ 0 ) * EOL
 local Main =
@@ -1407,6 +1408,9 @@ function piton.new_language ( lang , definition )
     end
   end
   local letter = alpha + S ( string_extra_letters )
+                  + P "â" + "à" + "ç" + "é" + "è" + "ê" + "ë" + "ï" + "î"
+                    + "ô" + "û" + "ü" + "Â" + "À" + "Ç" + "É" + "È" + "Ê" + "Ë"
+                    + "Ï" + "Î" + "Ô" + "Û" + "Ü"
   local alphanum = letter + digit
   local identifier = letter * alphanum ^ 0
   local Identifier = K ( 'Identifier' , identifier )
@@ -1645,27 +1649,19 @@ function piton.new_language ( lang , definition )
             + LongString
             + PrefixedKeyword
             + Keyword * ( -1 + # ( 1 - alphanum ) )
-                      -- * ( Space + Punct + Delim + Number + Word + EOL +  Escape + EscapeMath + -1 )
             + Punct
             + K ( 'Identifier' , letter * alphanum ^ 0 )
             + Number
             + Word
     LPEG0[lang] = MainWithoutTag ^ 0
+    local LPEGaux = Tab + Escape + EscapeMath + CommentLaTeX
+                    + Beamer + DetectedCommands + CommentDelim + Tag
     MainWithTag
             = space ^ 1 * -1
             + space ^ 0 * EOL
             + Space
-            + Tab
-            + Escape + EscapeMath
-            + CommentLaTeX
-            + Beamer
-            + DetectedCommands
-            + CommentDelim
-            + Tag
-            + Delim
-            + Punct
-            + K ( 'Identifier' , letter * alphanum ^ 0 )
-            + Word
+            + LPEGaux
+            + Q ( ( 1 - EOL - LPEGaux ) ^ 1 )
     LPEG1[lang] = MainWithTag ^ 0
     LPEG2[lang] =
       Ct (
