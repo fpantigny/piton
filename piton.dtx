@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.0x}
-\def\PitonFileDate{2024/05/22}
+\def\PitonFileVersion{3.0b}
+\def\PitonFileDate{2024/05/23}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.0x" -- 2024/05/22
+piton_version = "3.0b" -- 2024/05/23
 %</LUA>
 %\fi
 %
@@ -4048,6 +4048,27 @@ piton_version = "3.0x" -- 2024/05/22
 %    \end{macrocode}
 % 
 % \bigskip
+%    \begin{macrocode}
+\keys_define:nn { NewPitonLanguage }
+  {
+    morekeywords .code:n = ,
+    otherkeywords .code:n = , 
+    sensitive .code:n = , 
+    keywordsprefix .code:n = ,
+    moretexcs .code:n = , 
+    morestring .code:n = ,
+    morecomment .code:n = ,
+    moredelim .code:n = , 
+    moredirectives .code:n = , 
+    tag .code:n = , 
+    alsodigit .code:n = , 
+    alsoletter .code:n = , 
+    alsoother .code:n = ,
+    unknown .code:n = \@@_error:n { Unknown~key~NewPitonLanguage } 
+  }
+%    \end{macrocode}
+%
+% \bigskip
 % The function |\@@_NewPitonLanguage:nnn| will be used when the language is
 % \emph{not} defined above a base language (and a base dialect).
 %    \begin{macrocode}
@@ -4064,6 +4085,12 @@ piton_version = "3.0x" -- 2024/05/22
         \str_lowercase:n { #2 } 
       }
 %    \end{macrocode}
+%
+% The following set of keys is only used to raise an error when a key in unknown!
+%    \begin{macrocode}
+    \keys_set:nn { NewPitonLanguage } { #3 }
+%    \end{macrocode}
+% 
 % We store in LaTeX the definition of the language because some languages may be
 % defined with that language as base language.
 %    \begin{macrocode}
@@ -5126,6 +5153,14 @@ piton_version = "3.0x" -- 2024/05/22
   }
 %    \end{macrocode}
 %
+%    \begin{macrocode}
+\@@_msg_new:nn { Unknown~key~NewPitonLanguage } 
+  {
+    Unknown~key~for~\token_to_str:N \NewPitonLanguage.\\
+    The~key~'\l_keys_key_str'~is~unknown.\\
+    This~key~will~be~ignored.\\
+  }
+%    \end{macrocode}
 % 
 %    \begin{macrocode}
 \@@_msg_new:nn { Unknown~key~for~SetPitonStyle } 
@@ -8193,7 +8228,6 @@ function piton.new_language ( lang , definition )
        + Delim
        + PrefixedKeyword
        + Keyword * ( -1 + # ( 1 - alphanum ) ) 
-          -- * ( Space + Punct + Delim + Number + Word + EOL + Escape + EscapeMath + -1 ) 
        + Punct 
        + K ( 'Identifier' , letter * alphanum ^ 0 )
        + Number

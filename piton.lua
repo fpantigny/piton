@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.0x" -- 2024/05/22
+piton_version = "3.0b" -- 2024/05/23
 
 
 
@@ -1612,7 +1612,6 @@ function piton.new_language ( lang , definition )
        + Delim
        + PrefixedKeyword
        + Keyword * ( -1 + # ( 1 - alphanum ) )
-          -- * ( Space + Punct + Delim + Number + Word + EOL + Escape + EscapeMath + -1 )
        + Punct
        + K ( 'Identifier' , letter * alphanum ^ 0 )
        + Number

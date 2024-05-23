@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{3.0x}
-\def\PitonFileDate{2024/05/22}
+\def\PitonFileVersion{3.0b}
+\def\PitonFileDate{2024/05/23}
 
 
 
@@ -731,6 +731,23 @@
       { \__piton_NewPitonLanguage:nnnnn { #1 } { #2 } { #3 } }
   }
 \prop_new:N \g__piton_languages_prop
+\keys_define:nn { NewPitonLanguage }
+  {
+    morekeywords .code:n = ,
+    otherkeywords .code:n = ,
+    sensitive .code:n = ,
+    keywordsprefix .code:n = ,
+    moretexcs .code:n = ,
+    morestring .code:n = ,
+    morecomment .code:n = ,
+    moredelim .code:n = ,
+    moredirectives .code:n = ,
+    tag .code:n = ,
+    alsodigit .code:n = ,
+    alsoletter .code:n = ,
+    alsoother .code:n = ,
+    unknown .code:n = \__piton_error:n { Unknown~key~NewPitonLanguage }
+  }
 \cs_new_protected:Npn \__piton_NewPitonLanguage:nnn #1 #2 #3
   {
     \tl_set:Nx \l_tmpa_tl
@@ -738,6 +755,7 @@
         \tl_if_blank:nF { #1 } { [ \str_lowercase:n { #1 } ] }
         \str_lowercase:n { #2 }
       }
+    \keys_set:nn { NewPitonLanguage } { #3 }
     \prop_gput:Non \g__piton_languages_prop \l_tmpa_tl { #3 }
     \exp_args:NV \__piton_NewPitonLanguage:nn \l_tmpa_tl { #3 }
   }
@@ -1373,6 +1391,12 @@
     The~file~'piton.lua'~loaded~has~not~the~same~number~of~
     version~as~the~file~'piton.sty'.~You~can~go~on~but~you~should~
     address~that~issue.
+  }
+\__piton_msg_new:nn { Unknown~key~NewPitonLanguage }
+  {
+    Unknown~key~for~\token_to_str:N \NewPitonLanguage.\\
+    The~key~'\l_keys_key_str'~is~unknown.\\
+    This~key~will~be~ignored.\\
   }
 \__piton_msg_new:nn { Unknown~key~for~SetPitonStyle }
   {
