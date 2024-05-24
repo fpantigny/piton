@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.0b}
-\def\PitonFileDate{2024/05/23}
+\def\PitonFileVersion{3.0zz}
+\def\PitonFileDate{2024/05/24}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.0b" -- 2024/05/23
+piton_version = "3.0zz" -- 2024/05/24
 %</LUA>
 %\fi
 %
@@ -3213,11 +3213,6 @@ piton_version = "3.0b" -- 2024/05/23
 \dim_set:Nn \l_@@_numbers_sep_dim { 0.7 em }
 %    \end{macrocode}
 % 
-% \medskip
-% The tabulators will be replaced by the content of the following token list.
-%    \begin{macrocode}
-\tl_new:N \l_@@_tab_tl
-%    \end{macrocode}
 %
 % \medskip
 % Be careful. The following sequence |\g_@@_languages_seq| is not the list of
@@ -3233,30 +3228,26 @@ piton_version = "3.0b" -- 2024/05/23
 %
 % \medskip
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_set_tab_tl:n #1
-  { 
-    \tl_clear:N \l_@@_tab_tl
-    \prg_replicate:nn { #1 } 
-      { \tl_put_right:Nn \l_@@_tab_tl { ~ } }
-  }
-\@@_set_tab_tl:n { 4 }
+\int_new:N \l_@@_tab_size_int 
+\int_set:Nn \l_@@_tab_size_int { 4 }
 %    \end{macrocode}
 %
-% \medskip
-% When the key |show-spaces| is in force, |\l_@@_tab_tl| will be replaced by an
-% arrow by using the following command.
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_convert_tab_tl:
-  {
-    \hbox_set:Nn \l_tmpa_box { \l_@@_tab_tl }
-    \dim_set:Nn \l_tmpa_dim { \box_wd:N \l_tmpa_box }
-    \tl_set:Nn \l_@@_tab_tl 
+\cs_new_protected:Npn \@@_tab:
+  { 
+    \bool_if:NTF \l_@@_show_spaces_bool
       { 
+        \hbox_set:Nn \l_tmpa_box 
+          { \prg_replicate:nn \l_@@_tab_size_int { ~ } } 
+        \dim_set:Nn \l_tmpa_dim { \box_wd:N \l_tmpa_box }
         \( \mathcolor { gray } 
-             { \hbox_to_wd:nn \l_tmpa_dim { \rightarrowfill } \) } 
+             { \hbox_to_wd:nn \l_tmpa_dim { \rightarrowfill } } \)
       }
+      { \hbox:n { \prg_replicate:nn \l_@@_tab_size_int { ~ } } }
+    \int_gadd:Nn \g_@@_indentation_int \l_@@_tab_size_int 
   }
 %    \end{macrocode}
+%
 % 
 % \medskip
 % The following integer corresponds to the key |gobble|.
@@ -3849,11 +3840,9 @@ piton_version = "3.0b" -- 2024/05/23
         } ,
     left-margin      .value_required:n  = true ,
 
-    tab-size         .code:n            = \@@_set_tab_tl:n { #1 } ,
+    tab-size         .int_set:N         = \l_@@_tab_size_int ,
     tab-size         .value_required:n  = true , 
-    show-spaces      .code:n            = 
-         \bool_set_true:N \l_@@_show_spaces_bool 
-         \@@_convert_tab_tl: ,
+    show-spaces      .bool_set:N        = \l_@@_show_spaces_bool ,
     show-spaces      .value_forbidden:n = true ,
     show-spaces-in-strings .code:n      = \tl_set:Nn \l_@@_space_tl { ␣ } , % U+2423
     show-spaces-in-strings .value_forbidden:n = true ,
@@ -5648,7 +5637,7 @@ local SkipSpace = Q " " ^ 0
 
 local Punct = Q ( S ".,:;!" )
 
-local Tab = "\t" * Lc "\\l_@@_tab_tl"
+local Tab = "\t" * Lc "\\@@_tab:"
 %    \end{macrocode}
 % 
 % \bigskip

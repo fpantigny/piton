@@ -124,7 +124,7 @@ local SkipSpace = Q " " ^ 0
 
 local Punct = Q ( S ".,:;!" )
 
-local Tab = "\t" * Lc "\\l__piton_tab_tl"
+local Tab = "\t" * Lc "\\__piton_tab:"
 local SpaceIndentation = Lc "\\__piton_an_indentation_space:" * Q " "
 local Delim = Q ( S "[({})]" )
 local VisualSpace = space * Lc "\\l__piton_space_tl"
