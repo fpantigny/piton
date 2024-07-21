@@ -1489,7 +1489,7 @@ vouloir activer le mécanisme «|escape-math|» avec le caractère |$|:
 \begin{Verbatim}
 \PitonOptions{~emphase#begin-escape-math=$,end-escape-math=$@}
 \end{Verbatim}
-Remarquer que le caractère |$| ne doit \emph{pas} être protégé par une contre-oblique.
+Remarquer que le caractère |$| ne doit \emph{pas} être protégé par une contre-oblique. % $
 
 \bigskip
 Néanmoins, il est sans doute plus prudent d'utiliser |\(| et |\)|.
@@ -1750,6 +1750,9 @@ Il existe aussi une clé \Definition{tabs-auto-gobble} qui détermine le nombre 
 chaque ligne (non vide) de l'environnement |{Piton}| et applique |gobble| avec cette valeur (avant le remplacement
 des caractères U+0009 par des espaces, bien entendu). Cette clé est donc similaire à la clé |auto-gobble| mais agit
 sur des caractères U+0009 au lieu de caractères U+0020 (espaces).
+
+\smallskip
+La clé |env-gobble| n'est pas compatible avec les tabulations.
 
 
 \section{API pour les développeurs}

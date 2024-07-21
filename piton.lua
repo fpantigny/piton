@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.0b" -- 2024/05/23
+piton_version = "3.0zzzz" -- 2024/07/24
 
 
 
@@ -637,7 +637,7 @@ local Char =
   K ( 'String.Short' , "'" * ( ( 1 - P "'" ) ^ 0 + "\\'" ) * "'" )
 braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
 if piton.beamer then
-  Beamer = Compute_Beamer ( 'ocaml' , "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
+  Beamer = Compute_Beamer ( 'ocaml' , braces ) -- modified 2024/07/24
 end
 DetectedCommands = Compute_DetectedCommands ( 'ocaml' , braces )
 LPEG_cleaner['ocaml'] = Compute_LPEG_cleaner ( 'ocaml' , braces )

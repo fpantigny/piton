@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{3.0b}
-\def\PitonFileDate{2024/05/23}
+\def\PitonFileVersion{3.0zzzz}
+\def\PitonFileDate{2024/07/24}
 
 
 
@@ -428,6 +428,8 @@
 \bool_new:N \l__piton_skip_empty_lines_bool
 \bool_set_true:N \l__piton_skip_empty_lines_bool
 \bool_new:N \l__piton_line_numbers_absolute_bool
+\tl_new:N \l__piton_line_numbers_format_bool
+\tl_set:Nn \l__piton_line_numbers_format_tl { \footnotesize \color { gray } }
 \bool_new:N \l__piton_label_empty_lines_bool
 \bool_set_true:N \l__piton_label_empty_lines_bool
 \int_new:N \l__piton_number_lines_start_int
@@ -496,6 +498,9 @@
 
     sep .dim_set:N = \l__piton_numbers_sep_dim ,
     sep .value_required:n = true ,
+
+    format .tl_set:N = \l__piton_line_numbers_format_tl ,
+    format .value_required:n = true ,
 
     unknown .code:n = \__piton_error:n { Unknown~key~for~line-numbers }
   }
@@ -690,8 +695,7 @@
     \hbox_overlap_left:n
       {
         {
-          \color { gray }
-          \footnotesize
+          \l__piton_line_numbers_format_tl
           \int_to_arabic:n \g__piton_visual_line_int
         }
         \skip_horizontal:N \l__piton_numbers_sep_dim
@@ -907,7 +911,7 @@
        {
         \hbox_set:Nn \l_tmpa_box
           {
-            \footnotesize
+            \l__piton_line_numbers_format_tl
             \bool_if:NTF \l__piton_skip_empty_lines_bool
               {
                 \lua_now:n
