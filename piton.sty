@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{3.0zzzz}
-\def\PitonFileDate{2024/07/24}
+\def\PitonFileVersion{3.1}
+\def\PitonFileDate{2024/07/30}
 
 
 
@@ -165,7 +165,11 @@
   }
 \lua_now:n
   {
-    piton.ListCommands = lpeg.P ( false )
+    piton.BeamerCommands = lpeg.P ( "\\uncover" )
+          + "\\only" + "\\visible" + "\\invisible" + "\\alert" + "\\action"
+    piton.beamer_environments = { "uncoverenv" , "onlyenv" , "visibleenv" ,
+               "invisibleenv" ,  "alertenv" ,  "actionenv" }
+    piton.DetectedCommands = lpeg.P ( false )
     piton.last_code = ''
     piton.last_language = ''
   }
@@ -507,9 +511,17 @@
 \keys_define:nn { PitonOptions }
   {
     detected-commands .code:n =
-       \lua_now:n { piton.addListCommands('#1') } ,
+       \lua_now:n { piton.addDetectedCommands('#1') } ,
     detected-commands .value_required:n = true ,
     detected-commands .usage:n = preamble ,
+    detected-beamer-commands .code:n =
+       \lua_now:n { piton.addBeamerCommands('#1') } ,
+    detected-beamer-commands .value_required:n = true ,
+    detected-beamer-commands .usage:n = preamble ,
+    detected-beamer-environments .code:n =
+       \lua_now:n { piton.addBeamerEnvironments('#1') } ,
+    detected-beamer-environments .value_required:n = true ,
+    detected-beamer-environments .usage:n = preamble ,
     begin-escape .code:n =
       \lua_now:e { piton.begin_escape = "\lua_escape:n{#1}" } ,
     begin-escape .value_required:n = true ,
@@ -1135,7 +1147,6 @@
       \__piton_compute_left_margin:no { CountNonEmptyLinesFile } \l__piton_file_name_str
       \__piton_compute_width:
       \ttfamily
-      % \leavevmode
       \lua_now:e
         {
           piton.ParseFile(
@@ -1479,6 +1490,8 @@
     break-lines-in-Piton,~
     continuation-symbol,~
     continuation-symbol-on-indentation,~
+    detected-beamer-commands,~
+    detected-beamer-environments,~
     detected-commands,~
     end-of-broken-line,~
     end-range,~
@@ -1554,8 +1567,25 @@
            E = ( V "F" * ( "," * V "F" ) ^ 0 ) / add ,
            F = space ^ 0 * ( ( alpha ^ 1 ) / "\\%0" ) * space ^ 0
         }
-    function piton.addListCommands( key_value )
-      piton.ListCommands = piton.ListCommands + my_lpeg : match ( key_value )
+    function piton.addDetectedCommands( key_value )
+      piton.DetectedCommands = piton.DetectedCommands + my_lpeg : match ( key_value )
+    end
+    function piton.addBeamerCommands( key_value )
+      piton.BeamerCommands
+       = piton.BeamerCommands + my_lpeg : match ( key_value )
+    end
+    local function insert(...)
+          local s = piton.beamer_environments
+          for _ , x in ipairs({...}) do table.insert(s,x) end
+          return s
+          end
+    local my_lpeg_bis =
+      P {  "E" ,
+           E = ( V "F" * ( "," * V "F" ) ^ 0 ) / insert ,
+           F = space ^ 0 * ( alpha ^ 1 ) * space ^ 0
+        }
+    function piton.addBeamerEnvironments( key_value )
+      piton.beamer_environments = my_lpeg_bis : match ( key_value )
     end
 \end{luacode*}
 

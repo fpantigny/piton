@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.0zzzz" -- 2024/07/24
+piton_version = "3.1" -- 2024/07/30
 
 
 
@@ -146,17 +146,19 @@ local function Compute_braces ( lpeg_string ) return
 end
 local function Compute_DetectedCommands ( lang , braces ) return
   Ct ( Cc "Open"
-        * C ( piton.ListCommands * P "{" )
+        * C ( piton.DetectedCommands * P "{" )
         * Cc "}"
      )
-   * ( braces / (function ( s ) return LPEG1[lang] : match ( s ) end ) )
+   * ( braces
+       / ( function ( s ) if s ~= '' then return  LPEG1[lang] : match ( s ) end end ) )
    * P "}"
    * Ct ( Cc "Close" )
 end
 local function Compute_LPEG_cleaner ( lang , braces ) return
-  Ct ( ( piton.ListCommands * "{"
+  Ct ( ( piton.DetectedCommands * "{"
           * (  braces
-              / ( function ( s ) return LPEG_cleaner[lang] : match ( s ) end ) )
+              / ( function ( s )
+                  if s ~= '' then return LPEG_cleaner[lang] : match ( s ) end  end ) )
           * "}"
          + EscapeClean
          +  C ( P ( 1 ) )
@@ -165,56 +167,58 @@ end
 local Beamer = P ( false )
 local BeamerBeginEnvironments = P ( true )
 local BeamerEndEnvironments = P ( true )
-local list_beamer_env =
-  { "uncoverenv" , "onlyenv" , "visibleenv" ,
-    "invisibleenv" , "alertenv" , "actionenv" }
-local BeamerNamesEnvironments = P ( false )
-for _ , x in ipairs ( list_beamer_env ) do
-  BeamerNamesEnvironments = BeamerNamesEnvironments + x
+piton.BeamerEnvironments = P ( false )
+for _ , x  in ipairs ( piton.beamer_environments )  do
+  piton.BeamerEnvironments = piton.BeamerEnvironments + x
 end
 BeamerBeginEnvironments =
     ( space ^ 0 *
       L
         (
-          P "\\begin{" * BeamerNamesEnvironments * "}"
+          P "\\begin{" * piton.BeamerEnvironments * "}"
           * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
         )
       * "\r"
     ) ^ 0
 BeamerEndEnvironments =
     ( space ^ 0 *
-      L ( P "\\end{" * BeamerNamesEnvironments * "}" )
+      L ( P "\\end{" * piton.BeamerEnvironments * "}" )
       * "\r"
     ) ^ 0
 local function Compute_Beamer ( lang , braces )
   local lpeg = L ( P "\\pause" * ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ -1 )
   lpeg = lpeg +
       Ct ( Cc "Open"
-            * C ( ( P "\\uncover" + "\\only" + "\\alert" + "\\visible"
-                    + "\\invisible" + "\\action" )
+            * C ( piton.BeamerCommands
                   * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
                   * P "{"
                 )
             * Cc "}"
          )
-       * ( braces / ( function ( s ) return LPEG1[lang] : match ( s ) end ) )
+       * ( braces /
+           ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
        * "}"
        * Ct ( Cc "Close" )
   lpeg = lpeg +
     L ( P "\\alt" * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
-     * K ( 'ParseAgain.noCR' , braces )
+     * ( braces /
+         ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
      * L ( P "}{" )
-     * K ( 'ParseAgain.noCR' , braces )
+     * ( braces /
+         ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
      * L ( P "}" )
   lpeg = lpeg +
       L ( ( P "\\temporal" ) * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
-      * K ( 'ParseAgain.noCR' , braces )
+      * ( braces
+          / ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , braces )
+      * ( braces
+          / ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , braces )
+      * ( braces
+          / ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
       * L ( P "}" )
-  for _ , x in ipairs ( list_beamer_env ) do
+  for _ , x in ipairs ( piton.beamer_environments ) do
   lpeg = lpeg +
         Ct ( Cc "Open"
              * C (
@@ -225,7 +229,11 @@ local function Compute_Beamer ( lang , braces )
             )
         * (
             ( ( 1 - P ( "\\end{" .. x .. "}" ) ) ^ 0 )
-                / ( function ( s ) return LPEG1[lang] : match ( s ) end )
+                / ( function ( s )
+                    if s ~= ''
+                    then return LPEG1[lang] : match ( s )
+                    end
+                    end )
           )
         * P ( "\\end{" .. x .. "}" )
         * Ct ( Cc "Close" )
@@ -270,6 +278,11 @@ local Operator =
 
 local OperatorWord =
   K ( 'Operator.Word' , P "in" + "is" + "and" + "or" + "not" )
+local For = K ( 'Keyword' , P "for" )
+            * Space
+            * Identifier
+            * Space
+            * K ( 'Keyword' , P "in" )
 
 local Keyword =
   K ( 'Keyword' ,
@@ -509,10 +522,11 @@ local DefFunction =
       * StringDoc ^ 0 -- there may be additional docstrings
     ) ^ -1
 local ExceptionInConsole = Exception *  Q ( ( 1 - P "\r" ) ^ 0 ) * EOL
+local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
 local Main =
-       space ^ 1 * -1
-     + space ^ 0 * EOL
-     + Space
+     --   space ^ 1 * -1
+     -- + space ^ 0 * EOL
+     Space
      + Tab
      + Escape + EscapeMath
      + CommentLaTeX
@@ -523,16 +537,17 @@ local Main =
      + ExceptionInConsole
      + Delim
      + Operator
-     + OperatorWord * ( Space + Punct + Delim + EOL + -1 )
+     + OperatorWord * EndKeyword
      + ShortString
      + Punct
      + FromImport
      + RaiseException
      + DefFunction
      + DefClass
-     + Keyword * ( Space + Punct + Delim + EOL + -1 )
+     + For
+     + Keyword * EndKeyword
      + Decorator
-     + Builtin * ( Space + Punct + Delim + EOL + -1 )
+     + Builtin * EndKeyword
      + Identifier
      + Number
      + Word
@@ -545,7 +560,7 @@ LPEG2['python'] =
        * Lc '\\__piton_begin_line:'
        * Prompt
        * SpaceIndentation ^ 0
-       * LPEG1['python']
+       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
        * -1
        * Lc '\\__piton_end_line:'
      )
@@ -598,7 +613,7 @@ local DotNotation =
   (
       K ( 'Name.Module' , cap_identifier )
         * Q "."
-        * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" )
+        * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ^ ( -1 )
       +
       Identifier
         * Q "."
@@ -754,10 +769,9 @@ local DefModule =
   K ( 'Keyword' , P "include" + "open" )
   * Space * K ( 'Name.Module' , cap_identifier )
 local TypeParameter = K ( 'TypeParameter' , "'" * alpha * # ( 1 - P "'" ) )
+local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
 local Main =
-       space ^ 1 * -1
-     + space ^ 0 * EOL
-     + Space
+     Space
      + Tab
      + Escape + EscapeMath
      + Beamer
@@ -773,9 +787,9 @@ local Main =
      + DefFunction
      + DefModule
      + Record
-     + Keyword * ( Space + Punct + Delim + EOL + -1 )
-     + OperatorWord * ( Space + Punct + Delim + EOL + -1 )
-     + Builtin * ( Space + Punct + Delim + EOL + -1 )
+     + Keyword * EndKeyword
+     + OperatorWord * EndKeyword
+     + Builtin * EndKeyword
      + DotNotation
      + Constructor
      + Identifier
@@ -789,7 +803,7 @@ LPEG2['ocaml'] =
        * BeamerBeginEnvironments
        * Lc '\\__piton_begin_line:'
        * SpaceIndentation ^ 0
-       * LPEG1['ocaml']
+       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
        * -1
        * Lc '\\__piton_end_line:'
      )
@@ -859,10 +873,9 @@ local LongComment =
                * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0
                * Q "*/"
             ) -- $
+local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
 local Main =
-       space ^ 1 * -1
-     + space ^ 0 * EOL
-     + Space
+     Space
      + Tab
      + Escape + EscapeMath
      + CommentLaTeX
@@ -876,9 +889,9 @@ local Main =
      + Punct
      + DefFunction
      + DefClass
-     + Type * ( Q "*" ^ -1 + Space + Punct + Delim + EOL + -1 )
-     + Keyword * ( Space + Punct + Delim + EOL + -1 )
-     + Builtin * ( Space + Punct + Delim + EOL + -1 )
+     + Type * ( Q "*" ^ -1 + EndKeyword )
+     + Keyword * EndKeyword
+     + Builtin * EndKeyword
      + Identifier
      + Number
      + Word
@@ -889,7 +902,7 @@ LPEG2['c'] =
        * BeamerBeginEnvironments
        * Lc '\\__piton_begin_line:'
        * SpaceIndentation ^ 0
-       * LPEG1['c']
+       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
        * -1
        * Lc '\\__piton_end_line:'
      )
@@ -967,6 +980,7 @@ local LongComment =
                * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0
                * Q "*/"
             ) -- $
+local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
 local TableField =
        K ( 'Name.Table' , identifier )
      * Q "."
@@ -1005,10 +1019,9 @@ local WeCatchTableNames =
       + LuaKeyword "TABLE"
     )
     * ( Space + EOL ) * OneTable
+local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
 local Main =
-       space ^ 1 * -1
-     + space ^ 0 * EOL
-     + Space
+     Space
      + Tab
      + Escape + EscapeMath
      + CommentLaTeX
@@ -1030,7 +1043,7 @@ LPEG2['sql'] =
        * BeamerBeginEnvironments
        * Lc [[ \__piton_begin_line: ]]
        * SpaceIndentation ^ 0
-       * LPEG1['sql']
+       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
        * -1
        * Lc [[ \__piton_end_line: ]]
      )
@@ -1066,9 +1079,7 @@ local Identifier = K ( 'Identifier' , identifier )
 local Delim = Q ( S "{[()]}" )
 
 local Main =
-       space ^ 1 * -1
-     + space ^ 0 * EOL
-     + Space
+     Space
      + Tab
      + Escape + EscapeMath
      + CommentLaTeX
@@ -1090,7 +1101,7 @@ LPEG2['minimal'] =
        * BeamerBeginEnvironments
        * Lc [[ \__piton_begin_line: ]]
        * SpaceIndentation ^ 0
-       * LPEG1['minimal']
+       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
        * -1
        * Lc [[ \__piton_end_line: ]]
      )
@@ -1334,7 +1345,7 @@ function piton.new_language ( lang , definition )
   function add_to_other ( c )
      if c ~= " " then
        extra_others[c] = true
-       other = other + P "c"
+       other = other + P ( c )
      end
   end
   local strict_braces  =
@@ -1599,9 +1610,7 @@ function piton.new_language ( lang , definition )
   local Delim = Q ( S "{[()]}" )
   local Punct = Q ( S "=,:;!\\'\"" )
   local Main =
-         space ^ 1 * -1
-       + space ^ 0 * EOL
-       + Space
+       Space
        + Tab
        + Escape + EscapeMath
        + CommentLaTeX
@@ -1623,7 +1632,7 @@ function piton.new_language ( lang , definition )
          * BeamerBeginEnvironments
          * Lc [[\__piton_begin_line:]]
          * SpaceIndentation ^ 0
-         * LPEG1[lang]
+         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
          * Lc [[\__piton_end_line:]]
        )

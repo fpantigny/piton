@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.0zzzz}
-\def\PitonFileDate{2024/07/24}
+\def\PitonFileVersion{3.1}
+\def\PitonFileDate{2024/07/30}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.0zzzz" -- 2024/07/24
+piton_version = "3.1" -- 2024/07/30
 %</LUA>
 %\fi
 %
@@ -431,6 +431,10 @@ piton_version = "3.0zzzz" -- 2024/07/24
 % \item The key \Definition{line-numbers/sep} is the horizontal distance between
 % the numbers of lines (inserted by |line-numbers|) and the beginning of the
 % lines of code. The initial value is 0.7~em.
+% \item \colorbox{yellow!50}{\bfseries New 3.1}\enskip The key
+% \Definition{line-numbers/format} is a list of tokens which are inserted before
+% the number of line in order to format it. The initial value is
+% |\footnotesize\color{gray}|. 
 % \end{itemize}
 %
 % For convenience, a mechanism of factorisation of the prefix |line-numbers| is
@@ -1654,6 +1658,8 @@ piton_version = "3.0zzzz" -- 2024/07/24
 % 
 % \subsubsection{Commands of Beamer allowed in \{Piton\} and \textbackslash PitonInputFile}
 %
+% \index{detected-beamer-commands}
+%
 % When \pkg{piton} is used in the class \cls{beamer} , the following commands of
 % \cls{beamer} (classified upon their number of arguments) are automatically
 % detected in the environments |{Piton}| (and in the listings processed by
@@ -1663,17 +1669,23 @@ piton_version = "3.0zzzz" -- 2024/07/24
 % also  possible to use the command \texttt{\textbackslash pause} in a ``LaTeX
 % comment'', that is to say by writing \texttt{\#> \textbackslash pause}. By
 % this way, if the Python code is copied, it's still executable by Python}.  ;
-% \item one mandatory argument : |\action|, |\alert|, |\invisible|, |\only|, |\uncover| and |\visible| ;
+% \item one mandatory argument : |\action|, |\alert|, |\invisible|, |\only|,
+% |\uncover| and |\visible| ; \newline
+% \colorbox{yellow!50}{\bfseries New 3.1}\newline
+% It's possible to add new commands to that list with the key
+% \Definition{detected-beamer-commands} (the names of the commands must
+% \emph{not} be preceded by a backslash). 
 % \item two mandatory arguments : |\alt| ; 
 % \item three mandatory arguments  : |\temporal|.
 % \end{itemize}
 
-% \medskip
-% In the mandatory arguments of these commands, the braces must be balanced.
-% However, the braces included in short strings\footnote{The short strings of
-% Python are the strings delimited by characters \texttt{'} or the characters
-% \texttt{"} and not \texttt{'''} nor \texttt{"""}. In Python, the short strings
-% can't extend on several lines.} of Python are not considered. 
+% \medskip 
+% These commands must be used preceded and following by a space. In the
+% mandatory arguments of these commands, the braces must be balanced. However,
+% the braces included in short strings\footnote{The short strings of Python are
+% the strings delimited by characters \texttt{'} or the characters \texttt{"}
+% and not \texttt{'''} nor \texttt{"""}. In Python, the short strings can't
+% extend on several lines.} of Python are not considered.
 %
 % \medskip
 % Regarding the functions |\alt| and |\temporal| there should be no carriage
@@ -1713,8 +1725,18 @@ piton_version = "3.0zzzz" -- 2024/07/24
 % listings processed by |\PitonInputFile|): |{actionenv}|, |{alertenv}|,
 % |{invisibleenv}|, |{onlyenv}|, |{uncoverenv}| and |{visibleenv}|.
 %
+% \smallskip
+% \index{detected-beamer-environments}
+% \colorbox{yellow!50}{\bfseries New 3.1} 
+% 
+% It's possible to add new environments to that list with the key
+% \Definition{detected-beamer-environments}. 
+%
+% \smallskip
+%
 % However, there is a restriction: these environments must contain only \emph{whole
-% lines of Python code} in their body.
+% lines of Python code} in their body. The instructions |\begin{...}| and
+% |\end{...}| must be alone on their lines.
 %
 %\medskip
 % Here is an example:
@@ -2959,7 +2981,11 @@ piton_version = "3.0zzzz" -- 2024/07/24
 %    \begin{macrocode}
 \lua_now:n 
   { 
-    piton.ListCommands = lpeg.P ( false ) 
+    piton.BeamerCommands = lpeg.P ( "\\uncover" ) 
+          + "\\only" + "\\visible" + "\\invisible" + "\\alert" + "\\action" 
+    piton.beamer_environments = { "uncoverenv" , "onlyenv" , "visibleenv" , 
+               "invisibleenv" ,  "alertenv" ,  "actionenv" }
+    piton.DetectedCommands = lpeg.P ( false ) 
     piton.last_code = ''
     piton.last_language = ''
   }
@@ -3728,9 +3754,17 @@ piton_version = "3.0zzzz" -- 2024/07/24
 % First, we put keys that should be available only in the preamble.
 %    \begin{macrocode}
     detected-commands .code:n =  
-       \lua_now:n { piton.addListCommands('#1') } ,
+       \lua_now:n { piton.addDetectedCommands('#1') } ,
     detected-commands .value_required:n = true , 
     detected-commands .usage:n = preamble , 
+    detected-beamer-commands .code:n =  
+       \lua_now:n { piton.addBeamerCommands('#1') } ,
+    detected-beamer-commands .value_required:n = true , 
+    detected-beamer-commands .usage:n = preamble , 
+    detected-beamer-environments .code:n =  
+       \lua_now:n { piton.addBeamerEnvironments('#1') } ,
+    detected-beamer-environments .value_required:n = true , 
+    detected-beamer-environments .usage:n = preamble , 
 %    \end{macrocode}
 %
 % Remark that the command |\lua_escape:n| is fully expandable. That's why we use
@@ -4721,7 +4755,6 @@ piton_version = "3.0zzzz" -- 2024/07/24
       \@@_compute_left_margin:no { CountNonEmptyLinesFile } \l_@@_file_name_str
       \@@_compute_width:
       \ttfamily
-      % \leavevmode
       \lua_now:e
         { 
           piton.ParseFile(
@@ -5269,6 +5302,8 @@ piton_version = "3.0zzzz" -- 2024/07/24
     break-lines-in-Piton,~
     continuation-symbol,~ 
     continuation-symbol-on-indentation,~
+    detected-beamer-commands,~
+    detected-beamer-environments,~
     detected-commands,~
     end-of-broken-line,~
     end-range,~
@@ -5381,8 +5416,28 @@ piton_version = "3.0zzzz" -- 2024/07/24
 %    \begin{macrocode}
            F = space ^ 0 * ( ( alpha ^ 1 ) / "\\%0" ) * space ^ 0 
         }
-    function piton.addListCommands( key_value )
-      piton.ListCommands = piton.ListCommands + my_lpeg : match ( key_value ) 
+    function piton.addDetectedCommands( key_value )
+      piton.DetectedCommands = piton.DetectedCommands + my_lpeg : match ( key_value ) 
+    end
+    function piton.addBeamerCommands( key_value )
+      piton.BeamerCommands 
+       = piton.BeamerCommands + my_lpeg : match ( key_value ) 
+    end
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+    local function insert(...)
+          local s = piton.beamer_environments
+          for _ , x in ipairs({...}) do table.insert(s,x) end  
+          return s 
+          end
+    local my_lpeg_bis = 
+      P {  "E" ,
+           E = ( V "F" * ( "," * V "F" ) ^ 0 ) / insert ,
+           F = space ^ 0 * ( alpha ^ 1 ) * space ^ 0 
+        }
+    function piton.addBeamerEnvironments( key_value )
+      piton.beamer_environments = my_lpeg_bis : match ( key_value ) 
     end
 \end{luacode*}
 %</STY>
@@ -5422,7 +5477,7 @@ end
 local function sprintL3 ( s ) 
       tex.sprint ( luatexbase.catcodetables.expl , s ) 
 end 
-%    \end{uncoverenv}
+%    \end{macrocode}
 % 
 % \bigskip
 % \subsubsection{Special functions dealing with LPEG}
@@ -5698,16 +5753,19 @@ local function Compute_braces ( lpeg_string ) return
 end 
 %    \end{macrocode}
 %
+% 
+%         
 % \bigskip
 % The following Lua function will compute the \text{lpeg} |DetectedCommands|
 % which is a \textsc{lpeg} with captures).
 %    \begin{macrocode}
 local function Compute_DetectedCommands ( lang , braces ) return 
   Ct ( Cc "Open" 
-        * C ( piton.ListCommands * P "{" ) 
+        * C ( piton.DetectedCommands * P "{" ) 
         * Cc "}" 
      ) 
-   * ( braces / (function ( s ) return LPEG1[lang] : match ( s ) end ) )
+   * ( braces 
+       / ( function ( s ) if s ~= '' then return  LPEG1[lang] : match ( s ) end end ) )
    * P "}" 
    * Ct ( Cc "Close" ) 
 end
@@ -5716,9 +5774,10 @@ end
 % \bigskip
 %    \begin{macrocode}
 local function Compute_LPEG_cleaner ( lang , braces ) return 
-  Ct ( ( piton.ListCommands * "{" 
+  Ct ( ( piton.DetectedCommands * "{" 
           * (  braces 
-              / ( function ( s ) return LPEG_cleaner[lang] : match ( s ) end ) )
+              / ( function ( s ) 
+                  if s ~= '' then return LPEG_cleaner[lang] : match ( s ) end  end ) )
           * "}" 
          + EscapeClean
          +  C ( P ( 1 ) )
@@ -5739,28 +5798,20 @@ local BeamerBeginEnvironments = P ( true )
 local BeamerEndEnvironments = P ( true ) 
 %    \end{macrocode}
 %
-% \bigskip
 %    \begin{macrocode}
-local list_beamer_env =
-  { "uncoverenv" , "onlyenv" , "visibleenv" , 
-    "invisibleenv" , "alertenv" , "actionenv" }
-%    \end{macrocode}
-%
-% \bigskip
-%    \begin{macrocode}
-local BeamerNamesEnvironments = P ( false ) 
-for _ , x in ipairs ( list_beamer_env ) do
-  BeamerNamesEnvironments = BeamerNamesEnvironments + x 
+piton.BeamerEnvironments = P ( false ) 
+for _ , x  in ipairs ( piton.beamer_environments )  do
+  piton.BeamerEnvironments = piton.BeamerEnvironments + x 
 end 
 %    \end{macrocode}
-%
+% 
 % \bigskip
 %    \begin{macrocode}
 BeamerBeginEnvironments = 
     ( space ^ 0 * 
       L 
         ( 
-          P "\\begin{" * BeamerNamesEnvironments * "}"
+          P "\\begin{" * piton.BeamerEnvironments * "}"
           * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
         )
       * "\r" 
@@ -5771,10 +5822,11 @@ BeamerBeginEnvironments =
 %    \begin{macrocode}
 BeamerEndEnvironments = 
     ( space ^ 0 * 
-      L ( P "\\end{" * BeamerNamesEnvironments * "}" ) 
+      L ( P "\\end{" * piton.BeamerEnvironments * "}" ) 
       * "\r" 
     ) ^ 0 
 %    \end{macrocode}
+%
 %
 % 
 % \bigskip
@@ -5790,14 +5842,14 @@ local function Compute_Beamer ( lang , braces )
   local lpeg = L ( P "\\pause" * ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ -1 ) 
   lpeg = lpeg + 
       Ct ( Cc "Open" 
-            * C ( ( P "\\uncover" + "\\only" + "\\alert" + "\\visible"
-                    + "\\invisible" + "\\action" ) 
+            * C ( piton.BeamerCommands
                   * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1 
                   * P "{" 
                 ) 
             * Cc "}" 
          ) 
-       * ( braces / ( function ( s ) return LPEG1[lang] : match ( s ) end ) )
+       * ( braces / 
+           ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
        * "}" 
        * Ct ( Cc "Close" ) 
 %    \end{macrocode}
@@ -5809,9 +5861,11 @@ local function Compute_Beamer ( lang , braces )
 %    \begin{macrocode}
   lpeg = lpeg +
     L ( P "\\alt" * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
-     * K ( 'ParseAgain.noCR' , braces ) 
+     * ( braces / 
+         ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
      * L ( P "}{" )
-     * K ( 'ParseAgain.noCR' , braces ) 
+     * ( braces / 
+         ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
      * L ( P "}" )
 %    \end{macrocode}
 %
@@ -5820,18 +5874,21 @@ local function Compute_Beamer ( lang , braces )
 %    \begin{macrocode}
   lpeg = lpeg +
       L ( ( P "\\temporal" ) * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
-      * K ( 'ParseAgain.noCR' , braces ) 
+      * ( braces 
+          / ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , braces ) 
+      * ( braces 
+          / ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
       * L ( P "}{" )
-      * K ( 'ParseAgain.noCR' , braces ) 
+      * ( braces 
+          / ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
       * L ( P "}" )
 %    \end{macrocode}
 %
 % \bigskip
 % Now, the environments of Beamer.
 %    \begin{macrocode}
-  for _ , x in ipairs ( list_beamer_env ) do
+  for _ , x in ipairs ( piton.beamer_environments ) do
   lpeg = lpeg + 
         Ct ( Cc "Open" 
              * C ( 
@@ -5842,7 +5899,11 @@ local function Compute_Beamer ( lang , braces )
             ) 
         * ( 
             ( ( 1 - P ( "\\end{" .. x .. "}" ) ) ^ 0 ) 
-                / ( function ( s ) return LPEG1[lang] : match ( s ) end ) 
+                / ( function ( s ) 
+                    if s ~= '' 
+                    then return LPEG1[lang] : match ( s ) 
+                    end 
+                    end ) 
           )
         * P ( "\\end{" .. x .. "}" ) 
         * Ct ( Cc "Close" ) 
@@ -5954,6 +6015,17 @@ local Operator =
 
 local OperatorWord = 
   K ( 'Operator.Word' , P "in" + "is" + "and" + "or" + "not" )
+%    \end{macrocode}
+%
+% \smallskip
+% The keyword |in| in a construction such as ``|for i in range(n)|'' must be
+% formatted as a keyword and not as an |Operator.Word|.
+%    \begin{macrocode}
+local For = K ( 'Keyword' , P "for" ) 
+            * Space
+            * Identifier
+            * Space 
+            * K ( 'Keyword' , P "in" ) 
 
 local Keyword = 
   K ( 'Keyword' ,
@@ -6408,12 +6480,16 @@ local ExceptionInConsole = Exception *  Q ( ( 1 - P "\r" ) ^ 0 ) * EOL
 % \bigskip
 % \paragraph{The main LPEG for the language Python}
 %
+%    \begin{macrocode}
+local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
+%    \end{macrocode}
+%
 % First, the main loop :
 %    \begin{macrocode}
 local Main = 
-       space ^ 1 * -1
-     + space ^ 0 * EOL 
-     + Space 
+     --   space ^ 1 * -1
+     -- + space ^ 0 * EOL 
+     Space 
      + Tab
      + Escape + EscapeMath
      + CommentLaTeX
@@ -6424,16 +6500,17 @@ local Main =
      + ExceptionInConsole
      + Delim
      + Operator
-     + OperatorWord * ( Space + Punct + Delim + EOL + -1 ) 
+     + OperatorWord * EndKeyword
      + ShortString
      + Punct
      + FromImport
      + RaiseException 
      + DefFunction
      + DefClass 
-     + Keyword * ( Space + Punct + Delim + EOL + -1 ) 
+     + For
+     + Keyword * EndKeyword
      + Decorator
-     + Builtin * ( Space + Punct + Delim + EOL + -1 ) 
+     + Builtin * EndKeyword
      + Identifier 
      + Number
      + Word
@@ -6459,7 +6536,7 @@ LPEG2['python'] =
        * Lc '\\@@_begin_line:'
        * Prompt 
        * SpaceIndentation ^ 0 
-       * LPEG1['python']
+       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
        * -1 
        * Lc '\\@@_end_line:' 
      )
@@ -6550,7 +6627,7 @@ local DotNotation =
   (
       K ( 'Name.Module' , cap_identifier ) 
         * Q "." 
-        * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) 
+        * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ^ ( -1 ) 
       + 
       Identifier 
         * Q "."
@@ -6821,12 +6898,14 @@ local TypeParameter = K ( 'TypeParameter' , "'" * alpha * # ( 1 - P "'" ) )
 % \bigskip
 % \paragraph{The main LPEG for the language OCaml}
 %
+%    \begin{macrocode}
+local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
+%    \end{macrocode}
+% 
 % First, the main loop :
 %    \begin{macrocode}
 local Main = 
-       space ^ 1 * -1
-     + space ^ 0 * EOL 
-     + Space 
+     Space 
      + Tab
      + Escape + EscapeMath
      + Beamer 
@@ -6842,9 +6921,9 @@ local Main =
      + DefFunction
      + DefModule
      + Record 
-     + Keyword * ( Space + Punct + Delim + EOL + -1 ) 
-     + OperatorWord * ( Space + Punct + Delim + EOL + -1 ) 
-     + Builtin * ( Space + Punct + Delim + EOL + -1 ) 
+     + Keyword * EndKeyword
+     + OperatorWord * EndKeyword
+     + Builtin * EndKeyword 
      + DotNotation
      + Constructor
      + Identifier 
@@ -6867,7 +6946,7 @@ LPEG2['ocaml'] =
        * BeamerBeginEnvironments 
        * Lc '\\@@_begin_line:' 
        * SpaceIndentation ^ 0 
-       * LPEG1['ocaml']
+       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
        * -1 
        * Lc '\\@@_end_line:' 
      )
@@ -7010,12 +7089,14 @@ local LongComment =
 % \bigskip
 % \paragraph{The main LPEG for the language C}
 %
+%    \begin{macrocode}
+local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
+%    \end{macrocode}
+%
 % First, the main loop :
 %    \begin{macrocode}
 local Main = 
-       space ^ 1 * -1
-     + space ^ 0 * EOL 
-     + Space 
+     Space 
      + Tab
      + Escape + EscapeMath 
      + CommentLaTeX
@@ -7029,9 +7110,9 @@ local Main =
      + Punct
      + DefFunction
      + DefClass 
-     + Type * ( Q "*" ^ -1 + Space + Punct + Delim + EOL + -1 ) 
-     + Keyword * ( Space + Punct + Delim + EOL + -1 ) 
-     + Builtin * ( Space + Punct + Delim + EOL + -1 ) 
+     + Type * ( Q "*" ^ -1 + EndKeyword ) 
+     + Keyword * EndKeyword
+     + Builtin * EndKeyword
      + Identifier 
      + Number
      + Word
@@ -7055,7 +7136,7 @@ LPEG2['c'] =
        * BeamerBeginEnvironments 
        * Lc '\\@@_begin_line:'
        * SpaceIndentation ^ 0 
-       * LPEG1['c']
+       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
        * -1 
        * Lc '\\@@_end_line:' 
      )
@@ -7198,6 +7279,9 @@ local LongComment =
 % \bigskip
 % \paragraph{The main LPEG for the language SQL}
 %
+%    \begin{macrocode}
+local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
+%    \end{macrocode}
 %
 %    \begin{macrocode}
 local TableField = 
@@ -7240,13 +7324,15 @@ local WeCatchTableNames =
     * ( Space + EOL ) * OneTable 
 %    \end{macrocode}
 % 
+%    \begin{macrocode}
+local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
+%    \end{macrocode}
+%
 %
 % First, the main loop :
 %    \begin{macrocode}
 local Main = 
-       space ^ 1 * -1
-     + space ^ 0 * EOL 
-     + Space 
+     Space 
      + Tab
      + Escape + EscapeMath 
      + CommentLaTeX
@@ -7281,7 +7367,7 @@ LPEG2['sql'] =
        * BeamerBeginEnvironments 
        * Lc [[ \@@_begin_line: ]]
        * SpaceIndentation ^ 0 
-       * LPEG1['sql']
+       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
        * -1 
        * Lc [[ \@@_end_line: ]]
      )
@@ -7323,9 +7409,7 @@ local Identifier = K ( 'Identifier' , identifier )
 local Delim = Q ( S "{[()]}" )
 
 local Main = 
-       space ^ 1 * -1
-     + space ^ 0 * EOL 
-     + Space 
+     Space 
      + Tab
      + Escape + EscapeMath 
      + CommentLaTeX
@@ -7347,7 +7431,7 @@ LPEG2['minimal'] =
        * BeamerBeginEnvironments 
        * Lc [[ \@@_begin_line: ]]
        * SpaceIndentation ^ 0 
-       * LPEG1['minimal']
+       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
        * -1 
        * Lc [[ \@@_end_line: ]]
      )
@@ -7389,14 +7473,14 @@ function piton.Parse ( language , code )
 %
 % Here is an example of an item beginning with |"Open"|.
 %
-% |{ "Open" , "\begin{uncover}<2>" , "\end{cover}" }|
+% |{ "Open" , "\begin{uncover}<2>" , "\end{uncover}" }|
 %
 % In order to deal with the ends of lines, we have to close the environment
-% (|{cover}| in this example) at the end of each line and reopen it at the
+% (|{uncover}| in this example) at the end of each line and reopen it at the
 % beginning of the new line. That's why we use two Lua stacks, called
 % |left_stack| and |right_stack|. |left_stack| will be for the elements like
 % |\begin{uncover}<2>| and |right_stack| will be for the elements like
-% |\end{cover}|. 
+% |\end{uncover}|. 
 %    \begin{macrocode}
       if one_item[1] == "Open" then
         tex.sprint( one_item[2] ) 
@@ -7808,7 +7892,7 @@ function piton.new_language ( lang , definition )
 % |tag| (mainly for the language \textsc{html}) for the character |/| in the
 % closing tags |</....>|).
 %    \begin{macrocode}
-       other = other + P "c"
+       other = other + P ( c )
      end 
   end 
 %    \end{macrocode}
@@ -8203,12 +8287,7 @@ function piton.new_language ( lang , definition )
 % 
 %    \begin{macrocode}
   local Main = 
-         space ^ 1 * -1
-%    \end{macrocode}
-% The spaces at the end of the lines are discarded.
-%    \begin{macrocode}
-       + space ^ 0 * EOL 
-       + Space 
+       Space 
        + Tab
        + Escape + EscapeMath 
        + CommentLaTeX
@@ -8244,7 +8323,7 @@ function piton.new_language ( lang , definition )
          * BeamerBeginEnvironments 
          * Lc [[\@@_begin_line:]]
          * SpaceIndentation ^ 0 
-         * LPEG1[lang]
+         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
          * -1 
          * Lc [[\@@_end_line:]]
        )
@@ -8321,6 +8400,12 @@ end
 % repository:
 %
 % \verb|https://github.com/fpantigny/piton|
+%
+% \subsection*{Changes between versions 3.0 and 3.1}
+%
+% New keys |line-numbers/format|, |detected-beamer-commands| and
+% |detected-beamer-environments|. 
+%
 %
 % \subsection*{Changes between versions 2.8 and 3.0}
 %
