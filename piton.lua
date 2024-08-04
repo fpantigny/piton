@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.1" -- 2024/07/30
+piton_version = "3.1x" -- 2024/08/04
 
 
 
@@ -150,13 +150,13 @@ local function Compute_DetectedCommands ( lang , braces ) return
         * Cc "}"
      )
    * ( braces
-       / ( function ( s ) if s ~= '' then return  LPEG1[lang] : match ( s ) end end ) )
+       / ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
    * P "}"
    * Ct ( Cc "Close" )
 end
 local function Compute_LPEG_cleaner ( lang , braces ) return
   Ct ( ( piton.DetectedCommands * "{"
-          * (  braces
+          * ( braces
               / ( function ( s )
                   if s ~= '' then return LPEG_cleaner[lang] : match ( s ) end  end ) )
           * "}"
@@ -408,11 +408,11 @@ local ShortString = SingleShortString + DoubleShortString
 local braces =
   Compute_braces
    (
-       Q ( P "\"" + "r\"" + "R\"" + "f\"" + "F\"" )
-       * ( "\"" * ( P "\\\"" + 1 - S "\"" ) ^ 0 * "\"" )
+       ( P "\"" + "r\"" + "R\"" + "f\"" + "F\"" )
+           * ( P "\\\"" + 1 - S "\"" ) ^ 0 * "\""
      +
-       Q ( P '\'' + 'r\'' + 'R\'' + 'f\'' + 'F\'' )
-       * ( '\'' * ( P '\\\'' + 1 - S '\'' ) ^ 0 * '\'' )
+       ( P '\'' + 'r\'' + 'R\'' + 'f\'' + 'F\'' )
+           * ( P '\\\'' + 1 - S '\'' ) ^ 0 * '\''
    )
 if piton.beamer then Beamer = Compute_Beamer ( 'python' , braces ) end
 DetectedCommands = Compute_DetectedCommands ( 'python' , braces )
@@ -964,7 +964,7 @@ local Identifier =
     end
   )
 local String = K ( 'String.Long' , "'" * ( 1 - P "'" ) ^ 1 * "'" )
-braces = Compute_braces ( String )
+braces = Compute_braces ( "'" * ( 1 - P "'" ) ^ 1 * "'" )
 if piton.beamer then Beamer = Compute_Beamer ( 'sql' , braces ) end
 DetectedCommands = Compute_DetectedCommands ( 'sql' , braces )
 LPEG_cleaner['sql'] = Compute_LPEG_cleaner ( 'sql' , braces )
@@ -1477,6 +1477,7 @@ function piton.new_language ( lang , definition )
      end
   end
   local long_string  = P ( false )
+  local Long_string = P ( false )
   local LongString = P (false )
   local central_pattern = P ( false )
   for _ , x in ipairs ( def_table ) do
@@ -1497,12 +1498,17 @@ function piton.new_language ( lang , definition )
       then prefix = lpeg.B ( 1 - letter - ")" - "]" )
       else prefix = P ( true )
       end
+     long_string = long_string +
+         prefix
+         * arg3
+         * ( space + central_pattern ) ^ 0
+         * arg4
      local pattern =
          prefix
          * Q ( arg3 )
          * ( VisualSpace + Q ( central_pattern ^ 1 ) + EOL ) ^ 0
          * Q ( arg4 )
-      long_string = long_string + pattern
+      Long_string = Long_string + pattern
       LongString = LongString +
          Ct ( Cc "Open" * Cc ( "{" ..  arg2 .. "{" ) * Cc "}}" )
          * pattern
@@ -1510,7 +1516,7 @@ function piton.new_language ( lang , definition )
     end
   end
 
-  local braces = Compute_braces ( String )
+  local braces = Compute_braces ( long_string )
   if piton.beamer then Beamer = Compute_Beamer ( lang , braces ) end
 
   DetectedCommands = Compute_DetectedCommands ( lang , braces )
