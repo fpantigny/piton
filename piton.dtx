@@ -7395,7 +7395,7 @@ local String =
               * Q "\""
             )
 
-braces = Compute_braces ( String ) 
+braces = Compute_braces ( P "\"" * ( P "\\\"" + 1 - P "\"" ) ^ 1 * "\"" ) 
 if piton.beamer then Beamer = Compute_Beamer ( 'minimal' , braces ) end
 
 DetectedCommands = Compute_DetectedCommands ( 'minimal' , braces ) 
