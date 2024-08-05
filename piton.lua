@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.1x" -- 2024/08/04
+piton_version = "3.1xx" -- 2024/08/05
 
 
 
@@ -210,13 +210,16 @@ local function Compute_Beamer ( lang , braces )
   lpeg = lpeg +
       L ( ( P "\\temporal" ) * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
       * ( braces
-          / ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
+          / ( function ( s )
+              if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
       * L ( P "}{" )
       * ( braces
-          / ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
+          / ( function ( s )
+              if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
       * L ( P "}{" )
       * ( braces
-          / ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
+          / ( function ( s )
+              if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
       * L ( P "}" )
   for _ , x in ipairs ( piton.beamer_environments ) do
   lpeg = lpeg +
@@ -650,7 +653,7 @@ local Exception =
        "Sys_blocked_io" + "Sys_error" + "Undefined_recursive_module" )
 local Char =
   K ( 'String.Short' , "'" * ( ( 1 - P "'" ) ^ 0 + "\\'" ) * "'" )
-braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
+local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
 if piton.beamer then
   Beamer = Compute_Beamer ( 'ocaml' , braces ) -- modified 2024/07/24
 end
@@ -857,7 +860,7 @@ String =
         ) ^ 0
       * Q "\""
     )
-braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
+local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
 if piton.beamer then Beamer = Compute_Beamer ( 'c' , braces ) end
 DetectedCommands = Compute_DetectedCommands ( 'c' , braces )
 LPEG_cleaner['c'] = Compute_LPEG_cleaner ( 'c' , braces )
@@ -964,7 +967,7 @@ local Identifier =
     end
   )
 local String = K ( 'String.Long' , "'" * ( 1 - P "'" ) ^ 1 * "'" )
-braces = Compute_braces ( "'" * ( 1 - P "'" ) ^ 1 * "'" )
+local braces = Compute_braces ( "'" * ( 1 - P "'" ) ^ 1 * "'" )
 if piton.beamer then Beamer = Compute_Beamer ( 'sql' , braces ) end
 DetectedCommands = Compute_DetectedCommands ( 'sql' , braces )
 LPEG_cleaner['sql'] = Compute_LPEG_cleaner ( 'sql' , braces )
@@ -1065,7 +1068,8 @@ local String =
               * Q "\""
             )
 
-braces = Compute_braces ( P "\"" * ( P "\\\"" + 1 - P "\"" ) ^ 1 * "\"" )
+local braces = Compute_braces ( P "\"" * ( P "\\\"" + 1 - P "\"" ) ^ 1 * "\"" )
+
 if piton.beamer then Beamer = Compute_Beamer ( 'minimal' , braces ) end
 
 DetectedCommands = Compute_DetectedCommands ( 'minimal' , braces )
@@ -1267,6 +1271,7 @@ function piton.GobbleSplitParse ( lang , n , code )
       F = C ( V "G" ^ 0 )
           / ( function ( x ) piton.GobbleParse ( lang , 0 , x ) end ) ,
       G = ( 1 - P "\r" ) ^ 0 * "\r" - ( P " " ^ 0 * "\r" )
+          + ( ( 1 - P "\r" ) ^ 1 * -1 - ( P " " ^ 0 * -1 ) )
     } : match ( gobble ( n , code ) )
 end
 function piton.get_last_code ( )
@@ -1515,7 +1520,6 @@ function piton.new_language ( lang , definition )
          * Ct ( Cc "Close" )
     end
   end
-
   local braces = Compute_braces ( long_string )
   if piton.beamer then Beamer = Compute_Beamer ( lang , braces ) end
 

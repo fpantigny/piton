@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.1x}
-\def\PitonFileDate{2024/08/04}
+\def\PitonFileVersion{3.1xx}
+\def\PitonFileDate{2024/08/05}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.1x" -- 2024/08/04
+piton_version = "3.1xx" -- 2024/08/05
 %</LUA>
 %\fi
 %
@@ -5737,7 +5737,8 @@ local LPEG_cleaner = { }
 % present in strings of the language. However, the syntax for the strings is
 % language-dependent. That's why we write a Lua function |Compute_braces| which
 % will compute the pattern by taking in as argument a pattern for the strings of
-% the language (at least the shorts strings).
+% the language (at least the shorts strings). The argument of |Compute_braces|
+% must be a pattern \emph{which does no catching}.
 %    \begin{macrocode}
 local function Compute_braces ( lpeg_string ) return 
     P { "E" ,
@@ -5870,18 +5871,22 @@ local function Compute_Beamer ( lang , braces )
 %    \end{macrocode}
 %
 % \bigskip
-% For |\\temporal|, the specification of the overlays (between angular brackets) is mandatory.
+% For |\\temporal|, the specification of the overlays (between angular brackets)
+% is mandatory. 
 %    \begin{macrocode}
   lpeg = lpeg +
       L ( ( P "\\temporal" ) * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
       * ( braces 
-          / ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
+          / ( function ( s ) 
+              if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
       * L ( P "}{" )
       * ( braces 
-          / ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
+          / ( function ( s ) 
+              if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
       * L ( P "}{" )
       * ( braces 
-          / ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
+          / ( function ( s ) 
+              if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
       * L ( P "}" )
 %    \end{macrocode}
 %
@@ -6261,6 +6266,9 @@ local ShortString = SingleShortString + DoubleShortString
 %
 % \bigskip
 % \paragraph{Beamer}
+%
+% The argument of |Compute_braces| must be a pattern \emph{which does no
+% catching} corresponding to the strings of the language.
 %
 %    \begin{macrocode}
 local braces = 
@@ -6685,8 +6693,11 @@ local Char =
 % \paragraph{Beamer}
 %
 % \bigskip
+% The argument of |Compute_braces| must be a pattern \emph{which does no
+% catching} corresponding to the strings of the language.
+%
 %    \begin{macrocode}
-braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" ) 
+local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" ) 
 if piton.beamer then 
   Beamer = Compute_Beamer ( 'ocaml' , braces ) -- modified 2024/07/24
 end
@@ -7044,8 +7055,10 @@ String =
 % \paragraph{Beamer}
 %
 % \bigskip
+% The argument of |Compute_braces| must be a pattern \emph{which does no
+% catching} corresponding to the strings of the language.
 %    \begin{macrocode}
-braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" ) 
+local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" ) 
 if piton.beamer then Beamer = Compute_Beamer ( 'c' , braces ) end
 %    \end{macrocode}
 %
@@ -7240,8 +7253,11 @@ local String = K ( 'String.Long' , "'" * ( 1 - P "'" ) ^ 1 * "'" )
 % \paragraph{Beamer}
 %
 % \bigskip
+% The argument of |Compute_braces| must be a pattern \emph{which does no
+% catching} corresponding to the strings of the language.
+%
 %    \begin{macrocode}
-braces = Compute_braces ( "'" * ( 1 - P "'" ) ^ 1 * "'" ) 
+local braces = Compute_braces ( "'" * ( 1 - P "'" ) ^ 1 * "'" ) 
 if piton.beamer then Beamer = Compute_Beamer ( 'sql' , braces ) end
 %    \end{macrocode}
 % 
@@ -7395,7 +7411,12 @@ local String =
               * Q "\""
             )
 
-braces = Compute_braces ( P "\"" * ( P "\\\"" + 1 - P "\"" ) ^ 1 * "\"" ) 
+%    \end{macrocode}
+% The argument of |Compute_braces| must be a pattern \emph{which does no
+% catching} corresponding to the strings of the language.
+%    \begin{macrocode}
+local braces = Compute_braces ( P "\"" * ( P "\\\"" + 1 - P "\"" ) ^ 1 * "\"" ) 
+
 if piton.beamer then Beamer = Compute_Beamer ( 'minimal' , braces ) end
 
 DetectedCommands = Compute_DetectedCommands ( 'minimal' , braces ) 
@@ -7707,7 +7728,9 @@ end
 % The following function will be used when the key |split-on-empty-lines| is in
 % force. With that key, the informatic code is split in chunks at the empty
 % lines (usually between the informatic functions defined in the informatic
-% code). LaTeX will be able to change the page between the chunks.
+% code). LaTeX will be able to change the page between the chunks. The second
+% argument |n| corresponds to the value of the key |gobble| (number of spaces to
+% gobble). 
 %    \begin{macrocode}
 function piton.GobbleSplitParse ( lang , n , code )
   P { "E" ,
@@ -7724,7 +7747,7 @@ function piton.GobbleSplitParse ( lang , n , code )
 %    \begin{macrocode}
       F = C ( V "G" ^ 0 ) 
 %    \end{macrocode}
-% The second argument of |.pitonGobbleParse| is the argument |gobble|: we put
+% The second argument of |piton.GobbleSplitParse| is the argument |gobble|: we put
 % that argument to~$0$ because we will have gobbled previously the whole argument
 % |code| (see below).
 %    \begin{macrocode}
@@ -7733,6 +7756,7 @@ function piton.GobbleSplitParse ( lang , n , code )
 % The non-terminal |G| corresponds to a non-empty line of code.
 %    \begin{macrocode}
       G = ( 1 - P "\r" ) ^ 0 * "\r" - ( P " " ^ 0 * "\r" ) 
+          + ( ( 1 - P "\r" ) ^ 1 * -1 - ( P " " ^ 0 * -1 ) )
     } : match ( gobble ( n , code ) ) 
 end 
 %    \end{macrocode}
@@ -8177,7 +8201,10 @@ function piton.new_language ( lang , definition )
          * Ct ( Cc "Close" ) 
     end 
   end
-
+%    \end{macrocode}
+% The argument of |Compute_braces| must be a pattern \emph{which does no
+% catching} corresponding to the strings of the language.
+%    \begin{macrocode}
   local braces = Compute_braces ( long_string ) 
   if piton.beamer then Beamer = Compute_Beamer ( lang , braces ) end
 
