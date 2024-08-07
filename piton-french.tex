@@ -465,7 +465,8 @@ disponible, c'est-à-dire que l'on peut écrire :
       { 
         skip-empty-lines = false ,
         label-empty-lines = false ,
-        sep = 1 em
+        sep = 1 em ,
+        line-format = \footnotesize \color{blue}
       }
   }
 \end{Verbatim}
@@ -1010,7 +1011,8 @@ pouvoir couper au niveau de ces lignes.
 
 Quand la clé |split-on-empty-lines| est activée, le travail effectué va en fait un peu
 plus loin : les lignes vides successives sont supprimées et remplacées par le contenu du
-paramètre correspondant à la clé \Definition{split-separation}.
+paramètre correspondant à la clé \Definition{split-separation} (ce paramètre doit contenir
+du matériel à insérer en mode vertical de TeX).
 
 La valeur initiale de ce paramètre est |\vspace{\baselineskip}\vspace{-1.25pt}|, ce qui,
 au final, correspond à une ligne vide dans le PDF produit (cet espace vertical est
@@ -1030,6 +1032,8 @@ raisonnable.
 Employée sans argument, la clé |splittable| est équivalente à |splittable = 1|, et les
 listings sont alors sécables n'importe où (ce n'est pas recommandable).
 
+La valeur initiale de la clé |splittable| vaut 100, ce qui fait que listings ne sont pas
+sécables. 
 \end{itemize}
 
 \medskip
@@ -2545,7 +2549,7 @@ Pygments.\footnote{Voir \url{https://pygments.org/styles/}. À remarquer que, pa
   Keyword & les mots-clés suivants :
             \ttfamily assert, break, case, continue, del,
             elif, else, except, exec, finally, for, from, 
-            global, if, import, lambda, non local,
+            global, if, import, in, lambda, non local,
             pass, raise, return, try, while,
             with, yield et yield from.\\
   \bottomrule

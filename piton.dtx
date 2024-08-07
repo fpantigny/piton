@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.1xx}
-\def\PitonFileDate{2024/08/05}
+\def\PitonFileVersion{3.1xxx}
+\def\PitonFileDate{2024/08/07}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.1xx" -- 2024/08/05
+piton_version = "3.1xxx" -- 2024/08/07
 %</LUA>
 %\fi
 %
@@ -446,7 +446,8 @@ piton_version = "3.1xx" -- 2024/08/05
 %       { 
 %         skip-empty-lines = false ,
 %         label-empty-lines = false ,
-%         sep = 1 em
+%         sep = 1 em ,
+%         line-format = \footnotesize \color{blue}
 %       }
 %   }
 % \end{Verbatim}
@@ -998,7 +999,10 @@ piton_version = "3.1xx" -- 2024/08/05
 % In fact, when the key |split-on-empty-lines| is in force, the work goes a
 % little further than merely allowing page breaks: several successive empty lines
 % are deleted and replaced by the content of the parameter corresponding to the
-% key \Definition{split-separation}. The initial value of this parameter is
+% key \Definition{split-separation} (that parameter must contain elements
+% allowed to be inserted in vertical mode of TeX).
+%
+% The initial value of this parameter is
 % |\vspace{\baselineskip}\vspace{-1.25pt}| which corresponds eventually to an
 % empty line in the final PDF (this vertical space is deleted if it occurs on a
 % page break).
@@ -1016,6 +1020,9 @@ piton_version = "3.1xx" -- 2024/08/05
 % When used without value, the key |splittable| is equivalent to 
 % |splittable = 1| and the listings may be broken anywhere (it's probably 
 % not recommandable).
+%
+% The initial value of the key |splittable| is equal to 100 (by default, the
+% listings are not breakable at all).
 % \end{itemize} 
 % 
 %
@@ -2321,7 +2328,7 @@ piton_version = "3.1xx" -- 2024/08/05
 %   Keyword & the following keywords:
 %             \ttfamily assert, break, case, continue, del,
 %             elif, else, except, exec, finally, for, from, 
-%             global, if, import, lambda, non local,
+%             global, if, import, in, lambda, non local,
 %             pass, raise, return, try, while,
 %             with, yield et yield from.\\
 %   \bottomrule
@@ -3073,7 +3080,8 @@ piton_version = "3.1xx" -- 2024/08/05
 % by the final user is split in chunks on the empty lines in the code).
 %    \begin{macrocode}
 \tl_new:N \l_@@_split_separation_tl
-\tl_set:Nn \l_@@_split_separation_tl { \vspace{\baselineskip} \vspace{-1.25pt} }
+\tl_set:Nn \l_@@_split_separation_tl 
+  { \vspace { \baselineskip } \vspace { -1.25pt } }
 %    \end{macrocode}
 % 
 % \medskip
@@ -3463,14 +3471,14 @@ piton_version = "3.1xx" -- 2024/08/05
           {
             \bool_if:nF
               { 
-                \str_if_eq_p:nn { #1 } { \PitonStyle {Prompt}{} } 
+                \str_if_eq_p:nn { #1 } { \PitonStyle { Prompt } { } } 
                 && 
                 \l_@@_skip_empty_lines_bool 
               }
               { \int_gincr:N \g_@@_visual_line_int }
             \bool_if:nT
               { 
-                ! \str_if_eq_p:nn { #1 } { \PitonStyle {Prompt}{} } 
+                ! \str_if_eq_p:nn { #1 } { \PitonStyle { Prompt } { } } 
                 ||
                 ( ! \l_@@_skip_empty_lines_bool && \l_@@_label_empty_lines_bool ) 
               }
@@ -3605,7 +3613,7 @@ piton_version = "3.1xx" -- 2024/08/05
     \int_compare:nNnT \g_@@_line_int > { \l_@@_splittable_int - 1 }
       {
         \int_compare:nNnT 
-          { \l_@@_nb_lines_int - \g_@@_line_int } > \l_@@_splittable_int 
+          { \l_@@_nb_lines_int - \g_@@_line_int + 1 } > \l_@@_splittable_int 
           {
             \egroup
             \bool_if:NT \g_@@_footnote_bool \endsavenotes 
@@ -4477,14 +4485,7 @@ piton_version = "3.1xx" -- 2024/08/05
       }
          { 
             \group_end:
-            \mode_if_vertical:TF \mode_leave_vertical: \newline 
-%    \end{macrocode}
-% We count with Lua the number of lines of the argument. The result will be
-% stored by Lua in |\l_@@_nb_lines_int|. That information will be used to allow
-% or disallow page breaks. The use of |token.scan_argument| avoids problems with
-% the delimiters of the Lua string.
-%    \begin{macrocode}
-            \lua_now:n { piton.CountLines(token.scan_argument()) } { ##1 }  
+            \mode_if_vertical:TF { \noindent \mode_leave_vertical: } \newline 
 %    \end{macrocode}
 % The first argument of the following function is the name of the Lua function
 % that will be applied to the second argument in order to count the number of lines.
@@ -4492,7 +4493,8 @@ piton_version = "3.1xx" -- 2024/08/05
             \@@_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
             \@@_compute_width:
             \ttfamily
-            \dim_zero:N \parskip 
+            \dim_zero:N \parskip
+            \noindent % added 2024/08/07 
 %    \end{macrocode}
 % 
 % Now, the key |write|.
@@ -4574,7 +4576,7 @@ piton_version = "3.1xx" -- 2024/08/05
 % \bigskip
 % The following function will be used when the key |split-on-empty-lines| is not
 % in force. It will gobble the spaces at the beginning of the lines and parse
-% the code. The argument is provided by curryfication. 
+% the code. The argument is provided by curryfication.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_gobble_parse:n 
   {
@@ -5460,18 +5462,6 @@ if piton.comment_latex == nil then piton.comment_latex = ">" end
 piton.comment_latex = "#" .. piton.comment_latex 
 %    \end{macrocode}
 %
-%
-% \bigskip
-% The following functions are an easy way to safely insert braces (|{| and |}|)
-% in the TeX flow.
-%    \begin{macrocode}
-function piton.open_brace () 
-   tex.sprint("{") 
-end 
-function piton.close_brace () 
-   tex.sprint("}") 
-end 
-%    \end{macrocode}
 %
 %    \begin{macrocode}
 local function sprintL3 ( s ) 
@@ -7706,7 +7696,11 @@ function piton.GobbleParse ( lang , n , code )
   piton.last_code = gobble ( n , code )
   piton.last_language = lang
 %    \end{macrocode}
+% We count the number of lines of the argument. The result will be stored by Lua
+% in |\l_@@_nb_lines_int|. That information will be used to allow or disallow
+% page breaks. 
 %    \begin{macrocode}
+  piton.CountLines ( piton.last_code ) -- added 2024/08/07
   sprintL3 [[ \bool_if:NT \g_@@_footnote_bool \savenotes \vtop \bgroup ]] 
   piton.Parse ( lang , piton.last_code )
   sprintL3  
@@ -7739,7 +7733,7 @@ function piton.GobbleSplitParse ( lang , n , code )
                / ( function ( x ) sprintL3 [[ \@@_incr_visual_line: ]] end )
              ) ^ 1 
              / ( function ( x ) 
-                 sprintL3 [[ \l_@@_split_separation_tl \int_gzero:N \g_@@_line_int ]] 
+                 sprintL3 ( piton.string_between_chunks ) 
                  end ) 
           ) ^ 0 * V "F" ,
 %    \end{macrocode}
@@ -7761,6 +7755,11 @@ function piton.GobbleSplitParse ( lang , n , code )
 end 
 %    \end{macrocode}
 %
+% \bigskip
+%    \begin{macrocode}
+piton.string_between_chunks = 
+ [[\par\l_@@_split_separation_tl\mode_leave_vertical:\int_gzero:N\g_@@_line_int]]
+%    \end{macrocode}
 % 
 % \bigskip
 % The following public Lua function is provided to the developer. 
@@ -8438,7 +8437,7 @@ end
 %
 % \subsection*{Changes between versions 3.0 and 3.1}
 %
-% New keys |line-numbers/format|, |detected-beamer-commands| and
+% Keys |line-numbers/format|, |detected-beamer-commands| and
 % |detected-beamer-environments|. 
 %
 %

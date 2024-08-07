@@ -20,18 +20,12 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.1xx" -- 2024/08/05
+piton_version = "3.1xxx" -- 2024/08/07
 
 
 
 if piton.comment_latex == nil then piton.comment_latex = ">" end
 piton.comment_latex = "#" .. piton.comment_latex
-function piton.open_brace ()
-   tex.sprint("{")
-end
-function piton.close_brace ()
-   tex.sprint("}")
-end
 local function sprintL3 ( s )
       tex.sprint ( luatexbase.catcodetables.expl , s )
 end
@@ -1248,6 +1242,7 @@ end
 function piton.GobbleParse ( lang , n , code )
   piton.last_code = gobble ( n , code )
   piton.last_language = lang
+  piton.CountLines ( piton.last_code ) -- added 2024/08/07
   sprintL3 [[ \bool_if:NT \g__piton_footnote_bool \savenotes \vtop \bgroup ]]
   piton.Parse ( lang , piton.last_code )
   sprintL3
@@ -1265,7 +1260,7 @@ function piton.GobbleSplitParse ( lang , n , code )
                / ( function ( x ) sprintL3 [[ \__piton_incr_visual_line: ]] end )
              ) ^ 1
              / ( function ( x )
-                 sprintL3 [[ \l__piton_split_separation_tl \int_gzero:N \g__piton_line_int ]]
+                 sprintL3 ( piton.string_between_chunks )
                  end )
           ) ^ 0 * V "F" ,
       F = C ( V "G" ^ 0 )
@@ -1274,6 +1269,8 @@ function piton.GobbleSplitParse ( lang , n , code )
           + ( ( 1 - P "\r" ) ^ 1 * -1 - ( P " " ^ 0 * -1 ) )
     } : match ( gobble ( n , code ) )
 end
+piton.string_between_chunks =
+ [[\par\l__piton_split_separation_tl\mode_leave_vertical:\int_gzero:N\g__piton_line_int]]
 function piton.get_last_code ( )
   return LPEG_cleaner[piton.last_language] : match ( piton.last_code )
 end

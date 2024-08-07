@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{3.1xx}
-\def\PitonFileDate{2024/08/05}
+\def\PitonFileVersion{3.1xxx}
+\def\PitonFileDate{2024/08/07}
 
 
 
@@ -186,7 +186,8 @@
 \tl_new:N \g__piton_aux_tl
 \int_new:N \l__piton_splittable_int
 \tl_new:N \l__piton_split_separation_tl
-\tl_set:Nn \l__piton_split_separation_tl { \vspace{\baselineskip} \vspace{-1.25pt} }
+\tl_set:Nn \l__piton_split_separation_tl
+  { \vspace { \baselineskip } \vspace { -1.25pt } }
 \int_set:Nn \l__piton_splittable_int { 100 }
 \clist_new:N \l__piton_bg_color_clist
 \tl_new:N \l__piton_prompt_bg_color_tl
@@ -312,14 +313,14 @@
           {
             \bool_if:nF
               {
-                \str_if_eq_p:nn { #1 } { \PitonStyle {Prompt}{} }
+                \str_if_eq_p:nn { #1 } { \PitonStyle { Prompt } { } }
                 &&
                 \l__piton_skip_empty_lines_bool
               }
               { \int_gincr:N \g__piton_visual_line_int }
             \bool_if:nT
               {
-                ! \str_if_eq_p:nn { #1 } { \PitonStyle {Prompt}{} }
+                ! \str_if_eq_p:nn { #1 } { \PitonStyle { Prompt } { } }
                 ||
                 ( ! \l__piton_skip_empty_lines_bool && \l__piton_label_empty_lines_bool )
               }
@@ -392,7 +393,7 @@
     \int_compare:nNnT \g__piton_line_int > { \l__piton_splittable_int - 1 }
       {
         \int_compare:nNnT
-          { \l__piton_nb_lines_int - \g__piton_line_int } > \l__piton_splittable_int
+          { \l__piton_nb_lines_int - \g__piton_line_int + 1 } > \l__piton_splittable_int
           {
             \egroup
             \bool_if:NT \g__piton_footnote_bool \endsavenotes
@@ -979,12 +980,12 @@
       }
          {
             \group_end:
-            \mode_if_vertical:TF \mode_leave_vertical: \newline
-            \lua_now:n { piton.CountLines(token.scan_argument()) } { ##1 }
+            \mode_if_vertical:TF { \noindent \mode_leave_vertical: } \newline
             \__piton_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
             \__piton_compute_width:
             \ttfamily
             \dim_zero:N \parskip
+            \noindent % added 2024/08/07
             \str_if_empty:NTF \l__piton_path_write_str
               { \lua_now:e { piton.write = "\l__piton_write_str" } }
               {
