@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.1xxx}
-\def\PitonFileDate{2024/08/07}
+\def\PitonFileVersion{3.1y}
+\def\PitonFileDate{2024/08/09}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.1xxx" -- 2024/08/07
+piton_version = "3.1y" -- 2024/08/09
 %</LUA>
 %\fi
 %
@@ -3696,12 +3696,8 @@ piton_version = "3.1xxx" -- 2024/08/07
     false .code:n = \bool_set_false:N \l_@@_line_numbers_bool , 
 
     start .code:n = 
-      \bool_if:NTF \l_@@_in_PitonOptions_bool
-        { Invalid~key }
-        {
-          \bool_set_true:N \l_@@_line_numbers_bool 
-          \int_set:Nn \l_@@_number_lines_start_int { #1 }  
-        } ,
+      \bool_set_true:N \l_@@_line_numbers_bool 
+      \int_set:Nn \l_@@_number_lines_start_int { #1 }  ,
     start .value_required:n = true ,
 
     skip-empty-lines .code:n = 
@@ -3728,11 +3724,7 @@ piton_version = "3.1xxx" -- 2024/08/07
         { 
           \bool_set_true:N \l_@@_line_numbers_absolute_bool 
           \bool_set_false:N \l_@@_skip_empty_lines_bool 
-        }
-      \bool_lazy_or:nnF
-        \l_@@_in_PitonInputFile_bool 
-        \l_@@_in_PitonOptions_bool 
-        { \@@_error:n { Invalid~key } } ,
+        } ,
     absolute .value_forbidden:n = true ,
 
     resume .code:n = 
@@ -3977,7 +3969,7 @@ piton_version = "3.1xxx" -- 2024/08/07
 % When using |\NewPitonEnvironment| a user may use |\PitonOptions| inside.
 % However, the set of keys available should be different that in standard
 % |\PitonOptions|. That's why we define a version of |\PitonOptions| with no
-% restrection on the set of available keys and we will link that version to
+% restriction on the set of available keys and we will link that version to
 % |\PitonOptions| in such environment.
 %    \begin{macrocode}
 \NewDocumentCommand \@@_fake_PitonOptions { } 

@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{3.1xxx}
-\def\PitonFileDate{2024/08/07}
+\def\PitonFileVersion{3.1y}
+\def\PitonFileDate{2024/08/09}
 
 
 
@@ -456,12 +456,8 @@
     false .code:n = \bool_set_false:N \l__piton_line_numbers_bool ,
 
     start .code:n =
-      \bool_if:NTF \l__piton_in_PitonOptions_bool
-        { Invalid~key }
-        {
-          \bool_set_true:N \l__piton_line_numbers_bool
-          \int_set:Nn \l__piton_number_lines_start_int { #1 }
-        } ,
+      \bool_set_true:N \l__piton_line_numbers_bool
+      \int_set:Nn \l__piton_number_lines_start_int { #1 }  ,
     start .value_required:n = true ,
 
     skip-empty-lines .code:n =
@@ -488,11 +484,7 @@
         {
           \bool_set_true:N \l__piton_line_numbers_absolute_bool
           \bool_set_false:N \l__piton_skip_empty_lines_bool
-        }
-      \bool_lazy_or:nnF
-        \l__piton_in_PitonInputFile_bool
-        \l__piton_in_PitonOptions_bool
-        { \__piton_error:n { Invalid~key } } ,
+        } ,
     absolute .value_forbidden:n = true ,
 
     resume .code:n =
