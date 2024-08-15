@@ -19,8 +19,9 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{3.1y}
-\def\PitonFileDate{2024/08/09}
+\def\PitonFileVersion{3.1a}
+\def\PitonFileDate{2024/08/12}
+
 
 
 
@@ -31,6 +32,7 @@
   {\PitonFileDate}
   {\PitonFileVersion}
   {Highlight informatic listings with LPEG on LuaLaTeX}
+\RequirePackage { amstext }
 \cs_new_protected:Npn \__piton_error:n { \msg_error:nn { piton } }
 \cs_new_protected:Npn \__piton_warning:n { \msg_warning:nn { piton } }
 \cs_new_protected:Npn \__piton_error:nn { \msg_error:nnn { piton } }
@@ -96,17 +98,7 @@
     beamer .bool_gset:N = \g__piton_beamer_bool ,
     beamer .default:n = true ,
 
-    math-comments .code:n = \__piton_error:n { moved~to~preamble } ,
-    comment-latex .code:n = \__piton_error:n { moved~to~preamble } ,
-
     unknown .code:n = \__piton_error:n { Unknown~key~for~package }
-  }
-\__piton_msg_new:nn { moved~to~preamble }
-  {
-    The~key~'\l_keys_key_str'~*must*~now~be~used~with~
-    \token_to_str:N \PitonOptions`in~the~preamble~of~your~
-    document.\\
-    That~key~will~be~ignored.
   }
 \__piton_msg_new:nn { Unknown~key~for~package }
   {
@@ -185,10 +177,10 @@
 \int_new:N \g__piton_line_int
 \tl_new:N \g__piton_aux_tl
 \int_new:N \l__piton_splittable_int
+\int_set:Nn \l__piton_splittable_int { 100 }
 \tl_new:N \l__piton_split_separation_tl
 \tl_set:Nn \l__piton_split_separation_tl
   { \vspace { \baselineskip } \vspace { -1.25pt } }
-\int_set:Nn \l__piton_splittable_int { 100 }
 \clist_new:N \l__piton_bg_color_clist
 \tl_new:N \l__piton_prompt_bg_color_tl
 \str_new:N \l__piton_begin_range_str
@@ -397,7 +389,8 @@
           {
             \egroup
             \bool_if:NT \g__piton_footnote_bool \endsavenotes
-            \par \mode_leave_vertical:
+            \par
+            \mode_leave_vertical:
             \bool_if:NT \g__piton_footnote_bool \savenotes
             \vtop \bgroup
           }
@@ -701,7 +694,7 @@
       {
         {
           \l__piton_line_numbers_format_tl
-          \int_to_arabic:n \g__piton_visual_line_int
+          { \int_to_arabic:n \g__piton_visual_line_int }
         }
         \skip_horizontal:N \l__piton_numbers_sep_dim
       }
@@ -787,7 +780,6 @@
 \NewDocumentCommand { \__piton_piton_standard } { m }
   {
     \group_begin:
-    \ttfamily
     \automatichyphenmode = 1
     \cs_set_eq:NN \\ \c_backslash_str
     \cs_set_eq:NN \% \c_percent_str
@@ -809,7 +801,11 @@
         \bool_if:NT \l__piton_break_lines_in_piton_bool
           { \regex_replace_all:nnN { \x20 } { \x20 } \l_tmpa_tl }
       }
-    \l_tmpa_tl
+    \if_mode_math:
+       \text { \ttfamily \l_tmpa_tl }
+    \else:
+       \ttfamily \l_tmpa_tl
+    \fi:
     \group_end:
   }
 \NewDocumentCommand { \__piton_piton_verbatim } { v }
@@ -865,34 +861,9 @@
 \cs_new_protected:Npn \__piton_piton_no_cr:n #1
   {
     \group_begin:
-    \cs_set_protected:Npn \__piton_begin_line: { }
-    \cs_set_protected:Npn \__piton_end_line: { }
-    \cs_set:cpn { pitonStyle _ \l_piton_language_str  _ Prompt } { }
-    \cs_set:cpn { pitonStyle _ Prompt } { }
     \cs_set_protected:Npn \__piton_newline:
       { \msg_fatal:nn { piton } { cr~not~allowed } }
-    \bool_lazy_or:nnTF
-      \l__piton_break_lines_in_piton_bool
-      \l__piton_break_lines_in_Piton_bool
-      {
-        \tl_set:Nx \l_tmpa_tl
-          {
-            \lua_now:e
-              { piton.ParseTer('\l_piton_language_str',token.scan_string()) }
-              { #1 }
-          }
-      }
-      {
-        \tl_set:Nx \l_tmpa_tl
-          {
-            \lua_now:e
-              { piton.Parse('\l_piton_language_str',token.scan_string()) }
-              { #1 }
-          }
-      }
-    \bool_if:NT \l__piton_show_spaces_bool
-      { \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl } % U+2423
-    \l_tmpa_tl
+    \__piton_piton:n { #1 }
     \group_end:
   }
 \cs_new:Npn \__piton_pre_env:
@@ -1249,8 +1220,6 @@
   {
     String          .meta:n = { String.Long = #1 , String.Short = #1 } ,
     Comment.Math    .tl_set:c = pitonStyle _ Comment.Math  ,
-    ParseAgain      .tl_set:c = pitonStyle _ ParseAgain ,
-    ParseAgain      .value_required:n = true ,
     ParseAgain.noCR .tl_set:c = pitonStyle _ ParseAgain.noCR ,
     ParseAgain.noCR .value_required:n = true ,
     unknown         .code:n =
@@ -1296,7 +1265,6 @@
     UserFunction       = ,
     Prompt             = ,
     ParseAgain.noCR    = \__piton_piton_no_cr:n ,
-    ParseAgain         = \__piton_piton:n ,
     Discard            = \use_none:n
   }
 \AtBeginDocument
@@ -1439,11 +1407,19 @@
     markers~and~explicit~number~of~lines.\\
     Your~whole~file~'\l__piton_file_name_str'~will~be~included.
   }
-\__piton_msg_new:nn { syntax~error }
+\__piton_msg_new:nn { SyntaxError }
   {
+    Syntax~Error.\\
     Your~code~of~the~language~"\l_piton_language_str"~is~not~
     syntactically~correct.\\
     It~won't~be~printed~in~the~PDF~file.
+  }
+\__piton_msg_new:nn { FileError }
+  {
+    File~Error.\\
+    It's~not~possible~to~write~on~the~file~'\l__piton_write_str'.\\
+    Be~sure~to~compile~with~'-shell-escape'.\\
+    If~you~go~on,~nothing~will~be~written~on~the~file.
   }
 \__piton_msg_new:nn { begin~marker~not~found }
   {

@@ -15,7 +15,7 @@
     end-escape = ! ,
     begin-escape-math = \( , 
     end-escape-math = \) ,
-    detected-commands = highLight 
+    detected-commands =  { highLight , footnote }
   }
 
 
@@ -380,8 +380,11 @@ crochets).
 
 \begin{itemize}
 \item La clé \Definition{language} spécifie le langage informatique considéré (la casse
-n'est pas prise en compte). Cinq valeurs sont possibles : |Python|, |OCaml|, |C|, |SQL| et
-|minimal|. La valeur initiale est |Python|.
+n'est pas prise en compte). On peut choisir l'un des cinq langages prédéfinis (|Python|,
+|OCaml|, |C|, |SQL| et |minimal|) ou bien le nom d'un langage défini par l'utilisateur
+avec |\NewPitonLanguage| (voir partie~\ref{NewPitonLanguage}, p.~\pageref{NewPitonLanguage}).
+
+La valeur initiale est |Python|.
 
 \item \index{path} La clé \Definition{path} indique un chemin où seront cherchés les fichiers inclus par
 |\PitonInputFile|. 
@@ -410,6 +413,8 @@ l'extension) et écrit le contenu\footnote{En fait, il ne s'agit pas exactement 
   |piton.get_last_code()| qui en est une version sans les surcharges de formatage LaTeX
   (voir la partie \ref{API}, p.~\pageref{API}).} de l'environnement courant dans ce
 fichier. À la première utilisation du fichier par \pkg{piton}, celui-ci est effacé.
+
+{\bfseries Cette clé nécessite une compilation avec {\ttfamily lualatex -shell-escape}}.
 
 \item \index{path-write} La clé \Definition{path-write} indique un chemin où seront écrits
 les fichiers écrits par l'emploi de la clé |write| précédente.
@@ -450,9 +455,12 @@ numéro.
 de lignes (insérés par |line-numbers|) et les lignes du code informatique. La valeur
 initiale est 0.7~em.
 
-\item \colorbox{yellow!50}{\bfseries Nouveau 3.1}\enskip La clé
-\Definition{line-numbers/format} est une liste de tokens qui est insérée avant le numéro de
-ligne pour le formater. La valeur initiale est |\footnotesize \color{gray}|.
+\item \colorbox{yellow!50}{\bfseries Nouveau 3.1}\enskip 
+La clé \Definition{line-numbers/format} est une liste de tokens qui est insérée avant le
+numéro de ligne pour le formater. Il est possible de mettre \emph{en dernière position} de
+cette liste une commande LaTeX à un argument comme |\fbox|. 
+
+La valeur initiale est |\footnotesize \color{gray}|.
 \end{itemize}
 
 Pour la commodité, un dispositif de factorisation du préfixe |line-numbers| est
@@ -493,6 +501,12 @@ La clé |background-color| accepte aussi en argument une \emph{liste} de couleur
 lignes sont alors coloriées de manière cyclique avec ces couleurs.
 
 \emph{Exemple} : |\PitonOptions{background-color = {gray!5,white}}|
+
+\smallskip
+Si la clé |split-on-empty-lines| est utilisée (voir la partie «Coupure de pages»,
+p.~\pageref{coupure-de-pages}), les lignes de séparation entre morceaux de code générés
+par cette clé n'ont pas de fond coloré (au moins avec la valeur initiale du paramètre
+|split-separation|).
 
 \item \index{prompt-background-color} Avec la clé \Definition{prompt-background-color},
 \pkg{piton} ajoute un fond coloré aux lignes débutant par le prompt «|>>>|» (et sa
@@ -991,6 +1005,8 @@ identificateurs. Avec \verb|alsoletter = @_|, on les retire de la catégorie des
 
 \subsubsection{Coupure des pages}
 
+\label{coupure-de-pages}
+
 \index{splittable}
 \index{split-on-empty-lines}
 \index{split-separation}
@@ -1011,12 +1027,16 @@ pouvoir couper au niveau de ces lignes.
 
 Quand la clé |split-on-empty-lines| est activée, le travail effectué va en fait un peu
 plus loin : les lignes vides successives sont supprimées et remplacées par le contenu du
-paramètre correspondant à la clé \Definition{split-separation} (ce paramètre doit contenir
-du matériel à insérer en mode vertical de TeX).
+paramètre correspondant à la clé \Definition{split-separation} 
+\begin{itemize}
+\item Ce paramètre doit contenir du matériel à insérer en \emph{mode vertical} de TeX. On
+peut, par exemple, mettre |\hrule|.
 
-La valeur initiale de ce paramètre est |\vspace{\baselineskip}\vspace{-1.25pt}|, ce qui,
+\item La valeur initiale de ce paramètre est |\vspace{\baselineskip}\vspace{-1.25pt}|, ce qui,
 au final, correspond à une ligne vide dans le PDF produit (cet espace vertical est
-supprimé s'il tombe au niveau d'un saut de page).
+supprimé s'il tombe au niveau d'un saut de page). Si la clé |background-color| est
+utilisée, aucun fond n'est affiché au niveau de cette ligne de séparation.
+\end{itemize}
 
 \medskip
 \item La clé |split-on-empty-lines| peut bien sûr être insuffisante et c'est pourquoi
@@ -1845,6 +1865,7 @@ Ce code redéfinit localement l'environnement |{alertenv}| à l'intérieur de l'
 \label{footnote}
 
 
+\smallskip
 Si vous voulez mettre des notes de pied de page dans un environnement de \pkg{piton} (ou
 bien dans un listing produit par |\PitonInputFile|, bien que cela paraisse moins pertinent
 dans ce cas-là) vous pouvez utiliser une paire |\footnotemark|--|\footnotetext|.
@@ -1870,10 +1891,96 @@ L'extension \pkg{footnotehyper} est le successeur de l'extension \pkg{footnote} 
 particulier, elle doit être chargée après l'extension \pkg{xcolor} et elle n'est pas
 parfaitement compatible avec \pkg{hyperref}.
 
+
+\medskip
+\textbf{Remarque importante} : Si vous utilisez Beamer, il faut savoir que Beamer a son
+propre système d'extraction des notes de pied de page et vous n'avez donc pas à charger
+\pkg{piton} avec la clé |footnote| ou bien la clé |footnotehyper|.
+
+\bigskip
+Par défaut, une commande |\footnote| ne peut apparaître que dans un «commentaire LaTeX».
+Mais on peut aussi ajouter la commande |\footnote| à la liste des
+``\emph{detected-commands}'' (cf.~partie~\ref{detected-commands},
+p.~\pageref{detected-commands}). 
+
 \medskip
 Dans ce document, l'extension \pkg{piton} a été chargée avec l'option |footnotehyper| et
-c'est pourquoi des notes peuvent être mises dans les environnements |{Piton}| : voir un
-exemple sur la première page de ce document.
+on rajouté la commande |\footnote| aux ``\emph{detected-commands}'' avec le code suivant
+dans la préambule du document LaTeX :
+
+\qquad \verb|\PitonOptions{detected-commands = footnote}|
+
+\begingroup
+\fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
+\begin{Verbatim}
+\PitonOptions{background-color=gray!10}
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)~emphase&\footnote{Un premier appel récursif.}@
+    elif x > 1: 
+        return pi/2 - arctan(1/x)~emphase&\footnote{Un deuxième appel récursif.}@
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\end{Verbatim}
+\endgroup
+
+\begingroup
+\PitonOptions{background-color=gray!10}
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)\footnote{Un premier appel récursif.}
+    elif x > 1: 
+        return pi/2 - arctan(1/x)\footnote{Un deuxième appel récursif.}
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\endgroup
+
+
+\vspace{1cm}
+
+Si on utilise l'environnement |{Piton}| dans un environnement |{minipage}| de LaTeX, les
+notes sont, bien entendu, composées au bas de l'environnement |{minipage}|. Rappelons
+qu'une telle |{minipage}| ne peut être coupée par un saut de page.
+
+
+\begingroup
+\fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
+\begin{Verbatim}
+\PitonOptions{background-color=gray!10}
+\emphase\begin{minipage}{\linewidth}
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)~emphase&\footnote{Un premier appel récursif.}@
+    elif x > 1: 
+        return pi/2 - arctan(1/x)~emphase&\footnote{Un deuxième appel récursif.}@
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\end{minipage}
+\end{Verbatim}
+\endgroup
+
+\begingroup
+\PitonOptions{background-color=gray!10}
+\begin{minipage}{\linewidth}
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)\footnote{Un premier appel récursif.}
+    elif x > 1: 
+        return pi/2 - arctan(1/x)\footnote{Un deuxième appel récursif.}
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\end{minipage}
+\endgroup
+
+
 
 \subsection{Tabulations}
 
@@ -1942,7 +2049,7 @@ partie~\ref{pyluatex}, p.~\pageref{pyluatex}.
 \index{numérotation des lignes de code|emph}
 
 On rappelle que l'on peut demander la numérotation des lignes des listings avec la clé
-|line-numbers|.
+|line-numbers| (utilisée sans valeur).
 
 Par défaut, les numéros de ligne sont composés par \pkg{piton} en débordement à gauche (en
 utilisant en interne la commande |\llap| de LaTeX).
@@ -2072,92 +2179,6 @@ def arctan(x,n=10):
         return s 
 \end{Piton}
 \endgroup
-
-\bigskip
-
-\subsection{Notes dans les listings}
-
-\index{notes dans les listings|emph}
-
-Pour pouvoir extraire les notes (introduites par |\footnote|), l'extension |piton| doit
-être chargée, soit avec la clé |footnote|, soit avec la clé |footnotehyper|, comme
-expliqué à la section \ref{footnote} p.~\pageref{footnote}. Dans le présent document,
-l'extension \pkg{piton} a été chargée par la clé |footnotehyper|.
-
-Bien entendu, une commande |\footnote| ne peut apparaître que dans un commentaire LaTeX
-(qui débute par |#>|). Un tel commentaire peut se limiter à cette unique commande
-|\footnote|, comme dans l'exemple suivant.
-
-\begingroup
-\fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
-\begin{Verbatim}
-\PitonOptions{background-color=gray!10}
-\begin{Piton}
-def arctan(x,n=10):
-    if x < 0:
-        return -arctan(-x)~emphase&#>\footnote{Un premier appel récursif.}]@
-    elif x > 1: 
-        return pi/2 - arctan(1/x)~emphase&#>\footnote{Un deuxième appel récursif.}@
-    else: 
-        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
-\end{Piton}
-\end{Verbatim}
-\endgroup
-
-\begingroup
-\PitonOptions{background-color=gray!10}
-\begin{Piton}
-def arctan(x,n=10):
-    if x < 0:
-        return -arctan(-x)#>\footnote{Un premier appel récursif.}
-    elif x > 1: 
-        return pi/2 - arctan(1/x)#>\footnote{Un deuxième appel récursif.}
-    else: 
-        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
-\end{Piton}
-\endgroup
-
-
-\vspace{1cm}
-
-Si on utilise l'environnement |{Piton}| dans un environnement |{minipage}| de LaTeX, les
-notes sont, bien entendu, composées au bas de l'environnement |{minipage}|. Rappelons
-qu'une telle |{minipage}| ne peut être coupée par un saut de page.
-
-
-\begingroup
-\fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
-\begin{Verbatim}
-\PitonOptions{background-color=gray!10}
-\emphase\begin{minipage}{\linewidth}
-\begin{Piton}
-def arctan(x,n=10):
-    if x < 0:
-        return -arctan(-x)~emphase&#>\footnote{Un premier appel récursif.}@
-    elif x > 1: 
-        return pi/2 - arctan(1/x)~emphase&#>\footnote{Un deuxième appel récursif.}@
-    else: 
-        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
-\end{Piton}
-\end{minipage}
-\end{Verbatim}
-\endgroup
-
-\begingroup
-\PitonOptions{background-color=gray!10}
-\begin{minipage}{\linewidth}
-\begin{Piton}
-def arctan(x,n=10):
-    if x < 0:
-        return -arctan(-x)#>\footnote{Un premier appel récursif.}
-    elif x > 1: 
-        return pi/2 - arctan(1/x)#>\footnote{Un deuxième appel récursif.}
-    else: 
-        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
-\end{Piton}
-\end{minipage}
-\endgroup
-
 
 \bigskip
 

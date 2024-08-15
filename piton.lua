@@ -20,7 +20,8 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.1y" -- 2024/08/09
+piton_version = "3.1a" -- 2024/08/12
+
 
 
 
@@ -1108,7 +1109,7 @@ function piton.Parse ( language , code )
   local t = LPEG2[language] : match ( code )
   if t == nil
   then
-    sprintL3 [[ \__piton_error_or_warning:n { syntax~error } ]]
+    sprintL3 [[ \__piton_error_or_warning:n { SyntaxError } ]]
     return -- to exit in force the function
   end
   local left_stack = {}
@@ -1242,15 +1243,21 @@ end
 function piton.GobbleParse ( lang , n , code )
   piton.last_code = gobble ( n , code )
   piton.last_language = lang
-  piton.CountLines ( piton.last_code ) -- added 2024/08/07
-  sprintL3 [[ \bool_if:NT \g__piton_footnote_bool \savenotes \vtop \bgroup ]]
+  piton.CountLines ( piton.last_code )
+  sprintL3 [[ \bool_if:NT \g__piton_footnote_bool \savenotes ]]
+  sprintL3 [[ \vtop \bgroup ]]
   piton.Parse ( lang , piton.last_code )
-  sprintL3
-    [[\vspace{2.5pt}\egroup\bool_if:NT\g__piton_footnote_bool\endsavenotes\par]]
+  sprintL3 [[ \vspace{2.5pt} \egroup ]]
+  sprintL3 [[ \bool_if:NT \g__piton_footnote_bool \endsavenotes ]]
+  sprintL3 [[ \par ]]
   if piton.write and piton.write ~= '' then
-    local file = assert ( io.open ( piton.write , piton.write_mode ) )
-    file:write ( piton.get_last_code ( ) )
-    file:close ( )
+    local file = io.open ( piton.write , piton.write_mode )
+    if file then
+      file:write ( piton.get_last_code ( ) )
+      file:close ( )
+    else
+      sprintL3 [[ \__piton_error_or_warning:n { FileError } ]]
+    end
   end
 end
 function piton.GobbleSplitParse ( lang , n , code )
@@ -1270,14 +1277,15 @@ function piton.GobbleSplitParse ( lang , n , code )
     } : match ( gobble ( n , code ) )
 end
 piton.string_between_chunks =
- [[\par\l__piton_split_separation_tl\mode_leave_vertical:\int_gzero:N\g__piton_line_int]]
+ [[ \par \l__piton_split_separation_tl \mode_leave_vertical: ]]
+ .. [[ \int_gzero:N \g__piton_line_int ]]
 function piton.get_last_code ( )
   return LPEG_cleaner[piton.last_language] : match ( piton.last_code )
 end
 function piton.CountLines ( code )
   local count = 0
   for i in code : gmatch ( "\r" ) do count = count + 1 end
-  sprintL3 ( [[ \int_set:Nn  \l__piton_nb_lines_int { ]] .. count .. '}' )
+  sprintL3 ( string.format ( [[ \int_set:Nn  \l__piton_nb_lines_int { % i } ]] , count ) )
 end
 function piton.CountNonEmptyLines ( code )
   local count = 0
@@ -1288,12 +1296,14 @@ function piton.CountNonEmptyLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  sprintL3 ( [[ \int_set:Nn  \l__piton_nb_non_empty_lines_int { ]] .. count .. '}' )
+  sprintL3
+   ( string.format ( [[ \int_set:Nn  \l__piton_nb_non_empty_lines_int { % i } ]] , count ) )
 end
 function piton.CountLinesFile ( name )
   local count = 0
   for line in io.lines ( name ) do count = count + 1 end
-  sprintL3 ( [[ \int_set:Nn \l__piton_nb_lines_int { ]] .. count .. '}' )
+  sprintL3
+   ( string.format ( [[ \int_set:Nn \l__piton_nb_lines_int { %i } ]], count))
 end
 function piton.CountNonEmptyLinesFile ( name )
   local count = 0
@@ -1302,7 +1312,8 @@ function piton.CountNonEmptyLinesFile ( name )
        count = count + 1
      end
   end
-  sprintL3 ( [[ \int_set:Nn \l__piton_nb_non_empty_lines_int { ]] .. count .. '}' )
+  sprintL3
+   ( string.format ( [[ \int_set:Nn \l__piton_nb_non_empty_lines_int { % i } ]] , count ) )
 end
 function piton.ComputeRange(marker_beginning,marker_end,file_name)
   local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( marker_beginning )
