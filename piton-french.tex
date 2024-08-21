@@ -123,9 +123,9 @@ L'extension \pkg{piton} utilise la librairie Lua nommée LPEG\footnote{LPEG est 
 avec coloriage syntaxique. Comme elle utilise le Lua de LuaLaTeX, elle fonctionne
 uniquement avec |lualatex| (et ne va pas fonctionner avec les autres moteurs de
 compilation LaTeX, que ce soit |latex|, |pdflatex| ou |xelatex|). Elle n'utilise aucun
-programme extérieur et la compilation ne requiert donc pas |--shell-escape|. La
-compilation est très rapide puisque tout le travail du parseur est fait par la librairie
-LPEG, écrite en C.
+programme extérieur et la compilation ne requiert donc pas |--shell-escape| (sauf lorsque
+la clé |write| est utilisée). La compilation est très rapide puisque tout le travail du
+parseur est fait par la librairie LPEG, écrite en C.
 
 \bigskip
 Voici un exemple de code Python composé avec l'environnement |{Piton}| proposé par \pkg{piton}.

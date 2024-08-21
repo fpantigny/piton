@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{3.1a}
-\def\PitonFileDate{2024/08/12}
+\def\PitonFileVersion{3.1x}
+\def\PitonFileDate{2024/08/21}
 
 
 
@@ -1122,6 +1122,7 @@
         }
       \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
     \group_end:
+    \exp_args:Nx \iow_log:n {(\l__piton_file_name_str)}
     \tl_if_novalue:nF { #1 }
       { \bool_if:NT \g__piton_beamer_bool { \end { uncoverenv } } }
     \__piton_write_aux:
@@ -1418,7 +1419,7 @@
   {
     File~Error.\\
     It's~not~possible~to~write~on~the~file~'\l__piton_write_str'.\\
-    Be~sure~to~compile~with~'-shell-escape'.\\
+    \sys_if_shell_unrestricted:F { Be~sure~to~compile~with~'-shell-escape'.\\ }
     If~you~go~on,~nothing~will~be~written~on~the~file.
   }
 \__piton_msg_new:nn { begin~marker~not~found }

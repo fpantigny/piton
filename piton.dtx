@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.1a}
-\def\PitonFileDate{2024/08/12}
+\def\PitonFileVersion{3.1x}
+\def\PitonFileDate{2024/08/21}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.1a" -- 2024/08/12
+piton_version = "3.1x" -- 2024/08/21
 %</LUA>
 %\fi
 %
@@ -113,8 +113,9 @@ piton_version = "3.1a" -- 2024/08/12
 % listings and typesets them with syntactic highlighting. Since it uses the Lua
 % of LuaLaTeX, it works with |lualatex| only (and won't work with the other
 % engines: |latex|, |pdflatex| and |xelatex|). It does not use external program
-% and the compilation does not require |--shell-escape|. The compilation is very
-% fast since all the parsing is done by the library LPEG, written in C. 
+% and the compilation does not require |--shell-escape| (except when the key
+% |write| is used). The compilation is very fast since all the parsing is done
+% by the library LPEG, written in C. 
 % 
 % \bigskip
 % Here is an example of code typeset by \pkg{piton}, with the environment |{Piton}|.
@@ -3027,8 +3028,8 @@ piton_version = "3.1a" -- 2024/08/12
 %    \end{macrocode}
 % 
 % \medskip
-% Each time the command |\PitonInputFile| of \pkg{piton} is
-% used, the code of that environment will be stored in the following global string.
+% Each time an environment of \pkg{piton} is used, the informatic code in the
+% body of that environment will be stored in the following global string.
 %    \begin{macrocode}
 \tl_new:N \g_piton_last_code_tl
 %    \end{macrocode}
@@ -4825,6 +4826,14 @@ piton_version = "3.1a" -- 2024/08/12
       \bool_if:NT \l_@@_width_min_bool \@@_width_to_aux:
     \group_end:
 %    \end{macrocode}
+%
+% 
+% The following line is to allow programs such as |latexmk| to be aware that the
+% file (read by |\PitonInputFile|) is loaded during the compilation of the LaTeX
+% document. 
+%    \begin{macrocode}
+    \exp_args:Nx \iow_log:n {(\l_@@_file_name_str)}
+%    \end{macrocode}
 % We recall that, if we are in Beamer, the command |\PitonInputFile| is
 % ``overlay-aware'' and that's why we close now an environment |{uncoverenv}|
 % that we have opened at the beginning of the command.
@@ -5316,7 +5325,7 @@ piton_version = "3.1a" -- 2024/08/12
   {
     File~Error.\\
     It's~not~possible~to~write~on~the~file~'\l_@@_write_str'.\\
-    Be~sure~to~compile~with~'-shell-escape'.\\
+    \sys_if_shell_unrestricted:F { Be~sure~to~compile~with~'-shell-escape'.\\ } 
     If~you~go~on,~nothing~will~be~written~on~the~file.
   }
 %    \end{macrocode}
