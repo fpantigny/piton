@@ -5106,13 +5106,12 @@ piton_version = "3.1y" -- 2024/08/24
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_identifier:n #1
   { 
-    \cs_if_exist:cTF { PitonIdentifier _ \l_piton_language_str _ #1 } 
-      { \use:c { PitonIdentifier _ \l_piton_language_str _ #1 } { #1 } } 
+    \cs_if_exist_use:cF { PitonIdentifier _ \l_piton_language_str _ #1 } 
       { 
-        \cs_if_exist:cTF { PitonIdentifier _ #1 } 
-          { \use:c { PitonIdentifier _ #1 } { #1 } }
+        \cs_if_exist_use:cF { PitonIdentifier _ #1 } 
+          { \PitonStyle { Identifier }  } 
       }
-    { { \PitonStyle { Identifier }  { #1 } } } 
+    { #1 } 
   } 
 %    \end{macrocode}
 %
@@ -6925,11 +6924,11 @@ local Argument =
 % which opens locally a module.
 %    \begin{macrocode}
 local DefFunction = 
-  K ( 'Keyword' , "let open" ) 
+  K ( 'Keyword.Governing' , "let open" ) 
    * Space
    * K ( 'Name.Module' , cap_identifier ) 
   + 
-  K ( 'Keyword' , P "let rec" + "let" + "and" ) 
+  K ( 'Keyword.Governing' , P "let rec" + "let" + "and" ) 
     * Space
     * K ( 'Name.Function.Internal' , identifier ) 
     * Space 
@@ -6954,10 +6953,10 @@ local DefFunction =
 % definitions of \emph{types} of modules.
 %    \begin{macrocode}
 local DefModule = 
-  K ( 'Keyword' , "module" ) * Space
+  K ( 'Keyword.Governing' , "module" ) * Space
   *
     (
-          K ( 'Keyword' , "type" ) * Space
+          K ( 'Keyword.Governing' , "type" ) * Space
         * K ( 'Name.Type' , cap_identifier ) 
       + 
         K ( 'Name.Module' , cap_identifier ) * SkipSpace 
@@ -6992,7 +6991,7 @@ local DefModule =
           ) ^ -1
     )
   + 
-  K ( 'Keyword' , P "include" + "open" )
+  K ( 'Keyword.Governing' , P "include" + "open" )
   * Space * K ( 'Name.Module' , cap_identifier ) 
 %    \end{macrocode}
 % 

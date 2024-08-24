@@ -718,11 +718,11 @@ local Argument =
     * K ( 'Name.Type' , balanced_parens ) * SkipSpace
     * Q ")"
 local DefFunction =
-  K ( 'Keyword' , "let open" )
+  K ( 'Keyword.Governing' , "let open" )
    * Space
    * K ( 'Name.Module' , cap_identifier )
   +
-  K ( 'Keyword' , P "let rec" + "let" + "and" )
+  K ( 'Keyword.Governing' , P "let rec" + "let" + "and" )
     * Space
     * K ( 'Name.Function.Internal' , identifier )
     * Space
@@ -738,10 +738,10 @@ local DefFunction =
            ) ^ -1
       )
 local DefModule =
-  K ( 'Keyword' , "module" ) * Space
+  K ( 'Keyword.Governing' , "module" ) * Space
   *
     (
-          K ( 'Keyword' , "type" ) * Space
+          K ( 'Keyword.Governing' , "type" ) * Space
         * K ( 'Name.Type' , cap_identifier )
       +
         K ( 'Name.Module' , cap_identifier ) * SkipSpace
@@ -776,7 +776,7 @@ local DefModule =
           ) ^ -1
     )
   +
-  K ( 'Keyword' , P "include" + "open" )
+  K ( 'Keyword.Governing' , P "include" + "open" )
   * Space * K ( 'Name.Module' , cap_identifier )
 local TypeParameter = K ( 'TypeParameter' , "'" * alpha * # ( 1 - P "'" ) )
 local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1

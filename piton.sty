@@ -1295,13 +1295,12 @@
   }
 \cs_new_protected:Npn \__piton_identifier:n #1
   {
-    \cs_if_exist:cTF { PitonIdentifier _ \l_piton_language_str _ #1 }
-      { \use:c { PitonIdentifier _ \l_piton_language_str _ #1 } { #1 } }
+    \cs_if_exist_use:cF { PitonIdentifier _ \l_piton_language_str _ #1 }
       {
-        \cs_if_exist:cTF { PitonIdentifier _ #1 }
-          { \use:c { PitonIdentifier _ #1 } { #1 } }
+        \cs_if_exist_use:cF { PitonIdentifier _ #1 }
+          { \PitonStyle { Identifier }  }
       }
-    { { \PitonStyle { Identifier }  { #1 } } }
+    { #1 }
   }
 \cs_new_protected:cpn { pitonStyle _ Name.Function.Internal } #1
   {
