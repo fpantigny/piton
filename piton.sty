@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{3.1x}
-\def\PitonFileDate{2024/08/21}
+\def\PitonFileVersion{3.1y}
+\def\PitonFileDate{2024/08/24}
 
 
 
@@ -1162,10 +1162,12 @@
     Discard ,
     Exception ,
     FormattingType ,
+    Identifier.Internal ,
     Identifier ,
     InitialValues ,
     Interpol.Inside ,
     Keyword ,
+    Keyword.Governing ,
     Keyword.Constant ,
     Keyword2 ,
     Keyword3 ,
@@ -1235,38 +1237,40 @@
   }
 \SetPitonStyle
   {
-    Comment            = \color[HTML]{0099FF} \itshape ,
-    Exception          = \color[HTML]{CC0000} ,
-    Keyword            = \color[HTML]{006699} \bfseries ,
-    Keyword.Constant   = \color[HTML]{006699} \bfseries ,
-    Name.Builtin       = \color[HTML]{336666} ,
-    Name.Decorator     = \color[HTML]{9999FF},
-    Name.Class         = \color[HTML]{00AA88} \bfseries ,
-    Name.Function      = \color[HTML]{CC00FF} ,
-    Name.Namespace     = \color[HTML]{00CCFF} ,
-    Name.Constructor   = \color[HTML]{006000} \bfseries ,
-    Name.Field         = \color[HTML]{AA6600} ,
-    Name.Module        = \color[HTML]{0060A0} \bfseries ,
-    Name.Table         = \color[HTML]{309030} ,
-    Number             = \color[HTML]{FF6600} ,
-    Operator           = \color[HTML]{555555} ,
-    Operator.Word      = \bfseries ,
-    String             = \color[HTML]{CC3300} ,
-    String.Doc         = \color[HTML]{CC3300} \itshape ,
-    String.Interpol    = \color[HTML]{AA0000} ,
-    Comment.LaTeX      = \normalfont \color[rgb]{.468,.532,.6} ,
-    Name.Type          = \color[HTML]{336666} ,
-    InitialValues      = \__piton_piton:n ,
-    Interpol.Inside    = \color{black}\__piton_piton:n ,
-    TypeParameter      = \color[HTML]{336666} \itshape ,
-    Preproc            = \color[HTML]{AA6600} \slshape ,
-    Identifier         = \__piton_identifier:n ,
-    Directive          = \color[HTML]{AA6600} ,
-    Tag                = \colorbox{gray!10},
-    UserFunction       = ,
-    Prompt             = ,
-    ParseAgain.noCR    = \__piton_piton_no_cr:n ,
-    Discard            = \use_none:n
+    Comment             = \color[HTML]{0099FF} \itshape ,
+    Exception           = \color[HTML]{CC0000} ,
+    Keyword             = \color[HTML]{006699} \bfseries ,
+    Keyword.Governing   = \color[HTML]{006699} \bfseries ,
+    Keyword.Constant    = \color[HTML]{006699} \bfseries ,
+    Name.Builtin        = \color[HTML]{336666} ,
+    Name.Decorator      = \color[HTML]{9999FF},
+    Name.Class          = \color[HTML]{00AA88} \bfseries ,
+    Name.Function       = \color[HTML]{CC00FF} ,
+    Name.Namespace      = \color[HTML]{00CCFF} ,
+    Name.Constructor    = \color[HTML]{006000} \bfseries ,
+    Name.Field          = \color[HTML]{AA6600} ,
+    Name.Module         = \color[HTML]{0060A0} \bfseries ,
+    Name.Table          = \color[HTML]{309030} ,
+    Number              = \color[HTML]{FF6600} ,
+    Operator            = \color[HTML]{555555} ,
+    Operator.Word       = \bfseries ,
+    String              = \color[HTML]{CC3300} ,
+    String.Doc          = \color[HTML]{CC3300} \itshape ,
+    String.Interpol     = \color[HTML]{AA0000} ,
+    Comment.LaTeX       = \normalfont \color[rgb]{.468,.532,.6} ,
+    Name.Type           = \color[HTML]{336666} ,
+    InitialValues       = \__piton_piton:n ,
+    Interpol.Inside     = \color{black}\__piton_piton:n ,
+    TypeParameter       = \color[HTML]{336666} \itshape ,
+    Preproc             = \color[HTML]{AA6600} \slshape ,
+    Identifier.Internal = \__piton_identifier:n ,
+    Identifier          = ,
+    Directive           = \color[HTML]{AA6600} ,
+    Tag                 = \colorbox{gray!10},
+    UserFunction        = ,
+    Prompt              = ,
+    ParseAgain.noCR     = \__piton_piton_no_cr:n ,
+    Discard             = \use_none:n
   }
 \AtBeginDocument
   {
@@ -1291,9 +1295,13 @@
   }
 \cs_new_protected:Npn \__piton_identifier:n #1
   {
-    \cs_if_exist_use:cF { PitonIdentifier _ \l_piton_language_str _ #1 }
-      { \cs_if_exist_use:c { PitonIdentifier _ #1 } }
-    { #1 }
+    \cs_if_exist:cTF { PitonIdentifier _ \l_piton_language_str _ #1 }
+      { \use:c { PitonIdentifier _ \l_piton_language_str _ #1 } { #1 } }
+      {
+        \cs_if_exist:cTF { PitonIdentifier _ #1 }
+          { \use:c { PitonIdentifier _ #1 } { #1 } }
+      }
+    { { \PitonStyle { Identifier }  { #1 } } }
   }
 \cs_new_protected:cpn { pitonStyle _ Name.Function.Internal } #1
   {

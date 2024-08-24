@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.1x" -- 2024/08/21
+piton_version = "3.1y" -- 2024/08/24
 
 
 
@@ -86,7 +86,7 @@ local letter = alpha + "_" + "â" + "à" + "ç" + "é" + "è" + "ê" + "ë" + "�
 
 local alphanum = letter + digit
 local identifier = letter * alphanum ^ 0
-local Identifier = K ( 'Identifier' , identifier )
+local Identifier = K ( 'Identifier.Internal' , identifier )
 local Number =
   K ( 'Number' ,
       ( digit ^ 1 * P "." * # ( 1 - P "." ) * digit ^ 0
@@ -568,7 +568,7 @@ local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
 local Constructor = K ( 'Name.Constructor' , cap_identifier )
 local ModuleType = K ( 'Name.Type' , cap_identifier )
 local identifier = ( R "az" + "_" ) * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
-local Identifier = K ( 'Identifier' , identifier )
+local Identifier = K ( 'Identifier.Internal' , identifier )
 local expression_for_fields =
   P { "E" ,
        E = (   "{" * V "F" * "}"
@@ -626,28 +626,40 @@ local Operator =
 
 local OperatorWord =
   K ( 'Operator.Word' ,
-      P "and" + "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" )
+      P "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" )
 
 local Keyword =
   K ( 'Keyword' ,
-      P "assert" + "and" + "as" + "begin" + "class" + "constraint" + "done"
-  + "downto" + "do" + "else" + "end" + "exception" + "external" + "for" +
-  "function" + "functor" + "fun" + "if" + "include" + "inherit" + "initializer"
-  + "in"  + "lazy" + "let" + "match" + "method" + "module" + "mutable" + "new" +
-  "object" + "of" + "open" + "private" + "raise" + "rec" + "sig" + "struct" +
-  "then" + "to" + "try" + "type" + "value" + "val" + "virtual" + "when" +
-  "while" + "with" )
+      P "assert" + "as" + "done" + "downto" + "do" + "else" + "exception"
+      + "for" + "function"  + "fun" + "if" + "lazy" + "match" + "mutable"
+      + "new" + "of" + "private" + "raise" + "then" + "to" + "try"
+      + "virtual" + "when" + "while" + "with" )
   + K ( 'Keyword.Constant' , P "true" + "false" )
+  + K ('Keyword.Governing',
+       P "and" + "begin" + "class" + "constraint" + "end" + "external"
+        + "functor" + "include" + "inherit" + "initializer" + "in" + "let"
+        + "method" + "module" + "object" + "open"  + "rec" + "sig" + "struct"
+        + "type" + "val" )
 
 local Builtin =
-  K ( 'Name.Builtin' , P "not" + "incr" + "decr" + "fst" + "snd" )
+  K ( 'Name.Builtin' , P "not" + "incr" + "decr" + "fst" + "snd" + "ref" )
 local Exception =
   K (   'Exception' ,
        P "Division_by_zero" + "End_of_File" + "Failure" + "Invalid_argument" +
        "Match_failure" + "Not_found" + "Out_of_memory" + "Stack_overflow" +
        "Sys_blocked_io" + "Sys_error" + "Undefined_recursive_module" )
 local Char =
-  K ( 'String.Short' , "'" * ( ( 1 - P "'" ) ^ 0 + "\\'" ) * "'" )
+  K ( 'String.Short',
+    P "'" *
+    (
+      ( 1 - S "'\\" )
+      + "\\"
+        * ( S "\\'ntbr \""
+            + digit * digit * digit
+            + P "x" * ( digit + alpha ) * ( digit + alpha ) * ( digit + alpha )
+            + P "o" * R "03" * R "07" * R "07" )
+    )
+    * "'" )
 local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
 if piton.beamer then
   Beamer = Compute_Beamer ( 'ocaml' , braces ) -- modified 2024/07/24
@@ -699,9 +711,9 @@ local Comment =
 local balanced_parens =
   P { "E" , E = ( "(" * V "E" * ")" + 1 - S "()" ) ^ 0 }
 local Argument =
-  K ( 'Identifier' , identifier )
+  K ( 'Identifier.Internal' , identifier )
   + Q "(" * SkipSpace
-    * K ( 'Identifier' , identifier ) * SkipSpace
+    * K ( 'Identifier.Internal' , identifier ) * SkipSpace
     * Q ":" * SkipSpace
     * K ( 'Name.Type' , balanced_parens ) * SkipSpace
     * Q ")"
@@ -780,7 +792,6 @@ local Main =
      + Delim
      + Operator
      + Punct
-     + FromImport
      + Exception
      + DefFunction
      + DefModule
@@ -1073,7 +1084,7 @@ LPEG_cleaner['minimal'] = Compute_LPEG_cleaner ( 'minimal' , braces )
 
 local identifier = letter * alphanum ^ 0
 
-local Identifier = K ( 'Identifier' , identifier )
+local Identifier = K ( 'Identifier.Internal' , identifier )
 
 local Delim = Q ( S "{[()]}" )
 
@@ -1437,7 +1448,7 @@ function piton.new_language ( lang , definition )
                     + "Ï" + "Î" + "Ô" + "Û" + "Ü"
   local alphanum = letter + digit
   local identifier = letter * alphanum ^ 0
-  local Identifier = K ( 'Identifier' , identifier )
+  local Identifier = K ( 'Identifier.Internal' , identifier )
   local split_clist =
     P { "E" ,
          E = ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ -1
@@ -1640,7 +1651,7 @@ function piton.new_language ( lang , definition )
        + PrefixedKeyword
        + Keyword * ( -1 + # ( 1 - alphanum ) )
        + Punct
-       + K ( 'Identifier' , letter * alphanum ^ 0 )
+       + K ( 'Identifier.Internal' , letter * alphanum ^ 0 )
        + Number
        + Word
   LPEG1[lang] = Main ^ 0
@@ -1676,7 +1687,7 @@ function piton.new_language ( lang , definition )
             + PrefixedKeyword
             + Keyword * ( -1 + # ( 1 - alphanum ) )
             + Punct
-            + K ( 'Identifier' , letter * alphanum ^ 0 )
+            + K ( 'Identifier.Internal' , letter * alphanum ^ 0 )
             + Number
             + Word
     LPEG0[lang] = MainWithoutTag ^ 0

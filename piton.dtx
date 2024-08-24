@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.1x}
-\def\PitonFileDate{2024/08/21}
+\def\PitonFileVersion{3.1y}
+\def\PitonFileDate{2024/08/24}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.1x" -- 2024/08/21
+piton_version = "3.1y" -- 2024/08/24
 %</LUA>
 %\fi
 %
@@ -686,7 +686,7 @@ piton_version = "3.1x" -- 2024/08/21
 % \bigskip
 % For example, with the command
 % \begin{Verbatim}
-% \SetPitonStyle~emphase#[SQL]@{Keywords = \color[HTML]{006699} \bfseries \MakeUppercase}
+% \SetPitonStyle~emphase#[SQL]@{Keyword = \color[HTML]{006699} \bfseries \MakeUppercase}
 % \end{Verbatim}
 % the keywords in the SQL listings will be composed in capital letters, even if
 % they appear in lower case in the LaTeX source (we recall that, in SQL, the
@@ -2354,6 +2354,7 @@ piton_version = "3.1x" -- 2024/08/21
 %             global, if, import, in, lambda, non local,
 %             pass, raise, return, try, while,
 %             with, yield et yield from.\\
+%  Identifier & the identifiers. \\
 %   \bottomrule
 % \end{tabularx}
 % \end{center}
@@ -2405,15 +2406,15 @@ piton_version = "3.1x" -- 2024/08/21
 %   TypeParameter &  the parameters of the types \\
 %   Comment & the comments, between |(*| et |*)|; these comments may be nested \\
 %   Keyword.Constant & |true| et |false| \\
-%   Keyword & the following keywords:
-%             |assert|, |as|, |begin|, |class|, |constraint|, |done|,
-%             |downto|, |do|, |else|, |end|, |exception|, |external|,
-%             |for|, |function|, |functor|, |fun| , |if| 
-%             |include|, |inherit|, |initializer|, |in| , |lazy|, |let|,
-%             |match|, |method|, |module|, |mutable|, |new|, |object|,
-%             |of|, |open|, |private|, |raise|, |rec|, |sig|,
-%             |struct|, |then|, |to|, |try|, |type|, 
-%             |value|, |val|, |virtual|, |when|, |while| and |with| \\
+%   Keyword & the following keywords: |assert|, |as|, |done|, |downto|, |do|,
+%   |else|, |exception|, |for|, |function| , |fun|, |if|, |lazy|, |match|,
+%   |mutable|, |new|, |of|, |private|, |raise|, |then|, |to|, |try| , |virtual|,
+%   |when|, |while| and |with| \\  
+%   Keyword.Governing & the following keywords: |and|, |begin|, |class|, |constraint|,
+%                      |end|, |external|, |functor|, |include|, |inherit|, |initializer|,
+%                      |in|, |let|, |method|, |module|, |object|, |open|, |rec|, |sig|,
+%                      |struct|, |type| and |val|. \\
+%  Identifier & the identifiers. \\
 %   \bottomrule
 % \end{tabularx}
 % \end{center}
@@ -2472,6 +2473,7 @@ piton_version = "3.1x" -- 2024/08/21
 % |return|, |static|, |static_assert|, |struct|, |switch|, |thread_local|, |throw|, 
 % |typedef|, |union|, |using|, |virtual|, |volatile| and |while|
 % \\
+%  Identifier & the identifiers. \\
 % \bottomrule
 % \end{tabularx}
 % \end{center}
@@ -2567,7 +2569,9 @@ piton_version = "3.1x" -- 2024/08/21
 % String & the strings (between \texttt{"}) \\
 % Comment & the comments (which begin with |#|) \\
 % Comment.LaTeX &  the comments beginning with \texttt{\#>}, which are composed by
-%   \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
+%   \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document)
+%   \\
+%  Identifier & the identifiers. \\
 % \bottomrule
 % \end{tabularx}
 % \end{center}
@@ -2604,6 +2608,7 @@ piton_version = "3.1x" -- 2024/08/21
 % |moredirectives| \\
 % Tag & the ``tags'' defines by the key |tag| (the lexical units detected within
 % the tag will also be formatted with their own style) \\
+%  Identifier & the identifiers. \\
 % \bottomrule
 % \end{tabularx}
 % \end{center}
@@ -4913,10 +4918,12 @@ piton_version = "3.1x" -- 2024/08/21
     Discard ,
     Exception ,
     FormattingType ,    
+    Identifier.Internal ,
     Identifier ,
     InitialValues ,
     Interpol.Inside ,
     Keyword ,
+    Keyword.Governing ,
     Keyword.Constant ,
     Keyword2 ,
     Keyword3 ,
@@ -5012,38 +5019,45 @@ piton_version = "3.1x" -- 2024/08/21
 %    \begin{macrocode}
 \SetPitonStyle
   {                                                       
-    Comment            = \color[HTML]{0099FF} \itshape , 
-    Exception          = \color[HTML]{CC0000} ,
-    Keyword            = \color[HTML]{006699} \bfseries ,               
-    Keyword.Constant   = \color[HTML]{006699} \bfseries ,               
-    Name.Builtin       = \color[HTML]{336666} ,
-    Name.Decorator     = \color[HTML]{9999FF}, 
-    Name.Class         = \color[HTML]{00AA88} \bfseries ,
-    Name.Function      = \color[HTML]{CC00FF} , 
-    Name.Namespace     = \color[HTML]{00CCFF} , 
-    Name.Constructor   = \color[HTML]{006000} \bfseries , 
-    Name.Field         = \color[HTML]{AA6600} , 
-    Name.Module        = \color[HTML]{0060A0} \bfseries ,
-    Name.Table         = \color[HTML]{309030} ,
-    Number             = \color[HTML]{FF6600} ,
-    Operator           = \color[HTML]{555555} ,
-    Operator.Word      = \bfseries ,
-    String             = \color[HTML]{CC3300} ,         
-    String.Doc         = \color[HTML]{CC3300} \itshape , 
-    String.Interpol    = \color[HTML]{AA0000} ,
-    Comment.LaTeX      = \normalfont \color[rgb]{.468,.532,.6} , 
-    Name.Type          = \color[HTML]{336666} ,
-    InitialValues      = \@@_piton:n ,
-    Interpol.Inside    = \color{black}\@@_piton:n ,
-    TypeParameter      = \color[HTML]{336666} \itshape ,
-    Preproc            = \color[HTML]{AA6600} \slshape ,
-    Identifier         = \@@_identifier:n , 
-    Directive          = \color[HTML]{AA6600} ,
-    Tag                = \colorbox{gray!10}, 
-    UserFunction       = , 
-    Prompt             = , 
-    ParseAgain.noCR    = \@@_piton_no_cr:n , 
-    Discard            = \use_none:n 
+    Comment             = \color[HTML]{0099FF} \itshape , 
+    Exception           = \color[HTML]{CC0000} ,
+    Keyword             = \color[HTML]{006699} \bfseries , 
+    Keyword.Governing   = \color[HTML]{006699} \bfseries , 
+    Keyword.Constant    = \color[HTML]{006699} \bfseries ,               
+    Name.Builtin        = \color[HTML]{336666} ,
+    Name.Decorator      = \color[HTML]{9999FF}, 
+    Name.Class          = \color[HTML]{00AA88} \bfseries ,
+    Name.Function       = \color[HTML]{CC00FF} , 
+    Name.Namespace      = \color[HTML]{00CCFF} , 
+    Name.Constructor    = \color[HTML]{006000} \bfseries , 
+    Name.Field          = \color[HTML]{AA6600} , 
+    Name.Module         = \color[HTML]{0060A0} \bfseries ,
+    Name.Table          = \color[HTML]{309030} ,
+    Number              = \color[HTML]{FF6600} ,
+    Operator            = \color[HTML]{555555} ,
+    Operator.Word       = \bfseries ,
+    String              = \color[HTML]{CC3300} ,         
+    String.Doc          = \color[HTML]{CC3300} \itshape , 
+    String.Interpol     = \color[HTML]{AA0000} ,
+    Comment.LaTeX       = \normalfont \color[rgb]{.468,.532,.6} , 
+    Name.Type           = \color[HTML]{336666} ,
+    InitialValues       = \@@_piton:n ,
+    Interpol.Inside     = \color{black}\@@_piton:n ,
+    TypeParameter       = \color[HTML]{336666} \itshape ,
+    Preproc             = \color[HTML]{AA6600} \slshape ,
+%    \end{macrocode}
+% We need the command |\@@_identifier:n| because of the command
+% |\SetPitonIdentifier|. The command |\@@_identifier:n| will potentially call
+% the style |Identifier| (which is a user-style, not an internal style).
+%    \begin{macrocode}
+    Identifier.Internal = \@@_identifier:n , 
+    Identifier          = ,
+    Directive           = \color[HTML]{AA6600} ,
+    Tag                 = \colorbox{gray!10}, 
+    UserFunction        = , 
+    Prompt              = , 
+    ParseAgain.noCR     = \@@_piton_no_cr:n , 
+    Discard             = \use_none:n 
   }
 %    \end{macrocode}
 % The styles |ParseAgain.noCR| should be considered as 
@@ -5092,9 +5106,13 @@ piton_version = "3.1x" -- 2024/08/21
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_identifier:n #1
   { 
-    \cs_if_exist_use:cF { PitonIdentifier _ \l_piton_language_str _ #1 } 
-      { \cs_if_exist_use:c { PitonIdentifier _ #1 } }
-    { #1 } 
+    \cs_if_exist:cTF { PitonIdentifier _ \l_piton_language_str _ #1 } 
+      { \use:c { PitonIdentifier _ \l_piton_language_str _ #1 } { #1 } } 
+      { 
+        \cs_if_exist:cTF { PitonIdentifier _ #1 } 
+          { \use:c { PitonIdentifier _ #1 } { #1 } }
+      }
+    { { \PitonStyle { Identifier }  { #1 } } } 
   } 
 %    \end{macrocode}
 %
@@ -5705,7 +5723,7 @@ local identifier = letter * alphanum ^ 0
 % On the other hand, the \textsc{lpeg} |Identifier| (with a capital) also returns
 % a \emph{capture}.
 %    \begin{macrocode}
-local Identifier = K ( 'Identifier' , identifier )
+local Identifier = K ( 'Identifier.Internal' , identifier )
 %    \end{macrocode}
 %
 % \bigskip
@@ -6643,7 +6661,7 @@ local ModuleType = K ( 'Name.Type' , cap_identifier )
 % elsewhere in OCaml.
 %    \begin{macrocode}
 local identifier = ( R "az" + "_" ) * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0 
-local Identifier = K ( 'Identifier' , identifier )
+local Identifier = K ( 'Identifier.Internal' , identifier )
 %    \end{macrocode}
 %
 %
@@ -6719,21 +6737,24 @@ local Operator =
 
 local OperatorWord = 
   K ( 'Operator.Word' ,
-      P "and" + "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" )
+      P "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" )
 
-local Keyword = 
+
+local Keyword =
   K ( 'Keyword' ,
-      P "assert" + "and" + "as" + "begin" + "class" + "constraint" + "done" 
-  + "downto" + "do" + "else" + "end" + "exception" + "external" + "for" +
-  "function" + "functor" + "fun" + "if" + "include" + "inherit" + "initializer"
-  + "in"  + "lazy" + "let" + "match" + "method" + "module" + "mutable" + "new" +
-  "object" + "of" + "open" + "private" + "raise" + "rec" + "sig" + "struct" +
-  "then" + "to" + "try" + "type" + "value" + "val" + "virtual" + "when" +
-  "while" + "with" ) 
-  + K ( 'Keyword.Constant' , P "true" + "false" )  
+      P "assert" + "as" + "done" + "downto" + "do" + "else" + "exception" 
+      + "for" + "function"  + "fun" + "if" + "lazy" + "match" + "mutable" 
+      + "new" + "of" + "private" + "raise" + "then" + "to" + "try"  
+      + "virtual" + "when" + "while" + "with" )
+  + K ( 'Keyword.Constant' , P "true" + "false" )
+  + K ('Keyword.Governing', 
+       P "and" + "begin" + "class" + "constraint" + "end" + "external" 
+        + "functor" + "include" + "inherit" + "initializer" + "in" + "let" 
+        + "method" + "module" + "object" + "open"  + "rec" + "sig" + "struct" 
+        + "type" + "val" )
 
 local Builtin = 
-  K ( 'Name.Builtin' , P "not" + "incr" + "decr" + "fst" + "snd" )
+  K ( 'Name.Builtin' , P "not" + "incr" + "decr" + "fst" + "snd" + "ref" )
 %    \end{macrocode}
 % 
 % \bigskip
@@ -6750,8 +6771,18 @@ local Exception =
 % \paragraph{The characters in OCaml}
 %
 %    \begin{macrocode}
-local Char = 
-  K ( 'String.Short' , "'" * ( ( 1 - P "'" ) ^ 0 + "\\'" ) * "'" ) 
+local Char =
+  K ( 'String.Short',
+    P "'" *
+    (
+      ( 1 - S "'\\" ) 
+      + "\\" 
+        * ( S "\\'ntbr \"" 
+            + digit * digit * digit 
+            + P "x" * ( digit + alpha ) * ( digit + alpha ) * ( digit + alpha )
+            + P "o" * R "03" * R "07" * R "07" ) 
+    )
+    * "'" )
 %    \end{macrocode}
 % 
 %
@@ -6882,9 +6913,9 @@ local balanced_parens =
 % 
 %    \begin{macrocode}
 local Argument = 
-  K ( 'Identifier' , identifier ) 
+  K ( 'Identifier.Internal' , identifier ) 
   + Q "(" * SkipSpace 
-    * K ( 'Identifier' , identifier ) * SkipSpace 
+    * K ( 'Identifier.Internal' , identifier ) * SkipSpace 
     * Q ":" * SkipSpace  
     * K ( 'Name.Type' , balanced_parens ) * SkipSpace
     * Q ")"
@@ -6993,7 +7024,6 @@ local Main =
      + Delim
      + Operator
      + Punct
-     + FromImport
      + Exception 
      + DefFunction
      + DefModule
@@ -7491,7 +7521,7 @@ LPEG_cleaner['minimal'] = Compute_LPEG_cleaner ( 'minimal' , braces )
 
 local identifier = letter * alphanum ^ 0
 
-local Identifier = K ( 'Identifier' , identifier )
+local Identifier = K ( 'Identifier.Internal' , identifier )
 
 local Delim = Q ( S "{[()]}" )
 
@@ -8162,7 +8192,7 @@ function piton.new_language ( lang , definition )
 %    \begin{macrocode}
   local alphanum = letter + digit
   local identifier = letter * alphanum ^ 0
-  local Identifier = K ( 'Identifier' , identifier )
+  local Identifier = K ( 'Identifier.Internal' , identifier )
 %    \end{macrocode}
 %
 % 
@@ -8452,7 +8482,7 @@ function piton.new_language ( lang , definition )
        + PrefixedKeyword
        + Keyword * ( -1 + # ( 1 - alphanum ) ) 
        + Punct 
-       + K ( 'Identifier' , letter * alphanum ^ 0 )
+       + K ( 'Identifier.Internal' , letter * alphanum ^ 0 )
        + Number
        + Word
 %    \end{macrocode}
@@ -8502,7 +8532,7 @@ function piton.new_language ( lang , definition )
             + PrefixedKeyword
             + Keyword * ( -1 + # ( 1 - alphanum ) ) 
             + Punct 
-            + K ( 'Identifier' , letter * alphanum ^ 0 )
+            + K ( 'Identifier.Internal' , letter * alphanum ^ 0 )
             + Number
             + Word 
     LPEG0[lang] = MainWithoutTag ^ 0 

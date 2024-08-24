@@ -696,7 +696,7 @@ commande |\SetPitonStyle|.\footnote{On rappelle que, dans \pkg{piton}, les noms 
 \medskip
 Par exemple, avec la commande 
 \begin{Verbatim}
-\SetPitonStyle~emphase#[SQL]@{Keywords = \color[HTML]{006699} \bfseries \MakeUppercase}
+\SetPitonStyle~emphase#[SQL]@{Keyword = \color[HTML]{006699} \bfseries \MakeUppercase}
 \end{Verbatim}
 les mots-clés dans les listings SQL seront composés en lettres capitales, même s'ils
 s'apparaissent en minuscules dans le fichier source LaTeX (on rappelle que, en SQL, les
@@ -2573,6 +2573,7 @@ Pygments.\footnote{Voir \url{https://pygments.org/styles/}. À remarquer que, pa
             global, if, import, in, lambda, non local,
             pass, raise, return, try, while,
             with, yield et yield from.\\
+  Identifier & les identificateurs. \\
   \bottomrule
 \end{tabularx}
 \end{center}
@@ -2628,14 +2629,14 @@ L'option est aussi disponible pour |\PitonInputFile| : |\PitonInputFile[language
   Comment & les commentaires, entre |(*| et |*)| ; ces commentaires peuvent être imbriqués \\
   Keyword.Constant & |true| et |false| \\
   Keyword & les mots-clés suivants :
-            |assert|, |as|, |begin|, |class|, |constraint|, |done|,
-            |downto|, |do|, |else|, |end|, |exception|, |external|,
-            |for|, |function|, |functor|, |fun| , |if| 
-            |include|, |inherit|, |initializer|, |in| , |lazy|, |let|,
-            |match|, |method|, |module|, |mutable|, |new|, |object|,
-            |of|, |open|, |private|, |raise|, |rec|, |sig|,
-            |struct|, |then|, |to|, |try|, |type|, 
-            |value|, |val|, |virtual|, |when|, |while| et |with| \\
+         |assert|, |as|, |done|, |downto|, |do|, |else|, |exception|, |for|, |function| ,
+            |fun|, |if|, |lazy|, |match|, |mutable|, |new|, |of|, |private|, |raise|,
+            |then|, |to|, |try| , |virtual|, |when|, |while| et |with| \\ 
+  Keyword.Governing & les mot-clés suivants : |and|, |begin|, |class|, |constraint|,
+                      |end|, |external|, |functor|, |include|, |inherit|, |initializer|,
+                      |in|, |let|, |method|, |module|, |object|, |open|, |rec|, |sig|,
+                      |struct|, |type| et |val|. \\
+  Identifier & les identificateurs. \\
   \bottomrule
 \end{tabularx}
 \end{center}
@@ -2696,6 +2697,7 @@ Keyword & les mots-clés suivants : |alignas|, |asm|, |auto|, |break|, |case|, |
           |thread_local|, |throw|, |typedef|, |union|, |using|, |virtual|, |volatile| et
           |while| 
 \\
+Identifier & les identificateurs. \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -2798,6 +2800,7 @@ Comment & les commentaires (qui débutent par |#|) \\
 Comment.LaTeX & les commentaires commençant par \texttt{\#>} qui sont composés par
                 \pkg{piton} comme du code LaTeX (et appelés simplement «commentaires
                 LaTeX» dans ce document) \\ 
+Identifier & les identificateurs. \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -2840,6 +2843,7 @@ Keyword & les mots-clés, définis dans |\NewPitonLanguage| par les clés |morek
 Directive & les directives définies dans |\NewPitonLanguage| par la clé |moredirectives| \\
 Tag & les «tags» définis par la clé |tag| (les lexèmes détectés à l'intérieur d'un tag
       seront aussi composés avec leur propre style) \\
+Identifier & les identificateurs. \\
 \bottomrule
 \end{tabularx}
 \end{center}
