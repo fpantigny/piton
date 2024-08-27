@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.1y}
-\def\PitonFileDate{2024/08/24}
+\def\PitonFileVersion{3.1x1}
+\def\PitonFileDate{2024/08/26}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.1y" -- 2024/08/24
+piton_version = "3.1x1" -- 2024/08/26
 %</LUA>
 %\fi
 %
@@ -2391,7 +2391,7 @@ piton_version = "3.1y" -- 2024/08/24
 %   String.Long & the strings, between |"| but also the \emph{quoted-strings} \\
 %   String & that key fixes both |String.Short| and |String.Long| \\
 %   Operator & les opérateurs, en particulier |+|, |-|, |/|, |*|, |@|, |!=|, |==|, |&&| \\
-%   Operator.Word & les opérateurs suivants : |and|, |asr|, |land|, |lor|, |lsl|, |lxor|, |mod| et |or| \\
+%   Operator.Word & les opérateurs suivants : |asr|, |land|, |lor|, |lsl|, |lxor|, |mod| et |or| \\
 %   Name.Builtin & les fonctions |not|, |incr|, |decr|, |fst| et |snd| \\
 %   Name.Type & the name of a type of OCaml \\
 %   Name.Field & the name of a field of a module \\
@@ -3342,18 +3342,6 @@ piton_version = "3.1y" -- 2024/08/24
   { \int_gincr:N \g_@@_indentation_int }
 %    \end{macrocode}
 %
-% \medskip
-% The following command |\@@_beamer_command:n| executes the argument
-% corresponding to its argument but also stores it in |\l_@@_beamer_command_str|.
-% That string is used only in the error message ``|cr~not~allowed|'' raised when
-% there is a carriage return in the mandatory argument of that command.
-%    \begin{macrocode}
-\cs_new_protected:Npn \@@_beamer_command:n #1 
-  { 
-    \str_set:Nn \l_@@_beamer_command_str { #1 } 
-    \use:c { #1 } 
-  }
-%    \end{macrocode}
 % 
 % \bigskip
 % In the environment |{Piton}|, the command |\label| will be linked to the
@@ -3427,6 +3415,15 @@ piton_version = "3.1y" -- 2024/08/24
   }
 %    \end{macrocode}
 %
+%
+% \bigskip
+% The spaces at the end of a line of code are deleted by \pkg{piton}.
+% However, it's not actually true: they are replace by |\@@_trailing_space:|.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_trailing_space: { }
+%    \end{macrocode}
+% When we have to rescan some pieces of code with |\@@_piton:n|, we will set
+% |\@@_trailing_space:| equal to |\space|.
 % 
 % \bigskip
 % \subsubsection{Treatment of a line of code}
@@ -4353,7 +4350,7 @@ piton_version = "3.1y" -- 2024/08/24
 %
 % \bigskip
 % The following command is not a user command. It will be used when we will
-% have to ``rescan'' some chunks of Python code. For example, it will be the
+% have to ``rescan'' some chunks of informatic code. For example, it will be the
 % initial value of the Piton style |InitialValues| (the default values of the
 % arguments of a Python function).
 %    \begin{macrocode}
@@ -4364,6 +4361,7 @@ piton_version = "3.1y" -- 2024/08/24
     \cs_set_protected:Npn \@@_end_line: { }
     \cs_set:cpn { pitonStyle _ \l_piton_language_str  _ Prompt } { }
     \cs_set:cpn { pitonStyle _ Prompt } { }
+    \cs_set_eq:NN \@@_trailing_space: \space
     \bool_lazy_or:nnTF 
       \l_@@_break_lines_in_piton_bool
       \l_@@_break_lines_in_Piton_bool
@@ -4390,20 +4388,7 @@ piton_version = "3.1y" -- 2024/08/24
   }
 %    \end{macrocode}
 %
-% \bigskip
-% The following command is similar to the previous one but raise a fatal error if
-% its argument contains a carriage return.
-%    \begin{macrocode}
-\cs_new_protected:Npn \@@_piton_no_cr:n #1
-  { 
-    \group_begin:
-    \cs_set_protected:Npn \@@_newline:
-      { \msg_fatal:nn { piton } { cr~not~allowed } }
-    \@@_piton:n { #1 }
-    \group_end:
-  }
-%    \end{macrocode}
-% 
+%
 % \bigskip
 % Despite its name, |\@@_pre_env:| will be used both in |\PitonInputFile| and
 % in the environments such as |{Piton}|.
@@ -4956,10 +4941,14 @@ piton_version = "3.1y" -- 2024/08/24
     TypeParameter ,    
     UserFunction ,
 %    \end{macrocode}
+% |TypeExpression| is an internal style for expressions which defines types in OCaml.
+%    \begin{macrocode}
+    TypeExpression ,
+%    \end{macrocode}
 % Now, specific styles for the languages created with |\NewPitonLanguage| with
 % the syntax of \pkg{listings}.
 %    \begin{macrocode}
-    Directive
+    Directive 
   }  
 
 \clist_map_inline:Nn \g_@@_styles_clist  
@@ -4981,15 +4970,24 @@ piton_version = "3.1y" -- 2024/08/24
 
 \keys_define:nn { piton / Styles }
   {
-    String          .meta:n = { String.Long = #1 , String.Short = #1 } ,
-    Comment.Math    .tl_set:c = pitonStyle _ Comment.Math  ,
-    ParseAgain.noCR .tl_set:c = pitonStyle _ ParseAgain.noCR , 
-    ParseAgain.noCR .value_required:n = true ,
+    String       .meta:n = { String.Long = #1 , String.Short = #1 } ,
+    Comment.Math .tl_set:c = pitonStyle _ Comment.Math  ,
+    ParseAgain   .tl_set:c = pitonStyle _ ParseAgain , 
+    ParseAgain   .value_required:n = true ,
     unknown         .code:n = 
       \@@_error:n { Unknown~key~for~SetPitonStyle }
   }
 %    \end{macrocode}
 %
+% \bigskip
+%    \begin{macrocode}
+\SetPitonStyle[OCaml]
+  {
+    TypeExpression = 
+      \SetPitonStyle { Identifier = \PitonStyle { Name.Type } } \@@_piton:n 
+  }
+%    \end{macrocode}
+% 
 % \bigskip
 % We add the word |String| to the list of the styles because we will use that
 % list in the error message for an unknown key in |\SetPitonStyle|.
@@ -5056,7 +5054,7 @@ piton_version = "3.1y" -- 2024/08/24
     Tag                 = \colorbox{gray!10}, 
     UserFunction        = , 
     Prompt              = , 
-    ParseAgain.noCR     = \@@_piton_no_cr:n , 
+    ParseAgain          = \@@_piton_no_cr:n , 
     Discard             = \use_none:n 
   }
 %    \end{macrocode}
@@ -5435,18 +5433,6 @@ piton_version = "3.1y" -- 2024/08/24
   }
 %    \end{macrocode}
 % 
-% \bigskip
-%    \begin{macrocode}
-\@@_msg_new:nn { cr~not~allowed }
-  {
-    You~can't~put~any~carriage~return~in~the~argument~
-    of~a~command~\c_backslash_str
-    \l_@@_beamer_command_str\ within~an~
-    environment~of~'piton'.~You~should~consider~using~the~
-    corresponding~environment.\\
-    That~error~is~fatal.
-  }
-%    \end{macrocode}
 %
 % \bigskip
 %    \begin{macrocode}
@@ -5781,12 +5767,12 @@ local SkipSpace = Q " " ^ 0
 
 local Punct = Q ( S ".,:;!" )
 
-local Tab = "\t" * Lc "\\@@_tab:"
+local Tab = "\t" * Lc [[\@@_tab:]]
 %    \end{macrocode}
 % 
 % \bigskip
 %    \begin{macrocode}
-local SpaceIndentation = Lc "\\@@_an_indentation_space:" * Q " "
+local SpaceIndentation = Lc [[\@@_an_indentation_space:]] * Q " "
 %    \end{macrocode}
 %
 % \bigskip
@@ -5801,7 +5787,18 @@ local Delim = Q ( S "[({})]" )
 % However, when the key |show-spaces-in-strings| is in force, |\\l_@@_space_tl| will
 % contain ␣ (U+2423) in order to visualize the spaces.
 %    \begin{macrocode}
-local VisualSpace = space * Lc "\\l_@@_space_tl" 
+local VisualSpace = space * Lc [[\l_@@_space_tl]]
+%    \end{macrocode}
+%
+% \bigskip
+% Of course, the \textsc{lpeg} |strict_braces| is for balanced braces (without the
+% question of strings of an informatic language). 
+%    \begin{macrocode}
+  local strict_braces  =
+    P { "E" , 
+        E = ( "{" * V "F" * "}" + ( 1 - S ",{}" ) ) ^ 0  ,
+        F = ( "{" * V "F" * "}" + ( 1 - S "{}" ) ) ^ 0 
+      }
 %    \end{macrocode}
 %
 % \bigskip
@@ -6044,14 +6041,14 @@ local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ^ -1  )
 % \bigskip
 % The following \textsc{lpeg} |EOL| is for the end of lines.
 %    \begin{macrocode}
-local EOL = 
+local EOL_without_space_indentation = 
   P "\r" 
   *
   (
     ( space ^ 0 * -1 )
     + 
 %    \end{macrocode}
-% We recall that each line in the Python code we have to parse will be sent
+% We recall that each line of the informatic code we have to parse will be sent
 % back to LaTeX between a pair |\@@_begin_line:| --
 % |\@@_end_line:|\footnote{Remember that the \texttt{\textbackslash
 % @@\_end\_line:} must be explicit because it will be used as marker in order to
@@ -6061,18 +6058,22 @@ local EOL =
          Cc "EOL"
          * 
          Ct (
-              Lc "\\@@_end_line:"
+              Lc [[\@@_end_line:]]
               * BeamerEndEnvironments 
               * BeamerBeginEnvironments 
               * PromptHastyDetection
-              * Lc "\\@@_newline: \\@@_begin_line:"
+              * Lc [[\@@_newline:\@@_begin_line:]]
               * Prompt
             )
        )
   ) 
-  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 %    \end{macrocode}
 %
+%    \begin{macrocode}
+local EOL = EOL_without_space_indentation  
+  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
+%    \end{macrocode}
+% 
 % \bigskip
 % The following \textsc{lpeg} |CommentLaTeX| is for what is called in that
 % document the ``LaTeX comments''. Since the elements that will be caught must
@@ -6624,18 +6625,25 @@ LPEG2['python'] =
        ( space ^ 0 * "\r" ) ^ -1 
        * BeamerBeginEnvironments 
        * PromptHastyDetection
-       * Lc '\\@@_begin_line:'
+       * Lc [[\@@_begin_line:]]
        * Prompt 
        * SpaceIndentation ^ 0 
        * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
        * -1 
-       * Lc '\\@@_end_line:' 
+       * Lc [[\@@_end_line:]] 
      )
 %    \end{macrocode}
 %
 %
 % \bigskip
 % \subsubsection{The language Ocaml}
+%
+% The following LPEG corresponds to the balanced expressions (balanced according
+% to the parenthesis). Of course, we must write |(1 - S "()")| with outer parenthesis.
+%    \begin{macrocode}
+local balanced_parens =
+  P { "E" , E = ( "(" * V "E" * ")" + ( 1 - S "()" ) ) ^ 0 }
+%    \end{macrocode}
 % 
 %    \begin{macrocode}
 local Delim = Q ( P "[|" + "|]" + S "[()]" )
@@ -6687,7 +6695,7 @@ local OneFieldDefinition =
     ( K ( 'Keyword' , "mutable" ) * SkipSpace ) ^ -1
   * K ( 'Name.Field' , identifier ) * SkipSpace
   * Q ":" * SkipSpace
-  * K ( 'Name.Type' , expression_for_fields ) 
+  * K ( 'TypeExpression' , expression_for_fields ) 
   * SkipSpace
 
 local OneField = 
@@ -6778,7 +6786,9 @@ local Char =
       + "\\" 
         * ( S "\\'ntbr \"" 
             + digit * digit * digit 
-            + P "x" * ( digit + alpha ) * ( digit + alpha ) * ( digit + alpha )
+            + P "x" * ( digit + R "af" + R "AF" ) 
+                    * ( digit + R "af" + R "AF" ) 
+                    * ( digit + R "af" + R "AF" )
             + P "o" * R "03" * R "07" * R "07" ) 
     )
     * "'" )
@@ -6905,10 +6915,6 @@ local Comment =
 % \bigskip
 % \paragraph{The DefFunction}
 %
-%    \begin{macrocode}
-local balanced_parens =
-  P { "E" , E = ( "(" * V "E" * ")" + 1 - S "()" ) ^ 0 }
-%    \end{macrocode}
 % 
 %    \begin{macrocode}
 local Argument = 
@@ -6916,7 +6922,7 @@ local Argument =
   + Q "(" * SkipSpace 
     * K ( 'Identifier.Internal' , identifier ) * SkipSpace 
     * Q ":" * SkipSpace  
-    * K ( 'Name.Type' , balanced_parens ) * SkipSpace
+    * K ( 'TypeExpression' , balanced_parens ) * SkipSpace
     * Q ")"
 %    \end{macrocode}
 %
@@ -6940,7 +6946,7 @@ local DefFunction =
          * ( 
              SkipSpace 
              * Q ":" 
-             * K ( 'Name.Type' , ( 1 - P "=" ) ^ 0 ) 
+             * K ( 'TypeExpression' , ( 1 - P "=" ) ^ 0 ) 
            ) ^ -1 
       ) 
 %    \end{macrocode}
@@ -6994,12 +7000,30 @@ local DefModule =
   K ( 'Keyword.Governing' , P "include" + "open" )
   * Space * K ( 'Name.Module' , cap_identifier ) 
 %    \end{macrocode}
+%
 % 
 % \bigskip
-% \paragraph{The parameters of the types}
-% 
+% \paragraph{The DefType}\par
+%
 %    \begin{macrocode}
-local TypeParameter = K ( 'TypeParameter' , "'" * alpha * # ( 1 - P "'" ) ) 
+local TypeParameter = 
+  K ( 'TypeParameter' , "'" * alpha * ( # ( 1 - P "'" ) + -1 ) ) 
+%    \end{macrocode}
+%
+%
+% \bigskip
+% The following LPEG is for the instructions of definitions of types (which
+% begin with |type|).
+%    \begin{macrocode}
+local DefType = 
+  K ( 'Keyword.Governing' , "type" ) 
+  * Space 
+  * WithStyle 
+      ( 
+        'TypeExpression' , 
+        ( Q ( 1 - P ";;" - P "\r" ) + EOL_without_space_indentation ) ^ 0 
+      )
+  * ( Q ";;" + -1 )
 %    \end{macrocode}
 % 
 % \bigskip
@@ -7026,6 +7050,7 @@ local Main =
      + Exception 
      + DefFunction
      + DefModule
+     + DefType
      + Record 
      + Keyword * EndKeyword
      + OperatorWord * EndKeyword
@@ -7047,18 +7072,31 @@ LPEG1['ocaml'] = Main ^ 0
 % \texttt{\textbackslash @@\_begin\_line:}}.
 %    \begin{macrocode}
 LPEG2['ocaml'] = 
-  Ct (
+  Ct (  
+%    \end{macrocode}
+% The following lines are in order to allow, in |\piton| (and not in |{Piton}|),
+% judments of type (such as |f : my_type -> 'a list|) or single expressions of
+% type such as |my_type -> 'a list| (in that case, the argument of |\piton|
+% \emph{must} begin by a colon).
+%    \begin{macrocode}
+       ( P ":" + Identifier * SkipSpace * Q ":" ) 
+         * SkipSpace 
+         * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 ) 
+       + 
+%    \end{macrocode}
+% Now, the main part.
+%    \begin{macrocode}
        ( space ^ 0 * "\r" ) ^ -1 
        * BeamerBeginEnvironments 
-       * Lc '\\@@_begin_line:' 
+       * Lc [[\@@_begin_line:]] 
        * SpaceIndentation ^ 0 
-       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
+       * ( ( space * Lc [[\@@_trailing_space:]] ) ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
        * -1 
-       * Lc '\\@@_end_line:' 
+       * Lc [[\@@_end_line:]] 
      )
 %    \end{macrocode}
 %
-%
+% 
 % \bigskip
 % \subsubsection{The language C}
 % 
@@ -7242,11 +7280,11 @@ LPEG2['c'] =
   Ct (
        ( space ^ 0 * P "\r" ) ^ -1 
        * BeamerBeginEnvironments 
-       * Lc '\\@@_begin_line:'
+       * Lc [[\@@_begin_line:]]
        * SpaceIndentation ^ 0 
        * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
        * -1 
-       * Lc '\\@@_end_line:' 
+       * Lc [[\@@_end_line:]] 
      )
 %    \end{macrocode}
 %
@@ -7476,11 +7514,11 @@ LPEG2['sql'] =
   Ct (
        ( space ^ 0 * "\r" ) ^ -1 
        * BeamerBeginEnvironments 
-       * Lc [[ \@@_begin_line: ]]
+       * Lc [[\@@_begin_line:]]
        * SpaceIndentation ^ 0 
        * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
        * -1 
-       * Lc [[ \@@_end_line: ]]
+       * Lc [[\@@_end_line:]]
      )
 %    \end{macrocode}
 %
@@ -7545,11 +7583,11 @@ LPEG2['minimal'] =
   Ct (
        ( space ^ 0 * "\r" ) ^ -1 
        * BeamerBeginEnvironments 
-       * Lc [[ \@@_begin_line: ]]
+       * Lc [[\@@_begin_line:]]
        * SpaceIndentation ^ 0 
        * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
        * -1 
-       * Lc [[ \@@_end_line: ]]
+       * Lc [[\@@_end_line:]]
      )
 
 % \bigskip
@@ -8064,18 +8102,6 @@ function piton.new_language ( lang , definition )
   end 
 %    \end{macrocode}
 % 
-% \bigskip
-% Of course, the \textsc{lpeg} |strict_braces| is for balanced braces (without the
-% question of strings of an informatic language). In fact, it \emph{won't} be
-% used for an informatic language (as dealt by \pkg{piton}) but for LaTeX
-% instructions; 
-%    \begin{macrocode}
-  local strict_braces  =
-    P { "E" , 
-        E = ( "{" * V "F" * "}" + ( 1 - S ",{}" ) ) ^ 0  ,
-        F = ( "{" * V "F" * "}" + ( 1 - S "{}" ) ) ^ 0 
-      }
-%    \end{macrocode}
 %
 % \bigskip
 % Now, the first transformation of the definition of the language, as provided
@@ -8548,7 +8574,7 @@ function piton.new_language ( lang , definition )
       Ct (
            ( space ^ 0 * P "\r" ) ^ -1 
            * BeamerBeginEnvironments 
-           * Lc [[\@@_begin_line:]]
+           * Lc [[ \@@_begin_line: ]]
            * SpaceIndentation ^ 0 
            * LPEG1[lang]
            * -1 

@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.1y" -- 2024/08/24
+piton_version = "3.1x1" -- 2024/08/26
 
 
 
@@ -119,10 +119,15 @@ local SkipSpace = Q " " ^ 0
 
 local Punct = Q ( S ".,:;!" )
 
-local Tab = "\t" * Lc "\\__piton_tab:"
-local SpaceIndentation = Lc "\\__piton_an_indentation_space:" * Q " "
+local Tab = "\t" * Lc [[\__piton_tab:]]
+local SpaceIndentation = Lc [[\__piton_an_indentation_space:]] * Q " "
 local Delim = Q ( S "[({})]" )
-local VisualSpace = space * Lc "\\l__piton_space_tl"
+local VisualSpace = space * Lc [[\l__piton_space_tl]]
+  local strict_braces  =
+    P { "E" ,
+        E = ( "{" * V "F" * "}" + ( 1 - S ",{}" ) ) ^ 0  ,
+        F = ( "{" * V "F" * "}" + ( 1 - S "{}" ) ) ^ 0
+      }
 local LPEG0 = { }
 local LPEG1 = { }
 local LPEG2 = { }
@@ -243,7 +248,7 @@ local CommentMath =
 local PromptHastyDetection =
   ( # ( P ">>>" + "..." ) * Lc '\\__piton_prompt:' ) ^ -1
 local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ^ -1  )
-local EOL =
+local EOL_without_space_indentation =
   P "\r"
   *
   (
@@ -253,15 +258,16 @@ local EOL =
          Cc "EOL"
          *
          Ct (
-              Lc "\\__piton_end_line:"
+              Lc [[\__piton_end_line:]]
               * BeamerEndEnvironments
               * BeamerBeginEnvironments
               * PromptHastyDetection
-              * Lc "\\__piton_newline: \\__piton_begin_line:"
+              * Lc [[\__piton_newline:\__piton_begin_line:]]
               * Prompt
             )
        )
   )
+local EOL = EOL_without_space_indentation
   * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 local CommentLaTeX =
   P(piton.comment_latex)
@@ -555,13 +561,15 @@ LPEG2['python'] =
        ( space ^ 0 * "\r" ) ^ -1
        * BeamerBeginEnvironments
        * PromptHastyDetection
-       * Lc '\\__piton_begin_line:'
+       * Lc [[\__piton_begin_line:]]
        * Prompt
        * SpaceIndentation ^ 0
        * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
        * -1
-       * Lc '\\__piton_end_line:'
+       * Lc [[\__piton_end_line:]]
      )
+local balanced_parens =
+  P { "E" , E = ( "(" * V "E" * ")" + ( 1 - S "()" ) ) ^ 0 }
 local Delim = Q ( P "[|" + "|]" + S "[()]" )
 local Punct = Q ( S ",:;!" )
 local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
@@ -586,7 +594,7 @@ local OneFieldDefinition =
     ( K ( 'Keyword' , "mutable" ) * SkipSpace ) ^ -1
   * K ( 'Name.Field' , identifier ) * SkipSpace
   * Q ":" * SkipSpace
-  * K ( 'Name.Type' , expression_for_fields )
+  * K ( 'TypeExpression' , expression_for_fields )
   * SkipSpace
 
 local OneField =
@@ -656,7 +664,9 @@ local Char =
       + "\\"
         * ( S "\\'ntbr \""
             + digit * digit * digit
-            + P "x" * ( digit + alpha ) * ( digit + alpha ) * ( digit + alpha )
+            + P "x" * ( digit + R "af" + R "AF" )
+                    * ( digit + R "af" + R "AF" )
+                    * ( digit + R "af" + R "AF" )
             + P "o" * R "03" * R "07" * R "07" )
     )
     * "'" )
@@ -708,14 +718,12 @@ local Comment =
                ) ^ 0
              * Q "*)"
        }   )
-local balanced_parens =
-  P { "E" , E = ( "(" * V "E" * ")" + 1 - S "()" ) ^ 0 }
 local Argument =
   K ( 'Identifier.Internal' , identifier )
   + Q "(" * SkipSpace
     * K ( 'Identifier.Internal' , identifier ) * SkipSpace
     * Q ":" * SkipSpace
-    * K ( 'Name.Type' , balanced_parens ) * SkipSpace
+    * K ( 'TypeExpression' , balanced_parens ) * SkipSpace
     * Q ")"
 local DefFunction =
   K ( 'Keyword.Governing' , "let open" )
@@ -734,7 +742,7 @@ local DefFunction =
          * (
              SkipSpace
              * Q ":"
-             * K ( 'Name.Type' , ( 1 - P "=" ) ^ 0 )
+             * K ( 'TypeExpression' , ( 1 - P "=" ) ^ 0 )
            ) ^ -1
       )
 local DefModule =
@@ -778,7 +786,17 @@ local DefModule =
   +
   K ( 'Keyword.Governing' , P "include" + "open" )
   * Space * K ( 'Name.Module' , cap_identifier )
-local TypeParameter = K ( 'TypeParameter' , "'" * alpha * # ( 1 - P "'" ) )
+local TypeParameter =
+  K ( 'TypeParameter' , "'" * alpha * ( # ( 1 - P "'" ) + -1 ) )
+local DefType =
+  K ( 'Keyword.Governing' , "type" )
+  * Space
+  * WithStyle
+      (
+        'TypeExpression' ,
+        ( Q ( 1 - P ";;" - P "\r" ) + EOL_without_space_indentation ) ^ 0
+      )
+  * ( Q ";;" + -1 )
 local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
 local Main =
      Space
@@ -795,6 +813,7 @@ local Main =
      + Exception
      + DefFunction
      + DefModule
+     + DefType
      + Record
      + Keyword * EndKeyword
      + OperatorWord * EndKeyword
@@ -808,13 +827,17 @@ local Main =
 LPEG1['ocaml'] = Main ^ 0
 LPEG2['ocaml'] =
   Ct (
+       ( P ":" + Identifier * SkipSpace * Q ":" )
+         * SkipSpace
+         * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 )
+       +
        ( space ^ 0 * "\r" ) ^ -1
        * BeamerBeginEnvironments
-       * Lc '\\__piton_begin_line:'
+       * Lc [[\__piton_begin_line:]]
        * SpaceIndentation ^ 0
-       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
+       * ( ( space * Lc [[\__piton_trailing_space:]] ) ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
        * -1
-       * Lc '\\__piton_end_line:'
+       * Lc [[\__piton_end_line:]]
      )
 local Delim = Q ( S "{[()]}" )
 local Punct = Q ( S ",:;!" )
@@ -909,11 +932,11 @@ LPEG2['c'] =
   Ct (
        ( space ^ 0 * P "\r" ) ^ -1
        * BeamerBeginEnvironments
-       * Lc '\\__piton_begin_line:'
+       * Lc [[\__piton_begin_line:]]
        * SpaceIndentation ^ 0
        * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
        * -1
-       * Lc '\\__piton_end_line:'
+       * Lc [[\__piton_end_line:]]
      )
 local function LuaKeyword ( name )
 return
@@ -1050,11 +1073,11 @@ LPEG2['sql'] =
   Ct (
        ( space ^ 0 * "\r" ) ^ -1
        * BeamerBeginEnvironments
-       * Lc [[ \__piton_begin_line: ]]
+       * Lc [[\__piton_begin_line:]]
        * SpaceIndentation ^ 0
        * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
        * -1
-       * Lc [[ \__piton_end_line: ]]
+       * Lc [[\__piton_end_line:]]
      )
 local Punct = Q ( S ",:;!\\" )
 
@@ -1109,11 +1132,11 @@ LPEG2['minimal'] =
   Ct (
        ( space ^ 0 * "\r" ) ^ -1
        * BeamerBeginEnvironments
-       * Lc [[ \__piton_begin_line: ]]
+       * Lc [[\__piton_begin_line:]]
        * SpaceIndentation ^ 0
        * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
        * -1
-       * Lc [[ \__piton_end_line: ]]
+       * Lc [[\__piton_end_line:]]
      )
 
 function piton.Parse ( language , code )
@@ -1372,11 +1395,6 @@ function piton.new_language ( lang , definition )
        other = other + P ( c )
      end
   end
-  local strict_braces  =
-    P { "E" ,
-        E = ( "{" * V "F" * "}" + ( 1 - S ",{}" ) ) ^ 0  ,
-        F = ( "{" * V "F" * "}" + ( 1 - S "{}" ) ) ^ 0
-      }
   local cut_definition =
     P { "E" ,
         E = Ct ( V "F" * ( "," * V "F" ) ^ 0 ) ,
@@ -1704,7 +1722,7 @@ function piton.new_language ( lang , definition )
       Ct (
            ( space ^ 0 * P "\r" ) ^ -1
            * BeamerBeginEnvironments
-           * Lc [[\__piton_begin_line:]]
+           * Lc [[ \__piton_begin_line: ]]
            * SpaceIndentation ^ 0
            * LPEG1[lang]
            * -1

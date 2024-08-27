@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{3.1y}
-\def\PitonFileDate{2024/08/24}
+\def\PitonFileVersion{3.1x1}
+\def\PitonFileDate{2024/08/26}
 
 
 
@@ -229,11 +229,6 @@
 \int_new:N \g__piton_indentation_int
 \cs_new_protected:Npn \__piton_an_indentation_space:
   { \int_gincr:N \g__piton_indentation_int }
-\cs_new_protected:Npn \__piton_beamer_command:n #1
-  {
-    \str_set:Nn \l__piton_beamer_command_str { #1 }
-    \use:c { #1 }
-  }
 \cs_new_protected:Npn \__piton_label:n #1
   {
     \bool_if:NTF \l__piton_line_numbers_bool
@@ -264,6 +259,7 @@
           { \clist_set:NV \l__piton_bg_color_clist \l__piton_prompt_bg_color_tl }
       }
   }
+\cs_new_protected:Npn \__piton_trailing_space: { }
 \cs_new_protected:Npn \__piton_replace_spaces:n #1
   {
     \tl_set:Nn \l_tmpa_tl { #1 }
@@ -834,6 +830,7 @@
     \cs_set_protected:Npn \__piton_end_line: { }
     \cs_set:cpn { pitonStyle _ \l_piton_language_str  _ Prompt } { }
     \cs_set:cpn { pitonStyle _ Prompt } { }
+    \cs_set_eq:NN \__piton_trailing_space: \space
     \bool_lazy_or:nnTF
       \l__piton_break_lines_in_piton_bool
       \l__piton_break_lines_in_Piton_bool
@@ -856,14 +853,6 @@
     \bool_if:NT \l__piton_show_spaces_bool
       { \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl } % U+2423
     \l_tmpa_tl
-    \group_end:
-  }
-\cs_new_protected:Npn \__piton_piton_no_cr:n #1
-  {
-    \group_begin:
-    \cs_set_protected:Npn \__piton_newline:
-      { \msg_fatal:nn { piton } { cr~not~allowed } }
-    \__piton_piton:n { #1 }
     \group_end:
   }
 \cs_new:Npn \__piton_pre_env:
@@ -1199,6 +1188,7 @@
     Tag ,
     TypeParameter ,
     UserFunction ,
+    TypeExpression ,
     Directive
   }
 
@@ -1221,12 +1211,17 @@
 
 \keys_define:nn { piton / Styles }
   {
-    String          .meta:n = { String.Long = #1 , String.Short = #1 } ,
-    Comment.Math    .tl_set:c = pitonStyle _ Comment.Math  ,
-    ParseAgain.noCR .tl_set:c = pitonStyle _ ParseAgain.noCR ,
-    ParseAgain.noCR .value_required:n = true ,
+    String       .meta:n = { String.Long = #1 , String.Short = #1 } ,
+    Comment.Math .tl_set:c = pitonStyle _ Comment.Math  ,
+    ParseAgain   .tl_set:c = pitonStyle _ ParseAgain ,
+    ParseAgain   .value_required:n = true ,
     unknown         .code:n =
       \__piton_error:n { Unknown~key~for~SetPitonStyle }
+  }
+\SetPitonStyle[OCaml]
+  {
+    TypeExpression =
+      \SetPitonStyle { Identifier = \PitonStyle { Name.Type } } \__piton_piton:n
   }
 \clist_gput_left:Nn \g__piton_styles_clist { String }
 \clist_gsort:Nn \g__piton_styles_clist
@@ -1269,7 +1264,7 @@
     Tag                 = \colorbox{gray!10},
     UserFunction        = ,
     Prompt              = ,
-    ParseAgain.noCR     = \__piton_piton_no_cr:n ,
+    ParseAgain          = \__piton_piton_no_cr:n ,
     Discard             = \use_none:n
   }
 \AtBeginDocument
@@ -1498,15 +1493,6 @@
     You~can't~use~the~command~\token_to_str:N \label\
     because~the~key~'line-numbers'~is~not~active.\\
     If~you~go~on,~that~command~will~ignored.
-  }
-\__piton_msg_new:nn { cr~not~allowed }
-  {
-    You~can't~put~any~carriage~return~in~the~argument~
-    of~a~command~\c_backslash_str
-    \l__piton_beamer_command_str\ within~an~
-    environment~of~'piton'.~You~should~consider~using~the~
-    corresponding~environment.\\
-    That~error~is~fatal.
   }
 \__piton_msg_new:nn { overlay~without~beamer }
   {
