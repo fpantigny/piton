@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.1x1" -- 2024/08/26
+piton_version = "3.1b" -- 2024/08/29
 
 
 
@@ -636,6 +636,11 @@ local OperatorWord =
   K ( 'Operator.Word' ,
       P "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" )
 
+local governing_keyword = P "and" + "begin" + "class" + "constraint" +
+      "end" + "external" + "functor" + "include" + "inherit" + "initializer" +
+      "in" + "let" + "method" + "module" + "object" + "open" + "rec" + "sig" +
+      "struct" + "type" + "val"
+
 local Keyword =
   K ( 'Keyword' ,
       P "assert" + "as" + "done" + "downto" + "do" + "else" + "exception"
@@ -643,11 +648,7 @@ local Keyword =
       + "new" + "of" + "private" + "raise" + "then" + "to" + "try"
       + "virtual" + "when" + "while" + "with" )
   + K ( 'Keyword.Constant' , P "true" + "false" )
-  + K ('Keyword.Governing',
-       P "and" + "begin" + "class" + "constraint" + "end" + "external"
-        + "functor" + "include" + "inherit" + "initializer" + "in" + "let"
-        + "method" + "module" + "object" + "open"  + "rec" + "sig" + "struct"
-        + "type" + "val" )
+  + K ('Keyword.Governing', governing_keyword )
 
 local Builtin =
   K ( 'Name.Builtin' , P "not" + "incr" + "decr" + "fst" + "snd" + "ref" )
@@ -719,12 +720,15 @@ local Comment =
              * Q "*)"
        }   )
 local Argument =
-  K ( 'Identifier.Internal' , identifier )
-  + Q "(" * SkipSpace
-    * K ( 'Identifier.Internal' , identifier ) * SkipSpace
-    * Q ":" * SkipSpace
-    * K ( 'TypeExpression' , balanced_parens ) * SkipSpace
-    * Q ")"
+  (  Q "~" * Identifier * Q ":" * SkipSpace ) ^ -1
+  *
+  ( K ( 'Identifier.Internal' , identifier )
+    + Q "(" * SkipSpace
+      * K ( 'Identifier.Internal' , identifier ) * SkipSpace
+      * Q ":" * SkipSpace
+      * K ( 'TypeExpression' , balanced_parens ) * SkipSpace
+      * Q ")"
+  )
 local DefFunction =
   K ( 'Keyword.Governing' , "let open" )
    * Space
@@ -796,7 +800,7 @@ local DefType =
         'TypeExpression' ,
         ( Q ( 1 - P ";;" - P "\r" ) + EOL_without_space_indentation ) ^ 0
       )
-  * ( Q ";;" + -1 )
+  * ( # governing_keyword + Q ";;" + -1 )
 local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
 local Main =
      Space
@@ -809,6 +813,9 @@ local Main =
      + Comment
      + Delim
      + Operator
+     + Q ( "~" ) * Identifier * ( Q ":" ) ^ -1
+     + Q ":" * # (1 - P":") * SkipSpace
+          * K ( 'TypeExpression' , balanced_parens ) * SkipSpace * Q ")"
      + Punct
      + Exception
      + DefFunction
@@ -950,7 +957,7 @@ return
 end
 local identifier =
   letter * ( alphanum + "-" ) ^ 0
-  + '"' * ( ( alphanum + space - '"' ) ^ 1 ) * '"'
+  + P '"' * ( ( 1 - P '"' ) ^ 1 ) * '"'
 
 local Operator =
   K ( 'Operator' , P "=" + "!=" + "<>" + ">=" + ">" + "<=" + "<"  + S "*+/" )

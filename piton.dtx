@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.1x1}
-\def\PitonFileDate{2024/08/26}
+\def\PitonFileVersion{3.1b}
+\def\PitonFileDate{2024/08/29}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.1x1" -- 2024/08/26
+piton_version = "3.1b" -- 2024/08/29
 %</LUA>
 %\fi
 %
@@ -2310,7 +2310,7 @@ piton_version = "3.1x1" -- 2024/08/26
 % \vspace{1cm}
 %
 % \begin{center}
-% \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+% \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 %   \toprule
 %   \normalfont Style  & Use \\
 %   \midrule
@@ -3428,8 +3428,6 @@ piton_version = "3.1x1" -- 2024/08/26
 % \bigskip
 % \subsubsection{Treatment of a line of code}
 % 
-% The following command is only used once. We have written an autonomous function
-% only for legibility.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_replace_spaces:n #1 
   {
@@ -4383,7 +4381,7 @@ piton_version = "3.1x1" -- 2024/08/26
       }
     \bool_if:NT \l_@@_show_spaces_bool
       { \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl } % U+2423
-    \l_tmpa_tl 
+    \exp_args:No \@@_replace_spaces:n \l_tmpa_tl 
     \group_end:
   }
 %    \end{macrocode}
@@ -6747,6 +6745,11 @@ local OperatorWord =
       P "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" )
 
 
+local governing_keyword = P "and" + "begin" + "class" + "constraint" +
+      "end" + "external" + "functor" + "include" + "inherit" + "initializer" +
+      "in" + "let" + "method" + "module" + "object" + "open" + "rec" + "sig" +
+      "struct" + "type" + "val"
+
 local Keyword =
   K ( 'Keyword' ,
       P "assert" + "as" + "done" + "downto" + "do" + "else" + "exception" 
@@ -6754,11 +6757,7 @@ local Keyword =
       + "new" + "of" + "private" + "raise" + "then" + "to" + "try"  
       + "virtual" + "when" + "while" + "with" )
   + K ( 'Keyword.Constant' , P "true" + "false" )
-  + K ('Keyword.Governing', 
-       P "and" + "begin" + "class" + "constraint" + "end" + "external" 
-        + "functor" + "include" + "inherit" + "initializer" + "in" + "let" 
-        + "method" + "module" + "object" + "open"  + "rec" + "sig" + "struct" 
-        + "type" + "val" )
+  + K ('Keyword.Governing', governing_keyword )
 
 local Builtin = 
   K ( 'Name.Builtin' , P "not" + "incr" + "decr" + "fst" + "snd" + "ref" )
@@ -6915,15 +6914,21 @@ local Comment =
 % \bigskip
 % \paragraph{The DefFunction}
 %
-% 
 %    \begin{macrocode}
 local Argument = 
-  K ( 'Identifier.Internal' , identifier ) 
-  + Q "(" * SkipSpace 
-    * K ( 'Identifier.Internal' , identifier ) * SkipSpace 
-    * Q ":" * SkipSpace  
-    * K ( 'TypeExpression' , balanced_parens ) * SkipSpace
-    * Q ")"
+%    \end{macrocode}
+% For the labels of the labeled arguments. Maybe you will, in the future, create
+% a style for those elements.
+%    \begin{macrocode}
+  (  Q "~" * Identifier * Q ":" * SkipSpace ) ^ -1 
+  *  
+  ( K ( 'Identifier.Internal' , identifier ) 
+    + Q "(" * SkipSpace 
+      * K ( 'Identifier.Internal' , identifier ) * SkipSpace 
+      * Q ":" * SkipSpace  
+      * K ( 'TypeExpression' , balanced_parens ) * SkipSpace
+      * Q ")"
+  )
 %    \end{macrocode}
 %
 % Despite its name, then \textsc{lpeg} |DefFunction| deals also with |let open|
@@ -7023,7 +7028,7 @@ local DefType =
         'TypeExpression' , 
         ( Q ( 1 - P ";;" - P "\r" ) + EOL_without_space_indentation ) ^ 0 
       )
-  * ( Q ";;" + -1 )
+  * ( # governing_keyword + Q ";;" + -1 )
 %    \end{macrocode}
 % 
 % \bigskip
@@ -7046,6 +7051,13 @@ local Main =
      + Comment
      + Delim
      + Operator
+%    \end{macrocode}
+% For the labels of the labeled arguments. Maybe you will, in the future, create
+% a style for those elements.
+%    \begin{macrocode}
+     + Q ( "~" ) * Identifier * ( Q ":" ) ^ -1
+     + Q ":" * # (1 - P":") * SkipSpace 
+          * K ( 'TypeExpression' , balanced_parens ) * SkipSpace * Q ")"
      + Punct
      + Exception 
      + DefFunction
@@ -7311,7 +7323,7 @@ end
 %    \begin{macrocode}
 local identifier = 
   letter * ( alphanum + "-" ) ^ 0 
-  + '"' * ( ( alphanum + space - '"' ) ^ 1 ) * '"' 
+  + P '"' * ( ( 1 - P '"' ) ^ 1 ) * '"' 
 
 
 local Operator = 
