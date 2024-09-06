@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{3.1b}
-\def\PitonFileDate{2024/08/29}
+\def\PitonFileVersion{3.1cx1}
+\def\PitonFileDate{2024/09/05}
 
 
 
@@ -248,8 +248,6 @@
   }
 \cs_new_protected:Npn \__piton_marker_beginning:n #1 { }
 \cs_new_protected:Npn \__piton_marker_end:n #1 { }
-\cs_new_protected:Npn \__piton_open_brace: { \lua_now:n { piton.open_brace() } }
-\cs_new_protected:Npn \__piton_close_brace: { \lua_now:n { piton.close_brace() } }
 \tl_new:N \g__piton_begin_line_hook_tl
 \cs_new_protected:Npn \__piton_prompt:
   {
@@ -378,19 +376,37 @@
 \cs_new_protected:Npn \__piton_newline:
   {
     \int_gincr:N \g__piton_line_int
-    \int_compare:nNnT \g__piton_line_int > { \l__piton_splittable_int - 1 }
+    \bool_set_false:N \l_tmpa_bool
+    \bool_if:NTF \l__piton_splittable_on_empty_lines_bool
       {
-        \int_compare:nNnT
-          { \l__piton_nb_lines_int - \g__piton_line_int + 1 } > \l__piton_splittable_int
+        \int_set:Nn \l_tmpa_int
           {
-            \egroup
-            \bool_if:NT \g__piton_footnote_bool \endsavenotes
-            \par
-            \mode_leave_vertical:
-            \bool_if:NT \g__piton_footnote_bool \savenotes
-            \vtop \bgroup
+            \lua_now:e
+              {
+                tex.sprint ( luatexbase.catcodetables.expl ,
+                tostring ( piton.lines_status [ \int_use:N \g__piton_line_int ] ) )
+              }
           }
-     }
+        \int_compare:nNnT \l_tmpa_int < 2
+          { \bool_set_true:N \l_tmpa_bool }
+      }
+      {
+        \int_compare:nNnT \g__piton_line_int > { \l__piton_splittable_int - 1 }
+          {
+            \int_compare:nNnT
+              { \l__piton_nb_lines_int - \g__piton_line_int + 1 } > \l__piton_splittable_int
+              { \bool_set_true:N \l_tmpa_bool }
+          }
+      }
+    \bool_if:NT \l_tmpa_bool
+      {
+        \egroup
+        \bool_if:NT \g__piton_footnote_bool \endsavenotes
+        \par
+        \mode_leave_vertical:
+        \bool_if:NT \g__piton_footnote_bool \savenotes
+        \vtop \bgroup
+      }
   }
 \cs_set_protected:Npn \__piton_breakable_space:
   {
@@ -429,6 +445,7 @@
 \int_new:N \l__piton_number_lines_start_int
 \bool_new:N \l__piton_resume_bool
 \bool_new:N \l__piton_split_on_empty_lines_bool
+\bool_new:N \l__piton_splittable_on_empty_lines_bool
 \keys_define:nn { PitonOptions / marker }
   {
     beginning .code:n = \cs_set:Nn \__piton_marker_beginning:n { #1 } ,
@@ -553,6 +570,9 @@
     env-gobble       .value_forbidden:n = true ,
     tabs-auto-gobble .code:n            = \int_set:Nn \l__piton_gobble_int { -3 } ,
     tabs-auto-gobble .value_forbidden:n = true ,
+
+    splittable-on-empty-lines .bool_set:N = \l__piton_splittable_on_empty_lines_bool ,
+    splittable-on-empty-lines .default:n  = true ,
 
     split-on-empty-lines .bool_set:N = \l__piton_split_on_empty_lines_bool ,
     split-on-empty-lines .default:n = true ,
@@ -955,8 +975,8 @@
                   }
               }
             \bool_if:NTF \l__piton_split_on_empty_lines_bool
-              \__piton_gobble_split_parse:n
-              \__piton_gobble_parse:n
+              \__piton_retrieve_gobble_split_parse:n
+              \__piton_retrieve_gobble_parse:n
               { ##1 }
             \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
             \end { #1 }
@@ -978,26 +998,30 @@
       { #4 }
     \AddToHook { env / #1 / begin } { \char_set_catcode_other:N \^^M }
   }
-\cs_new_protected:Npn \__piton_gobble_parse:n
+\cs_new_protected:Npn \__piton_retrieve_gobble_parse:n
   {
     \lua_now:e
       {
-        piton.GobbleParse
+        piton.RetrieveGobbleParse
           (
             '\l_piton_language_str' ,
             \int_use:N \l__piton_gobble_int ,
+            \bool_if:NTF \l__piton_splittable_on_empty_lines_bool
+              { \int_eval:n { - \l__piton_splittable_int } }
+              { \int_use:N \l__piton_splittable_int } ,
             token.scan_argument ( )
           )
       }
   }
-\cs_new_protected:Npn \__piton_gobble_split_parse:n
+\cs_new_protected:Npn \__piton_retrieve_gobble_split_parse:n
   {
     \lua_now:e
       {
-        piton.GobbleSplitParse
+        piton.RetrieveGobbleSplitParse
           (
             '\l_piton_language_str' ,
             \int_use:N \l__piton_gobble_int ,
+            \int_use:N \l__piton_splittable_int ,
             token.scan_argument ( )
           )
       }
@@ -1107,6 +1131,9 @@
            '\l__piton_file_name_str' ,
            \int_use:N \l__piton_first_line_int ,
            \int_use:N \l__piton_last_line_int ,
+           \bool_if:NTF \l__piton_splittable_on_empty_lines_bool
+             { \int_eval:n { - \l__piton_splittable_int } }
+             { \int_use:N \l__piton_splittable_int } ,
            \bool_if:NTF \l__piton_split_on_empty_lines_bool { 1 } { 0 } )
         }
       \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
@@ -1482,6 +1509,7 @@
     show-spaces,~
     show-spaces-in-strings,~
     splittable,~
+    splittable-on-empty-lines,~
     split-on-empty-lines,~
     split-separation,~
     tabs-auto-gobble,~

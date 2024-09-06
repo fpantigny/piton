@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.1b" -- 2024/08/29
+piton_version = "3.1cx1" -- 2024/09/05
 
 
 
@@ -32,7 +32,7 @@ local function sprintL3 ( s )
 end
 local P, S, V, C, Ct, Cc = lpeg.P, lpeg.S, lpeg.V, lpeg.C, lpeg.Ct, lpeg.Cc
 local Cs , Cg , Cmt , Cb = lpeg.Cs, lpeg.Cg , lpeg.Cmt , lpeg.Cb
-local R = lpeg.R
+local B , R = lpeg.B , lpeg.R
 local function Q ( pattern )
   return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
 end
@@ -529,8 +529,8 @@ local ExceptionInConsole = Exception *  Q ( ( 1 - P "\r" ) ^ 0 ) * EOL
 local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
 local Main =
      --   space ^ 1 * -1
-     -- + space ^ 0 * EOL
-     Space
+     space ^ 0 * EOL -- faut-il le mettre en commentaire ?
+     + Space
      + Tab
      + Escape + EscapeMath
      + CommentLaTeX
@@ -575,36 +575,79 @@ local Punct = Q ( S ",:;!" )
 local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
 local Constructor = K ( 'Name.Constructor' , cap_identifier )
 local ModuleType = K ( 'Name.Type' , cap_identifier )
-local identifier = ( R "az" + "_" ) * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
+local OperatorWord =
+  K ( 'Operator.Word' ,
+      P "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" )
+
+local governing_keyword = P "and" + "begin" + "class" + "constraint" +
+      "end" + "external" + "functor" + "include" + "inherit" + "initializer" +
+      "in" + "let" + "method" + "module" + "object" + "open" + "rec" + "sig" +
+      "struct" + "type" + "val"
+
+local Keyword =
+  K ( 'Keyword' ,
+      P "assert" + "as" + "done" + "downto" + "do" + "else" + "exception"
+      + "for" + "function"  + "fun" + "if" + "lazy" + "match" + "mutable"
+      + "new" + "of" + "private" + "raise" + "then" + "to" + "try"
+      + "virtual" + "when" + "while" + "with" )
+  + K ( 'Keyword.Constant' , P "true" + "false" )
+  + K ('Keyword.Governing', governing_keyword )
+local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
+local identifier = ( R "az" + "_" ) * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0 - (OperatorWord + Keyword)*EndKeyword
 local Identifier = K ( 'Identifier.Internal' , identifier )
-local expression_for_fields =
+local Char =
+  K ( 'String.Short',
+    P "'" *
+    (
+      ( 1 - S "'\\" )
+      + "\\"
+        * ( S "\\'ntbr \""
+            + digit * digit * digit
+            + P "x" * ( digit + R "af" + R "AF" )
+                    * ( digit + R "af" + R "AF" )
+                    * ( digit + R "af" + R "AF" )
+            + P "o" * R "03" * R "07" * R "07" )
+    )
+    * "'" )
+local TypeParameter =
+  K ( 'TypeParameter' , "'" * Q"_" ^ -1 * alpha ^ 1 * ( # ( 1 - P "'" ) + -1 ) )
+local expression_for_fields_type =
   P { "E" ,
-       E = (   "{" * V "F" * "}"
+       E =  (   "{" * V "F" * "}"
+             + "(" * V "F" * ")"
+             + TypeParameter
+             + ( 1 - S "{}()[]\r;" ) ) ^ 0 ,
+       F = (    "{" * V "F" * "}"
+             + "(" * V "F" * ")"
+             + ( 1 - S "{}()[]\r\"'" ) + TypeParameter) ^ 0
+    }
+local expression_for_fields_value =
+  P { "E" ,
+       E =  (   "{" * V "F" * "}"
              + "(" * V "F" * ")"
              + "[" * V "F" * "]"
              + "\"" * ( P "\\\"" + 1 - S "\"\r" ) ^ 0 * "\""
-             + "'" * ( P "\\'" + 1 - S "'\r" ) ^ 0 * "'"
+             + Char
              + ( 1 - S "{}()[]\r;" ) ) ^ 0 ,
-       F = (   "{" * V "F" * "}"
+       F = (    "{" * V "F" * "}"
              + "(" * V "F" * ")"
              + "[" * V "F" * "]"
-             + ( 1 - S "{}()[]\r\"'" ) ) ^ 0
+             + ( 1 - S "{}()[]\r\"'" )) ^ 0
     }
 local OneFieldDefinition =
     ( K ( 'Keyword' , "mutable" ) * SkipSpace ) ^ -1
   * K ( 'Name.Field' , identifier ) * SkipSpace
   * Q ":" * SkipSpace
-  * K ( 'TypeExpression' , expression_for_fields )
+  * K ( 'TypeExpression' , expression_for_fields_type )
   * SkipSpace
 
 local OneField =
     K ( 'Name.Field' , identifier ) * SkipSpace
   * Q "=" * SkipSpace
-  * ( expression_for_fields
+  * ( expression_for_fields_value
       / ( function ( s ) return LPEG1['ocaml'] : match ( s ) end )
     )
   * SkipSpace
-
 local Record =
   Q "{" * SkipSpace
   *
@@ -613,6 +656,8 @@ local Record =
       +
       OneField * ( Q ";" * SkipSpace * OneField ) ^ 0
     )
+  *
+  Q ";" ^ -1
   *
   Q "}"
 local DotNotation =
@@ -632,24 +677,6 @@ local Operator =
       "//" + "**" + ";;" + "::" + "->" + "+." + "-." + "*." + "/."
       + S "-~+/*%=<>&@|" )
 
-local OperatorWord =
-  K ( 'Operator.Word' ,
-      P "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" )
-
-local governing_keyword = P "and" + "begin" + "class" + "constraint" +
-      "end" + "external" + "functor" + "include" + "inherit" + "initializer" +
-      "in" + "let" + "method" + "module" + "object" + "open" + "rec" + "sig" +
-      "struct" + "type" + "val"
-
-local Keyword =
-  K ( 'Keyword' ,
-      P "assert" + "as" + "done" + "downto" + "do" + "else" + "exception"
-      + "for" + "function"  + "fun" + "if" + "lazy" + "match" + "mutable"
-      + "new" + "of" + "private" + "raise" + "then" + "to" + "try"
-      + "virtual" + "when" + "while" + "with" )
-  + K ( 'Keyword.Constant' , P "true" + "false" )
-  + K ('Keyword.Governing', governing_keyword )
-
 local Builtin =
   K ( 'Name.Builtin' , P "not" + "incr" + "decr" + "fst" + "snd" + "ref" )
 local Exception =
@@ -657,23 +684,9 @@ local Exception =
        P "Division_by_zero" + "End_of_File" + "Failure" + "Invalid_argument" +
        "Match_failure" + "Not_found" + "Out_of_memory" + "Stack_overflow" +
        "Sys_blocked_io" + "Sys_error" + "Undefined_recursive_module" )
-local Char =
-  K ( 'String.Short',
-    P "'" *
-    (
-      ( 1 - S "'\\" )
-      + "\\"
-        * ( S "\\'ntbr \""
-            + digit * digit * digit
-            + P "x" * ( digit + R "af" + R "AF" )
-                    * ( digit + R "af" + R "AF" )
-                    * ( digit + R "af" + R "AF" )
-            + P "o" * R "03" * R "07" * R "07" )
-    )
-    * "'" )
 local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
 if piton.beamer then
-  Beamer = Compute_Beamer ( 'ocaml' , braces ) -- modified 2024/07/24
+  Beamer = Compute_Beamer ( 'ocaml' , braces )
 end
 DetectedCommands = Compute_DetectedCommands ( 'ocaml' , braces )
 LPEG_cleaner['ocaml'] = Compute_LPEG_cleaner ( 'ocaml' , braces )
@@ -790,20 +803,20 @@ local DefModule =
   +
   K ( 'Keyword.Governing' , P "include" + "open" )
   * Space * K ( 'Name.Module' , cap_identifier )
-local TypeParameter =
-  K ( 'TypeParameter' , "'" * alpha * ( # ( 1 - P "'" ) + -1 ) )
 local DefType =
   K ( 'Keyword.Governing' , "type" )
   * Space
+  * WithStyle ( 'TypeExpression', Q (1 - P "=")^1)
+  * (SkipSpace +  EOL_without_space_indentation^0) * Q "=" * (SkipSpace +  EOL_without_space_indentation^0)
   * WithStyle
       (
         'TypeExpression' ,
-        ( Q ( 1 - P ";;" - P "\r" ) + EOL_without_space_indentation ) ^ 0
+        ( Q ( 1 - P ";;" - P "\r" ) + EOL_without_space_indentation  ) ^ 1
       )
   * ( # governing_keyword + Q ";;" + -1 )
-local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
 local Main =
-     Space
+     space ^ 0 * EOL
+     + Space
      + Tab
      + Escape + EscapeMath
      + Beamer
@@ -818,9 +831,9 @@ local Main =
           * K ( 'TypeExpression' , balanced_parens ) * SkipSpace * Q ")"
      + Punct
      + Exception
+     + DefType
      + DefFunction
      + DefModule
-     + DefType
      + Record
      + Keyword * EndKeyword
      + OperatorWord * EndKeyword
@@ -914,7 +927,8 @@ local LongComment =
             ) -- $
 local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
 local Main =
-     Space
+     space ^ 0 * EOL
+     + Space
      + Tab
      + Escape + EscapeMath
      + CommentLaTeX
@@ -1060,7 +1074,8 @@ local WeCatchTableNames =
     * ( Space + EOL ) * OneTable
 local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
 local Main =
-     Space
+     space ^ 0 * EOL
+     + Space
      + Tab
      + Escape + EscapeMath
      + CommentLaTeX
@@ -1119,7 +1134,8 @@ local Identifier = K ( 'Identifier.Internal' , identifier )
 local Delim = Q ( S "{[()]}" )
 
 local Main =
-     Space
+     space ^ 0 * EOL
+     + Space
      + Tab
      + Escape + EscapeMath
      + CommentLaTeX
@@ -1183,7 +1199,8 @@ function piton.Parse ( language , code )
     end
   end
 end
-function piton.ParseFile ( language , name , first_line , last_line , split )
+function piton.ParseFile
+  ( lang , name , first_line , last_line , splittable , split )
   local s = ''
   local i = 0
   for line in io.lines ( name ) do
@@ -1203,13 +1220,15 @@ function piton.ParseFile ( language , name , first_line , last_line , split )
     end
   end
   if split == 1 then
-    piton.GobbleSplitParse ( language , 0 , s )
+    piton.RetrieveGobbleSplitParse ( lang , 0 , splittable , s )
   else
-    sprintL3 [[ \bool_if:NT \g__piton_footnote_bool \savenotes \vtop \bgroup ]]
-    piton.Parse ( language , s )
-    sprintL3
-      [[\vspace{2.5pt}\egroup\bool_if:NT\g__piton_footnote_bool\endsavenotes\par]]
+    piton.RetrieveGobbleParse ( lang , 0 , splittable , s )
   end
+end
+function piton.RetrieveGobbleParse ( lang , n , splittable , code )
+  local s
+  s = ( ( P " " ^ 0 * "\r" ) ^ -1 * C ( P ( 1 ) ^ 0 ) * -1 ) : match ( code )
+  piton.GobbleParse ( lang , n , splittable , s )
 end
 function piton.ParseBis ( lang , code )
   local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( code )
@@ -1281,7 +1300,10 @@ local function gobble ( n , code )
     end
   end
 end
-function piton.GobbleParse ( lang , n , code )
+function piton.GobbleParse ( lang , n , splittable , code )
+  if splittable < 0 then
+    piton.ComputeLinesStatus ( code , splittable )
+  end
   piton.last_code = gobble ( n , code )
   piton.last_language = lang
   piton.CountLines ( piton.last_code )
@@ -1301,7 +1323,7 @@ function piton.GobbleParse ( lang , n , code )
     end
   end
 end
-function piton.GobbleSplitParse ( lang , n , code )
+function piton.GobbleSplitParse ( lang , n , splittable , code )
   P { "E" ,
       E = ( V "F"
            * ( P " " ^ 0 * "\r"
@@ -1312,10 +1334,15 @@ function piton.GobbleSplitParse ( lang , n , code )
                  end )
           ) ^ 0 * V "F" ,
       F = C ( V "G" ^ 0 )
-          / ( function ( x ) piton.GobbleParse ( lang , 0 , x ) end ) ,
+           / ( function ( x ) piton.GobbleParse ( lang , 0 , splittable , x ) end ) ,
       G = ( 1 - P "\r" ) ^ 0 * "\r" - ( P " " ^ 0 * "\r" )
           + ( ( 1 - P "\r" ) ^ 1 * -1 - ( P " " ^ 0 * -1 ) )
     } : match ( gobble ( n , code ) )
+end
+function piton.RetrieveGobbleSplitParse ( lang , n , splittable , code )
+  local s
+  s = ( ( P " " ^ 0 * "\r" ) ^ -1 * C ( P ( 1 ) ^ 0 ) * -1 ) : match ( code )
+  piton.GobbleSplitParse ( lang , n , splittable , s )
 end
 piton.string_between_chunks =
  [[ \par \l__piton_split_separation_tl \mode_leave_vertical: ]]
@@ -1325,8 +1352,14 @@ function piton.get_last_code ( )
 end
 function piton.CountLines ( code )
   local count = 0
-  for i in code : gmatch ( "\r" ) do count = count + 1 end
-  sprintL3 ( string.format ( [[ \int_set:Nn  \l__piton_nb_lines_int { % i } ]] , count ) )
+  count =
+     ( Ct ( ( ( 1 - P "\r" ) ^ 0 * C "\r" ) ^ 0
+            * ( ( 1 - P "\r" ) ^ 1 * Cc "\r" ) ^ -1
+            * -1
+          ) / table.getn
+     ) : match ( code )
+  sprintL3 ( string.format ( [[ \int_set:Nn  \l__piton_nb_lines_int { %i } ]] , count ) )
+  -- sprintL3 ( string.format ( [[ Nb~lignes~:~%i~\newline]] , count ) )
 end
 function piton.CountNonEmptyLines ( code )
   local count = 0
@@ -1338,13 +1371,13 @@ function piton.CountNonEmptyLines ( code )
           ) / table.getn
      ) : match ( code )
   sprintL3
-   ( string.format ( [[ \int_set:Nn  \l__piton_nb_non_empty_lines_int { % i } ]] , count ) )
+   ( string.format ( [[ \int_set:Nn  \l__piton_nb_non_empty_lines_int { %i } ]] , count ) )
 end
 function piton.CountLinesFile ( name )
   local count = 0
   for line in io.lines ( name ) do count = count + 1 end
   sprintL3
-   ( string.format ( [[ \int_set:Nn \l__piton_nb_lines_int { %i } ]], count))
+   ( string.format ( [[ \int_set:Nn \l__piton_nb_lines_int { %i } ]], count ) )
 end
 function piton.CountNonEmptyLinesFile ( name )
   local count = 0
@@ -1383,6 +1416,63 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
   sprintL3 (
       [[ \int_set:Nn \l__piton_first_line_int { ]] .. first_line .. ' + 2 }'
       .. [[ \int_set:Nn \l__piton_last_line_int { ]] .. count .. ' }' )
+end
+function piton.ComputeLinesStatus ( code , splittable )
+  local my_lpeg
+  if splittable < 0 then
+    my_lpeg =
+      Ct (
+           (
+             P " " ^ 0 * "\r" * Cc ( 0 )
+             +
+             ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )  -- ^ 0 or ^ 1 ?
+           ) ^ 0
+           *
+           ( ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
+         )
+      * -1
+  else
+    my_lpeg =
+      Ct (
+           ( ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 ) ) ^ 0
+           *
+           ( ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
+         )
+      * -1
+  end
+  local lines_status = my_lpeg : match ( code )
+  local s = splittable
+  if splittable < 0 then s = - splittable end
+  if splittable < 100 then
+      for i , x in ipairs ( lines_status ) do
+        if x == 0 then
+          for j = 1 , s - 1 do
+            if i + j > #lines_status then break end
+            if lines_status[i+j] == 0 then break end
+              lines_status[i+j] = 2
+          end
+          for j = 1 , s - 1 do
+            if i - j - 1 == 0 then break end
+            if lines_status[i-j-1] == 0 then break end
+            lines_status[i-j-1] = 2
+          end
+        end
+      end
+     for j = 1 , s - 1 do
+       if j > #lines_status then break end
+       if lines_status[j] == 0 then break end
+       lines_status[j] = 2
+     end
+     for j = 1 , s - 1 do
+       if #lines_status - j == 0 then break end
+       if lines_status[#lines_status - j] == 0 then break end
+       lines_status[#lines_status - j] = 2
+     end
+  end
+-- for i , x in ipairs ( lines_status) do
+--   sprintL3 ( string.format ( [[ Ligne~%i~:~ %i\newline ]] , i , x ) )
+-- end
+  piton.lines_status = lines_status
 end
 function piton.new_language ( lang , definition )
   lang = string.lower ( lang )
@@ -1544,7 +1634,7 @@ function piton.new_language ( lang , definition )
         central_pattern = P ( arg3 .. arg3 ) + central_pattern
       end
       if arg1 == "m"
-      then prefix = lpeg.B ( 1 - letter - ")" - "]" )
+      then prefix = B ( 1 - letter - ")" - "]" )
       else prefix = P ( true )
       end
      long_string = long_string +
@@ -1664,7 +1754,8 @@ function piton.new_language ( lang , definition )
   local Delim = Q ( S "{[()]}" )
   local Punct = Q ( S "=,:;!\\'\"" )
   local Main =
-       Space
+       space ^ 0 * EOL
+       + Space
        + Tab
        + Escape + EscapeMath
        + CommentLaTeX
