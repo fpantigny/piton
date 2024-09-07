@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{3.1cx1}
-\def\PitonFileDate{2024/09/05}
+\def\PitonFileVersion{3.1x2}
+\def\PitonFileDate{2024/09/07}
 
 
 
@@ -277,6 +277,7 @@
       }
     \l_tmpa_tl
   }
+\cs_set_protected:Npn \__piton_end_line: { }
 \cs_set_protected:Npn \__piton_begin_line: #1 \__piton_end_line:
   {
     \group_begin:
@@ -337,7 +338,7 @@
             \box_use_drop:N \l_tmpa_box
           }
       }
-    \vspace { - 2.5 pt }
+    \kern - 2.5 pt
     \group_end:
     \tl_gclear:N \g__piton_begin_line_hook_tl
   }
@@ -375,38 +376,21 @@
   }
 \cs_new_protected:Npn \__piton_newline:
   {
+    \par
     \int_gincr:N \g__piton_line_int
-    \bool_set_false:N \l_tmpa_bool
-    \bool_if:NTF \l__piton_splittable_on_empty_lines_bool
+    \int_set:Nn \l_tmpa_int
       {
-        \int_set:Nn \l_tmpa_int
+        \lua_now:e
           {
-            \lua_now:e
-              {
-                tex.sprint ( luatexbase.catcodetables.expl ,
-                tostring ( piton.lines_status [ \int_use:N \g__piton_line_int ] ) )
-              }
-          }
-        \int_compare:nNnT \l_tmpa_int < 2
-          { \bool_set_true:N \l_tmpa_bool }
-      }
-      {
-        \int_compare:nNnT \g__piton_line_int > { \l__piton_splittable_int - 1 }
-          {
-            \int_compare:nNnT
-              { \l__piton_nb_lines_int - \g__piton_line_int + 1 } > \l__piton_splittable_int
-              { \bool_set_true:N \l_tmpa_bool }
+            tex.sprint ( luatexbase.catcodetables.expl ,
+            tostring
+             ( piton.lines_status [ \int_use:N \g__piton_line_int ] ) )
           }
       }
-    \bool_if:NT \l_tmpa_bool
-      {
-        \egroup
-        \bool_if:NT \g__piton_footnote_bool \endsavenotes
-        \par
-        \mode_leave_vertical:
-        \bool_if:NT \g__piton_footnote_bool \savenotes
-        \vtop \bgroup
-      }
+    % \int_compare:nNnT \l_tmpa_int < 2 { \bool_set_true:N \l_tmpa_bool }
+    \bool_if:NT \g__piton_footnote_bool \endsavenotes
+    \int_compare:nNnT \l_tmpa_int = 2 \nobreak
+   \bool_if:NT \g__piton_footnote_bool \savenotes
   }
 \cs_set_protected:Npn \__piton_breakable_space:
   {

@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.1cx1" -- 2024/09/05
+piton_version = "3.1x2" -- 2024/09/07
 
 
 
@@ -186,7 +186,7 @@ BeamerEndEnvironments =
       * "\r"
     ) ^ 0
 local function Compute_Beamer ( lang , braces )
-  local lpeg = L ( P "\\pause" * ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ -1 )
+  local lpeg = L ( P [[\pause]] * ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ -1 )
   lpeg = lpeg +
       Ct ( Cc "Open"
             * C ( piton.BeamerCommands
@@ -200,7 +200,7 @@ local function Compute_Beamer ( lang , braces )
        * "}"
        * Ct ( Cc "Close" )
   lpeg = lpeg +
-    L ( P "\\alt" * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
+    L ( P [[\alt]] * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
      * ( braces /
          ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
      * L ( P "}{" )
@@ -208,7 +208,7 @@ local function Compute_Beamer ( lang , braces )
          ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
      * L ( P "}" )
   lpeg = lpeg +
-      L ( ( P "\\temporal" ) * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
+      L ( ( P [[\temporal]] ) * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
       * ( braces
           / ( function ( s )
               if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
@@ -246,7 +246,7 @@ end
 local CommentMath =
   P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$" -- $
 local PromptHastyDetection =
-  ( # ( P ">>>" + "..." ) * Lc '\\__piton_prompt:' ) ^ -1
+  ( # ( P ">>>" + "..." ) * Lc [[\__piton_prompt:]] ) ^ -1
 local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ^ -1  )
 local EOL_without_space_indentation =
   P "\r"
@@ -257,13 +257,17 @@ local EOL_without_space_indentation =
     Ct (
          Cc "EOL"
          *
-         Ct (
-              Lc [[\__piton_end_line:]]
+         Ct ( Lc [[\__piton_end_line:]]
               * BeamerEndEnvironments
-              * BeamerBeginEnvironments
-              * PromptHastyDetection
-              * Lc [[\__piton_newline:\__piton_begin_line:]]
-              * Prompt
+              *
+                (
+                    -1
+                  +
+                    BeamerBeginEnvironments
+                  * PromptHastyDetection
+                  * Lc [[\__piton_newline:\__piton_begin_line:]]
+                  * Prompt
+                )
             )
        )
   )
@@ -1301,16 +1305,13 @@ local function gobble ( n , code )
   end
 end
 function piton.GobbleParse ( lang , n , splittable , code )
-  if splittable < 0 then
-    piton.ComputeLinesStatus ( code , splittable )
-  end
+  piton.ComputeLinesStatus ( code , splittable )
   piton.last_code = gobble ( n , code )
   piton.last_language = lang
   piton.CountLines ( piton.last_code )
   sprintL3 [[ \bool_if:NT \g__piton_footnote_bool \savenotes ]]
-  sprintL3 [[ \vtop \bgroup ]]
   piton.Parse ( lang , piton.last_code )
-  sprintL3 [[ \vspace{2.5pt} \egroup ]]
+  sprintL3 [[ \vspace{2.5pt} ]]
   sprintL3 [[ \bool_if:NT \g__piton_footnote_bool \endsavenotes ]]
   sprintL3 [[ \par ]]
   if piton.write and piton.write ~= '' then
@@ -1418,59 +1419,73 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
       .. [[ \int_set:Nn \l__piton_last_line_int { ]] .. count .. ' }' )
 end
 function piton.ComputeLinesStatus ( code , splittable )
+  local lpeg_line_beamer
+  if piton.beamer then
+    lpeg_line_beamer =
+       space ^ 0
+        * P "\\begin{" * piton.BeamerEnvironments * "}"
+        * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
+       +
+       space ^ 0
+        * P "\\end{" * piton.BeamerEnvironments * "}"
+  else
+    lpeg_line_beamer = P ( false )
+  end
   local my_lpeg
   if splittable < 0 then
     my_lpeg =
       Ct (
-           (
+           ( lpeg_line_beamer * "\r"
+             +
              P " " ^ 0 * "\r" * Cc ( 0 )
              +
              ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )  -- ^ 0 or ^ 1 ?
            ) ^ 0
            *
-           ( ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
+           ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
          )
       * -1
   else
     my_lpeg =
       Ct (
-           ( ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 ) ) ^ 0
+           ( lpeg_line_beamer * "\r"
+             +
+             ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )
+           ) ^ 0
            *
-           ( ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
+           ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
          )
       * -1
   end
   local lines_status = my_lpeg : match ( code )
   local s = splittable
   if splittable < 0 then s = - splittable end
-  if splittable < 100 then
-      for i , x in ipairs ( lines_status ) do
-        if x == 0 then
-          for j = 1 , s - 1 do
-            if i + j > #lines_status then break end
-            if lines_status[i+j] == 0 then break end
-              lines_status[i+j] = 2
-          end
-          for j = 1 , s - 1 do
-            if i - j - 1 == 0 then break end
-            if lines_status[i-j-1] == 0 then break end
-            lines_status[i-j-1] = 2
-          end
-        end
+  for i , x in ipairs ( lines_status ) do
+    if x == 0 then
+      for j = 1 , s - 1 do
+        if i + j > #lines_status then break end
+        if lines_status[i+j] == 0 then break end
+          lines_status[i+j] = 2
       end
-     for j = 1 , s - 1 do
-       if j > #lines_status then break end
-       if lines_status[j] == 0 then break end
-       lines_status[j] = 2
-     end
-     for j = 1 , s - 1 do
-       if #lines_status - j == 0 then break end
-       if lines_status[#lines_status - j] == 0 then break end
-       lines_status[#lines_status - j] = 2
-     end
+      for j = 1 , s - 1 do
+        if i - j - 1 == 0 then break end
+        if lines_status[i-j-1] == 0 then break end
+        lines_status[i-j-1] = 2
+      end
+    end
+  end
+  for j = 1 , s - 1 do
+    if j > #lines_status then break end
+    if lines_status[j] == 0 then break end
+    lines_status[j] = 2
+  end
+  for j = 1 , s - 1 do
+    if #lines_status - j == 0 then break end
+    if lines_status[#lines_status - j] == 0 then break end
+    lines_status[#lines_status - j] = 2
   end
 -- for i , x in ipairs ( lines_status) do
---   sprintL3 ( string.format ( [[ Ligne~%i~:~ %i\newline ]] , i , x ) )
+--  sprintL3 ( string.format ( [[ Ligne~%i~:~ %i\newline ]] , i , x ) )
 -- end
   piton.lines_status = lines_status
 end
