@@ -211,8 +211,8 @@ Pour les développeurs, précisons que le nom du langage courant est stocké (en
 dans la variable publique L3 nommée |\l_piton_language_str|.
 
 \smallskip
-Dans la suite de ce document, on parlera de Python mais les fonctionnalités s'appliquent
-aussi aux autres langages.
+Dans la suite de ce document, on parlera préférentiellement de Python mais les
+fonctionnalités s'appliquent aussi aux autres langages.
 
 
 
@@ -231,7 +231,7 @@ ou par une extension chargée dans le préambule), \pkg{piton} charge l'extensio
 
 \indexenv{Piton}
 
-L'extension \pkg{piton} fournit plusieurs outils pour composer du code Python: les
+L'extension \pkg{piton} fournit plusieurs outils pour composer du code informatique : les
 commandes |\piton|, l'environnement |{Piton}| et la commande |\PitonInputFile|.
 
 \begin{itemize} \setlength{\fboxsep}{1pt}
@@ -265,7 +265,7 @@ L'extension \pkg{piton} propose aussi des commandes
 \colorbox{gray!20}{\ttfamily\textbackslash PitonInputFileT}, \colorbox{gray!20}{\ttfamily
   \textbackslash PitonInputFileF} et \colorbox{gray!20}{\ttfamily \textbackslash
   PitonInputFileTF} avec des arguments correspondant aux lettres |T| et |F|, arguments qui
-seront executés dans le cas où le fichier a été trouvé (lettre |T|) ou pas (lettre |F|).
+seront exécutés dans le cas où le fichier a été trouvé (lettre |T|) ou pas (lettre |F|).
 
 \end{itemize}
 
@@ -285,7 +285,7 @@ On détaille maintenant ces deux syntaxes.
 \begin{itemize}
 \item {\color{blue} \textsf{Syntaxe} \verb|\piton{...}|}\par\nobreak
 
-Quand son argument est donné entre accolades, la commande |\piton| ne prend pas son
+Quand son argument est donné entre accolades, la commande |\piton| ne prend \emph{pas} son
 argument en mode verbatim. Les points suivants doivent être remarqués :
 
 \begin{itemize}
@@ -303,9 +303,9 @@ retours à la ligne
 {\color{cyan} mais les commandes |\{| et |\}| sont aussi fournies pour insérer des
   accolades individuelles} ;
 
-\item les commandes LaTeX\footnote{Cela s'applique aux commandes commençant par une contre-oblique |\| mais
-  également aux caractères actifs, c'est-à-dire ceux de catcode~13.} sont complètement développées sans être
-exécutées
+\item les commandes LaTeX\footnote{Cela s'applique aux commandes commençant par une
+  contre-oblique |\| mais également aux caractères actifs, c'est-à-dire ceux de
+  catcode~13.} sont complètement développées sans être exécutées
 
 {\color{cyan} et on peut donc utiliser |\\| pour insérer une contre-oblique}.
 \end{itemize}
@@ -333,6 +333,10 @@ et |@|) doivent être insérés sans contre-oblique.
 La commande |\piton| avec son argument entre accolades peut être utilisée dans les
 arguments des autres commandes LaTeX.\footnote{La commande |\piton| peut par exemple être
   utilisée dans une note de bas de page. Exemple : \piton{s = 'Une chaîne'}.}
+
+En revanche, comme son argument subit un développement (au sens de TeX), il faut prendre 
+soin à ne pas utiliser dans son argument de commandes fragiles (c'est-à-dire des commandes
+qui ne sont ni \emph{protected} ni \emph{fully expandable}).
 
 \bigskip
 \item {\color{blue} \textsf{Syntaxe} \verb!\piton|...|!}\par\nobreak
@@ -1119,6 +1123,7 @@ Le code suivant a été composé avec le réglage suivant :
 \PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
 \end{Verbatim}
 
+
 \begin{center}
 \PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
 \begin{Piton}
@@ -1136,6 +1141,7 @@ def dict_of_liste(liste):
     return dict
 \end{Piton}
 \end{center}
+
 
 
 \bigskip
@@ -1509,9 +1515,10 @@ accolades (et ces accolades doivent apparaître explicitement dans le listing).
 
 \medskip
 Dans l'exemple suivant, qui est une programmation récursive de la factorielle, on décide
-de surligner en jaune l'appel récursif. La commande |\highLight| de \pkg{lua-ul} (cette
-extension requiert elle-même l'extension \pkg{luacolor}) permet de le faire avec la
-syntaxe |\hightLight{...}|.
+de surligner en jaune l'appel récursif. La commande |\highLight| de
+\pkg{lua-ul}\footnote{L'extension \pkg{lua-ul} requiert elle-même l'extension
+  \pkg{luacolor}.} permet de le faire facilement avec la
+syntaxe |\highLight{...}|.
 
 \smallskip
 On suppose que l'on a mis dans le préambule du document LaTeX l'instruction suivante :
@@ -1900,12 +1907,12 @@ propre système d'extraction des notes de pied de page et vous n'avez donc pas �
 \bigskip
 Par défaut, une commande |\footnote| ne peut apparaître que dans un «commentaire LaTeX».
 Mais on peut aussi ajouter la commande |\footnote| à la liste des
-``\emph{detected-commands}'' (cf.~partie~\ref{detected-commands},
+\emph{detected-commands} (cf.~partie~\ref{detected-commands},
 p.~\pageref{detected-commands}). 
 
 \medskip
 Dans ce document, l'extension \pkg{piton} a été chargée avec l'option |footnotehyper| et
-on rajouté la commande |\footnote| aux ``\emph{detected-commands}'' avec le code suivant
+on rajouté la commande |\footnote| aux \emph{detected-commands} avec le code suivant
 dans la préambule du document LaTeX :
 
 \qquad \verb|\PitonOptions{detected-commands = footnote}|
@@ -1944,7 +1951,7 @@ def arctan(x,n=10):
 
 Si on utilise l'environnement |{Piton}| dans un environnement |{minipage}| de LaTeX, les
 notes sont, bien entendu, composées au bas de l'environnement |{minipage}|. Rappelons
-qu'une telle |{minipage}| ne peut être coupée par un saut de page.
+qu'une telle |{minipage}| ne peut \emph{pas} être coupée par un saut de page.
 
 
 \begingroup

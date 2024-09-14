@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.1x2}
-\def\PitonFileDate{2024/09/07}
+\def\PitonFileVersion{3.1x3}
+\def\PitonFileDate{2024/09/11}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.1x2" -- 2024/09/07
+piton_version = "3.1x3" -- 2024/09/11
 %</LUA>
 %\fi
 %
@@ -216,7 +216,7 @@ piton_version = "3.1x2" -- 2024/09/07
 %
 % \indexenv{Piton}
 % 
-% The package \pkg{piton} provides several tools to typeset Python codes: the
+% The package \pkg{piton} provides several tools to typeset informatic codes: the
 % command |\piton|, the environment |{Piton}| and the command |\PitonInputFile|.
 %
 % \begin{itemize}\setlength{\fboxsep}{1pt}
@@ -283,8 +283,7 @@ piton_version = "3.1x2" -- 2024/09/07
 % {\color{cyan} but the commands |\{| and |\}| are also provided for individual braces};
 %
 % \item the LaTeX commands\footnote{That concerns the commands beginning with a
-% backslash but also the active characters (with catcode equal to 13).} are
-% fully expanded and not executed,
+% backslash but also the active characters (with catcode equal to 13). } are fully expanded and not executed,
 %
 % {\color{cyan} so it's possible to use |\\| to insert a backslash}.
 % \end{itemize}
@@ -314,6 +313,10 @@ piton_version = "3.1x2" -- 2024/09/07
 % LaTeX command.\footnote{For example, it's possible to use the command
 % \texttt{\textbackslash piton} in a footnote. Example :
 % \piton{s = 'A string'}.}
+%
+% However, since the argument is expanded (in the TeX sens), one should take
+% care not using in its argument \emph{fragile} commands (that is to say
+% commands which are neither \emph{protected} nor \emph{fully expandable}).
 %
 % \bigskip
 % \item {\color{blue} \textsf{Syntax} \verb!\piton|...|!}\par\nobreak
@@ -1491,8 +1494,14 @@ piton_version = "3.1x2" -- 2024/09/07
 % between braces (and these braces must appear explicitly in the informatic listing). 
 % \end{itemize}
 %
-% \medskip
-% We assume that the preamble of the LaTeX document contains the following line.
+% \bigskip
+% In the following example, which is a recursive programmation of the factorial
+% function, we decide to highlight the recursive call. The command |\highLight|
+% of \pkg{lua-ul}\footnote{The package \pkg{lua-ul} requires itself the package
+% \pkg{luacolor}.} directly does the job with the easy syntax |\highLight{...}|.
+%
+% \medskip 
+% We assume that the preamble of the LaTeX document contains the following line:
 % \begin{Verbatim}
 % \PitonOptions{~emphase#detected-commands@ = highLight}
 % \end{Verbatim}
@@ -3011,8 +3020,8 @@ piton_version = "3.1x2" -- 2024/09/07
 %    \begin{macrocode}
 \lua_now:n 
   { 
-    piton.BeamerCommands = lpeg.P ( "\\uncover" ) 
-          + "\\only" + "\\visible" + "\\invisible" + "\\alert" + "\\action" 
+    piton.BeamerCommands = lpeg.P ( [[\uncover]] ) 
+       + [[\only]] + [[\visible]] + [[\invisible]] + [[\alert]] + [[\action]] 
     piton.beamer_environments = { "uncoverenv" , "onlyenv" , "visibleenv" , 
                "invisibleenv" ,  "alertenv" ,  "actionenv" }
     piton.DetectedCommands = lpeg.P ( false ) 
@@ -3339,8 +3348,10 @@ piton_version = "3.1x2" -- 2024/09/07
 %    \end{macrocode}
 % 
 % \medskip
+% Be careful: when executed, the following command does \emph{not} create a
+% space (only an incrementation of the counter).
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_an_indentation_space:
+\cs_new_protected:Npn \@@_leading_space:
   { \int_gincr:N \g_@@_indentation_int }
 %    \end{macrocode}
 %
@@ -3367,8 +3378,8 @@ piton_version = "3.1x2" -- 2024/09/07
             } 
           } 
         \@esphack
-     }
-     { \@@_error:n { label~with~lines~numbers } }
+      }
+      { \@@_error:n { label~with~lines~numbers } }
   }
 %    \end{macrocode}
 %
@@ -3405,7 +3416,7 @@ piton_version = "3.1x2" -- 2024/09/07
     \tl_gset:Nn \g_@@_begin_line_hook_tl
       { 
         \tl_if_empty:NF \l_@@_prompt_bg_color_tl 
-          { \clist_set:NV \l_@@_bg_color_clist \l_@@_prompt_bg_color_tl }
+          { \clist_set:No \l_@@_bg_color_clist \l_@@_prompt_bg_color_tl }
       } 
   }
 %    \end{macrocode}
@@ -3429,8 +3440,8 @@ piton_version = "3.1x2" -- 2024/09/07
     \tl_set:Nn \l_tmpa_tl { #1 } 
     \bool_if:NTF \l_@@_show_spaces_bool
       { 
-        \tl_set:Nn \l_@@_space_tl { ␣ }
-        \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl % U+2423
+        \tl_set:Nn \l_@@_space_tl { ␣ } % U+2423
+        \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl 
       } 
       {
 %    \end{macrocode}
@@ -3500,16 +3511,30 @@ piton_version = "3.1x2" -- 2024/09/07
         \skip_horizontal:N \l_@@_left_margin_dim
         \bool_if:NT \l_@@_line_numbers_bool
           {
-            \bool_if:nF
-              { 
-                \str_if_eq_p:nn { #1 } { \PitonStyle { Prompt } { } } 
-                && 
-                \l_@@_skip_empty_lines_bool 
+%    \end{macrocode}
+% |\l_tmpa_int| will be true equal to $1$ when the current line is not empty.
+%    \begin{macrocode}
+            \int_set:Nn \l_tmpa_int 
+              {
+                \lua_now:e 
+                  { 
+                    tex.sprint
+                      ( 
+                        luatexbase.catcodetables.expl ,
+                        tostring 
+                          ( piton.empty_lines
+                              [ \int_eval:n { \g_@@_line_int + 1 } ] 
+                          ) 
+                      ) 
+                  } 
               }
+            \bool_lazy_or:nnT
+              { \int_compare_p:nNn \l_tmpa_int = \c_one_int }
+              { ! \l_@@_skip_empty_lines_bool }
               { \int_gincr:N \g_@@_visual_line_int }
             \bool_if:nT
               { 
-                ! \str_if_eq_p:nn { #1 } { \PitonStyle { Prompt } { } } 
+                \int_compare_p:nNn \l_tmpa_int = \c_one_int
                 ||
                 ( ! \l_@@_skip_empty_lines_bool && \l_@@_label_empty_lines_bool ) 
               }
@@ -3531,6 +3556,11 @@ piton_version = "3.1x2" -- 2024/09/07
       }  
     \box_set_dp:Nn \l_tmpa_box { \box_dp:N \l_tmpa_box + 1.25 pt } 
     \box_set_ht:Nn \l_tmpa_box { \box_ht:N \l_tmpa_box + 1.25 pt } 
+%    \end{macrocode}
+% We have to explicitely begin a paragraph because we will insert a TeX box (and
+% we don't want that box to be inserted in the vertical list).
+%    \begin{macrocode}
+    \mode_leave_vertical:
     \clist_if_empty:NTF \l_@@_bg_color_clist
       { \box_use_drop:N \l_tmpa_box }
       {
@@ -3547,7 +3577,6 @@ piton_version = "3.1x2" -- 2024/09/07
             \box_use_drop:N \l_tmpa_box
           }
       }   
-    \kern - 2.5 pt 
     \group_end:
     \tl_gclear:N \g_@@_begin_line_hook_tl
   }
@@ -3610,14 +3639,14 @@ piton_version = "3.1x2" -- 2024/09/07
   {
     \int_set:Nn \l_tmpa_int { \clist_count:N #1 }
     \int_set:Nn \l_tmpb_int { \int_mod:nn \g_@@_line_int \l_tmpa_int + 1 }
-    \tl_set:Nx \l_tmpa_tl { \clist_item:Nn #1 \l_tmpb_int }
+    \tl_set:Ne \l_tmpa_tl { \clist_item:Nn #1 \l_tmpb_int }
     \tl_if_eq:NnTF \l_tmpa_tl { none }
 %    \end{macrocode}
 % By setting |\l_@@_width_dim| to zero, the colored rectangle will be
 % drawn with zero width and, thus, it will be a mere strut (and we need that strut).
 %    \begin{macrocode}
       { \dim_zero:N \l_@@_width_dim }
-      { \exp_args:NV \@@_color_i:n \l_tmpa_tl }
+      { \exp_args:No \@@_color_i:n \l_tmpa_tl }
   }
 %    \end{macrocode}
 %
@@ -3645,13 +3674,13 @@ piton_version = "3.1x2" -- 2024/09/07
 % \item When the key |break-lines-in-Piton| is in force, a line of the
 % informatic code (the \emph{input}) may result in several lines in the PDF (the
 % \emph{output}). 
-% \item Remind that |\@@_newline:| has a rather complex behaviour because it may
+% \item Remind that |\@@_newline:| has a rather complex behaviour because it will
 % finish and start paragraphs.
 % \end{itemize}
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_newline: 
   { 
-    \par
+    \bool_if:NT \g_@@_footnote_bool \endsavenotes 
 %    \end{macrocode}
 % We recall that |\g_@@_line_int| is \emph{not} used for the number of line
 % printed in the PDF (when |line-numbers| is in force)...
@@ -3661,27 +3690,36 @@ piton_version = "3.1x2" -- 2024/09/07
 % ... it will be used to allow or disallow page breaks.
 %
 %
-% We use the Lua table |piton.lines_status| which has been written for this aim.
-% Each line has a ``status`` (equal to 0, 1 or 2) and that status directly say
-% whether a break is allowed.
+% Each line in the listing is composed in a box of TeX (which may contain
+% several lines when the key |break-lines-in-Piton| is in force) put in a
+% paragraph. 
 %    \begin{macrocode}
-    \int_set:Nn \l_tmpa_int
+    \par 
+%    \end{macrocode}
+% We now add a |\kern| because each line of code is overlapping vertically by a
+% quantity of 2.5~pt in order to have a good background (when |background-color|
+% is in force). We need to use a |\kern| (in fact |\par\kern...|) and not a
+% |\vskip| because page breaks should \emph{not} be allowed on that kern.
+%    \begin{macrocode}
+    \kern -2.5 pt 
+%    \end{macrocode}
+% Now, we control page breaks after the paragraph. We use the Lua table
+% |piton.lines_status| which has been written by |piton.ComputeLinesStatus| for
+% this aim. Each line has a ``status`` (equal to 0, 1 or 2) and that status
+% directly says whether a break is allowed.
+%    \begin{macrocode}
+    \int_case:nn
       { 
         \lua_now:e 
           { 
-            tex.sprint ( luatexbase.catcodetables.expl ,
-            tostring 
-             ( piton.lines_status [ \int_use:N \g_@@_line_int ] ) ) 
+            tex.sprint
+              ( 
+                luatexbase.catcodetables.expl ,
+                tostring ( piton.lines_status [ \int_use:N \g_@@_line_int ] ) 
+              ) 
           } 
       }
-    % \int_compare:nNnT \l_tmpa_int < 2 { \bool_set_true:N \l_tmpa_bool }
-    \bool_if:NT \g_@@_footnote_bool \endsavenotes 
-%    \end{macrocode}
-% Each line in the listing is composed in a box of TeX (which may contain
-% several lines when the key |break-lines-in-Piton| is in force) put in a
-% paragraph. Now, we prevent a page break after that paragraph.
-%    \begin{macrocode}
-    \int_compare:nNnT \l_tmpa_int = 2 \nobreak
+      { 1 { \penalty 100 } 2 \nobreak }
 %    \end{macrocode}
 % 
 %     \begin{macrocode}
@@ -3823,15 +3861,15 @@ piton_version = "3.1x2" -- 2024/09/07
 % First, we put keys that should be available only in the preamble.
 %    \begin{macrocode}
     detected-commands .code:n =  
-       \lua_now:n { piton.addDetectedCommands('#1') } ,
+      \lua_now:n { piton.addDetectedCommands('#1') } ,
     detected-commands .value_required:n = true , 
     detected-commands .usage:n = preamble , 
     detected-beamer-commands .code:n =  
-       \lua_now:n { piton.addBeamerCommands('#1') } ,
+      \lua_now:n { piton.addBeamerCommands('#1') } ,
     detected-beamer-commands .value_required:n = true , 
     detected-beamer-commands .usage:n = preamble , 
     detected-beamer-environments .code:n =  
-       \lua_now:n { piton.addBeamerEnvironments('#1') } ,
+      \lua_now:n { piton.addBeamerEnvironments('#1') } ,
     detected-beamer-environments .value_required:n = true , 
     detected-beamer-environments .usage:n = preamble , 
 %    \end{macrocode}
@@ -3872,7 +3910,7 @@ piton_version = "3.1x2" -- 2024/09/07
 % Now, general keys.
 %    \begin{macrocode}
     language         .code:n = 
-      \str_set:Nx \l_piton_language_str { \str_lowercase:n { #1 } } , 
+      \str_set:Ne \l_piton_language_str { \str_lowercase:n { #1 } } , 
     language         .value_required:n  = true ,
     path .code:n = 
       \seq_clear:N \l_@@_path_seq
@@ -4006,10 +4044,6 @@ piton_version = "3.1x2" -- 2024/09/07
       \bool_set_true:N \l_@@_line_numbers_bool 
       \bool_set_false:N \l_@@_skip_empty_lines_bool ,
     all-line-numbers .value_forbidden:n = true ,
-
-    % deprecated
-    numbers-sep .dim_set:N = \l_@@_numbers_sep_dim ,
-    numbers-sep .value_required:n = true 
   }
 %    \end{macrocode}
 %
@@ -4101,7 +4135,7 @@ piton_version = "3.1x2" -- 2024/09/07
     \tl_if_empty:NF \g_@@_aux_tl 
       {
         \iow_now:Nn \@mainaux { \ExplSyntaxOn }
-        \iow_now:Nx \@mainaux 
+        \iow_now:Ne \@mainaux 
           {
             \tl_gset:cn { c_@@_ \int_use:N \g_@@_env_int _ tl } 
               { \exp_not:o \g_@@_aux_tl } 
@@ -4118,7 +4152,7 @@ piton_version = "3.1x2" -- 2024/09/07
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_width_to_aux:
   {
-    \tl_gput_right:Nx \g_@@_aux_tl
+    \tl_gput_right:Ne \g_@@_aux_tl
       { 
         \dim_set:Nn \l_@@_line_width_dim 
           { \dim_eval:n { \g_@@_tmp_width_dim } }
@@ -4186,7 +4220,7 @@ piton_version = "3.1x2" -- 2024/09/07
 % that is to say, for example : |[AspectJ]{Java}|. We use |\tl_if_blank:nF|
 % because the final user may have written |\NewPitonLanguage[ ]{Java}{...}|.
 %    \begin{macrocode}
-    \tl_set:Nx \l_tmpa_tl 
+    \tl_set:Ne \l_tmpa_tl 
       { 
         \tl_if_blank:nF { #1 } { [ \str_lowercase:n { #1 } ] } 
         \str_lowercase:n { #2 } 
@@ -4207,7 +4241,7 @@ piton_version = "3.1x2" -- 2024/09/07
 % |\AtBeginDocument|. Hence, we will put also in a |\AtBeginDocument| the
 % utilisation of the Lua function |piton.new_language| (which does the main job).
 %    \begin{macrocode}
-    \exp_args:NV \@@_NewPitonLanguage:nn \l_tmpa_tl { #3 }
+    \exp_args:No \@@_NewPitonLanguage:nn \l_tmpa_tl { #3 }
   }
 %    \end{macrocode}
 % 
@@ -4229,7 +4263,7 @@ piton_version = "3.1x2" -- 2024/09/07
 % is to say, for example : |[AspectJ]{Java}|. We use |\tl_if_blank:nF| because
 % the final user may have used |\NewPitonLanguage[Handel]{C}[ ]{C}{...}|
 %    \begin{macrocode}
-    \tl_set:Nx \l_tmpa_tl 
+    \tl_set:Ne \l_tmpa_tl 
       { 
          \tl_if_blank:nF { #3 } { [ \str_lowercase:n { #3 } ] } 
          \str_lowercase:n { #4 }
@@ -4240,12 +4274,12 @@ piton_version = "3.1x2" -- 2024/09/07
 % languages provided by \pkg{piton} but only those defined by using
 % |\NewPitonLanguage|. 
 %    \begin{macrocode}
-     \prop_get:NoNTF \g_@@_languages_prop \l_tmpa_tl \l_tmpb_tl 
+    \prop_get:NoNTF \g_@@_languages_prop \l_tmpa_tl \l_tmpb_tl 
 %    \end{macrocode}
 % We can now define the new language by using the previous function.
 %    \begin{macrocode}
-       { \@@_NewPitonLanguage:nnno { #1 } { #2 } { #5 } \l_tmpb_tl }
-       { \@@_error:n { Language~not~defined } }
+      { \@@_NewPitonLanguage:nnno { #1 } { #2 } { #5 } \l_tmpb_tl }
+      { \@@_error:n { Language~not~defined } }
   }
 %    \end{macrocode}
 %
@@ -4278,7 +4312,7 @@ piton_version = "3.1x2" -- 2024/09/07
     \automatichyphenmode = 1
 %    \end{macrocode}
 % Remark that the argument of |\piton| (with the normal syntax) is expanded in
-% the TeX sens, (see the |\tl_set:Nx| below) and that's why we can provide the
+% the TeX sens, (see the |\tl_set:Ne| below) and that's why we can provide the
 % following escapes to the final user:
 %    \begin{macrocode}
     \cs_set_eq:NN \\ \c_backslash_str
@@ -4294,9 +4328,8 @@ piton_version = "3.1x2" -- 2024/09/07
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-    \cs_set_protected:Npn \@@_begin_line: { }
-    \cs_set_protected:Npn \@@_end_line: { }
-    \tl_set:Nx \l_tmpa_tl 
+    \cs_set_eq:NN \@@_begin_line: \prg_do_nothing:
+    \tl_set:Ne \l_tmpa_tl 
       { 
         \lua_now:e 
           { piton.ParseBis('\l_piton_language_str',token.scan_string()) }
@@ -4333,9 +4366,8 @@ piton_version = "3.1x2" -- 2024/09/07
     \group_begin:
     \ttfamily
     \automatichyphenmode = 1
-    \cs_set_protected:Npn \@@_begin_line: { }
-    \cs_set_protected:Npn \@@_end_line: { }
-    \tl_set:Nx \l_tmpa_tl 
+    \cs_set_eq:NN \@@_begin_line: \prg_do_nothing:
+    \tl_set:Ne \l_tmpa_tl 
       { 
         \lua_now:e 
           { piton.Parse('\l_piton_language_str',token.scan_string()) } 
@@ -4359,31 +4391,20 @@ piton_version = "3.1x2" -- 2024/09/07
 % arguments of a Python function).
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_piton:n #1
+  { \tl_if_blank:nF { #1 } { \@@_piton_i:n { #1 } } }
+
+\cs_new_protected:Npn \@@_piton_i:n #1
   { 
     \group_begin:
-    \cs_set_protected:Npn \@@_begin_line: { }
-    \cs_set_protected:Npn \@@_end_line: { }
+    \cs_set_eq:NN \@@_begin_line: \prg_do_nothing:
     \cs_set:cpn { pitonStyle _ \l_piton_language_str  _ Prompt } { }
     \cs_set:cpn { pitonStyle _ Prompt } { }
     \cs_set_eq:NN \@@_trailing_space: \space
-    \bool_lazy_or:nnTF 
-      \l_@@_break_lines_in_piton_bool
-      \l_@@_break_lines_in_Piton_bool
-      {
-        \tl_set:Nx \l_tmpa_tl 
-          { 
-            \lua_now:e 
-              { piton.ParseTer('\l_piton_language_str',token.scan_string()) } 
-              { #1 } 
-          }
-      }
-      {
-        \tl_set:Nx \l_tmpa_tl 
-          { 
-            \lua_now:e 
-              { piton.Parse('\l_piton_language_str',token.scan_string()) }
-              { #1 } 
-          }
+    \tl_set:Ne \l_tmpa_tl 
+      { 
+        \lua_now:e 
+          { piton.ParseTer('\l_piton_language_str',token.scan_string()) } 
+          { #1 } 
       }
     \bool_if:NT \l_@@_show_spaces_bool
       { \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl } % U+2423
@@ -4545,7 +4566,7 @@ piton_version = "3.1x2" -- 2024/09/07
             \@@_compute_width:
             \ttfamily
             \dim_zero:N \parskip
-            \noindent % added 2024/08/07 
+            \noindent
 %    \end{macrocode}
 % 
 % Now, the key |write|.
@@ -4559,11 +4580,11 @@ piton_version = "3.1x2" -- 2024/09/07
             \str_if_empty:NTF \l_@@_write_str
               { \lua_now:n { piton.write = '' } }
               { 
-                \seq_if_in:NVTF \g_@@_write_seq \l_@@_write_str 
+                \seq_if_in:NoTF \g_@@_write_seq \l_@@_write_str 
                   { \lua_now:n { piton.write_mode = "a" } }
                   { 
                     \lua_now:n { piton.write_mode = "w" } 
-                    \seq_gput_left:NV \g_@@_write_seq \l_@@_write_str
+                    \seq_gput_left:No \g_@@_write_seq \l_@@_write_str
                   }
               }  
 %    \end{macrocode}
@@ -4834,7 +4855,7 @@ piton_version = "3.1x2" -- 2024/09/07
 % file (read by |\PitonInputFile|) is loaded during the compilation of the LaTeX
 % document. 
 %    \begin{macrocode}
-    \exp_args:Nx \iow_log:n {(\l_@@_file_name_str)}
+    \iow_log:e {(\l_@@_file_name_str)}
 %    \end{macrocode}
 % We recall that, if we are in Beamer, the command |\PitonInputFile| is
 % ``overlay-aware'' and that's why we close now an environment |{uncoverenv}|
@@ -4857,15 +4878,15 @@ piton_version = "3.1x2" -- 2024/09/07
 % We store the markers in L3 strings (|str|) in order to do safely the following
 % replacement of |\#|.
 %    \begin{macrocode}
-    \str_set:Nx \l_tmpa_str { \@@_marker_beginning:n \l_@@_begin_range_str }
-    \str_set:Nx \l_tmpb_str { \@@_marker_end:n \l_@@_end_range_str }
+    \str_set:Ne \l_tmpa_str { \@@_marker_beginning:n \l_@@_begin_range_str }
+    \str_set:Ne \l_tmpb_str { \@@_marker_end:n \l_@@_end_range_str }
 %    \end{macrocode}
 % We replace the sequences |\#| which may be present in the prefixes (and, more
 % unlikely, suffixes) added to the markers by the functions
 % |\@@_marker_beginning:n| and |\@@_marker_end:n|
 %    \begin{macrocode}
-    \exp_args:NnV \regex_replace_all:nnN { \\\# } \c_hash_str \l_tmpa_str
-    \exp_args:NnV \regex_replace_all:nnN { \\\# } \c_hash_str \l_tmpb_str
+    \exp_args:Nno \regex_replace_all:nnN { \\\# } \c_hash_str \l_tmpa_str
+    \exp_args:Nno \regex_replace_all:nnN { \\\# } \c_hash_str \l_tmpb_str
     \lua_now:e
       { 
         piton.ComputeRange
@@ -4892,7 +4913,7 @@ piton_version = "3.1x2" -- 2024/09/07
 \NewDocumentCommand { \SetPitonStyle } { O { } m } 
   { 
     \str_clear_new:N \l_@@_SetPitonStyle_option_str
-    \str_set:Nx \l_@@_SetPitonStyle_option_str { \str_lowercase:n { #1 } }
+    \str_set:Ne \l_@@_SetPitonStyle_option_str { \str_lowercase:n { #1 } }
     \str_if_eq:onT \l_@@_SetPitonStyle_option_str { current-language }
       { \str_set_eq:NN \l_@@_SetPitonStyle_option_str \l_piton_language_str }
     \keys_set:nn { piton / Styles } { #2 } 
@@ -4996,7 +5017,7 @@ piton_version = "3.1x2" -- 2024/09/07
 \SetPitonStyle[OCaml]
   {
     TypeExpression = 
-      \SetPitonStyle { Identifier = \PitonStyle { Name.Type } } \@@_piton:n 
+      \SetPitonStyle { Identifier = \PitonStyle { Name.Type } } \@@_piton:n ,
   }
 %    \end{macrocode}
 % 
@@ -5080,10 +5101,10 @@ piton_version = "3.1x2" -- 2024/09/07
 % However, maybe we will document in a future version the possibility to write
 % change the style \emph{locally} in a document)].
 %    \begin{macrocode}
-\AtBeginDocument 
+\hook_gput_code:nnn { begindocument } { . } 
   { 
     \bool_if:NT \g_@@_math_comments_bool 
-       { \SetPitonStyle { Comment.Math = \@@_math_scantokens:n } } 
+      { \SetPitonStyle { Comment.Math = \@@_math_scantokens:n } } 
   }
 %    \end{macrocode}
 % 
@@ -5104,7 +5125,7 @@ piton_version = "3.1x2" -- 2024/09/07
           { \cs_set:cpn { PitonIdentifier _ ##1 } { #3 } }
       }
       {
-        \str_set:Nx \l_tmpa_str { \str_lowercase:n { #1 } }
+        \str_set:Ne \l_tmpa_str { \str_lowercase:n { #1 } }
         \str_if_eq:onT \l_tmpa_str { current-language }
           { \str_set_eq:NN \l_tmpa_str \l_piton_language_str }
         \clist_map_inline:Nn \l_tmpa_clist 
@@ -5160,8 +5181,8 @@ piton_version = "3.1x2" -- 2024/09/07
 % We update |\g_@@_languages_seq| which is used only by the command
 % |\PitonClearUserFunctions| when it's used without its optional argument.
 %    \begin{macrocode}
-    \seq_if_in:NVF \g_@@_languages_seq \l_piton_language_str 
-      { \seq_gput_left:NV \g_@@_languages_seq \l_piton_language_str }
+    \seq_if_in:NoF \g_@@_languages_seq \l_piton_language_str 
+      { \seq_gput_left:No \g_@@_languages_seq \l_piton_language_str }
   }
 %    \end{macrocode}
 %
@@ -5341,7 +5362,7 @@ piton_version = "3.1x2" -- 2024/09/07
 \@@_msg_new:nn { SyntaxError }
   {
     Syntax~Error.\\
-    Your~code~of~the~language~"\l_piton_language_str"~is~not~
+    Your~code~of~the~language~'\l_piton_language_str'~is~not~
     syntactically~correct.\\  
     It~won't~be~printed~in~the~PDF~file.
   }
@@ -5784,8 +5805,10 @@ local Tab = "\t" * Lc [[\@@_tab:]]
 %    \end{macrocode}
 % 
 % \bigskip
+% Remember that |\@@_leading_space:| does \emph{not} create a space, only an
+% incrementation of the coutnter |\g_@@_indentation_int|.
 %    \begin{macrocode}
-local SpaceIndentation = Lc [[\@@_an_indentation_space:]] * Q " "
+local SpaceIndentation = Lc [[\@@_leading_space:]] * Q " "
 %    \end{macrocode}
 %
 % \bigskip
@@ -5855,7 +5878,7 @@ end
 %    \begin{macrocode}
 local function Compute_DetectedCommands ( lang , braces ) return 
   Ct ( Cc "Open" 
-        * C ( piton.DetectedCommands * P "{" ) 
+        * C ( piton.DetectedCommands * space ^ 0 * P "{" ) 
         * Cc "}" 
      ) 
    * ( braces 
@@ -6054,11 +6077,11 @@ local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ^ -1  )
 % \bigskip
 % The following \textsc{lpeg} |EOL| is for the end of lines.
 %    \begin{macrocode}
-local EOL_without_space_indentation = 
+local EOL = 
   P "\r" 
   *
   (
-    ( space ^ 0 * -1 )
+    space ^ 0 * -1 
     + 
 %    \end{macrocode}
 % We recall that each line of the informatic code we have to parse will be sent
@@ -6091,12 +6114,9 @@ local EOL_without_space_indentation =
             )
        )
   ) 
-%    \end{macrocode}
-%
-%    \begin{macrocode}
-local EOL = EOL_without_space_indentation  
   * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 %    \end{macrocode}
+%
 % 
 % \bigskip
 % The following \textsc{lpeg} |CommentLaTeX| is for what is called in that
@@ -6105,10 +6125,10 @@ local EOL = EOL_without_space_indentation
 % the function~|C|) in a table (by using~|Ct|, which is an alias for |lpeg.Ct|).
 %    \begin{macrocode}
 local CommentLaTeX =
-  P(piton.comment_latex) 
-  * Lc "{\\PitonStyle{Comment.LaTeX}{\\ignorespaces" 
+  P ( piton.comment_latex ) 
+  * Lc [[{\PitonStyle{Comment.LaTeX}{\ignorespaces]]
   * L ( ( 1 - P "\r" ) ^ 0 ) 
-  * Lc "}}" 
+  * Lc [[}}]]
   * ( EOL + -1 )  
 %    \end{macrocode}
 % 
@@ -6117,84 +6137,88 @@ local CommentLaTeX =
 % \bigskip
 % \subsubsection{The language Python}
 % 
+% We open a Lua local scope for the language Python (of course, there will be
+% also global definitions).
+%    \begin{macrocode}
+do 
+%    \end{macrocode}
+%
 % \bigskip
 % Some strings of length 2 are explicit because we want the corresponding
 % ligatures available in some fonts such as \emph{Fira Code} to be active.
 %    \begin{macrocode}
-local Operator = 
-  K ( 'Operator' ,
-      P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "//" + "**" 
-      + S "-~+/*%=<>&.@|" )
+  local Operator = 
+    K ( 'Operator' ,
+        P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "//" + "**" 
+        + S "-~+/*%=<>&.@|" )
 
-local OperatorWord = 
-  K ( 'Operator.Word' , P "in" + "is" + "and" + "or" + "not" )
+  local OperatorWord = 
+    K ( 'Operator.Word' , P "in" + "is" + "and" + "or" + "not" )
 %    \end{macrocode}
 %
 % \smallskip
 % The keyword |in| in a construction such as ``|for i in range(n)|'' must be
-% formatted as a keyword and not as an |Operator.Word|.
+% formatted as a keyword and not as an |Operator.Word| and that's why we write
+% the following LPEG |For|.
 %    \begin{macrocode}
-local For = K ( 'Keyword' , P "for" ) 
-            * Space
-            * Identifier
-            * Space 
-            * K ( 'Keyword' , P "in" ) 
+  local For = K ( 'Keyword' , P "for" ) 
+              * Space
+              * Identifier
+              * Space 
+              * K ( 'Keyword' , P "in" ) 
 
-local Keyword = 
-  K ( 'Keyword' ,
-      P "as" + "assert" + "break" + "case" + "class" + "continue" + "def" +
-      "del" + "elif" + "else" + "except" + "exec" + "finally" + "for" + "from" +
-      "global" + "if" + "import" + "lambda" + "non local" + "pass" + "return" +
-      "try" + "while" + "with" + "yield" + "yield from" )
-  + K ( 'Keyword.Constant' , P "True" + "False" + "None" ) 
+  local Keyword = 
+    K ( 'Keyword' ,
+        P "as" + "assert" + "break" + "case" + "class" + "continue" + "def" +
+        "del" + "elif" + "else" + "except" + "exec" + "finally" + "for" + "from" +
+        "global" + "if" + "import" + "lambda" + "non local" + "pass" + "return" +
+        "try" + "while" + "with" + "yield" + "yield from" )
+    + K ( 'Keyword.Constant' , P "True" + "False" + "None" ) 
 
-local Builtin = 
-  K ( 'Name.Builtin' ,
-      P "__import__" + "abs" + "all" + "any" + "bin" + "bool" + "bytearray" +
-      "bytes" + "chr" + "classmethod" + "compile" + "complex" + "delattr" +
-      "dict" + "dir" + "divmod" + "enumerate" + "eval" + "filter" + "float" +
-      "format" + "frozenset" + "getattr" + "globals" + "hasattr" + "hash" +
-      "hex" + "id" + "input" + "int" + "isinstance" + "issubclass" + "iter" +
-      "len" + "list" + "locals" + "map" + "max" + "memoryview" + "min" + "next"
-      + "object" + "oct" + "open" + "ord" + "pow" + "print" + "property" +
-      "range" + "repr" + "reversed" + "round" + "set" + "setattr" + "slice" +
-      "sorted" + "staticmethod" + "str" + "sum" + "super" + "tuple" + "type" +
-      "vars" + "zip" ) 
+  local Builtin = 
+    K ( 'Name.Builtin' ,
+        P "__import__" + "abs" + "all" + "any" + "bin" + "bool" + "bytearray" +
+        "bytes" + "chr" + "classmethod" + "compile" + "complex" + "delattr" +
+        "dict" + "dir" + "divmod" + "enumerate" + "eval" + "filter" + "float" +
+        "format" + "frozenset" + "getattr" + "globals" + "hasattr" + "hash" +
+        "hex" + "id" + "input" + "int" + "isinstance" + "issubclass" + "iter" +
+        "len" + "list" + "locals" + "map" + "max" + "memoryview" + "min" + "next"
+        + "object" + "oct" + "open" + "ord" + "pow" + "print" + "property" +
+        "range" + "repr" + "reversed" + "round" + "set" + "setattr" + "slice" +
+        "sorted" + "staticmethod" + "str" + "sum" + "super" + "tuple" + "type" +
+        "vars" + "zip" ) 
 
+  local Exception =
+    K ( 'Exception' ,
+        P "ArithmeticError" + "AssertionError" + "AttributeError" +
+        "BaseException" + "BufferError" + "BytesWarning" + "DeprecationWarning" +
+        "EOFError" + "EnvironmentError" + "Exception" + "FloatingPointError" +
+        "FutureWarning" + "GeneratorExit" + "IOError" + "ImportError" +
+        "ImportWarning" + "IndentationError" + "IndexError" + "KeyError" +
+        "KeyboardInterrupt" + "LookupError" + "MemoryError" + "NameError" +
+        "NotImplementedError" + "OSError" + "OverflowError" +
+        "PendingDeprecationWarning" + "ReferenceError" + "ResourceWarning" +
+        "RuntimeError" + "RuntimeWarning" + "StopIteration" + "SyntaxError" +
+        "SyntaxWarning" + "SystemError" + "SystemExit" + "TabError" + "TypeError"
+        + "UnboundLocalError" + "UnicodeDecodeError" + "UnicodeEncodeError" +
+        "UnicodeError" + "UnicodeTranslateError" + "UnicodeWarning" +
+        "UserWarning" + "ValueError" + "VMSError" + "Warning" + "WindowsError" +
+        "ZeroDivisionError" + "BlockingIOError" + "ChildProcessError" +
+        "ConnectionError" + "BrokenPipeError" + "ConnectionAbortedError" +
+        "ConnectionRefusedError" + "ConnectionResetError" + "FileExistsError" +
+        "FileNotFoundError" + "InterruptedError" + "IsADirectoryError" +
+        "NotADirectoryError" + "PermissionError" + "ProcessLookupError" +
+        "TimeoutError" + "StopAsyncIteration" + "ModuleNotFoundError" +
+        "RecursionError" ) 
 
-local Exception =
-  K ( 'Exception' ,
-      P "ArithmeticError" + "AssertionError" + "AttributeError" +
-      "BaseException" + "BufferError" + "BytesWarning" + "DeprecationWarning" +
-      "EOFError" + "EnvironmentError" + "Exception" + "FloatingPointError" +
-      "FutureWarning" + "GeneratorExit" + "IOError" + "ImportError" +
-      "ImportWarning" + "IndentationError" + "IndexError" + "KeyError" +
-      "KeyboardInterrupt" + "LookupError" + "MemoryError" + "NameError" +
-      "NotImplementedError" + "OSError" + "OverflowError" +
-      "PendingDeprecationWarning" + "ReferenceError" + "ResourceWarning" +
-      "RuntimeError" + "RuntimeWarning" + "StopIteration" + "SyntaxError" +
-      "SyntaxWarning" + "SystemError" + "SystemExit" + "TabError" + "TypeError"
-      + "UnboundLocalError" + "UnicodeDecodeError" + "UnicodeEncodeError" +
-      "UnicodeError" + "UnicodeTranslateError" + "UnicodeWarning" +
-      "UserWarning" + "ValueError" + "VMSError" + "Warning" + "WindowsError" +
-      "ZeroDivisionError" + "BlockingIOError" + "ChildProcessError" +
-      "ConnectionError" + "BrokenPipeError" + "ConnectionAbortedError" +
-      "ConnectionRefusedError" + "ConnectionResetError" + "FileExistsError" +
-      "FileNotFoundError" + "InterruptedError" + "IsADirectoryError" +
-      "NotADirectoryError" + "PermissionError" + "ProcessLookupError" +
-      "TimeoutError" + "StopAsyncIteration" + "ModuleNotFoundError" +
-      "RecursionError" ) 
-
-
-local RaiseException = K ( 'Keyword' , P "raise" ) * SkipSpace * Exception * Q "("  
-
+  local RaiseException = K ( 'Keyword' , P "raise" ) * SkipSpace * Exception * Q "("  
 %    \end{macrocode}
 %
 % \bigskip
 % In Python, a ``decorator'' is a statement whose begins by |@| which patches
 % the function defined in the following statement.
 %    \begin{macrocode}
-local Decorator = K ( 'Name.Decorator' , P "@" * letter ^ 1  ) 
+  local Decorator = K ( 'Name.Decorator' , P "@" * letter ^ 1  ) 
 %    \end{macrocode}
 % 
 % \bigskip
@@ -6205,14 +6229,13 @@ local Decorator = K ( 'Name.Decorator' , P "@" * letter ^ 1  )
 % \smallskip
 % Example:\enskip \piton{class myclass:}
 %    \begin{macrocode}
-local DefClass = 
-  K ( 'Keyword' , "class" ) * Space * K ( 'Name.Class' , identifier ) 
+  local DefClass = 
+    K ( 'Keyword' , "class" ) * Space * K ( 'Name.Class' , identifier ) 
 %    \end{macrocode}
 % 
 % If the word |class| is not followed by a identifier, it will be caught as
 % keyword by the \textsc{lpeg} |Keyword| (useful if we want to type a
 % list of keywords).
-%
 %
 % \bigskip
 % The following \textsc{lpeg} |ImportAs| is used for the lines beginning by |import|.
@@ -6229,17 +6252,17 @@ local DefClass =
 % \smallskip
 % Example:\enskip \piton{import math, numpy}
 %    \begin{macrocode}
-local ImportAs = 
-  K ( 'Keyword' , "import" )
-   * Space 
-   * K ( 'Name.Namespace' , identifier * ( "." * identifier ) ^ 0 )
-   * ( 
-       ( Space * K ( 'Keyword' , "as" ) * Space 
-          * K ( 'Name.Namespace' , identifier ) )
-       + 
-       ( SkipSpace * Q "," * SkipSpace 
-          * K ( 'Name.Namespace' , identifier ) ) ^ 0 
-     ) 
+  local ImportAs = 
+    K ( 'Keyword' , "import" )
+     * Space 
+     * K ( 'Name.Namespace' , identifier * ( "." * identifier ) ^ 0 )
+     * ( 
+         ( Space * K ( 'Keyword' , "as" ) * Space 
+            * K ( 'Name.Namespace' , identifier ) )
+         + 
+         ( SkipSpace * Q "," * SkipSpace 
+            * K ( 'Name.Namespace' , identifier ) ) ^ 0 
+       ) 
 %    \end{macrocode}
 % Be careful: there is no commutativity of |+| in the previous expression.
 %
@@ -6255,10 +6278,10 @@ local ImportAs =
 %
 % \smallskip
 %    \begin{macrocode}
-local FromImport =
-  K ( 'Keyword' , "from" ) 
-    * Space * K ( 'Name.Namespace' , identifier )
-    * Space * K ( 'Keyword' , "import" ) 
+  local FromImport =
+    K ( 'Keyword' , "from" ) 
+      * Space * K ( 'Name.Namespace' , identifier )
+      * Space * K ( 'Keyword' , "import" ) 
 %    \end{macrocode}
 %
 % \bigskip
@@ -6295,16 +6318,16 @@ local FromImport =
 % The interpolations beginning by |%| (even though there is more modern
 % techniques now in Python).
 %    \begin{macrocode}
-local PercentInterpol =  
-  K ( 'String.Interpol' , 
-      P "%" 
-      * ( "(" * alphanum ^ 1 * ")" ) ^ -1 
-      * ( S "-#0 +" ) ^ 0 
-      * ( digit ^ 1 + "*" ) ^ -1 
-      * ( "." * ( digit ^ 1 + "*" ) ) ^ -1 
-      * ( S "HlL" ) ^ -1
-      * S "sdfFeExXorgiGauc%" 
-    ) 
+  local PercentInterpol =  
+    K ( 'String.Interpol' , 
+        P "%" 
+        * ( "(" * alphanum ^ 1 * ")" ) ^ -1 
+        * ( S "-#0 +" ) ^ 0 
+        * ( digit ^ 1 + "*" ) ^ -1 
+        * ( "." * ( digit ^ 1 + "*" ) ) ^ -1 
+        * ( S "HlL" ) ^ -1
+        * S "sdfFeExXorgiGauc%" 
+      ) 
 %    \end{macrocode}
 % 
 % \bigskip
@@ -6315,61 +6338,61 @@ local PercentInterpol =
 % |Interpol.Inside|. The initial value of that style is \texttt{\textbackslash
 % @@\_piton:n} which means that the interpolations are parsed once again by \pkg{piton}.}
 %    \begin{macrocode}
-local SingleShortString =
-  WithStyle ( 'String.Short' ,
+  local SingleShortString =
+    WithStyle ( 'String.Short' ,
 %    \end{macrocode}
 % First, we deal with the f-strings of Python, which are prefixed by |f| or |F|.
 %    \begin{macrocode}
-         Q ( P "f'" + "F'" ) 
-         * ( 
-             K ( 'String.Interpol' , "{" )
-              * K ( 'Interpol.Inside' , ( 1 - S "}':" ) ^ 0  )
-              * Q ( P ":" * ( 1 - S "}:'" ) ^ 0 ) ^ -1
-              * K ( 'String.Interpol' , "}" )
-             + 
-             VisualSpace 
-             + 
-             Q ( ( P "\\'" + "{{" + "}}" + 1 - S " {}'" ) ^ 1 )
-           ) ^ 0 
-         * Q "'" 
-       + 
+           Q ( P "f'" + "F'" ) 
+           * ( 
+               K ( 'String.Interpol' , "{" )
+                * K ( 'Interpol.Inside' , ( 1 - S "}':" ) ^ 0  )
+                * Q ( P ":" * ( 1 - S "}:'" ) ^ 0 ) ^ -1
+                * K ( 'String.Interpol' , "}" )
+               + 
+               VisualSpace 
+               + 
+               Q ( ( P "\\'" + "{{" + "}}" + 1 - S " {}'" ) ^ 1 )
+             ) ^ 0 
+           * Q "'" 
+         + 
 %    \end{macrocode}
 % Now, we deal with the standard strings of Python, but also the ``raw strings''.
 %    \begin{macrocode}
-         Q ( P "'" + "r'" + "R'" ) 
-         * ( Q ( ( P "\\'" + 1 - S " '\r%" ) ^ 1 ) 
-             + VisualSpace 
-             + PercentInterpol 
-             + Q "%" 
-           ) ^ 0 
-         * Q "'" )
+           Q ( P "'" + "r'" + "R'" ) 
+           * ( Q ( ( P "\\'" + 1 - S " '\r%" ) ^ 1 ) 
+               + VisualSpace 
+               + PercentInterpol 
+               + Q "%" 
+             ) ^ 0 
+           * Q "'" )
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+  local DoubleShortString =
+    WithStyle ( 'String.Short' , 
+           Q ( P "f\"" + "F\"" ) 
+           * ( 
+               K ( 'String.Interpol' , "{" )
+                 * K ( 'Interpol.Inside' , ( 1 - S "}\":" ) ^ 0 )
+                 * ( K ( 'String.Interpol' , ":" ) * Q ( (1 - S "}:\"") ^ 0 ) ) ^ -1
+                 * K ( 'String.Interpol' , "}" )
+               + 
+               VisualSpace 
+               + 
+               Q ( ( P "\\\"" + "{{" + "}}" + 1 - S " {}\"" ) ^ 1 ) 
+              ) ^ 0
+           * Q "\"" 
+         +
+           Q ( P "\"" + "r\"" + "R\"" ) 
+           * ( Q ( ( P "\\\"" + 1 - S " \"\r%" ) ^ 1 ) 
+               + VisualSpace 
+               + PercentInterpol 
+               + Q "%"
+             ) ^ 0 
+           * Q "\""  )
 
-
-
-local DoubleShortString =
-  WithStyle ( 'String.Short' , 
-         Q ( P "f\"" + "F\"" ) 
-         * ( 
-             K ( 'String.Interpol' , "{" )
-               * K ( 'Interpol.Inside' , ( 1 - S "}\":" ) ^ 0 )
-               * ( K ( 'String.Interpol' , ":" ) * Q ( (1 - S "}:\"") ^ 0 ) ) ^ -1
-               * K ( 'String.Interpol' , "}" )
-             + 
-             VisualSpace 
-             + 
-             Q ( ( P "\\\"" + "{{" + "}}" + 1 - S " {}\"" ) ^ 1 ) 
-            ) ^ 0
-         * Q "\"" 
-       +
-         Q ( P "\"" + "r\"" + "R\"" ) 
-         * ( Q ( ( P "\\\"" + 1 - S " \"\r%" ) ^ 1 ) 
-             + VisualSpace 
-             + PercentInterpol 
-             + Q "%"
-           ) ^ 0 
-         * Q "\""  )
-
-local ShortString = SingleShortString + DoubleShortString
+  local ShortString = SingleShortString + DoubleShortString
 %    \end{macrocode}
 %
 % \bigskip
@@ -6379,23 +6402,23 @@ local ShortString = SingleShortString + DoubleShortString
 % catching} corresponding to the strings of the language.
 %
 %    \begin{macrocode}
-local braces = 
-  Compute_braces 
-   (
-       ( P "\"" + "r\"" + "R\"" + "f\"" + "F\"" ) 
-           * ( P "\\\"" + 1 - S "\"" ) ^ 0 * "\""  
-     + 
-       ( P '\'' + 'r\'' + 'R\'' + 'f\'' + 'F\'' ) 
-           * ( P '\\\'' + 1 - S '\'' ) ^ 0 * '\''  
-   )
-if piton.beamer then Beamer = Compute_Beamer ( 'python' , braces ) end
+  local braces = 
+    Compute_braces 
+     (
+         ( P "\"" + "r\"" + "R\"" + "f\"" + "F\"" ) 
+             * ( P "\\\"" + 1 - S "\"" ) ^ 0 * "\""  
+       + 
+         ( P '\'' + 'r\'' + 'R\'' + 'f\'' + 'F\'' ) 
+             * ( P '\\\'' + 1 - S '\'' ) ^ 0 * '\''  
+     )
+  if piton.beamer then Beamer = Compute_Beamer ( 'python' , braces ) end
 %    \end{macrocode}
 %
 % \bigskip
 % \paragraph{Detected commands}
 %
 %    \begin{macrocode}
-DetectedCommands = Compute_DetectedCommands ( 'python' , braces ) 
+  DetectedCommands = Compute_DetectedCommands ( 'python' , braces ) 
 %    \end{macrocode}
 %
 % \bigskip
@@ -6403,7 +6426,7 @@ DetectedCommands = Compute_DetectedCommands ( 'python' , braces )
 % \paragraph{LPEG_cleaner}
 %
 %    \begin{macrocode}
-LPEG_cleaner['python'] = Compute_LPEG_cleaner ( 'python' , braces ) 
+  LPEG_cleaner['python'] = Compute_LPEG_cleaner ( 'python' , braces ) 
 %    \end{macrocode}
 % 
 % \bigskip
@@ -6411,66 +6434,67 @@ LPEG_cleaner['python'] = Compute_LPEG_cleaner ( 'python' , braces )
 % 
 % 
 %    \begin{macrocode}
-local SingleLongString =
-  WithStyle ( 'String.Long' , 
-     ( Q ( S "fF" * P "'''" )
-         * (
-             K ( 'String.Interpol' , "{" )
-               * K ( 'Interpol.Inside' , ( 1 - S "}:\r" - "'''" ) ^ 0  )
-               * Q ( P ":" * (1 - S "}:\r" - "'''" ) ^ 0 ) ^ -1
-               * K ( 'String.Interpol' , "}"  )
-             + 
-             Q ( ( 1 - P "'''" - S "{}'\r" ) ^ 1 )
-             + 
-             EOL
-           ) ^ 0 
-       +
-         Q ( ( S "rR" ) ^ -1  * "'''" )
-         * (
-             Q ( ( 1 - P "'''" - S "\r%" ) ^ 1 )  
-             + 
-             PercentInterpol
-             +
-             P "%"
-             +
-             EOL
-           ) ^ 0 
-      )
-      * Q "'''"  ) 
-
-
-local DoubleLongString =
-  WithStyle ( 'String.Long' ,
-     (
-        Q ( S "fF" * "\"\"\"" )
-        * (
-            K ( 'String.Interpol', "{"  )
-              * K ( 'Interpol.Inside' , ( 1 - S "}:\r" - "\"\"\"" ) ^ 0 )
-              * Q ( ":" * (1 - S "}:\r" - "\"\"\"" ) ^ 0 ) ^ -1
-              * K ( 'String.Interpol' , "}"  )
-            + 
-            Q ( ( 1 - S "{}\"\r" - "\"\"\"" ) ^ 1 ) 
-            + 
-            EOL
-          ) ^ 0 
-      +
-        Q ( S "rR" ^ -1  * "\"\"\"" )
-        * (
-            Q ( ( 1 - P "\"\"\"" - S "%\r" ) ^ 1 )  
-            + 
-            PercentInterpol 
-            + 
-            P "%"
-            + 
-            EOL
-          ) ^ 0 
-     )
-     * Q "\"\"\"" 
-  ) 
+  local SingleLongString =
+    WithStyle ( 'String.Long' , 
+       ( Q ( S "fF" * P "'''" )
+           * (
+               K ( 'String.Interpol' , "{" )
+                 * K ( 'Interpol.Inside' , ( 1 - S "}:\r" - "'''" ) ^ 0  )
+                 * Q ( P ":" * (1 - S "}:\r" - "'''" ) ^ 0 ) ^ -1
+                 * K ( 'String.Interpol' , "}"  )
+               + 
+               Q ( ( 1 - P "'''" - S "{}'\r" ) ^ 1 )
+               + 
+               EOL
+             ) ^ 0 
+         +
+           Q ( ( S "rR" ) ^ -1  * "'''" )
+           * (
+               Q ( ( 1 - P "'''" - S "\r%" ) ^ 1 )  
+               + 
+               PercentInterpol
+               +
+               P "%"
+               +
+               EOL
+             ) ^ 0 
+        )
+        * Q "'''"  ) 
+%    \end{macrocode}
+%   
+%    \begin{macrocode}
+  local DoubleLongString =
+    WithStyle ( 'String.Long' ,
+       (
+          Q ( S "fF" * "\"\"\"" )
+          * (
+              K ( 'String.Interpol', "{"  )
+                * K ( 'Interpol.Inside' , ( 1 - S "}:\r" - "\"\"\"" ) ^ 0 )
+                * Q ( ":" * (1 - S "}:\r" - "\"\"\"" ) ^ 0 ) ^ -1
+                * K ( 'String.Interpol' , "}"  )
+              + 
+              Q ( ( 1 - S "{}\"\r" - "\"\"\"" ) ^ 1 ) 
+              + 
+              EOL
+            ) ^ 0 
+        +
+          Q ( S "rR" ^ -1  * "\"\"\"" )
+          * (
+              Q ( ( 1 - P "\"\"\"" - S "%\r" ) ^ 1 )  
+              + 
+              PercentInterpol 
+              + 
+              P "%"
+              + 
+              EOL
+            ) ^ 0 
+       )
+       * Q "\"\"\"" 
+    ) 
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-local LongString = SingleLongString + DoubleLongString
+  local LongString = SingleLongString + DoubleLongString
 %    \end{macrocode}
 %
 % \bigskip
@@ -6478,12 +6502,12 @@ local LongString = SingleLongString + DoubleLongString
 % be used in the \textsc{lpeg} |DefFunction| which deals with the whole preamble
 % of a function definition (which begins with |def|).
 %    \begin{macrocode}
-local StringDoc = 
-    K ( 'String.Doc' , P "r" ^ -1 * "\"\"\"" )
-      * ( K ( 'String.Doc' , (1 - P "\"\"\"" - "\r" ) ^ 0  ) * EOL
-          * Tab ^ 0 
-        ) ^ 0
-      * K ( 'String.Doc' , ( 1 - P "\"\"\"" - "\r" ) ^ 0 * "\"\"\"" )
+  local StringDoc = 
+      K ( 'String.Doc' , P "r" ^ -1 * "\"\"\"" )
+        * ( K ( 'String.Doc' , (1 - P "\"\"\"" - "\r" ) ^ 0  ) * EOL
+            * Tab ^ 0 
+          ) ^ 0
+        * K ( 'String.Doc' , ( 1 - P "\"\"\"" - "\r" ) ^ 0 * "\"\"\"" )
 %    \end{macrocode}
 %
 % \bigskip
@@ -6492,10 +6516,12 @@ local StringDoc =
 % We define different \textsc{lpeg} dealing with comments in the Python
 % listings.
 %    \begin{macrocode}
-local Comment = 
-  WithStyle ( 'Comment' ,
-     Q "#" * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 ) -- $
-           * ( EOL + -1 )
+  local Comment = 
+    WithStyle 
+     ( 'Comment' ,
+       Q "#" * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0  -- $
+     ) 
+    * ( EOL + -1 )
 %    \end{macrocode}
 % 
 % 
@@ -6508,19 +6534,19 @@ local Comment =
 % (and it's known in the theory of formal languages that this can't be done with
 % regular expressions \emph{stricto sensu} only). 
 %    \begin{macrocode}
-local expression =
-  P { "E" ,
-       E = ( "'" * ( P "\\'" + 1 - S "'\r" ) ^ 0 * "'" 
-             + "\"" * ( P "\\\"" + 1 - S "\"\r" ) ^ 0 * "\""
-             + "{" * V "F" * "}"
-             + "(" * V "F" * ")"
-             + "[" * V "F" * "]" 
-             + ( 1 - S "{}()[]\r," ) ) ^ 0 ,
-       F = (   "{" * V "F" * "}"
-             + "(" * V "F" * ")"
-             + "[" * V "F" * "]"
-             + ( 1 - S "{}()[]\r\"'" ) ) ^ 0
-    }
+  local expression =
+    P { "E" ,
+         E = ( "'" * ( P "\\'" + 1 - S "'\r" ) ^ 0 * "'" 
+               + "\"" * ( P "\\\"" + 1 - S "\"\r" ) ^ 0 * "\""
+               + "{" * V "F" * "}"
+               + "(" * V "F" * ")"
+               + "[" * V "F" * "]" 
+               + ( 1 - S "{}()[]\r," ) ) ^ 0 ,
+         F = (   "{" * V "F" * "}"
+               + "(" * V "F" * ")"
+               + "[" * V "F" * "]"
+               + ( 1 - S "{}()[]\r\"'" ) ) ^ 0
+      }
 %    \end{macrocode}
 %
 % \bigskip 
@@ -6534,15 +6560,15 @@ local expression =
 %
 % \medskip
 %    \begin{macrocode}
-local Params = 
-  P { "E" , 
-       E = ( V "F" * ( Q "," * V "F" ) ^ 0 ) ^ -1 ,
-       F = SkipSpace * ( Identifier + Q "*args" + Q "**kwargs" ) * SkipSpace
-           * ( 
-                 K ( 'InitialValues' , "=" * expression )
-               + Q ":" * SkipSpace * K ( 'Name.Type' , identifier ) 
-             ) ^ -1
-    }
+  local Params = 
+    P { "E" , 
+         E = ( V "F" * ( Q "," * V "F" ) ^ 0 ) ^ -1 ,
+         F = SkipSpace * ( Identifier + Q "*args" + Q "**kwargs" ) * SkipSpace
+             * ( 
+                   K ( 'InitialValues' , "=" * expression )
+                 + Q ":" * SkipSpace * K ( 'Name.Type' , identifier ) 
+               ) ^ -1
+      }
 %    \end{macrocode}
 % 
 % 
@@ -6553,28 +6579,28 @@ local Params =
 % |piton.sty|) after the definition of several other \textsc{lpeg} such as
 % |Comment|, |CommentLaTeX|, |Params|, |StringDoc|...
 %    \begin{macrocode}
-local DefFunction =
-  K ( 'Keyword' , "def" )
-  * Space
-  * K ( 'Name.Function.Internal' , identifier ) 
-  * SkipSpace 
-  * Q "("  * Params * Q ")" 
-  * SkipSpace
-  * ( Q "->" * SkipSpace * K ( 'Name.Type' , identifier ) ) ^ -1
+  local DefFunction =
+    K ( 'Keyword' , "def" )
+    * Space
+    * K ( 'Name.Function.Internal' , identifier ) 
+    * SkipSpace 
+    * Q "("  * Params * Q ")" 
+    * SkipSpace
+    * ( Q "->" * SkipSpace * K ( 'Name.Type' , identifier ) ) ^ -1
 %    \end{macrocode}
 % Here, we need a \pkg{piton} style |ParseAgain.noCR| which will be linked to
 % |\@@_piton_no_cr:n| (that means that the capture will be parsed once again by
 % \pkg{piton}). We could avoid that kind of trick by using a non-terminal of a
 % grammar but we have probably here a better legibility.
 %    \begin{macrocode}
-  * K ( 'ParseAgain.noCR' , ( 1 - S ":\r" ) ^ 0 ) 
-  * Q ":" 
-  * ( SkipSpace
-      * ( EOL + CommentLaTeX + Comment ) -- in all cases, that contains an EOL
-      * Tab ^ 0 
-      * SkipSpace
-      * StringDoc ^ 0 -- there may be additional docstrings 
-    ) ^ -1
+    * K ( 'ParseAgain.noCR' , ( 1 - S ":\r" ) ^ 0 ) 
+    * Q ":" 
+    * ( SkipSpace
+        * ( EOL + CommentLaTeX + Comment ) -- in all cases, that contains an EOL
+        * Tab ^ 0 
+        * SkipSpace
+        * StringDoc ^ 0 -- there may be additional docstrings 
+      ) ^ -1
 %    \end{macrocode}
 % Remark that, in the previous code, |CommentLaTeX| \emph{must} appear
 % before |Comment|: there is no commutativity of the addition for the
@@ -6589,7 +6615,7 @@ local DefFunction =
 % \paragraph{Miscellaneous}
 % 
 %    \begin{macrocode}
-local ExceptionInConsole = Exception *  Q ( ( 1 - P "\r" ) ^ 0 ) * EOL 
+  local ExceptionInConsole = Exception *  Q ( ( 1 - P "\r" ) ^ 0 ) * EOL 
 %    \end{macrocode}
 % 
 % 
@@ -6597,44 +6623,44 @@ local ExceptionInConsole = Exception *  Q ( ( 1 - P "\r" ) ^ 0 ) * EOL
 % \paragraph{The main LPEG for the language Python}
 %
 %    \begin{macrocode}
-local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
+  local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
 %    \end{macrocode}
 %
 % First, the main loop :
 %    \begin{macrocode}
-local Main = 
-     --   space ^ 1 * -1
-     space ^ 0 * EOL -- faut-il le mettre en commentaire ?
-     + Space 
-     + Tab
-     + Escape + EscapeMath
-     + CommentLaTeX
-     + Beamer
-     + DetectedCommands 
-     + LongString 
-     + Comment
-     + ExceptionInConsole
-     + Delim
-     + Operator
-     + OperatorWord * EndKeyword
-     + ShortString
-     + Punct
-     + FromImport
-     + RaiseException 
-     + DefFunction
-     + DefClass 
-     + For
-     + Keyword * EndKeyword
-     + Decorator
-     + Builtin * EndKeyword
-     + Identifier 
-     + Number
-     + Word
+  local Main = 
+       space ^ 0 * EOL -- faut-il le mettre en commentaire ?
+       + Space 
+       + Tab
+       + Escape + EscapeMath
+       + CommentLaTeX
+       + Beamer
+       + DetectedCommands 
+       + LongString 
+       + Comment
+       + ExceptionInConsole
+       + Delim
+       + Operator
+       + OperatorWord * EndKeyword
+       + ShortString
+       + Punct
+       + FromImport
+       + RaiseException 
+       + DefFunction
+       + DefClass 
+       + For
+       + Keyword * EndKeyword
+       + Decorator
+       + Builtin * EndKeyword
+       + Identifier 
+       + Number
+       + Word
 %    \end{macrocode}
 %
+% \bigskip
 % Here, we must not put |local|!
 %    \begin{macrocode}
-LPEG1['python'] = Main ^ 0 
+  LPEG1['python'] = Main ^ 0 
 %    \end{macrocode}
 %
 % \bigskip
@@ -6644,244 +6670,105 @@ LPEG1['python'] = Main ^ 0
 % will be used as marker in order to delimit the argument of the command
 % \texttt{\textbackslash @@\_begin\_line:}}.
 %    \begin{macrocode}
-LPEG2['python'] = 
-  Ct (
-       ( space ^ 0 * "\r" ) ^ -1 
-       * BeamerBeginEnvironments 
-       * PromptHastyDetection
-       * Lc [[\@@_begin_line:]]
-       * Prompt 
-       * SpaceIndentation ^ 0 
-       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
-       * -1 
-       * Lc [[\@@_end_line:]] 
-     )
+  LPEG2['python'] = 
+    Ct (
+         ( space ^ 0 * "\r" ) ^ -1 
+         * BeamerBeginEnvironments 
+         * PromptHastyDetection
+         * Lc [[\@@_begin_line:]]
+         * Prompt 
+         * SpaceIndentation ^ 0 
+         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
+         * -1 
+         * Lc [[\@@_end_line:]] 
+       )
 %    \end{macrocode}
 %
+% \bigskip
+% End of the Lua scope for the language Python.
+%    \begin{macrocode}
+end
+%    \end{macrocode}
 %
 % \bigskip
 % \subsubsection{The language Ocaml}
 %
+% We open a Lua local scope for the language OCaml (of course, there will be also
+% global definitions).
+%    \begin{macrocode}
+do 
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local SkipSpace = ( Q " " + EOL ) ^ 0
+  local Space = ( Q " " + EOL ) ^ 1
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  if piton.beamer then
+    Beamer = Compute_Beamer ( 'ocaml' , braces )
+  end
+  DetectedCommands = Compute_DetectedCommands ( 'ocaml' , braces )
+  local function Q ( pattern )
+    return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) 
+                * C ( pattern ) ) 
+           + Beamer + DetectedCommands + EscapeMath + Escape
+  end
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local function K ( style , pattern )
+  return
+     Lc ( "{\\PitonStyle{" .. style .. "}{" )
+     * Q ( pattern )
+     * Lc "}}"
+  end
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local function WithStyle ( style , pattern )
+  return
+       Ct ( Cc "Open" * Cc ( "{\\PitonStyle{" .. style .. "}{" ) * Cc "}}" )
+     * ( pattern + Beamer + DetectedCommands + EscapeMath + Escape )
+     * Ct ( Cc "Close" )
+  end
+%    \end{macrocode}
+% 
+% \bigskip
 % The following LPEG corresponds to the balanced expressions (balanced according
 % to the parenthesis). Of course, we must write |(1 - S "()")| with outer parenthesis.
 %    \begin{macrocode}
-local balanced_parens =
-  P { "E" , E = ( "(" * V "E" * ")" + ( 1 - S "()" ) ) ^ 0 }
+  local balanced_parens =
+    P { "E" , E = ( "(" * V "E" * ")" + ( 1 - S "()" ) ) ^ 0 }
 %    \end{macrocode}
-% 
+%
+% \paragraph{The strings of OCaml}
 %    \begin{macrocode}
-local Delim = Q ( P "[|" + "|]" + S "[()]" )
+  local ocaml_string =
+    Q "\""
+  * (
+      VisualSpace
+      +
+      Q ( ( 1 - S " \"\r" ) ^ 1 )
+      +
+      EOL
+    ) ^ 0
+  * Q "\""
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-local Punct = Q ( S ",:;!" )
-%    \end{macrocode}
-% 
-% The identifiers caught by |cap_identifier| begin with a cap. In OCaml, it's
-% used for the constructors of types and for the modules.
-%    \begin{macrocode}
-local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0 
+  local String = WithStyle ( 'String.Long' , ocaml_string )
 %    \end{macrocode}
 %
-%    \begin{macrocode}
-local Constructor = K ( 'Name.Constructor' , cap_identifier )
-local ModuleType = K ( 'Name.Type' , cap_identifier ) 
-%    \end{macrocode}
-%
-%    \begin{macrocode}
-local OperatorWord = 
-  K ( 'Operator.Word' ,
-      P "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" )
-
-
-local governing_keyword = P "and" + "begin" + "class" + "constraint" +
-      "end" + "external" + "functor" + "include" + "inherit" + "initializer" +
-      "in" + "let" + "method" + "module" + "object" + "open" + "rec" + "sig" +
-      "struct" + "type" + "val"
-
-local Keyword =
-  K ( 'Keyword' ,
-      P "assert" + "as" + "done" + "downto" + "do" + "else" + "exception" 
-      + "for" + "function"  + "fun" + "if" + "lazy" + "match" + "mutable" 
-      + "new" + "of" + "private" + "raise" + "then" + "to" + "try"  
-      + "virtual" + "when" + "while" + "with" )
-  + K ( 'Keyword.Constant' , P "true" + "false" )
-  + K ('Keyword.Governing', governing_keyword )
-%    \end{macrocode}
-%
-%    \begin{macrocode}
-local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
-%    \end{macrocode}
-%
-%
-% The identifiers which begin with a lower case letter or an underscore are used 
-% elsewhere in OCaml.
-%    \begin{macrocode}
-local identifier = ( R "az" + "_" ) * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0 - (OperatorWord + Keyword)*EndKeyword
-local Identifier = K ( 'Identifier.Internal' , identifier )
-%    \end{macrocode}
-%
-% Now, we deal with the records because we want to catch the names of the fields
-% of those records in all circunstancies.
-%    \begin{macrocode}
-local Char =
-  K ( 'String.Short',
-    P "'" *
-    (
-      ( 1 - S "'\\" )
-      + "\\"
-        * ( S "\\'ntbr \""
-            + digit * digit * digit
-            + P "x" * ( digit + R "af" + R "AF" )
-                    * ( digit + R "af" + R "AF" )
-                    * ( digit + R "af" + R "AF" )
-            + P "o" * R "03" * R "07" * R "07" )
-    )
-    * "'" )
-local TypeParameter =
-  K ( 'TypeParameter' , "'" * Q"_" ^ -1 * alpha ^ 1 * ( # ( 1 - P "'" ) + -1 ) )
-local expression_for_fields_type =
-  P { "E" ,
-       E =  (   "{" * V "F" * "}"
-             + "(" * V "F" * ")"
-             + TypeParameter
-             + ( 1 - S "{}()[]\r;" ) ) ^ 0 ,
-       F = (    "{" * V "F" * "}"
-             + "(" * V "F" * ")"
-             + ( 1 - S "{}()[]\r\"'" ) + TypeParameter) ^ 0
-    }
-local expression_for_fields_value =
-  P { "E" ,
-       E =  (   "{" * V "F" * "}"
-             + "(" * V "F" * ")"
-             + "[" * V "F" * "]"
-             + "\"" * ( P "\\\"" + 1 - S "\"\r" ) ^ 0 * "\""
-             + Char
-             + ( 1 - S "{}()[]\r;" ) ) ^ 0 ,
-       F = (    "{" * V "F" * "}"
-             + "(" * V "F" * ")"
-             + "[" * V "F" * "]"
-             + ( 1 - S "{}()[]\r\"'" )) ^ 0
-    }
-local OneFieldDefinition =
-    ( K ( 'Keyword' , "mutable" ) * SkipSpace ) ^ -1
-  * K ( 'Name.Field' , identifier ) * SkipSpace
-  * Q ":" * SkipSpace
-  * K ( 'TypeExpression' , expression_for_fields_type )
-  * SkipSpace
-
-local OneField =
-    K ( 'Name.Field' , identifier ) * SkipSpace
-  * Q "=" * SkipSpace
-  * ( expression_for_fields_value
-      / ( function ( s ) return LPEG1['ocaml'] : match ( s ) end )
-    )
-  * SkipSpace
-%    \end{macrocode}
-% 
-%    \begin{macrocode}
-local Record = 
-  Q "{" * SkipSpace
-  * 
-    (
-      OneFieldDefinition * ( Q ";" * SkipSpace * OneFieldDefinition ) ^ 0 
-      + 
-      OneField * ( Q ";" * SkipSpace * OneField ) ^ 0 
-    )
-  *
-  Q ";" ^ -1
-  *
-  Q "}"
-%    \end{macrocode}
-%
-% \bigskip
-% Now, we deal with the notations with points (eg: |List.length|). In OCaml,
-% such notation is used for the fields of the records and for the modules.
-%    \begin{macrocode}
-local DotNotation = 
-  (
-      K ( 'Name.Module' , cap_identifier ) 
-        * Q "." 
-        * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ^ ( -1 ) 
-      + 
-      Identifier 
-        * Q "."
-        * K ( 'Name.Field' , identifier ) 
-  )
-  * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0 
-%    \end{macrocode}
-%
-%    \begin{macrocode}
-local Operator = 
-  K ( 'Operator' ,
-      P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "||" + "&&" +
-      "//" + "**" + ";;" + "::" + "->" + "+." + "-." + "*." + "/." 
-      + S "-~+/*%=<>&@|" )
-
-
-local Builtin = 
-  K ( 'Name.Builtin' , P "not" + "incr" + "decr" + "fst" + "snd" + "ref" )
-%    \end{macrocode}
-% 
-% \bigskip
-% The following exceptions are exceptions in the standard library of OCaml (Stdlib).
-%    \begin{macrocode}
-local Exception =
-  K (   'Exception' ,
-       P "Division_by_zero" + "End_of_File" + "Failure" + "Invalid_argument" +
-       "Match_failure" + "Not_found" + "Out_of_memory" + "Stack_overflow" +
-       "Sys_blocked_io" + "Sys_error" + "Undefined_recursive_module" )
-%    \end{macrocode}
-%
-%
-% \bigskip
-% \paragraph{Beamer}
-%
-% \bigskip
-% The argument of |Compute_braces| must be a pattern \emph{which does no
-% catching} corresponding to the strings of the language.
-%
-%    \begin{macrocode}
-local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" ) 
-if piton.beamer then 
-  Beamer = Compute_Beamer ( 'ocaml' , braces ) 
-end
-%    \end{macrocode}
-% 
-%    \begin{macrocode}
-DetectedCommands = Compute_DetectedCommands ( 'ocaml' , braces ) 
-%    \end{macrocode}
-%
-% \bigskip
-%    \begin{macrocode}
-LPEG_cleaner['ocaml'] = Compute_LPEG_cleaner ( 'ocaml' , braces ) 
-%    \end{macrocode}
-%
-% \bigskip
-%
-% 
-% \paragraph{The strings en OCaml}
-% 
-% We need a pattern |ocaml_string| without captures because it will be used
-% within the comments of OCaml.
-%    \begin{macrocode}
-local ocaml_string =
-       Q "\"" 
-     * ( 
-         VisualSpace
-         + 
-         Q ( ( 1 - S " \"\r" ) ^ 1 ) 
-         +  
-         EOL
-       ) ^ 0 
-     * Q "\"" 
-%    \end{macrocode}
-% 
-%    \begin{macrocode}
-local String = WithStyle ( 'String.Long' , ocaml_string ) 
-%    \end{macrocode}
-%
-% 
 % \bigskip
 % Now, the ``quoted strings'' of OCaml (for example \verb+{ext|Essai|ext}+). 
 %
@@ -6890,44 +6777,42 @@ local String = WithStyle ( 'String.Long' , ocaml_string )
 % spaces and the EOL in the string.
 % 
 % The first analysis require a match-time capture. For explanations about that
-% programmation, see the paragraphe \emph{Lua's long % strings} in
+% programmation, see the paragraphe \emph{Lua's long strings} in
 % |www.inf.puc-rio.br/~roberto/lpeg|. 
+%
 %    \begin{macrocode}
-local ext = ( R "az" + "_" ) ^ 0
-local open = "{" * Cg ( ext , 'init' ) * "|" 
-local close = "|" * C ( ext ) * "}"
-local closeeq = 
-  Cmt ( close * Cb ( 'init' ) , 
-        function ( s , i , a , b ) return a == b end ) 
+  local ext = ( R "az" + "_" ) ^ 0
+  local open = "{" * Cg ( ext , 'init' ) * "|"
+  local close = "|" * C ( ext ) * "}"
+  local closeeq =
+    Cmt ( close * Cb ( 'init' ) ,
+          function ( s , i , a , b ) return a == b end )
 %    \end{macrocode}
 %
 % \medskip
 % The \textsc{lpeg} |QuotedStringBis| will do the second analysis. 
 %    \begin{macrocode}
-local QuotedStringBis = 
-  WithStyle ( 'String.Long' ,
-      (  
-        Space
-        +
-        Q ( ( 1 - S " \r" ) ^ 1 ) 
-        +  
-        EOL
-      ) ^ 0  ) 
+  local QuotedStringBis =
+    WithStyle ( 'String.Long' ,
+        (
+          Space
+          +
+          Q ( ( 1 - S " \r" ) ^ 1 )
+          +
+          EOL
+        ) ^ 0  )
 %    \end{macrocode}
 % 
 % \medskip
 % We use a ``function capture'' (as called in the official documentation of the
 % \textsc{lpeg}) in order to do the second analysis on the result of the first one.
 %    \begin{macrocode}
-local QuotedString = 
-   C ( open * ( 1 - closeeq ) ^ 0  * close ) /
-  ( function ( s ) return QuotedStringBis : match ( s ) end ) 
+  local QuotedString =
+    C ( open * ( 1 - closeeq ) ^ 0  * close ) /
+    ( function ( s ) return QuotedStringBis : match ( s ) end )
 %    \end{macrocode}
-% 
 %
 % \bigskip
-% \paragraph{The comments in the OCaml listings}
-%
 % In OCaml, the delimiters for the comments are |(*| and |*)|. There are
 % unsymmetrical and OCaml allows those comments to be nested. That's why we need a
 % grammar.
@@ -6936,265 +6821,500 @@ local QuotedString =
 % embed also a treatment for the end of lines (since the comments may be multi-lines).
 % 
 %    \begin{macrocode}
-local Comment =
-  WithStyle ( 'Comment' ,
-     P {
-         "A" ,
-         A = Q "(*"
-             * ( V "A" 
-                 + Q ( ( 1 - S "\r$\"" - "(*" - "*)" ) ^ 1 ) -- $
-                 + ocaml_string 
-                 + "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) * "$" -- $
-                 + EOL
-               ) ^ 0 
-             * Q "*)" 
-       }   )
+  local Comment =
+    WithStyle ( 'Comment' ,
+      P {
+          "A" ,
+          A = Q "(*"
+              * ( V "A"
+                  + Q ( ( 1 - S "\r$\"" - "(*" - "*)" ) ^ 1 ) -- $
+                  + ocaml_string
+                  + "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) * "$" -- $
+                  + EOL
+                ) ^ 0
+              * Q "*)"
+        }   )
+%    \end{macrocode}
+%
+% 
+% \paragraph{Some standard LPEG}
+%
+%    \begin{macrocode}
+  local Delim = Q ( P "[|" + "|]" + S "[()]" )
+  local Punct = Q ( S ",:;!" )
+%    \end{macrocode}
+%
+% \bigskip
+% The identifiers caught by |cap_identifier| begin with a capital. In OCaml,
+% it's used for the constructors of types and for the names of the modules.
+%
+%    \begin{macrocode}
+  local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local Constructor = 
+    K ( 'Name.Constructor' , 
+        Q "`" ^ -1 * cap_identifier 
+%    \end{macrocode}
+% We consider |::|  and |[]| as constructors (of the lists) as does the Tuareg
+% mode of Emacs.
+%    \begin{macrocode}
+        + Q "::" 
+        + Q "[" * SkipSpace * Q "]" )
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local ModuleType = K ( 'Name.Type' , cap_identifier )
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local OperatorWord =
+    K ( 'Operator.Word' ,
+        P "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" )
 %    \end{macrocode}
 % 
 % \bigskip
-% \paragraph{The DefFunction}
+% In OCaml, some keywords are considered as \emph{governing keywords} with some
+% special syntactic characteristics.
+%    \begin{macrocode}
+  local governing_keyword = P "and" + "begin" + "class" + "constraint" +
+        "end" + "external" + "functor" + "include" + "inherit" + "initializer" +
+        "in" + "let" + "method" + "module" + "object" + "open" + "rec" + "sig" +
+        "struct" + "type" + "val"
+%    \end{macrocode}
+%   
+% \bigskip
+%    \begin{macrocode}
+  local Keyword =
+    K ( 'Keyword' ,
+        P "assert" + "as" + "done" + "downto" + "do" + "else" + "exception"
+        + "for" + "function"  + "fun" + "if" + "lazy" + "match" + "mutable"
+        + "new" + "of" + "private" + "raise" + "then" + "to" + "try"
+        + "virtual" + "when" + "while" + "with" )
+    + K ( 'Keyword.Constant' , P "true" + "false" )
+    + K ( 'Keyword.Governing', governing_keyword )
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local EndKeyword 
+   = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
+%    \end{macrocode}
+%
+% \bigskip
+% Now, the identifier. Recall that we have also a LPEG |cap_identifier| for the
+% indentifiers beginning with a capital letter.
+%    \begin{macrocode}
+  local identifier = ( R "az" + "_" ) * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0 
+                     - ( OperatorWord + Keyword ) * EndKeyword
+%    \end{macrocode}
+%
+% \bigskip
+% We have the internal style |Identifier.Internal| in order to be able to
+% implement the mechanism |\SetPitonIdentifier|. The final user has access to a
+% style called |Identifier|.
+%    \begin{macrocode}
+  local Identifier = K ( 'Identifier.Internal' , identifier )
+%    \end{macrocode}
+%
+% \bigskip
+% In OCmal, \emph{character} is a type different of the type |string|.
+%    \begin{macrocode}
+  local Char =
+    K ( 'String.Short',
+      P "'" *
+      (
+        ( 1 - S "'\\" )
+        + "\\"
+          * ( S "\\'ntbr \""
+              + digit * digit * digit
+              + P "x" * ( digit + R "af" + R "AF" )
+                      * ( digit + R "af" + R "AF" )
+                      * ( digit + R "af" + R "AF" )
+              + P "o" * R "03" * R "07" * R "07" )
+      )
+      * "'" )
+%    \end{macrocode}
+%
+% \bigskip
+% For the parameter of the types (for example : |`\a| as in |`a list|).
+%    \begin{macrocode}
+  local TypeParameter =
+    K ( 'TypeParameter' , 
+        "'" * Q"_" ^ -1 * alpha ^ 1 * ( # ( 1 - P "'" ) + -1 ) )
+%    \end{macrocode}
+%
+% \paragraph{The records}
 %
 %    \begin{macrocode}
-local Argument = 
+  local expression_for_fields_type =
+    P { "E" ,
+        E =  (   "{" * V "F" * "}"
+              + "(" * V "F" * ")"
+              + TypeParameter
+              + ( 1 - S "{}()[]\r;" ) ) ^ 0 ,
+        F = (    "{" * V "F" * "}"
+              + "(" * V "F" * ")"
+              + ( 1 - S "{}()[]\r\"'" ) + TypeParameter ) ^ 0
+      }
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local expression_for_fields_value =
+    P { "E" ,
+        E =  (   "{" * V "F" * "}"
+              + "(" * V "F" * ")"
+              + "[" * V "F" * "]"
+              + String + QuotedString + Char
+              + ( 1 - S "{}()[]\r;" ) ) ^ 0 ,
+        F = (    "{" * V "F" * "}"
+              + "(" * V "F" * ")"
+              + "[" * V "F" * "]"
+              + ( 1 - S "{}()[]\r\"'" )) ^ 0
+      }
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local OneFieldDefinition =
+      ( K ( 'Keyword' , "mutable" ) * SkipSpace ) ^ -1
+    * K ( 'Name.Field' , identifier ) * SkipSpace
+    * Q ":" * SkipSpace
+    * K ( 'TypeExpression' , expression_for_fields_type )
+    * SkipSpace
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local OneField =
+      K ( 'Name.Field' , identifier ) * SkipSpace
+    * Q "=" * SkipSpace
+    * ( expression_for_fields_value
+        / ( function ( s ) return LPEG1['ocaml'] : match ( s ) end )
+      )
+    * SkipSpace
+%    \end{macrocode}
+%
+% \bigskip
+% The \emph{records} may occur in the definitions of type (beginning by |type|)
+% but also when used as values.
+%    \begin{macrocode}
+  local Record =
+    Q "{" * SkipSpace
+    *
+      (
+        OneFieldDefinition 
+        * ( Q ";" * SkipSpace * ( Comment * SkipSpace ) ^ 0 * OneFieldDefinition ) ^ 0
+        +
+        OneField * ( Q ";" * SkipSpace * ( Comment * SkipSpace ) ^ 0 * OneField ) ^ 0
+      )
+    * SkipSpace
+    * Q ";" ^ -1
+    * SkipSpace
+    * Comment ^ -1
+    * SkipSpace
+    * Q "}"
+%    \end{macrocode}
+%
+% \paragraph{DotNotation}
+%
+% Now, we deal with the notations with points (eg: |List.length|). In OCaml,
+% such notation is used for the fields of the records and for the modules.
+%    \begin{macrocode}
+  local DotNotation =
+    (
+        K ( 'Name.Module' , cap_identifier )
+          * Q "."
+          * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ^ -1 
+        +
+         Identifier
+          * Q "."
+          * K ( 'Name.Field' , identifier )
+    )
+    * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local Operator =
+    K ( 'Operator' ,
+        P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "||" + "&&" +
+        "//" + "**" + ";;" + "->" + "+." + "-." + "*." + "/."
+        + S "-~+/*%=<>&@|" )
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local Builtin =
+    K ( 'Name.Builtin' , P "not" + "incr" + "decr" + "fst" + "snd" + "ref" )
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local Exception =
+    K (   'Exception' ,
+        P "Division_by_zero" + "End_of_File" + "Failure" + "Invalid_argument" +
+        "Match_failure" + "Not_found" + "Out_of_memory" + "Stack_overflow" +
+        "Sys_blocked_io" + "Sys_error" + "Undefined_recursive_module" )
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  LPEG_cleaner['ocaml'] = Compute_LPEG_cleaner ( 'ocaml' , braces )
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local Argument =
 %    \end{macrocode}
 % For the labels of the labeled arguments. Maybe you will, in the future, create
 % a style for those elements.
 %    \begin{macrocode}
-  (  Q "~" * Identifier * Q ":" * SkipSpace ) ^ -1 
-  *  
-  ( K ( 'Identifier.Internal' , identifier ) 
-    + Q "(" * SkipSpace 
-      * K ( 'Identifier.Internal' , identifier ) * SkipSpace 
-      * Q ":" * SkipSpace  
-      * K ( 'TypeExpression' , balanced_parens ) * SkipSpace
-      * Q ")"
-  )
+    (  Q "~" * Identifier * Q ":" * SkipSpace ) ^ -1
+    *
+    ( K ( 'Identifier.Internal' , identifier )
+      + Q "(" * SkipSpace
+        * K ( 'Identifier.Internal' , identifier ) * SkipSpace
+        * Q ":" * SkipSpace
+        * K ( 'TypeExpression' , balanced_parens ) * SkipSpace
+        * Q ")"
+    )
 %    \end{macrocode}
 %
+% \bigskip
 % Despite its name, then \textsc{lpeg} |DefFunction| deals also with |let open|
 % which opens locally a module.
 %    \begin{macrocode}
-local DefFunction = 
-  K ( 'Keyword.Governing' , "let open" ) 
-   * Space
-   * K ( 'Name.Module' , cap_identifier ) 
-  + 
-  K ( 'Keyword.Governing' , P "let rec" + "let" + "and" ) 
+  local DefFunction =
+    K ( 'Keyword.Governing' , "let open" )
     * Space
-    * K ( 'Name.Function.Internal' , identifier ) 
-    * Space 
-    * (
-        Q "=" * SkipSpace * K ( 'Keyword' , "function" ) 
-        + 
-        Argument 
-         * ( SkipSpace * Argument ) ^ 0 
-         * ( 
-             SkipSpace 
-             * Q ":" 
-             * K ( 'TypeExpression' , ( 1 - P "=" ) ^ 0 ) 
-           ) ^ -1 
-      ) 
+    * K ( 'Name.Module' , cap_identifier )
+    +
+    K ( 'Keyword.Governing' , P "let rec" + "let" + "and" )
+      * Space
+      * K ( 'Name.Function.Internal' , identifier )
+      * Space
+      * (
+          Q "=" * SkipSpace * K ( 'Keyword' , "function" )
+          +
+          Argument
+          * ( SkipSpace * Argument ) ^ 0
+          * (
+              SkipSpace
+              * Q ":"
+              * K ( 'TypeExpression' , ( 1 - P "=" ) ^ 0 )
+            ) ^ -1
+        )
 %    \end{macrocode}
 %
-% 
-% \bigskip
-% \paragraph{The DefModule}\par
+% \paragraph{DefModule}
 %
-% The following LPEG will be used in the definitions of modules but also in the
-% definitions of \emph{types} of modules.
 %    \begin{macrocode}
-local DefModule = 
-  K ( 'Keyword.Governing' , "module" ) * Space
-  *
-    (
-          K ( 'Keyword.Governing' , "type" ) * Space
-        * K ( 'Name.Type' , cap_identifier ) 
-      + 
-        K ( 'Name.Module' , cap_identifier ) * SkipSpace 
-        * 
-          (
-            Q "(" * SkipSpace 
-              * K ( 'Name.Module' , cap_identifier ) * SkipSpace 
-              * Q ":" * SkipSpace 
-              * K ( 'Name.Type' , cap_identifier ) * SkipSpace 
-              *
-                (
-                  Q "," * SkipSpace 
-                    * K ( 'Name.Module' , cap_identifier ) * SkipSpace 
-                    * Q ":" * SkipSpace 
-                    * K ( 'Name.Type' , cap_identifier ) * SkipSpace 
-                ) ^ 0 
-              * Q ")"
-          ) ^ -1
-        *
-          (
-            Q "=" * SkipSpace
-            * K ( 'Name.Module' , cap_identifier )  * SkipSpace 
-            * Q "("
-            * K ( 'Name.Module' , cap_identifier ) * SkipSpace 
-              * 
-              (
-                Q ","
-                * 
-                K ( 'Name.Module' , cap_identifier ) * SkipSpace 
-              ) ^ 0 
-            * Q ")"
-          ) ^ -1
-    )
-  + 
-  K ( 'Keyword.Governing' , P "include" + "open" )
-  * Space * K ( 'Name.Module' , cap_identifier ) 
-%    \end{macrocode}
-%
-% 
-% \bigskip
-% \paragraph{The DefType}\par
-%
-%
-%
-% \bigskip
-% The following LPEG is for the instructions of definitions of types (which
-% begin with |type|).
-%    \begin{macrocode}
-local DefType =
-  K ( 'Keyword.Governing' , "type" )
-  * Space
-  * WithStyle ( 'TypeExpression', Q (1 - P "=")^1)
-  * (SkipSpace +  EOL_without_space_indentation^0) * Q "=" * (SkipSpace +  EOL_without_space_indentation^0)
-  * WithStyle
+  local DefModule =
+    K ( 'Keyword.Governing' , "module" ) * Space
+    *
       (
-        'TypeExpression' ,
-        ( Q ( 1 - P ";;" - P "\r" ) + EOL_without_space_indentation  ) ^ 1
+            K ( 'Keyword.Governing' , "type" ) * Space
+          * K ( 'Name.Type' , cap_identifier )
+        +
+          K ( 'Name.Module' , cap_identifier ) * SkipSpace
+          *
+            (
+              Q "(" * SkipSpace
+                * K ( 'Name.Module' , cap_identifier ) * SkipSpace
+                * Q ":" * SkipSpace
+                * K ( 'Name.Type' , cap_identifier ) * SkipSpace
+                *
+                  (
+                    Q "," * SkipSpace
+                      * K ( 'Name.Module' , cap_identifier ) * SkipSpace
+                      * Q ":" * SkipSpace
+                      * K ( 'Name.Type' , cap_identifier ) * SkipSpace
+                  ) ^ 0
+                * Q ")"
+            ) ^ -1
+          *
+            (
+              Q "=" * SkipSpace
+              * K ( 'Name.Module' , cap_identifier )  * SkipSpace
+              * Q "("
+              * K ( 'Name.Module' , cap_identifier ) * SkipSpace
+                *
+                (
+                  Q ","
+                  *
+                  K ( 'Name.Module' , cap_identifier ) * SkipSpace
+                ) ^ 0
+              * Q ")"
+            ) ^ -1
       )
-  * ( # governing_keyword + Q ";;" + -1 )
+    +
+    K ( 'Keyword.Governing' , P "include" + "open" )
+    * Space 
+    * K ( 'Name.Module' , cap_identifier )
 %    \end{macrocode}
-% 
+%
+% \paragraph{DefType}
+%
+%    \begin{macrocode}
+  local DefType =
+    K ( 'Keyword.Governing' , "type" )
+    * Space
+    * K ( 'TypeExpression' , Q ( 1 - P "=" ) ^ 1 )
+    * SkipSpace 
+    * ( Q "+=" + Q "=" ) 
+    * SkipSpace
+    * ( 
+        Record 
+        +
+        WithStyle
+         ( 
+           'TypeExpression' , 
+           ( 
+             ( EOL + Q ( 1 - P ";;" - governing_keyword ) ) ^ 0 
+             * ( # ( governing_keyword ) + Q ";;" ) 
+           )
+         )
+      )
+%    \end{macrocode}
+%
 % \bigskip
 % \paragraph{The main LPEG for the language OCaml}
 %
-% 
-% First, the main loop :
 %    \begin{macrocode}
-local Main = 
-     space ^ 0 * EOL
-     + Space 
-     + Tab
-     + Escape + EscapeMath
-     + Beamer 
-     + DetectedCommands
-     + TypeParameter
-     + String + QuotedString + Char
-     + Comment
-     + Delim
-     + Operator
+  local Main =
+      space ^ 0 * EOL
+      + Space
+      + Tab
+      + Escape + EscapeMath
+      + Beamer
+      + DetectedCommands
+      + TypeParameter
+      + String + QuotedString + Char
+      + Comment
+      + Operator
 %    \end{macrocode}
-% For the labels of the labeled arguments. Maybe you will, in the future, create
-% a style for those elements.
+% For the labels (maybe we will write in the future a dedicated LPEG pour those tokens).
 %    \begin{macrocode}
-     + Q ( "~" ) * Identifier * ( Q ":" ) ^ -1
-     + Q ":" * # (1 - P":") * SkipSpace 
+      + Q ( "~" ) * Identifier * ( Q ":" ) ^ -1
+      + Q ":" * # (1 - P ":") * SkipSpace
           * K ( 'TypeExpression' , balanced_parens ) * SkipSpace * Q ")"
-     + Punct
-     + Exception 
-     + DefType
-     + DefFunction
-     + DefModule
-     + Record 
-     + Keyword * EndKeyword
-     + OperatorWord * EndKeyword
-     + Builtin * EndKeyword 
-     + DotNotation
-     + Constructor
-     + Identifier 
-     + Number
-     + Word
-
-LPEG1['ocaml'] = Main ^ 0 
+      + Exception
+      + DefType
+      + DefFunction
+      + DefModule
+      + Record
+      + Keyword * EndKeyword
+      + OperatorWord * EndKeyword
+      + Builtin * EndKeyword
+      + DotNotation
+      + Constructor
+      + Identifier
+      + Punct
+      + Delim
+      + Number
+      + Word
 %    \end{macrocode}
 %
 % \bigskip
-% We recall that each line in the code to parse will be sent back to
-% LaTeX between a pair |\@@_begin_line:| -- |\@@_end_line:|\footnote{Remember
-% that the \texttt{\textbackslash @@\_end\_line:} must be explicit because it
-% will be used as marker in order to delimit the argument of the command
-% \texttt{\textbackslash @@\_begin\_line:}}.
+% % Here, we must not put |local|!
 %    \begin{macrocode}
-LPEG2['ocaml'] = 
-  Ct (  
+  LPEG1['ocaml'] = Main ^ 0
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  LPEG2['ocaml'] =
+    Ct (
 %    \end{macrocode}
 % The following lines are in order to allow, in |\piton| (and not in |{Piton}|),
-% judments of type (such as |f : my_type -> 'a list|) or single expressions of
+% judgments of type (such as |f : my_type -> 'a list|) or single expressions of
 % type such as |my_type -> 'a list| (in that case, the argument of |\piton|
 % \emph{must} begin by a colon).
 %    \begin{macrocode}
-       ( P ":" + Identifier * SkipSpace * Q ":" ) 
-         * SkipSpace 
-         * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 ) 
-       + 
+        ( P ":" + Identifier * SkipSpace * Q ":" )
+          * SkipSpace
+          * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 )
+        +
+        ( space ^ 0 * "\r" ) ^ -1
+        * BeamerBeginEnvironments
+        * Lc [[\@@_begin_line:]]
+        * SpaceIndentation ^ 0
+        * ( ( space * Lc [[\@@_trailing_space:]] ) ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
+        * -1
+        * Lc [[\@@_end_line:]]
+      )
 %    \end{macrocode}
-% Now, the main part.
+% 
+% \bigskip
+% End of the Lua scope for the language OCaml.
 %    \begin{macrocode}
-       ( space ^ 0 * "\r" ) ^ -1 
-       * BeamerBeginEnvironments 
-       * Lc [[\@@_begin_line:]] 
-       * SpaceIndentation ^ 0 
-       * ( ( space * Lc [[\@@_trailing_space:]] ) ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
-       * -1 
-       * Lc [[\@@_end_line:]] 
-     )
+end
 %    \end{macrocode}
-%
+% 
 % 
 % \bigskip
 % \subsubsection{The language C}
 % 
+% We open a Lua local scope for the language C (of course, there will be also
+% global definitions).
 %    \begin{macrocode}
-local Delim = Q ( S "{[()]}" )
+do 
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local Delim = Q ( S "{[()]}" )
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-local Punct = Q ( S ",:;!" )
+  local Punct = Q ( S ",:;!" )
 %    \end{macrocode}
 %
 % \bigskip
 % Some strings of length 2 are explicit because we want the corresponding
 % ligatures available in some fonts such as \emph{Fira Code} to be active.
 %    \begin{macrocode}
-local identifier = letter * alphanum ^ 0
+  local identifier = letter * alphanum ^ 0
 
-local Operator = 
-  K ( 'Operator' ,
-      P "!=" + "==" + "<<" + ">>" + "<=" + ">=" + "||" + "&&" 
-        + S "-~+/*%=<>&.@|!" )
+  local Operator = 
+    K ( 'Operator' ,
+        P "!=" + "==" + "<<" + ">>" + "<=" + ">=" + "||" + "&&" 
+          + S "-~+/*%=<>&.@|!" )
 
-local Keyword = 
-  K ( 'Keyword' ,
-      P "alignas" + "asm" + "auto" + "break" + "case" + "catch" + "class" +
-      "const" + "constexpr" + "continue" + "decltype" + "do" + "else" + "enum" +
-      "extern" + "for" + "goto" + "if" + "nexcept" + "private" + "public" +
-      "register" + "restricted" + "return" + "static" + "static_assert" +
-      "struct" + "switch" + "thread_local" + "throw" + "try" + "typedef" +
-      "union" + "using" + "virtual" + "volatile" + "while" 
-    )
-  + K ( 'Keyword.Constant' , P "default" + "false" + "NULL" + "nullptr" + "true" ) 
+  local Keyword = 
+    K ( 'Keyword' ,
+        P "alignas" + "asm" + "auto" + "break" + "case" + "catch" + "class" +
+        "const" + "constexpr" + "continue" + "decltype" + "do" + "else" + "enum" +
+        "extern" + "for" + "goto" + "if" + "nexcept" + "private" + "public" +
+        "register" + "restricted" + "return" + "static" + "static_assert" +
+        "struct" + "switch" + "thread_local" + "throw" + "try" + "typedef" +
+        "union" + "using" + "virtual" + "volatile" + "while" 
+      )
+    + K ( 'Keyword.Constant' , P "default" + "false" + "NULL" + "nullptr" + "true" ) 
 
-local Builtin = 
-  K ( 'Name.Builtin' ,
-      P "alignof" + "malloc" + "printf" + "scanf" + "sizeof" )
+  local Builtin = 
+    K ( 'Name.Builtin' ,
+        P "alignof" + "malloc" + "printf" + "scanf" + "sizeof" )
 
-local Type = 
-  K ( 'Name.Type' ,
-      P "bool" + "char" + "char16_t" + "char32_t" + "double" + "float" + "int" +
-      "int8_t" + "int16_t" + "int32_t" + "int64_t" + "long" + "short" + "signed"
-      + "unsigned" + "void" + "wchar_t" ) * Q "*" ^ 0 
+  local Type = 
+    K ( 'Name.Type' ,
+        P "bool" + "char" + "char16_t" + "char32_t" + "double" + "float" + "int" +
+        "int8_t" + "int16_t" + "int32_t" + "int64_t" + "long" + "short" + "signed"
+        + "unsigned" + "void" + "wchar_t" ) * Q "*" ^ 0 
 
-local DefFunction = 
-  Type 
-  * Space 
-  * Q "*" ^ -1
-  * K ( 'Name.Function.Internal' , identifier ) 
-  * SkipSpace 
-  * # P "("
+  local DefFunction = 
+    Type 
+    * Space 
+    * Q "*" ^ -1
+    * K ( 'Name.Function.Internal' , identifier ) 
+    * SkipSpace 
+    * # P "("
 %    \end{macrocode}
 % We remind that the marker |#| of \textsc{lpeg} specifies that the pattern will be
 % detected but won't consume any character.
@@ -7207,8 +7327,8 @@ local DefFunction =
 % \smallskip
 % Example:\enskip \piton{class myclass:}
 %    \begin{macrocode}
-local DefClass = 
-  K ( 'Keyword' , "class" ) * Space * K ( 'Name.Class' , identifier ) 
+  local DefClass = 
+    K ( 'Keyword' , "class" ) * Space * K ( 'Name.Class' , identifier ) 
 %    \end{macrocode}
 % 
 % If the word |class| is not followed by a identifier, it will be caught as
@@ -7219,17 +7339,17 @@ local DefClass =
 % \paragraph{The strings of C}
 %
 %    \begin{macrocode}
-String = 
-  WithStyle ( 'String.Long' ,
-      Q "\"" 
-      * ( VisualSpace 
-          + K ( 'String.Interpol' , 
-                "%" * ( S "difcspxXou" + "ld" + "li" + "hd" + "hi" )
-              ) 
-          + Q ( ( P "\\\"" + 1 - S " \"" ) ^ 1 ) 
-        ) ^ 0 
-      * Q "\""
-    )
+  String = 
+    WithStyle ( 'String.Long' ,
+        Q "\"" 
+        * ( VisualSpace 
+            + K ( 'String.Interpol' , 
+                  "%" * ( S "difcspxXou" + "ld" + "li" + "hd" + "hi" )
+                ) 
+            + Q ( ( P "\\\"" + 1 - S " \"" ) ^ 1 ) 
+          ) ^ 0 
+        * Q "\""
+      )
 %    \end{macrocode}
 % 
 % \bigskip
@@ -7239,23 +7359,23 @@ String =
 % The argument of |Compute_braces| must be a pattern \emph{which does no
 % catching} corresponding to the strings of the language.
 %    \begin{macrocode}
-local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" ) 
-if piton.beamer then Beamer = Compute_Beamer ( 'c' , braces ) end
+  local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" ) 
+  if piton.beamer then Beamer = Compute_Beamer ( 'c' , braces ) end
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-DetectedCommands = Compute_DetectedCommands ( 'c' , braces ) 
+  DetectedCommands = Compute_DetectedCommands ( 'c' , braces ) 
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-LPEG_cleaner['c'] = Compute_LPEG_cleaner ( 'c' , braces ) 
+  LPEG_cleaner['c'] = Compute_LPEG_cleaner ( 'c' , braces ) 
 %    \end{macrocode}
 % 
 % \bigskip
 % \paragraph{The directives of the preprocessor}
 %
 %    \begin{macrocode}
-local Preproc = K ( 'Preproc' , "#" * ( 1 - P "\r" ) ^ 0  ) * ( EOL + -1 )
+  local Preproc = K ( 'Preproc' , "#" * ( 1 - P "\r" ) ^ 0  ) * ( EOL + -1 )
 %    \end{macrocode}
 % 
 %
@@ -7264,17 +7384,17 @@ local Preproc = K ( 'Preproc' , "#" * ( 1 - P "\r" ) ^ 0  ) * ( EOL + -1 )
 %
 % We define different \textsc{lpeg} dealing with comments in the C listings.
 %    \begin{macrocode}
-local Comment = 
-  WithStyle ( 'Comment' ,
-     Q "//" * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 ) -- $
-            * ( EOL + -1 )
+  local Comment = 
+    WithStyle ( 'Comment' ,
+       Q "//" * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 ) -- $
+              * ( EOL + -1 )
 
-local LongComment = 
-  WithStyle ( 'Comment' , 
-               Q "/*" 
-               * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0 
-               * Q "*/" 
-            ) -- $
+  local LongComment = 
+    WithStyle ( 'Comment' , 
+                 Q "/*" 
+                 * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0 
+                 * Q "*/" 
+              ) -- $
 %    \end{macrocode}
 %
 %
@@ -7284,38 +7404,39 @@ local LongComment =
 % \paragraph{The main LPEG for the language C}
 %
 %    \begin{macrocode}
-local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
+  local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
 %    \end{macrocode}
 %
 % First, the main loop :
 %    \begin{macrocode}
-local Main = 
-     space ^ 0 * EOL
-     + Space 
-     + Tab
-     + Escape + EscapeMath 
-     + CommentLaTeX
-     + Beamer
-     + DetectedCommands
-     + Preproc
-     + Comment + LongComment
-     + Delim
-     + Operator
-     + String
-     + Punct
-     + DefFunction
-     + DefClass 
-     + Type * ( Q "*" ^ -1 + EndKeyword ) 
-     + Keyword * EndKeyword
-     + Builtin * EndKeyword
-     + Identifier 
-     + Number
-     + Word
+  local Main = 
+       space ^ 0 * EOL
+       + Space 
+       + Tab
+       + Escape + EscapeMath 
+       + CommentLaTeX
+       + Beamer
+       + DetectedCommands
+       + Preproc
+       + Comment + LongComment
+       + Delim
+       + Operator
+       + String
+       + Punct
+       + DefFunction
+       + DefClass 
+       + Type * ( Q "*" ^ -1 + EndKeyword ) 
+       + Keyword * EndKeyword
+       + Builtin * EndKeyword
+       + Identifier 
+       + Number
+       + Word
 %    \end{macrocode}
 %
+% \bigskip
 % Here, we must not put |local|!
 %    \begin{macrocode}
-LPEG1['c'] = Main ^ 0 
+  LPEG1['c'] = Main ^ 0 
 %    \end{macrocode}
 %
 % \bigskip
@@ -7325,46 +7446,59 @@ LPEG1['c'] = Main ^ 0
 % will be used as marker in order to delimit the argument of the command
 % \texttt{\textbackslash @@\_begin\_line:}}.
 %    \begin{macrocode}
-LPEG2['c'] = 
-  Ct (
-       ( space ^ 0 * P "\r" ) ^ -1 
-       * BeamerBeginEnvironments 
-       * Lc [[\@@_begin_line:]]
-       * SpaceIndentation ^ 0 
-       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
-       * -1 
-       * Lc [[\@@_end_line:]] 
-     )
+  LPEG2['c'] = 
+    Ct (
+         ( space ^ 0 * P "\r" ) ^ -1 
+         * BeamerBeginEnvironments 
+         * Lc [[\@@_begin_line:]]
+         * SpaceIndentation ^ 0 
+         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
+         * -1 
+         * Lc [[\@@_end_line:]] 
+       )
 %    \end{macrocode}
 %
+% \bigskip
+% End of the Lua scope for the language C.
+%    \begin{macrocode}
+end
+%    \end{macrocode}
 %
 % \bigskip
 % \subsubsection{The language SQL}
 % 
+% We open a Lua local scope for the language SQL (of course, there will be also
+% global definitions).
 %    \begin{macrocode}
-local function LuaKeyword ( name ) 
-return 
-   Lc [[{\PitonStyle{Keyword}{]]
-   * Q ( Cmt ( 
-               C ( identifier ) , 
-               function ( s , i , a ) return string.upper ( a ) == name end 
-             ) 
-       ) 
-   * Lc "}}" 
-end 
+do 
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+  local function LuaKeyword ( name ) 
+  return 
+     Lc [[{\PitonStyle{Keyword}{]]
+     * Q ( Cmt ( 
+                 C ( identifier ) , 
+                 function ( s , i , a ) return string.upper ( a ) == name end 
+               ) 
+         ) 
+     * Lc "}}" 
+  end 
 %    \end{macrocode}
 %
 % \bigskip
 % In the identifiers, we will be able to catch those contening spaces, that is
 % to say like |"last name"|. 
 %    \begin{macrocode}
-local identifier = 
-  letter * ( alphanum + "-" ) ^ 0 
-  + P '"' * ( ( 1 - P '"' ) ^ 1 ) * '"' 
-
-
-local Operator = 
-  K ( 'Operator' , P "=" + "!=" + "<>" + ">=" + ">" + "<=" + "<"  + S "*+/" )
+  local identifier = 
+    letter * ( alphanum + "-" ) ^ 0 
+    + P '"' * ( ( 1 - P '"' ) ^ 1 ) * '"' 
+%    \end{macrocode}
+% 
+%    \begin{macrocode}
+  local Operator = 
+    K ( 'Operator' , P "=" + "!=" + "<>" + ">=" + ">" + "<=" + "<"  + S "*+/" )
 %    \end{macrocode}
 %
 % In SQL, the keywords are case-insensitive. That's why we have a little
@@ -7372,63 +7506,68 @@ local Operator =
 % distinguish the keywords with a Lua function. However, some keywords will be
 % caught in special LPEG because we want to detect the names of the SQL tables.
 %    \begin{macrocode}
-local function Set ( list )
-  local set = { }
-  for _, l in ipairs ( list ) do set[l] = true end
-  return set
-end
-
-local set_keywords = Set
- { 
-   "ADD" , "AFTER" , "ALL" , "ALTER" , "AND" , "AS" , "ASC" , "BETWEEN" , "BY" ,
-   "CHANGE" , "COLUMN" , "CREATE" , "CROSS JOIN" , "DELETE" , "DESC" , "DISTINCT" , 
-   "DROP" , "FROM" , "GROUP" , "HAVING" , "IN" , "INNER" , "INSERT" , "INTO" , "IS" , 
-   "JOIN" , "LEFT" , "LIKE" , "LIMIT" , "MERGE" , "NOT" , "NULL" , "ON" , "OR" , 
-   "ORDER" , "OVER" , "RIGHT" , "SELECT" , "SET" , "TABLE" , "THEN" , "TRUNCATE" , 
-   "UNION" , "UPDATE" , "VALUES" , "WHEN" , "WHERE" , "WITH"
- }
-
-local set_builtins = Set
- { 
-   "AVG" , "COUNT" , "CHAR_LENGHT" , "CONCAT" , "CURDATE" , "CURRENT_DATE" ,
-   "DATE_FORMAT" , "DAY" , "LOWER" , "LTRIM" , "MAX" , "MIN" , "MONTH" , "NOW" ,
-   "RANK" , "ROUND" , "RTRIM" , "SUBSTRING" , "SUM" , "UPPER" , "YEAR" 
- }
+  local function Set ( list )
+    local set = { }
+    for _, l in ipairs ( list ) do set[l] = true end
+    return set
+  end
+%    \end{macrocode}
+% 
+% \bigskip
+%    \begin{macrocode}
+  local set_keywords = Set
+   { 
+     "ADD" , "AFTER" , "ALL" , "ALTER" , "AND" , "AS" , "ASC" , "BETWEEN" , "BY" ,
+     "CHANGE" , "COLUMN" , "CREATE" , "CROSS JOIN" , "DELETE" , "DESC" , "DISTINCT" , 
+     "DROP" , "FROM" , "GROUP" , "HAVING" , "IN" , "INNER" , "INSERT" , "INTO" , "IS" , 
+     "JOIN" , "LEFT" , "LIKE" , "LIMIT" , "MERGE" , "NOT" , "NULL" , "ON" , "OR" , 
+     "ORDER" , "OVER" , "RIGHT" , "SELECT" , "SET" , "TABLE" , "THEN" , "TRUNCATE" , 
+     "UNION" , "UPDATE" , "VALUES" , "WHEN" , "WHERE" , "WITH"
+   }
+%    \end{macrocode}
+% 
+%    \begin{macrocode}
+  local set_builtins = Set
+   { 
+     "AVG" , "COUNT" , "CHAR_LENGHT" , "CONCAT" , "CURDATE" , "CURRENT_DATE" ,
+     "DATE_FORMAT" , "DAY" , "LOWER" , "LTRIM" , "MAX" , "MIN" , "MONTH" , "NOW" ,
+     "RANK" , "ROUND" , "RTRIM" , "SUBSTRING" , "SUM" , "UPPER" , "YEAR" 
+   }
 %    \end{macrocode}
 %
 % The \textsc{lpeg} |Identifier| will catch the identifiers of the fields  
 % but also the keywords and the built-in functions of SQL. If will \emph{not}
 % catch the names of the SQL tables.
 %    \begin{macrocode}
-local Identifier = 
-  C ( identifier ) /
-  ( 
-    function (s) 
-        if set_keywords[string.upper(s)] -- the keywords are case-insensitive in SQL
+  local Identifier = 
+    C ( identifier ) /
+    ( 
+      function (s) 
+          if set_keywords[string.upper(s)] -- the keywords are case-insensitive in SQL
 %    \end{macrocode}
 % Remind that, in Lua, it's possible to return \emph{several} values. 
 %    \begin{macrocode}
-        then return { "{\\PitonStyle{Keyword}{" } ,
-                    { luatexbase.catcodetables.other , s } ,
-                    { "}}" }
-        else if set_builtins[string.upper(s)]
-             then return { "{\\PitonStyle{Name.Builtin}{" } ,
-                         { luatexbase.catcodetables.other , s } ,
-                         { "}}" }
-             else return { "{\\PitonStyle{Name.Field}{" } ,
-                         { luatexbase.catcodetables.other , s } ,
-                         { "}}" }
-             end
-        end 
-    end
-  ) 
+          then return { "{\\PitonStyle{Keyword}{" } ,
+                      { luatexbase.catcodetables.other , s } ,
+                      { "}}" }
+          else if set_builtins[string.upper(s)]
+               then return { "{\\PitonStyle{Name.Builtin}{" } ,
+                           { luatexbase.catcodetables.other , s } ,
+                           { "}}" }
+               else return { "{\\PitonStyle{Name.Field}{" } ,
+                           { luatexbase.catcodetables.other , s } ,
+                           { "}}" }
+               end
+          end 
+      end
+    ) 
 %    \end{macrocode}
 % 
 % \bigskip
 % \paragraph{The strings of SQL}
 %
 %    \begin{macrocode}
-local String = K ( 'String.Long' , "'" * ( 1 - P "'" ) ^ 1 * "'" ) 
+  local String = K ( 'String.Long' , "'" * ( 1 - P "'" ) ^ 1 * "'" ) 
 %    \end{macrocode}
 % 
 % \bigskip
@@ -7439,16 +7578,16 @@ local String = K ( 'String.Long' , "'" * ( 1 - P "'" ) ^ 1 * "'" )
 % catching} corresponding to the strings of the language.
 %
 %    \begin{macrocode}
-local braces = Compute_braces ( "'" * ( 1 - P "'" ) ^ 1 * "'" ) 
-if piton.beamer then Beamer = Compute_Beamer ( 'sql' , braces ) end
+  local braces = Compute_braces ( "'" * ( 1 - P "'" ) ^ 1 * "'" ) 
+  if piton.beamer then Beamer = Compute_Beamer ( 'sql' , braces ) end
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
-DetectedCommands = Compute_DetectedCommands ( 'sql' , braces ) 
+  DetectedCommands = Compute_DetectedCommands ( 'sql' , braces ) 
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-LPEG_cleaner['sql'] = Compute_LPEG_cleaner ( 'sql' , braces ) 
+  LPEG_cleaner['sql'] = Compute_LPEG_cleaner ( 'sql' , braces ) 
 %    \end{macrocode}
 %
 % 
@@ -7458,18 +7597,18 @@ LPEG_cleaner['sql'] = Compute_LPEG_cleaner ( 'sql' , braces )
 %
 % We define different \textsc{lpeg} dealing with comments in the SQL listings.
 %    \begin{macrocode}
-local Comment = 
-  WithStyle ( 'Comment' ,
-     Q "--"   -- syntax of SQL92
-     * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 ) -- $
-  * ( EOL + -1 )
+  local Comment = 
+    WithStyle ( 'Comment' ,
+       Q "--"   -- syntax of SQL92
+       * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 ) -- $
+    * ( EOL + -1 )
 
-local LongComment = 
-  WithStyle ( 'Comment' , 
-               Q "/*" 
-               * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0 
-               * Q "*/" 
-            ) -- $
+  local LongComment = 
+    WithStyle ( 'Comment' , 
+                 Q "/*" 
+                 * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0 
+                 * Q "*/" 
+              ) -- $
 %    \end{macrocode}
 %
 %
@@ -7478,79 +7617,80 @@ local LongComment =
 % \paragraph{The main LPEG for the language SQL}
 %
 %    \begin{macrocode}
-local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
+  local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-local TableField = 
+  local TableField = 
+         K ( 'Name.Table' , identifier ) 
+       * Q "." 
+       * K ( 'Name.Field' , identifier ) 
+
+  local OneField = 
+    ( 
+      Q ( "(" * ( 1 - P ")" ) ^ 0 * ")" )
+      + 
+          K ( 'Name.Table' , identifier ) 
+        * Q "." 
+        * K ( 'Name.Field' , identifier ) 
+      + 
+      K ( 'Name.Field' , identifier ) 
+    )
+    * ( 
+        Space * LuaKeyword "AS" * Space * K ( 'Name.Field' , identifier ) 
+      ) ^ -1
+    * ( Space * ( LuaKeyword "ASC" + LuaKeyword "DESC" ) ) ^ -1
+
+  local OneTable = 
        K ( 'Name.Table' , identifier ) 
-     * Q "." 
-     * K ( 'Name.Field' , identifier ) 
+     * ( 
+         Space 
+         * LuaKeyword "AS"  
+         * Space 
+         * K ( 'Name.Table' , identifier ) 
+       ) ^ -1 
 
-local OneField = 
-  ( 
-    Q ( "(" * ( 1 - P ")" ) ^ 0 * ")" )
-    + 
-        K ( 'Name.Table' , identifier ) 
-      * Q "." 
-      * K ( 'Name.Field' , identifier ) 
-    + 
-    K ( 'Name.Field' , identifier ) 
-  )
-  * ( 
-      Space * LuaKeyword "AS" * Space * K ( 'Name.Field' , identifier ) 
-    ) ^ -1
-  * ( Space * ( LuaKeyword "ASC" + LuaKeyword "DESC" ) ) ^ -1
-
-local OneTable = 
-     K ( 'Name.Table' , identifier ) 
-   * ( 
-       Space 
-       * LuaKeyword "AS"  
-       * Space 
-       * K ( 'Name.Table' , identifier ) 
-     ) ^ -1 
-
-local WeCatchTableNames = 
-     LuaKeyword "FROM" 
-   * ( Space + EOL ) 
-   * OneTable * ( SkipSpace * Q "," * SkipSpace * OneTable ) ^ 0 
-  + ( 
-      LuaKeyword "JOIN" + LuaKeyword "INTO" + LuaKeyword "UPDATE" 
-      + LuaKeyword "TABLE" 
-    ) 
-    * ( Space + EOL ) * OneTable 
+  local WeCatchTableNames = 
+       LuaKeyword "FROM" 
+     * ( Space + EOL ) 
+     * OneTable * ( SkipSpace * Q "," * SkipSpace * OneTable ) ^ 0 
+    + ( 
+        LuaKeyword "JOIN" + LuaKeyword "INTO" + LuaKeyword "UPDATE" 
+        + LuaKeyword "TABLE" 
+      ) 
+      * ( Space + EOL ) * OneTable 
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
-local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
+  local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
 %    \end{macrocode}
 %
 %
 % First, the main loop :
 %    \begin{macrocode}
-local Main = 
-     space ^ 0 * EOL
-     + Space 
-     + Tab
-     + Escape + EscapeMath 
-     + CommentLaTeX
-     + Beamer
-     + DetectedCommands
-     + Comment + LongComment
-     + Delim
-     + Operator
-     + String
-     + Punct
-     + WeCatchTableNames
-     + ( TableField + Identifier ) * ( Space + Operator + Punct + Delim + EOL + -1 )  
-     + Number
-     + Word
+  local Main = 
+       space ^ 0 * EOL
+       + Space 
+       + Tab
+       + Escape + EscapeMath 
+       + CommentLaTeX
+       + Beamer
+       + DetectedCommands
+       + Comment + LongComment
+       + Delim
+       + Operator
+       + String
+       + Punct
+       + WeCatchTableNames
+       + ( TableField + Identifier ) * ( Space + Operator + Punct + Delim + EOL + -1 )  
+       + Number
+       + Word
 %    \end{macrocode}
 %
+% \bigskip
 % Here, we must not put |local|!
 %    \begin{macrocode}
-LPEG1['sql'] = Main ^ 0 
+  LPEG1['sql'] = Main ^ 0 
 %    \end{macrocode}
 %
 % \bigskip
@@ -7560,87 +7700,111 @@ LPEG1['sql'] = Main ^ 0
 % will be used as marker in order to delimit the argument of the command
 % \texttt{\textbackslash @@\_begin\_line:}}.
 %    \begin{macrocode}
-LPEG2['sql'] =
-  Ct (
-       ( space ^ 0 * "\r" ) ^ -1 
-       * BeamerBeginEnvironments 
-       * Lc [[\@@_begin_line:]]
-       * SpaceIndentation ^ 0 
-       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
-       * -1 
-       * Lc [[\@@_end_line:]]
-     )
+  LPEG2['sql'] =
+    Ct (
+         ( space ^ 0 * "\r" ) ^ -1 
+         * BeamerBeginEnvironments 
+         * Lc [[\@@_begin_line:]]
+         * SpaceIndentation ^ 0 
+         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
+         * -1 
+         * Lc [[\@@_end_line:]]
+       )
 %    \end{macrocode}
 %
+% \bigskip
+% End of the Lua scope for the language SQL.
+%    \begin{macrocode}
+end
+%    \end{macrocode}
 % 
 % \subsubsection{The language ``Minimal''}
 % 
+% We open a Lua local scope for the language ``|minimal|'' (of course, there
+% will be also global definitions).
 %    \begin{macrocode}
-local Punct = Q ( S ",:;!\\" )
-
-local Comment = 
-  WithStyle ( 'Comment' ,
-              Q "#" 
-              * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
-            )
-     * ( EOL + -1 )
-
-local String = 
-  WithStyle ( 'String.Short' ,
-              Q "\"" 
-              * ( VisualSpace 
-                  + Q ( ( P "\\\"" + 1 - S " \"" ) ^ 1 ) 
-                ) ^ 0 
-              * Q "\""
-            )
-
+do 
 %    \end{macrocode}
+%
+%    \begin{macrocode}
+  local Punct = Q ( S ",:;!\\" )
+
+  local Comment = 
+    WithStyle ( 'Comment' ,
+                Q "#" 
+                * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
+              )
+       * ( EOL + -1 )
+
+  local String = 
+    WithStyle ( 'String.Short' ,
+                Q "\"" 
+                * ( VisualSpace 
+                    + Q ( ( P "\\\"" + 1 - S " \"" ) ^ 1 ) 
+                  ) ^ 0 
+                * Q "\""
+              )
+%    \end{macrocode}
+%
+% \bigskip
 % The argument of |Compute_braces| must be a pattern \emph{which does no
 % catching} corresponding to the strings of the language.
 %    \begin{macrocode}
-local braces = Compute_braces ( P "\"" * ( P "\\\"" + 1 - P "\"" ) ^ 1 * "\"" ) 
+  local braces = Compute_braces ( P "\"" * ( P "\\\"" + 1 - P "\"" ) ^ 1 * "\"" ) 
 
-if piton.beamer then Beamer = Compute_Beamer ( 'minimal' , braces ) end
+  if piton.beamer then Beamer = Compute_Beamer ( 'minimal' , braces ) end
 
-DetectedCommands = Compute_DetectedCommands ( 'minimal' , braces ) 
+  DetectedCommands = Compute_DetectedCommands ( 'minimal' , braces ) 
 
-LPEG_cleaner['minimal'] = Compute_LPEG_cleaner ( 'minimal' , braces ) 
+  LPEG_cleaner['minimal'] = Compute_LPEG_cleaner ( 'minimal' , braces ) 
 
-local identifier = letter * alphanum ^ 0
+  local identifier = letter * alphanum ^ 0
 
-local Identifier = K ( 'Identifier.Internal' , identifier )
+  local Identifier = K ( 'Identifier.Internal' , identifier )
 
-local Delim = Q ( S "{[()]}" )
+  local Delim = Q ( S "{[()]}" )
 
-local Main = 
-     space ^ 0 * EOL
-     + Space 
-     + Tab
-     + Escape + EscapeMath 
-     + CommentLaTeX
-     + Beamer
-     + DetectedCommands
-     + Comment
-     + Delim
-     + String
-     + Punct
-     + Identifier 
-     + Number
-     + Word
+  local Main = 
+       space ^ 0 * EOL
+       + Space 
+       + Tab
+       + Escape + EscapeMath 
+       + CommentLaTeX
+       + Beamer
+       + DetectedCommands
+       + Comment
+       + Delim
+       + String
+       + Punct
+       + Identifier 
+       + Number
+       + Word
+%    \end{macrocode}
+%
+% \bigskip
+% Here, we must not put |local|!
+%    \begin{macrocode}
+  LPEG1['minimal'] = Main ^ 0
 
-LPEG1['minimal'] = Main ^ 0
-
-LPEG2['minimal'] = 
-  Ct (
-       ( space ^ 0 * "\r" ) ^ -1 
-       * BeamerBeginEnvironments 
-       * Lc [[\@@_begin_line:]]
-       * SpaceIndentation ^ 0 
-       * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
-       * -1 
-       * Lc [[\@@_end_line:]]
-     )
-
+  LPEG2['minimal'] = 
+    Ct (
+         ( space ^ 0 * "\r" ) ^ -1 
+         * BeamerBeginEnvironments 
+         * Lc [[\@@_begin_line:]]
+         * SpaceIndentation ^ 0 
+         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
+         * -1 
+         * Lc [[\@@_end_line:]]
+       )
+%    \end{macrocode}
+% 
+%
+% \bigskip
+% End of the Lua scope for the language ``|minimal|''.
+%    \begin{macrocode}
+end
+%    \end{macrocode}
+%
 % \bigskip
 % \subsubsection{The function Parse}
 %
@@ -7776,8 +7940,16 @@ function piton.ParseTer ( lang , code )
 % Be careful: we have to write |[[\@@_breakable_space: ]]| with a space after
 % the name of the LaTeX command |\@@_breakable_space:|. 
 %    \begin{macrocode}
-  local s = ( Cs ( ( P [[\@@_breakable_space: ]] / ' ' + 1 ) ^ 0 ) ) 
-            : match ( code )
+  local s
+  s = ( Cs ( ( P [[\@@_breakable_space: ]] / ' ' + 1 ) ^ 0 ) ) 
+      : match ( code )
+%    \end{macrocode}
+% Remember that |\@@_leading_space:| does not create a space, only an
+% incrementation of the counter |\g_@@_indentation_int|. That's why we don't
+% replace it by a space...
+%    \begin{macrocode}
+  s = ( Cs ( ( P [[\@@_leading_space: ]] / '' + 1 ) ^ 0 ) ) 
+      : match ( s )
   return piton.Parse ( lang , s )
 end
 %    \end{macrocode}
@@ -8021,7 +8193,6 @@ function piton.CountLines ( code )
           ) / table.getn
      ) : match ( code )
   sprintL3 ( string.format ( [[ \int_set:Nn  \l_@@_nb_lines_int { %i } ]] , count ) ) 
-  -- sprintL3 ( string.format ( [[ Nb~lignes~:~%i~\newline]] , count ) ) 
 end 
 %    \end{macrocode}
 %
@@ -8141,6 +8312,30 @@ function piton.ComputeLinesStatus ( code , splittable )
   else 
     lpeg_line_beamer = P ( false ) 
   end 
+%    \end{macrocode}
+% We begin with the computation of |piton.empty_lines|. It will be used in
+% conjonction with |line-numbers|. 
+%    \begin{macrocode}
+  piton.empty_lines = 
+      ( 
+        Ct (
+             ( lpeg_line_beamer * "\r" 
+               +
+               P " " ^ 0 * "\r" * Cc ( 0 )
+               + 
+               ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )  -- ^ 0 or ^ 1 ?
+             ) ^ 0
+             * 
+             ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
+           )
+        * -1
+      ) : match ( code ) 
+%    \end{macrocode}
+% 
+% Now, we compute |piton.lines_status|. It will be used in conjonction with
+% |splittable| and |splittable-on-empty-lines|. Of course, there is redundancy
+% with the previous code. We should change that in the future.
+%    \begin{macrocode}
   local my_lpeg
   if splittable < 0 then
     my_lpeg =
@@ -8168,6 +8363,8 @@ function piton.ComputeLinesStatus ( code , splittable )
       * -1
   end 
   local lines_status = my_lpeg : match ( code ) 
+%    \end{macrocode}
+%
 %    \end{macrocode}
 % Now, we will take into account the current value of |\l_@@_splittable_int|
 % (provided by the \emph{absolute value} of the argument |splittable|).
@@ -8207,9 +8404,6 @@ function piton.ComputeLinesStatus ( code , splittable )
     if lines_status[#lines_status - j] == 0 then break end
     lines_status[#lines_status - j] = 2
   end 
--- for i , x in ipairs ( lines_status) do
---  sprintL3 ( string.format ( [[ Ligne~%i~:~ %i\newline ]] , i , x ) ) 
--- end
 %    \end{macrocode}
 % 
 % \bigskip
@@ -8696,6 +8890,8 @@ function piton.new_language ( lang , definition )
 %
 % The \textsc{lpeg} |LPEG1[lang]| is used to reformat small elements, for
 % example the arguments of the ``detected commands''.
+%
+% Of course, here, we must not put |local|!
 %   \begin{macrocode}
   LPEG1[lang] = Main ^ 0 
 %    \end{macrocode}
