@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.1x4" -- 2024/09/21
+piton_version = "3.1x5" -- 2024/09/21
 
 
 
@@ -892,7 +892,10 @@ do
         * BeamerBeginEnvironments
         * Lc [[\__piton_begin_line:]]
         * SpaceIndentation ^ 0
-        * ( ( space * Lc [[\__piton_trailing_space:]] ) ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
+        * ( ( space * Lc [[\__piton_trailing_space:]] ) ^ 1 * -1
+              + space ^ 0 * EOL
+              + Main
+          ) ^ 0
         * -1
         * Lc [[\__piton_end_line:]]
       )

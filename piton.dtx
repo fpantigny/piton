@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.1x4}
+\def\PitonFileVersion{3.1x5}
 \def\PitonFileDate{2024/09/21}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.1x4" -- 2024/09/21
+piton_version = "3.1x5" -- 2024/09/21
 %</LUA>
 %\fi
 %
@@ -101,6 +101,10 @@ piton_version = "3.1x4" -- 2024/09/21
 % syntactic highlighting, by using the Lua library LPEG. It requires LuaLaTeX.
 % \end{abstract}
 % 
+% \bigskip
+% {\color{red} In the version 4.0, the syntax of the absolute and relative
+% pathes used in |\PitonInputFile| has been changed:
+% cf.~part~\ref{PitonInputFile}, p.~\pageref{PitonInputFile}.} 
 % 
 %
 % \section{Presentation}
@@ -143,11 +147,11 @@ piton_version = "3.1x4" -- 2024/09/21
 %    \end{Piton}
 %
 %
-% \bigskip
+% \medskip
 % The main alternatives to the package \pkg{piton} are probably the packages
 % \pkg{listings} and \pkg{minted}.
 % 
-% \bigskip
+% \medskip
 % The name of this extension (\pkg{piton}) has been chosen arbitrarily by
 % reference to the pitons used by the climbers in alpinism.
 % 
@@ -220,8 +224,8 @@ piton_version = "3.1x4" -- 2024/09/21
 % command |\piton|, the environment |{Piton}| and the command |\PitonInputFile|.
 %
 % \begin{itemize}\setlength{\fboxsep}{1pt}
-% \item The command \colorbox{gray!20}{\texttt\textbackslash piton} should be
-% used to typeset small pieces of code inside a paragraph. For example:
+% \item The command \DefinitionCommand{piton} should be used to typeset small
+% pieces of code inside a paragraph. For example:
 % 
 % {\color{gray}\verb|\piton{def square(x): return x*x}|}\qquad 
 % \piton{def square(x): return x*x}
@@ -235,23 +239,11 @@ piton_version = "3.1x4" -- 2024/09/21
 % environment |{Piton}| with the command |\NewPitonEnvironment|:
 % cf.~\ref{NewPitonEnvironment} p.~\pageref{NewPitonEnvironment}.
 %
-% \item The command \colorbox{gray!20}{\ttfamily\textbackslash PitonInputFile}
-% is used to insert and typeset a external file.
+% \item The command \DefinitionCommand{PitonInputFile} is used to insert and
+% typeset an external file: cf.~\ref{PitonInputFile}
+% p.~\pageref{PitonInputFile}.
 %
-% It's possible to insert only a part of the file: cf.
-% part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}. 
 %
-% The key \Definition{path} of the command |\PitonOptions| specifies a
-% \emph{list} of paths where the files included by |\PitonInputFile| will be
-% searched. That list is comma separated.
-%
-% The extension \pkg{piton} also provides the commands
-% \colorbox{gray!20}{\ttfamily \textbackslash PitonInputFileT},
-% \colorbox{gray!20}{\ttfamily \textbackslash PitonInputFileF} and
-% \colorbox{gray!20}{\ttfamily \textbackslash PitonInputFileTF} with
-% supplementary arguments corresponding to the letters~|T| and~|F|. Those
-% arguments will be executed if the file to include has been found (letter~|T|)
-% or not found (letter~|F|).
 % \end{itemize}
 %
 % \subsection{The syntax of the command \textbackslash piton}
@@ -261,8 +253,8 @@ piton_version = "3.1x4" -- 2024/09/21
 % In fact, the command |\piton| is provided with a double syntax. It may be used
 % as a standard command of LaTeX taking its argument between curly braces
 % (|\piton{...}|) but it may also be used with a syntax similar to the syntax of
-% the command
-% |\verb|, that is to say with the argument delimited by two identical characters (e.g.: \verb!\piton|...|!).
+% the command |\verb|, that is to say with the argument delimited by two identical
+% characters (e.g.: \verb!\piton|...|!). 
 % 
 % \begin{itemize}
 % \item {\color{blue} \textsf{Syntax} \verb|\piton{...}|}\par\nobreak
@@ -372,9 +364,6 @@ piton_version = "3.1x4" -- 2024/09/21
 %
 % The initial value is |Python|.
 % 
-% \item \index{path} The key \Definition{path} specifies a path where the files
-% included by |\PitonInputFile| will be searched.
-% 
 % \item \index{gobble}\label{gobble} The key \Definition{gobble} takes in as
 % value a positive integer~$n$: the first $n$ characters are discarded (before
 % the process of highlighting of the code) for each line of the environment
@@ -442,8 +431,7 @@ piton_version = "3.1x4" -- 2024/09/21
 % \item The key \Definition{line-numbers/sep} is the horizontal distance between
 % the numbers of lines (inserted by |line-numbers|) and the beginning of the
 % lines of code. The initial value is 0.7~em.
-% \item \colorbox{yellow!50}{\bfseries New 3.1}\enskip The key
-% \Definition{line-numbers/format} is a list of tokens which are inserted before
+% \item The key \Definition{line-numbers/format} is a list of tokens which are inserted before
 % the number of line in order to format it. It's possible to put, \emph{at the
 % end} of the list, a LaTeX command with one argument, such as, for example,
 % |\fbox|. 
@@ -492,11 +480,6 @@ piton_version = "3.1x4" -- 2024/09/21
 % The key |background-color| accepts a color defined «on the fly». For example,
 % it's possible to write |background-color = [cmyk]{0.1,0.05,0,0}|.
 %
-% \smallskip
-% When the key |split-on-empty-lines| is in force (see the part ``Page breaks'',
-% p.~\pageref{page breaks}), the empty lines generated by that key don't have
-% any background color (at least with the initial value of the parameter
-% |split-separation|). 
 %
 % \item \index{prompt-background-color} With the key
 % \Definition{prompt-background-color}, \pkg{piton} adds a 
@@ -844,7 +827,6 @@ piton_version = "3.1x4" -- 2024/09/21
 % \indexcommand{NewPitonLanguage}
 % \label{NewPitonLanguage}
 % \index{listings@\pkg{listings} (extension)}
-% \colorbox{yellow!50}{\textbf{New 3.0}}
 %
 % \medskip
 % The package \pkg{listings} is a famous LaTeX package to format informatic
@@ -936,7 +918,7 @@ piton_version = "3.1x4" -- 2024/09/21
 % \bigskip
 % \begingroup
 % \small
-% \PitonOptions{split-on-empty-lines}
+% \PitonOptions{splittable-on-empty-lines}
 % \begin{Piton}[language = java]
 % public class Cipher {  // Caesar cipher
 %     public static void main(String[] args) {
@@ -995,149 +977,55 @@ piton_version = "3.1x4" -- 2024/09/21
 % category of the letters. 
 % 
 % \section{Advanced features}
+% \subsection{Insertion of a file}
 %
-% \subsection{Page breaks and line breaks}
+% \label{PitonInputFile}
 %
-% \label{breakable}
+% \subsubsection{The command \textbackslash PitonInputFile}
 %
-% \subsubsection{Page breaks}
-% \label{page breaks}
-% \index{splittable}
+% \indexcommand{PitonInputFile}
 %
-% By default, the listings produced by the environment |{Piton}| and the command
-% |\PitonInputFile| are not breakable.
+% The command \DefinitionCommand{PitonInputFile} includes the content of the
+% file specified in argument (or only a part of that file: see below). The
+% extension \pkg{piton} also provides the commands
+% \DefinitionCommand{PitonInputFileT}, \DefinitionCommand{PitonInputFileF} and
+% \DefinitionCommand{PitonInputFileTF} with supplementary arguments
+% corresponding to the letters~|T| and~|F|. Those arguments will be executed if
+% the file to include has been found (letter~|T|) or not found (letter~|F|).
+% 
+% \bigskip
+% \colorbox{yellow!50}{\textbf{Modification 4.0}}\par\nobreak
 %
-% However, the command |\PitonOptions| provides the keys |split-on-empty-lines|
-% and |splittable| to allow such breaks.
+% \index{old-PitonInputFile}
+% \smallskip
+% The syntax for the absolute and relative pathes has been changed in order to
+% be conform to the traditionnal usages. However, it's possible to use the key
+% \Definition{old-PitonInputFile} in the preamble of the document LaTeX in order
+% to have the old behaviour (though, that key will be deleted in a future
+% version of \pkg{piton}!).
 %
+% \smallskip
+% Now, the syntax if the following one:
 % \begin{itemize}
-% \item The key \Definition{split-on-empty-lines} allows breaks on the empty
-% lines\footnote{The ``empty lines'' are the lines which contains only spaes.} in
-% the listing. In the informatic listings, the empty lines usually separate the
-% definitions of the informatic functions and it's pertinent to allow breaks
-% between these functions.
+% \item The pathes beginning by |/| are absolute.
 %
-% In fact, when the key |split-on-empty-lines| is in force, the work goes a
-% little further than merely allowing page breaks: several successive empty lines
-% are deleted and replaced by the content of the parameter corresponding to the
-% key \Definition{split-separation}. 
-% \begin{itemize}
-% \item That parameter must contain elements allowed to be inserted in
-% \emph{vertical mode} of TeX. For example, it's possible to put |\hrule|.
+% \emph{Example} : |\PitonInputFile{/Users/joe/Documents/program.py}|
 %
-% \item The initial value of this parameter is
-% |\vspace{\baselineskip}\vspace{-1.25pt}| which corresponds eventually to an 
-% empty line in the final PDF (this vertical space is deleted if it occurs on a
-% page break). If the key |background-color| is in force, no background color is
-% added to that empty line.
+% \item The pathes which do not begin with |/| are relative to the current
+% repertory. 
+%
+% \emph{Example} : |\PitonInputFile{my_listings/program.py}|
 % \end{itemize}
 %
-% \item Of course, the key |split-on-empty-lines| may not be sufficient and
-% that's why \pkg{piton} provides the key \Definition{splittable}.
+% \index{path}
+% The key \Definition{path} of the command |\PitonOptions| specifies a
+% \emph{list} of paths where the files included by |\PitonInputFile| will be
+% searched. That list is comma separated.
 %
-% When the key |splittable| is used with the numeric value~$n$ (which must be a
-% positive integer) the listing, or each part of the listing delimited by empty
-% lines (when |split-on-empty-lines| is in force) may be broken anywhere with
-% the restriction that no break will occur within the $n$ first lines of
-% the listing or within the $n$ last lines.\footnote{Remark that we speak of the
-% lines of the original informatic listing and such line may be composed on
-% several lines in the final PDF when the key |break-lines-in-Piton| is in force.}
-
-% For example, a tuning withd% |splittable = 4| may be a good choice.
-%
-% When used without value, the key |splittable| is equivalent to 
-% |splittable = 1| and the listings may be broken anywhere (it's probably 
-% not recommandable).
-%
-% The initial value of the key |splittable| is equal to 100 (by default, the
-% listings are not breakable at all).
-% \end{itemize} 
-% 
-%
-%
-% \medskip
-% Even with a background color (set by the key |background-color|), the pages
-% breaks are allowed, as soon as the key |split-on-empty-lines| or the key
-% |splittable| is in force.\footnote{With the key |splittable|, the environments
-% \texttt{\{Piton\}} are breakable, even within a (breakable) environment of
-% \pkg{tcolorbox}. Remind that an environment of \pkg{tcolorbox} included in
-% another environment of \pkg{tcolorbox} is \emph{not} breakable, even when both
-% environments use the key |breakable| of \pkg{tcolorbox}.}
-%
-% 
-% \subsubsection{Line breaks}
-% 
-% \label{line-breaks}
-% 
-% By default, the elements produced by \pkg{piton} can't be broken by an end on
-% line. However, there are keys to allow such breaks (the possible breaking
-% points are the spaces, even the spaces in the Python strings).
-% \begin{itemize}
-% \item \index{break-lines!break-lines-in-piton} With the key
-% \Definition{break-lines-in-piton}, the line breaks are allowed in the command
-% |\piton{...}| (but not in the command \verb+\piton|...|+, that is to say the
-% command |\piton| in verbatim mode).
-% \item \index{break-lines!break-lines-in-Piton} With the key
-% \Definition{break-lines-in-Piton}, the line breaks are allowed in the
-% environment |{Piton}| (hence the capital letter |P| in the name) and in the
-% listings produced by |\PitonInputFile|.
-% \item \index{break-lines} The key \Definition{break-lines} is a conjunction of
-% the two previous keys. 
-% \end{itemize}
-% 
-% \bigskip 
-% The package \pkg{piton} provides also several keys to control the appearance
-% on the line breaks allowed by |break-lines-in-Piton|.
-%
-% \begin{itemize}
-% \item \index{indent-broken-lines} With the key
-% \Definition{indent-broken-lines}, the indentation of a 
-% broken line is respected at carriage return.
-%
-% \item The key \Definition{end-of-broken-line} corresponds to the symbol placed
-% at the end of a broken line. The initial value is:
-% |\hspace*{0.5em}\textbackslash|.
-%
-% \item \index{continuation-symbol} The key \Definition{continuation-symbol}
-% corresponds to the symbol placed at each carriage return. The initial value
-% is: |+\;| (the command |\;| inserts a small horizontal space).
-%
-% \item \index{continuation-symbol-on-indentation} 
-% The key \Definition{continuation-symbol-on-indentation} corresponds to
-% the symbol placed at each carriage return, on the position of the indentation
-% (only when the key |indent-broken-line| is in force). The initial value is:
-% |$\hookrightarrow\;$|.
-% \end{itemize}
-%
+% As previously, the absolute pathes must begin with |/|.
 %
 % \bigskip
-% The following code has been composed with the following tuning:
-%
-% \begin{Verbatim}
-% \PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
-% \end{Verbatim}
-%
-% \begin{center}
-% \PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
-% \begin{Piton}
-% def dict_of_list(l):
-%     """Converts a list of subrs and descriptions of glyphs in a dictionary"""
-%     our_dict = {}
-%     for list_letter in l:
-%         if (list_letter[0][0:3] == 'dup'): # if it's a subr
-%             name = list_letter[0][4:-3]
-%             print("We treat the subr of number " + name)
-%         else:
-%             name = list_letter[0][1:-3] # if it's a glyph
-%             print("We treat the glyph of number " + name)
-%         our_dict[name] = [treat_Postscript_line(k) for k in list_letter[1:-1]]
-%     return dict
-% \end{Piton}
-% \end{center}
-%
-%
-% \bigskip
-% \subsection{Insertion of a part of a file}
+% \subsubsection{Insertion of a part of a file}
 %
 % \label{part-of-a-file}
 % \indexcommand{PitonInputFile}
@@ -1153,7 +1041,8 @@ piton_version = "3.1x4" -- 2024/09/21
 % In both cases, if we want to number the lines with the numbers of the
 % lines in the file, we have to use the key |line-numbers/absolute|.
 %
-% \subsubsection{With line numbers}
+% \bigskip
+% \textbf{With line numbers}\par\nobreak
 %
 % The command |\PitonInputFile| supports the keys \Definition{first-line} and
 % \Definition{last-line} in order to insert only the part of file between the
@@ -1162,7 +1051,8 @@ piton_version = "3.1x4" -- 2024/09/21
 % |line-numbers/start| deals with the output whereas |first-line| and
 % |last-line| deal with the input.
 %
-% \subsubsection{With textual markers}
+% \bigskip
+% \textbf{With textual markers}\par\nobreak
 %
 % \index{marker/beginning}
 % \index{marker/end}
@@ -1277,6 +1167,169 @@ piton_version = "3.1x4" -- 2024/09/21
 % \end{Verbatim}
 %
 %
+%
+% \bigskip
+% \subsection{Page breaks and line breaks}
+%
+% \label{breakable}
+% 
+% \subsubsection{Line breaks}
+% 
+% \label{line-breaks}
+% 
+% By default, the elements produced by \pkg{piton} can't be broken by an end on
+% line. However, there are keys to allow such breaks (the possible breaking
+% points are the spaces, even the spaces in the Python strings).
+% \begin{itemize}
+% \item \index{break-lines!break-lines-in-piton} With the key
+% \Definition{break-lines-in-piton}, the line breaks are allowed in the command
+% |\piton{...}| (but not in the command \verb+\piton|...|+, that is to say the
+% command |\piton| in verbatim mode).
+% \item \index{break-lines!break-lines-in-Piton} With the key
+% \Definition{break-lines-in-Piton}, the line breaks are allowed in the
+% environment |{Piton}| (hence the capital letter |P| in the name) and in the
+% listings produced by |\PitonInputFile|.
+% \item \index{break-lines} The key \Definition{break-lines} is a conjunction of
+% the two previous keys. 
+% \end{itemize}
+% 
+% \bigskip 
+% The package \pkg{piton} provides also several keys to control the appearance
+% on the line breaks allowed by |break-lines-in-Piton|.
+%
+% \begin{itemize}
+% \item \index{indent-broken-lines} With the key
+% \Definition{indent-broken-lines}, the indentation of a 
+% broken line is respected at carriage return.
+%
+% \item The key \Definition{end-of-broken-line} corresponds to the symbol placed
+% at the end of a broken line. The initial value is:
+% |\hspace*{0.5em}\textbackslash|.
+%
+% \item \index{continuation-symbol} The key \Definition{continuation-symbol}
+% corresponds to the symbol placed at each carriage return. The initial value
+% is: |+\;| (the command |\;| inserts a small horizontal space).
+%
+% \item \index{continuation-symbol-on-indentation} 
+% The key \Definition{continuation-symbol-on-indentation} corresponds to
+% the symbol placed at each carriage return, on the position of the indentation
+% (only when the key |indent-broken-line| is in force). The initial value is:
+% |$\hookrightarrow\;$|.
+% \end{itemize}
+%
+%
+% \bigskip
+% The following code has been composed with the following tuning:
+%
+% \begin{Verbatim}
+% \PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
+% \end{Verbatim}
+%
+% \begin{center}
+% \PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
+% \begin{Piton}
+% def dict_of_list(l):
+%     """Converts a list of subrs and descriptions of glyphs in a dictionary"""
+%     our_dict = {}
+%     for list_letter in l:
+%         if (list_letter[0][0:3] == 'dup'): # if it's a subr
+%             name = list_letter[0][4:-3]
+%             print("We treat the subr of number " + name)
+%         else:
+%             name = list_letter[0][1:-3] # if it's a glyph
+%             print("We treat the glyph of number " + name)
+%         our_dict[name] = [treat_Postscript_line(k) for k in list_letter[1:-1]]
+%     return dict
+% \end{Piton}
+% \end{center}
+%
+% \subsubsection{Page breaks}
+% \label{page breaks}
+% \index{splittable}
+% \index{splittable-on-empty-lines}
+%
+% By default, the listings produced by the environment |{Piton}| and the command
+% |\PitonInputFile| are not breakable.
+%
+% However, \pkg{piton} provides the keys |splittable-on-empty-lines| and
+% |splittable| to allow such breaks.
+%
+% \begin{itemize}
+% \item The key \Definition{splittable-on-empty-lines} allows breaks on the empty
+% lines. The ``empty lines'' are in fact the lines which contains only spaces.
+%
+% \item Of course, the key |splittable-on-empty-lines| may not be sufficient and
+% that's why \pkg{piton} provides the key \Definition{splittable}.
+%
+% When the key |splittable| is used with the numeric value~$n$ (which must be a
+% positive integer) the listing, or each part of the listing delimited by empty
+% lines (when |split-on-empty-lines| is in force) may be broken anywhere with
+% the restriction that no break will occur within the $n$ first lines of
+% the listing or within the $n$ last lines.\footnote{Remark that we speak of the
+% lines of the original informatic listing and such line may be composed on
+% several lines in the final PDF when the key |break-lines-in-Piton| is in force.}
+%
+% For example, a tuning with |splittable = 4| may be a good choice.
+%
+% When used without value, the key |splittable| is equivalent to 
+% |splittable = 1| and the listings may be broken anywhere (it's probably 
+% not recommandable).
+%
+% The initial value of the key |splittable| is equal to 100 (by default, the
+% listings are not breakable at all).
+% \end{itemize} 
+%
+% \medskip
+% Even with a background color (set by the key |background-color|), the pages
+% breaks are allowed, as soon as the key |split-on-empty-lines| or the key
+% |splittable| is in force.\footnote{With the key |splittable|, the environments
+% \texttt{\{Piton\}} are breakable, even within a (breakable) environment of
+% \pkg{tcolorbox}. Remind that an environment of \pkg{tcolorbox} included in
+% another environment of \pkg{tcolorbox} is \emph{not} breakable, even when both
+% environments use the key |breakable| of \pkg{tcolorbox}.}
+%
+% \subsection{Splitting of a listing in sub-listings}
+%
+% \index{split-on-empty-lines}
+% \label{split-on-empty-lines}
+% \index{split-separation}
+%
+% The extension \pkg{piton} provides the key \Definition{split-on-empty-lines},
+% which should not be confused with the key |splittable-on-empty-lines|
+% previously defined.
+%
+% \smallskip
+% In order to understand the behaviour of the key |split-on-empty-lines|, one
+% should imagine that he has to compose an informatic listing which contains
+% several definitions of informatic functions. In most of the informatic
+% languages, those definitions of functions are separated by empty lines.
+%
+% \smallskip
+% The key |split-on-empty-lines| splits the listings on the empty lines. Several
+% empty lines are deleted and replaced by the content of the parameter
+% corresponding to the key |split-separation|.
+% \begin{itemize}
+% \item That parameter must contain elements allowed to be inserted in
+% \emph{vertical mode} of TeX. For example, it's possible to put |\hrule|.
+%
+% \item The initial value of this parameter is
+% |\vspace{\baselineskip}\vspace{-1.25pt}| which corresponds eventually to an 
+% empty line in the final PDF (this vertical space is deleted if it occurs on a
+% page break). If the key |background-color| is in force, no background color is
+% added to that empty line.
+% \end{itemize}
+%
+% Each chunk of the informatic listing will be formated independently in an
+% environment |{Piton}|, with, potentially its own line numbering (if the key
+% |line-numbers| is in force) and its own colored background (when the key
+% |background-color| is in force), separated from the background color of the
+% other chunks. I it is used, the key |splittable| applies in each chunk
+% (independently of the other chunks).
+%
+% \textbf{Caution}: Since each chunk is treated independently of the others, the
+% commands specified by |detected-commandds| and the commands and environments
+% of Beamer automatically detected by \pkg{piton} must not cross the enmpty
+% lines of the original listing.
 %
 % \subsection{Highlighting some identifiers}
 %
@@ -1712,8 +1765,7 @@ piton_version = "3.1x4" -- 2024/09/21
 % this way, if the Python code is copied, it's still executable by Python}.  ;
 % \item one mandatory argument : |\action|, |\alert|, |\invisible|, |\only|,
 % |\uncover| and |\visible| ; \newline
-% \colorbox{yellow!50}{\bfseries New 3.1}\newline
-% It's possible to add new commands to that list with the key
+% % It's possible to add new commands to that list with the key
 % \Definition{detected-beamer-commands} (the names of the commands must
 % \emph{not} be preceded by a backslash). 
 % \item two mandatory arguments : |\alt| ; 
@@ -1768,8 +1820,6 @@ piton_version = "3.1x4" -- 2024/09/21
 %
 % \smallskip
 % \index{detected-beamer-environments}
-% \colorbox{yellow!50}{\bfseries New 3.1} 
-% 
 % It's possible to add new environments to that list with the key
 % \Definition{detected-beamer-environments}. 
 %
@@ -1999,7 +2049,6 @@ piton_version = "3.1x4" -- 2024/09/21
 % the current language of \pkg{piton} (in lower case).
 %
 % \bigskip
-% \colorbox{yellow!50}{\textbf{New 2.6}}\par\nobreak
 %
 % The extension \pkg{piton} provides a Lua function
 % \Definition{piton.get_last_code} without argument which returns the code in
@@ -2181,16 +2230,12 @@ piton_version = "3.1x4" -- 2024/09/21
 %
 % \smallskip
 % We present now an example of tuning of these styles adapted to the documents
-% in black and white. We use the font \emph{DejaVu Sans Mono}\footnote{See:
-% \url{https://dejavu-fonts.github.io}} specified by the command |\setmonofont| of 
-% \pkg{fontspec}. 
+% in black and white.
 %
 % That tuning uses the command |\highLight| of \pkg{lua-ul} (that package
 % requires itself the package \pkg{luacolor}).
 %
 % \begin{Verbatim}
-% \setmonofont[Scale=0.85]{DejaVu Sans Mono}
-%
 % \SetPitonStyle
 %   {
 %     Number = ,
@@ -2217,9 +2262,6 @@ piton_version = "3.1x4" -- 2024/09/21
 % \pkg{piton} is \emph{not} empty.
 %
 % \begingroup
-%
-% \setmonofont[Scale=0.85]{DejaVu Sans Mono}
-%
 %  \PitonOptions{splittable}
 %
 % \SetPitonStyle
@@ -3473,7 +3515,9 @@ piton_version = "3.1x4" -- 2024/09/21
 % 
 % \bigskip
 % In the contents provided by Lua, each line of the Python code will be
-% surrounded by |\@@_begin_line:| and |\@@_end_line:|. |\@@_begin_line:| is a
+% surrounded by |\@@_begin_line:| and |\@@_end_line:|. 
+
+% |\@@_begin_line:| is a
 % TeX command with a delimited argument (|\@@_end_line:| is the marker for the
 % end of the argument).
 %
@@ -3772,6 +3816,16 @@ piton_version = "3.1x4" -- 2024/09/21
 % \bigskip
 % \subsubsection{PitonOptions}
 %
+%
+% \medskip
+% In version 4.0 of \pkg{piton}, we changed the mechanisme used by \pkg{piton}
+% to search the file to load with |\PitonInputFile|. With the key
+% |old-PitonInputFile|, it's possible to keep the old behaviour but it's only
+% for backward compatibility and it will be deleted in a future version.
+%    \begin{macrocode}
+\bool_new:N \l_@@_old_PitonInputFile_bool 
+%    \end{macrocode}
+%
 % \medskip
 %    \begin{macrocode}
 \bool_new:N \l_@@_line_numbers_bool 
@@ -3882,6 +3936,17 @@ piton_version = "3.1x4" -- 2024/09/21
     detected-beamer-environments .usage:n = preamble , 
 %    \end{macrocode}
 %
+% \bigskip
+% In version 4.0 of \pkg{piton}, we changed the mechanism used by \pkg{piton}
+% to search the file to load with |\PitonInputFile|. With the key
+% |old-PitonInputFile|, it's possible to keep the old behaviour but it's only
+% for backward compatibility and it will be deleted in a future version.
+%    \begin{macrocode}
+    old-PitonInputFile .bool_set:N = \l_@@_old_PitonInputFile_bool ,
+    old-PitonInputFile .default:n = true , 
+    old-PitonInputFile .usage:n = preamble ,
+%    \end{macrocode}
+% 
 % Remark that the command |\lua_escape:n| is fully expandable. That's why we use
 % |\lua_now:e|.
 %    \begin{macrocode}
@@ -4735,16 +4800,39 @@ piton_version = "3.1x4" -- 2024/09/21
 \NewDocumentCommand { \PitonInputFileTF } { d < > O { } m m m }
   {
     \group_begin:
-    \seq_concat:NNN 
-       \l_file_search_path_seq 
-       \l_@@_path_seq
-       \l_file_search_path_seq  
-    \file_get_full_name:nNTF { #3 } \l_@@_file_name_str
-      {  
-        \@@_input_file:nn { #1 } { #2 }
-        #4
+%    \end{macrocode}
+% In version 4.0 of \pkg{piton}, we changed the mechanism used by \pkg{piton}
+% to search the file to load with |\PitonInputFile|. With the key
+% |old-PitonInputFile|, it's possible to keep the old behaviour but it's only
+% for backward compatibility and it will be deleted in a future version.
+%    \begin{macrocode}
+    \bool_if:NTF \l_@@_old_PitonInputFile_bool
+      {
+        \bool_set_false:N \l_tmpa_bool
+        \seq_map_inline:Nn \l__piton_path_seq
+          {
+            \str_set:Nn \l__piton_file_name_str { ##1 / #3 }
+            \file_if_exist:nT { \l__piton_file_name_str }
+              {
+                \__piton_input_file:nn { #1 } { #2 }
+                \bool_set_true:N \l_tmpa_bool
+                \seq_map_break:
+              }
+          }
+        \bool_if:NTF \l_tmpa_bool { #4 } { #5 }
       }
-      { #5 }
+      {
+        \seq_concat:NNN 
+          \l_file_search_path_seq 
+          \l_@@_path_seq
+          \l_file_search_path_seq  
+        \file_get_full_name:nNTF { #3 } \l_@@_file_name_str
+          {  
+            \@@_input_file:nn { #1 } { #2 }
+            #4
+          }
+          { #5 }
+      }
     \group_end:
   }
 %    \end{macrocode}
@@ -7252,7 +7340,10 @@ do
         * BeamerBeginEnvironments
         * Lc [[\@@_begin_line:]]
         * SpaceIndentation ^ 0
-        * ( ( space * Lc [[\@@_trailing_space:]] ) ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
+        * ( ( space * Lc [[\@@_trailing_space:]] ) ^ 1 * -1 
+              + space ^ 0 * EOL 
+              + Main 
+          ) ^ 0
         * -1
         * Lc [[\@@_end_line:]]
       )
@@ -8045,7 +8136,8 @@ local function gobble ( n , code )
     end
 %    \end{macrocode}
 % We have a second test |if n == 0| because the, even if the key like
-% |auto-gobble| is in force, it's possible that, in fact, there is no space to gobble...
+% |auto-gobble| is in force, it's possible that, in fact, there is no space to
+% gobble... 
 %    \begin{macrocode}
     if n == 0 then
       return code
@@ -8071,6 +8163,7 @@ end
 %
 % \bigskip
 % In the following code, |n| is the value of |\l_@@_gobble_int|.
+%
 % |splittable| is the value of |\l_@@_splittable_int|.
 %    \begin{macrocode}
 function piton.GobbleParse ( lang , n , splittable , code )
@@ -8147,7 +8240,7 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
       (
         [[\begin{Piton}]] .. "\r" 
         .. v 
-        .. [[\end{Piton} ]] 
+        .. [[\end{Piton}]] 
       )
   end
   sprintL3 ( [[ \endgroup ]] ) 
@@ -8991,6 +9084,13 @@ end
 % repository:
 %
 % \verb|https://github.com/fpantigny/piton|
+%
+% \subsection*{Changes between versions 3.1 and 4.0}
+%
+% This version introduces an incompatibility: the syntax for the relative and
+% absolute pathes in |\PitonInputFile| and the key |path| has been changed to be
+% conform to usual conventions.
+%
 %
 % \subsection*{Changes between versions 3.0 and 3.1}
 %
