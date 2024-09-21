@@ -1050,8 +1050,11 @@ Quand la clé |splittable| est utilisée avec la valeur numérique $n$ (qui doit
 entier naturel non nul) le listing, ou bien chaque partie de ce listing située entre des
 lignes vides (quand |split-on-empty-lines| est utilisée), pourra être coupé n'importe où
 avec cette exception qu'aucune coupure ne pourra avoir lieu entre les $n$~premières
-lignes, ni entre les $n$~dernières. Par exemple, |splittable = 4| pourrait être un réglage
-raisonnable.
+lignes, ni entre les $n$~dernières.\footnote{Remarquer que l'on parle des lignes du
+  listing d'origine, une telle ligne pouvant être composée sur plusieurs lignes dans le
+  PDF final si la clé |break-lines-in-Piton| est utilisée.} 
+
+Par exemple, |splittable = 4| pourrait être un réglage raisonnable.
 
 Employée sans argument, la clé |splittable| est équivalente à |splittable = 1|, et les
 listings sont alors sécables n'importe où (ce n'est pas recommandable).

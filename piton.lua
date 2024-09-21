@@ -20,7 +20,8 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.1x3" -- 2024/09/11
+piton_version = "3.1x4" -- 2024/09/21
+
 
 
 
@@ -376,12 +377,12 @@ do
                +
                VisualSpace
                +
-               Q ( ( P "\\'" + "{{" + "}}" + 1 - S " {}'" ) ^ 1 )
+               Q ( ( P "\\'" + "\\\\" + "{{" + "}}" + 1 - S " {}'" ) ^ 1 )
              ) ^ 0
            * Q "'"
          +
            Q ( P "'" + "r'" + "R'" )
-           * ( Q ( ( P "\\'" + 1 - S " '\r%" ) ^ 1 )
+           * ( Q ( ( P "\\'" + "\\\\" + 1 - S " '\r%" ) ^ 1 )
                + VisualSpace
                + PercentInterpol
                + Q "%"
@@ -398,12 +399,12 @@ do
                +
                VisualSpace
                +
-               Q ( ( P "\\\"" + "{{" + "}}" + 1 - S " {}\"" ) ^ 1 )
+               Q ( ( P "\\\"" + "\\\\" + "{{" + "}}" + 1 - S " {}\"" ) ^ 1 )
               ) ^ 0
            * Q "\""
          +
            Q ( P "\"" + "r\"" + "R\"" )
-           * ( Q ( ( P "\\\"" + 1 - S " \"\r%" ) ^ 1 )
+           * ( Q ( ( P "\\\"" + "\\\\" + 1 - S " \"\r%" ) ^ 1 )
                + VisualSpace
                + PercentInterpol
                + Q "%"
@@ -1361,20 +1362,36 @@ function piton.GobbleParse ( lang , n , splittable , code )
   end
 end
 function piton.GobbleSplitParse ( lang , n , splittable , code )
-  P { "E" ,
-      E = ( V "F"
-           * ( P " " ^ 0 * "\r"
-               / ( function ( x ) sprintL3 [[ \__piton_incr_visual_line: ]] end )
-             ) ^ 1
-             / ( function ( x )
-                 sprintL3 ( piton.string_between_chunks )
-                 end )
-          ) ^ 0 * V "F" ,
-      F = C ( V "G" ^ 0 )
-           / ( function ( x ) piton.GobbleParse ( lang , 0 , splittable , x ) end ) ,
-      G = ( 1 - P "\r" ) ^ 0 * "\r" - ( P " " ^ 0 * "\r" )
-          + ( ( 1 - P "\r" ) ^ 1 * -1 - ( P " " ^ 0 * -1 ) )
-    } : match ( gobble ( n , code ) )
+  local chunks
+  chunks =
+     (
+       Ct (
+            (
+              P " " ^ 0 * "\r"
+              +
+              C ( ( ( 1 - P "\r" ) ^ 1 * "\r" - ( P " " ^ 0 * "\r" ) ) ^ 1 )
+            ) ^ 0
+          )
+     ) : match ( gobble ( n , code ) )
+  sprintL3 ( [[ \begingroup ]] )
+  sprintL3
+    (
+      [[ \PitonOptions { split-on-empty-lines=false, gobble = 0, ]]
+      .. "language = " .. lang .. ","
+      .. "splittable = " .. splittable .. "}"
+    )
+  for k , v in pairs ( chunks ) do
+    if k > 1 then
+     sprintL3 ( [[\l__piton_split_separation_tl ]] )
+    end
+    tex.sprint
+      (
+        [[\begin{Piton}]] .. "\r"
+        .. v
+        .. [[\end{Piton} ]]
+      )
+  end
+  sprintL3 ( [[ \endgroup ]] )
 end
 function piton.RetrieveGobbleSplitParse ( lang , n , splittable , code )
   local s
@@ -1466,60 +1483,48 @@ function piton.ComputeLinesStatus ( code , splittable )
   else
     lpeg_line_beamer = P ( false )
   end
-  piton.empty_lines =
-      (
-        Ct (
-             ( lpeg_line_beamer * "\r"
-               +
-               P " " ^ 0 * "\r" * Cc ( 0 )
-               +
-               ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )  -- ^ 0 or ^ 1 ?
-             ) ^ 0
-             *
-             ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
-           )
-        * -1
-      ) : match ( code )
-  local my_lpeg
-  if splittable < 0 then
-    my_lpeg =
-      Ct (
-           ( lpeg_line_beamer * "\r"
-             +
-             P " " ^ 0 * "\r" * Cc ( 0 )
-             +
-             ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )  -- ^ 0 or ^ 1 ?
-           ) ^ 0
-           *
-           ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
-         )
-      * -1
-  else
-    my_lpeg =
-      Ct (
-           ( lpeg_line_beamer * "\r"
-             +
-             ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )
-           ) ^ 0
-           *
-           ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
-         )
-      * -1
-  end
-  local lines_status = my_lpeg : match ( code )
+  local lpeg_empty_lines =
+    Ct (
+         ( lpeg_line_beamer * "\r"
+           +
+           P " " ^ 0 * "\r" * Cc ( 0 )
+           +
+           ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )
+         ) ^ 0
+         *
+         ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
+       )
+    * -1
+  local lpeg_all_lines =
+    Ct (
+         ( lpeg_line_beamer * "\r"
+           +
+           ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )
+         ) ^ 0
+         *
+         ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
+       )
+    * -1
+  piton.empty_lines = lpeg_empty_lines : match ( code )
+  local lines_status
   local s = splittable
   if splittable < 0 then s = - splittable end
-  for i , x in ipairs ( lines_status ) do
-    if x == 0 then
-      for j = 1 , s - 1 do
-        if i + j > #lines_status then break end
-        if lines_status[i+j] == 0 then break end
-          lines_status[i+j] = 2
-      end
-      for j = 1 , s - 1 do
-        if i - j - 1 == 0 then break end
-        if lines_status[i-j-1] == 0 then break end
-        lines_status[i-j-1] = 2
+  if splittable > 0 then
+    lines_status = lpeg_all_lines : match ( code )
+  else
+    lines_status = lpeg_empty_lines : match ( code )
+    for i , x in ipairs ( lines_status ) do
+      if x == 0 then
+        for j = 1 , s - 1 do
+          if i + j > #lines_status then break end
+          if lines_status[i+j] == 0 then break end
+            lines_status[i+j] = 2
+        end
+        for j = 1 , s - 1 do
+          if i - j - 1 == 0 then break end
+          if lines_status[i-j-1] == 0 then break end
+          lines_status[i-j-1] = 2
+        end
       end
     end
   end

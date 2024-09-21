@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.1x3}
-\def\PitonFileDate{2024/09/11}
+\def\PitonFileVersion{3.1x4}
+\def\PitonFileDate{2024/09/21}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.1x3" -- 2024/09/11
+piton_version = "3.1x4" -- 2024/09/21
 %</LUA>
 %\fi
 %
@@ -1039,8 +1039,11 @@ piton_version = "3.1x3" -- 2024/09/11
 % positive integer) the listing, or each part of the listing delimited by empty
 % lines (when |split-on-empty-lines| is in force) may be broken anywhere with
 % the restriction that no break will occur within the $n$ first lines of
-% the listing or within the $n$ last lines. For example, a tuning with
-% |splittable = 4| may be a good choice.
+% the listing or within the $n$ last lines.\footnote{Remark that we speak of the
+% lines of the original informatic listing and such line may be composed on
+% several lines in the final PDF when the key |break-lines-in-Piton| is in force.}
+
+% For example, a tuning withd% |splittable = 4| may be a good choice.
 %
 % When used without value, the key |splittable| is equivalent to 
 % |splittable = 1| and the listings may be broken anywhere (it's probably 
@@ -3457,6 +3460,10 @@ piton_version = "3.1x3" -- 2024/09/11
               { \x20 } 
               { \c { @@_breakable_space: } }
               \l_tmpa_tl 
+            \regex_replace_all:nnN 
+              { \c { l_@@_space_tl } } 
+              { \c { @@_breakable_space: } }
+              \l_tmpa_tl 
           } 
       }
     \l_tmpa_tl 
@@ -4464,7 +4471,7 @@ piton_version = "3.1x3" -- 2024/09/11
                   { #2 }
                 \int_to_arabic:n 
                   { \g_@@_visual_line_int + \l_@@_nb_non_empty_lines_int }   
-               }
+              }
               {
                 \int_to_arabic:n 
                   { \g_@@_visual_line_int + \l_@@_nb_lines_int }  
@@ -4558,6 +4565,12 @@ piton_version = "3.1x3" -- 2024/09/11
          { 
             \group_end:
             \mode_if_vertical:TF { \noindent \mode_leave_vertical: } \newline 
+%    \end{macrocode}
+% The following line is only to compute |\l_@@_lines_int| which will be used
+% only when both |left-margin=auto| and |skip-empty-lines = false| are in force.
+% You should change that.
+%    \begin{macrocode}
+            \lua_now:e { piton.CountLines ( '\lua_escape:n{##1}' ) }
 %    \end{macrocode}
 % The first argument of the following function is the name of the Lua function
 % that will be applied to the second argument in order to count the number of lines.
@@ -4823,8 +4836,7 @@ piton_version = "3.1x3" -- 2024/09/11
       \mode_if_vertical:TF \mode_leave_vertical: \newline 
 %    \end{macrocode}
 % We count with Lua the number of lines of the argument. The result will be
-% stored by Lua in |\l_@@_nb_lines_int|. That information will be used to allow
-% or disallow page breaks.
+% stored by Lua in |\l_@@_nb_lines_int|. 
 %    \begin{macrocode}
       \lua_now:e { piton.CountLinesFile ( '\l_@@_file_name_str' ) } 
 %    \end{macrocode}
@@ -6352,7 +6364,7 @@ do
                + 
                VisualSpace 
                + 
-               Q ( ( P "\\'" + "{{" + "}}" + 1 - S " {}'" ) ^ 1 )
+               Q ( ( P "\\'" + "\\\\" + "{{" + "}}" + 1 - S " {}'" ) ^ 1 )
              ) ^ 0 
            * Q "'" 
          + 
@@ -6360,7 +6372,7 @@ do
 % Now, we deal with the standard strings of Python, but also the ``raw strings''.
 %    \begin{macrocode}
            Q ( P "'" + "r'" + "R'" ) 
-           * ( Q ( ( P "\\'" + 1 - S " '\r%" ) ^ 1 ) 
+           * ( Q ( ( P "\\'" + "\\\\" + 1 - S " '\r%" ) ^ 1 ) 
                + VisualSpace 
                + PercentInterpol 
                + Q "%" 
@@ -6380,12 +6392,12 @@ do
                + 
                VisualSpace 
                + 
-               Q ( ( P "\\\"" + "{{" + "}}" + 1 - S " {}\"" ) ^ 1 ) 
+               Q ( ( P "\\\"" + "\\\\" + "{{" + "}}" + 1 - S " {}\"" ) ^ 1 ) 
               ) ^ 0
            * Q "\"" 
          +
            Q ( P "\"" + "r\"" + "R\"" ) 
-           * ( Q ( ( P "\\\"" + 1 - S " \"\r%" ) ^ 1 ) 
+           * ( Q ( ( P "\\\"" + "\\\\" + 1 - S " \"\r%" ) ^ 1 ) 
                + VisualSpace 
                + PercentInterpol 
                + Q "%"
@@ -8072,8 +8084,7 @@ function piton.GobbleParse ( lang , n , splittable , code )
   piton.last_language = lang
 %    \end{macrocode}
 % We count the number of lines of the informatic code. The result will be stored
-% by Lua in |\l_@@_nb_lines_int|. That information will be used to allow or
-% disallow page breaks (when |splittable| is in force).
+% by Lua in |\l_@@_nb_lines_int|. 
 %    \begin{macrocode}
   piton.CountLines ( piton.last_code ) 
   sprintL3 [[ \bool_if:NT \g_@@_footnote_bool \savenotes ]] 
@@ -8115,31 +8126,36 @@ end
 % gobble). 
 %    \begin{macrocode}
 function piton.GobbleSplitParse ( lang , n , splittable , code )
-  P { "E" ,
-      E = ( V "F" 
-           * ( P " " ^ 0 * "\r" 
-               / ( function ( x ) sprintL3 [[ \@@_incr_visual_line: ]] end )
-             ) ^ 1 
-             / ( function ( x ) 
-                 sprintL3 ( piton.string_between_chunks ) 
-                 end ) 
-          ) ^ 0 * V "F" ,
-%    \end{macrocode}
-% The non-terminal |F| corresponds to a chunk of the informatic code.
-%    \begin{macrocode}
-      F = C ( V "G" ^ 0 ) 
-%    \end{macrocode}
-% The second argument of |piton.GobbleSplitParse| is the argument |gobble|: we put
-% that argument to~$0$ because we will have gobbled previously the whole argument
-% |code| (see below).
-%    \begin{macrocode}
-           / ( function ( x ) piton.GobbleParse ( lang , 0 , splittable , x ) end ) , 
-%    \end{macrocode}
-% The non-terminal |G| corresponds to a non-empty line of code.
-%    \begin{macrocode}
-      G = ( 1 - P "\r" ) ^ 0 * "\r" - ( P " " ^ 0 * "\r" ) 
-          + ( ( 1 - P "\r" ) ^ 1 * -1 - ( P " " ^ 0 * -1 ) )
-    } : match ( gobble ( n , code ) ) 
+  local chunks 
+  chunks =
+     ( 
+       Ct ( 
+            ( 
+              P " " ^ 0 * "\r" 
+              + 
+              C ( ( ( 1 - P "\r" ) ^ 1 * "\r" - ( P " " ^ 0 * "\r" ) ) ^ 1 ) 
+            ) ^ 0 
+          ) 
+     ) : match ( gobble ( n , code ) )
+  sprintL3 ( [[ \begingroup ]] ) 
+  sprintL3 
+    ( 
+      [[ \PitonOptions { split-on-empty-lines=false, gobble = 0, ]]
+      .. "language = " .. lang .. "," 
+      .. "splittable = " .. splittable .. "}"
+    )
+  for k , v in pairs ( chunks ) do 
+    if k > 1 then 
+     sprintL3 ( [[\l_@@_split_separation_tl ]] )
+    end 
+    tex.sprint 
+      (
+        [[\begin{Piton}]] .. "\r" 
+        .. v 
+        .. [[\end{Piton} ]] 
+      )
+  end
+  sprintL3 ( [[ \endgroup ]] ) 
 end 
 %    \end{macrocode}
 %
@@ -8176,13 +8192,9 @@ end
 % 
 % 
 % \bigskip
+% 
 % \subsubsection{To count the number of lines}
 %
-% \medskip
-% The following function is only used once (in |piton.GobbleParse|). We have
-% written an autonomous function only for legibility. The number of lines of the
-% code will be stored in |\l_@@_nb_lines_int| and will be used to allow or
-% disallow line breaks (when |splittable| is in force).
 %    \begin{macrocode}
 function piton.CountLines ( code )
   local count = 0
@@ -8280,16 +8292,23 @@ end
 % \bigskip
 % \subsubsection{To determine the empty lines of the listings}
 %
-% The following function returns a Lua list which contains an information for
-% each line of the listing with the current convention:
+% Despite its name, the Lua function |ComputeLinesStatus| computes
+% |piton.lines_status| but also |piton.empty_lines|.
+%
+% \medskip
+% In |piton.empty_lines|, a line will have the number 0 if it's a empty line (in
+% fact a blank line, with only spaces) and 1 elsewhere.
 % 
+% \medskip
+% In |piton.lines_status|, each line will have a status with regard the
+% breaking points allowed (for the changes of pages).
 % \begin{itemize}
-% \item 0 if the line is empty (in fact blank: with only spaces);
+% \item 0 if the line is empty and a page break is allowed;
 % \item 1 if the line is not empty but a page break is allowed after that line;
-% \item 2 if the line is not empty and a page break is \emph{not} allowed after
-% that line.
+% \item 2 if a page break is \emph{not} allowed after that line (empty or not empty).
 % \end{itemize}
 %    
+% \medskip
 % |splittable| is the value of |\l_@@_splittable_int|.
 % However, if |splittable-on-empty-lines| is in force, |splittable| is the
 % opposite of |\l_@@_splittable_int|.
@@ -8313,83 +8332,78 @@ function piton.ComputeLinesStatus ( code , splittable )
     lpeg_line_beamer = P ( false ) 
   end 
 %    \end{macrocode}
+%    \begin{macrocode}
+  local lpeg_empty_lines =
+    Ct (
+         ( lpeg_line_beamer * "\r" 
+           +
+           P " " ^ 0 * "\r" * Cc ( 0 )
+           + 
+           ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )  
+         ) ^ 0
+         * 
+         ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
+       )
+    * -1
+%    \end{macrocode}
+%    \begin{macrocode}
+  local lpeg_all_lines =    
+    Ct ( 
+         ( lpeg_line_beamer * "\r" 
+           +
+           ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 ) 
+         ) ^ 0 
+         * 
+         ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
+       )
+    * -1
+%    \end{macrocode}
 % We begin with the computation of |piton.empty_lines|. It will be used in
 % conjonction with |line-numbers|. 
 %    \begin{macrocode}
-  piton.empty_lines = 
-      ( 
-        Ct (
-             ( lpeg_line_beamer * "\r" 
-               +
-               P " " ^ 0 * "\r" * Cc ( 0 )
-               + 
-               ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )  -- ^ 0 or ^ 1 ?
-             ) ^ 0
-             * 
-             ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
-           )
-        * -1
-      ) : match ( code ) 
+  piton.empty_lines = lpeg_empty_lines : match ( code ) 
 %    \end{macrocode}
 % 
 % Now, we compute |piton.lines_status|. It will be used in conjonction with
-% |splittable| and |splittable-on-empty-lines|. Of course, there is redundancy
-% with the previous code. We should change that in the future.
-%    \begin{macrocode}
-  local my_lpeg
-  if splittable < 0 then
-    my_lpeg =
-      Ct (
-           ( lpeg_line_beamer * "\r" 
-             +
-             P " " ^ 0 * "\r" * Cc ( 0 )
-             + 
-             ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )  -- ^ 0 or ^ 1 ?
-           ) ^ 0
-           * 
-           ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
-         )
-      * -1
-  else 
-    my_lpeg =    
-      Ct ( 
-           ( lpeg_line_beamer * "\r" 
-             +
-             ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 ) 
-           ) ^ 0 
-           * 
-           ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
-         )
-      * -1
-  end 
-  local lines_status = my_lpeg : match ( code ) 
-%    \end{macrocode}
+% |splittable| and |splittable-on-empty-lines|. 
 %
-%    \end{macrocode}
 % Now, we will take into account the current value of |\l_@@_splittable_int|
 % (provided by the \emph{absolute value} of the argument |splittable|).
 %    \begin{macrocode}
+  local lines_status
   local s = splittable
   if splittable < 0 then s = - splittable end 
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
-  for i , x in ipairs ( lines_status ) do
-    if x == 0 then
-      for j = 1 , s - 1 do
-        if i + j > #lines_status then break end 
-        if lines_status[i+j] == 0 then break end 
-          lines_status[i+j] = 2 
-      end
-      for j = 1 , s - 1 do
-        if i - j - 1 == 0 then break end 
-        if lines_status[i-j-1] == 0 then break end 
-        lines_status[i-j-1] = 2 
-      end
+  if splittable > 0 then  
+    lines_status = lpeg_all_lines : match ( code ) 
+  else
+%    \end{macrocode}
+% Here, we should try to copy |piton.empty_lines| but it's not easy.
+%    \begin{macrocode}
+    lines_status = lpeg_empty_lines : match ( code ) 
+    for i , x in ipairs ( lines_status ) do
+      if x == 0 then
+        for j = 1 , s - 1 do
+          if i + j > #lines_status then break end 
+          if lines_status[i+j] == 0 then break end 
+            lines_status[i+j] = 2 
+        end
+        for j = 1 , s - 1 do
+          if i - j - 1 == 0 then break end 
+          if lines_status[i-j-1] == 0 then break end 
+          lines_status[i-j-1] = 2 
+        end
+      end 
     end 
   end 
 %    \end{macrocode}
-% Now, from the beginning of the code (first chunk).
+% 
+% In all cases (whatever is the value of |splittable-on-empty-lines|) we have to
+% deal with both extremities of the listing to format.
+%
+% First from the beginning of the code.
 %    \begin{macrocode}
   for j = 1 , s - 1 do
     if j > #lines_status then break end
@@ -8397,7 +8411,7 @@ function piton.ComputeLinesStatus ( code , splittable )
     lines_status[j] = 2
   end
 %    \end{macrocode}
-% Now, from the end of the code (last chunk).
+% Now, from the end of the code.
 %    \begin{macrocode}
   for j = 1 , s - 1 do 
     if #lines_status - j == 0 then break end 

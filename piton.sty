@@ -19,8 +19,9 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{3.1x3}
-\def\PitonFileDate{2024/09/11}
+\def\PitonFileVersion{3.1x4}
+\def\PitonFileDate{2024/09/21}
+
 
 
 
@@ -271,6 +272,10 @@
           {
             \regex_replace_all:nnN
               { \x20 }
+              { \c { __piton_breakable_space: } }
+              \l_tmpa_tl
+            \regex_replace_all:nnN
+              { \c { l__piton_space_tl } }
               { \c { __piton_breakable_space: } }
               \l_tmpa_tl
           }
@@ -884,7 +889,7 @@
                   { #2 }
                 \int_to_arabic:n
                   { \g__piton_visual_line_int + \l__piton_nb_non_empty_lines_int }
-               }
+              }
               {
                 \int_to_arabic:n
                   { \g__piton_visual_line_int + \l__piton_nb_lines_int }
@@ -933,6 +938,7 @@
          {
             \group_end:
             \mode_if_vertical:TF { \noindent \mode_leave_vertical: } \newline
+            \lua_now:e { piton.CountLines ( '\lua_escape:n{##1}' ) }
             \__piton_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
             \__piton_compute_width:
             \ttfamily
