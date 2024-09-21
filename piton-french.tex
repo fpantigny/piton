@@ -73,6 +73,8 @@
 \usepackage{makeidx}
 \makeindex
 
+\usepackage{underscore}
+
 \NewDocumentCommand{\Definition}{m}
   {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily \vphantom{gl}#1}}}
 
@@ -197,7 +199,7 @@ Par défaut, le langage est Python.
 
 \smallskip
 \index{language (clé)}
-On peut changer de langage avec la clé |language| de |\PitonOptions| : 
+On peut changer de langage avec la clé \Definition{language} de |\PitonOptions| : 
 
 \smallskip
 |\PitonOptions{language = OCaml}|
@@ -804,10 +806,10 @@ peu près comme du texte verbatim), il n'est pas possible de définir de nouveau
 environnements directement au-dessus de l'environnement |{Piton}| avec les commandes
 classiques |\newenvironment| (de LaTeX standard) et |\NewDocumentEnvironment| (de LaTeX3).
 
-C'est pourquoi \pkg{piton} propose une commande |\NewPitonEnvironment|. Cette commande a
-la même syntaxe que la commande classique |\NewDocumentEnvironment|.\footnote{Néanmoins,
-  le spécificateur d'argument~|b|, qui sert à capter le corps de l'environnement comme un
-  argument LaTeX, n'est pas autorisé.}
+C'est pourquoi \pkg{piton} propose une commande \DefinitionCommand{NewPitonEnvironment}.
+Cette commande a la même syntaxe que la commande classique
+|\NewDocumentEnvironment|.\footnote{Néanmoins, le spécificateur d'argument~|b|, qui sert à
+  capter le corps de l'environnement comme un argument LaTeX, n'est pas autorisé.}
 
 \bigskip
 Par exemple, avec l'instruction suivante, un nouvel environnement |{Python}| sera défini
@@ -871,7 +873,7 @@ la même syntaxe que |\lstdefinelanguage|.
 
 \medskip
 Précisons tout de suite que l'extension \pkg{piton} n'utilise \emph{pas} cette commande
-pour définir les langages qu'elle propose nativement (Python, C, OCaml, \CC\ et
+pour définir les langages qu'elle propose nativement (Python, C, OCaml, SQL et
 |minimal|), ce qui permet de proposer des parseurs plus puissants.
 
 \medskip
@@ -1998,7 +2000,8 @@ def arctan(x,n=10):
 \index{tab-size}
 
 \smallskip
-Même s'il est recommandé d'indenter les listings Python avec des espaces (cf. PEP~8),
+Même s'il est sans doute recommandable d'indenter les listings informatiques avec des
+espaces et non des tabulations\footnote{Voir, par exemple, pour le langage Piton, la note PEP~8},
 \pkg{piton} accepte les caractères de tabulations (U+0009) en début de ligne. Chaque
 caractère U+0009 est remplacé par $n$ espaces. La valeur initiale de~$n$ est~4 mais on
 peut la changer avec la clé \Definition{tab-size} de |\PitonOptions|.
@@ -2020,14 +2023,15 @@ La clé |env-gobble| n'est pas compatible avec les tabulations.
 \index{piton.last@\texttt{piton.get\_last\_code} (fonction Lua)}
 \label{API}
 
-La variable L3 |\l_piton_language_str| contient le nom du langage courant (en minuscules).
+La variable L3 \DefinitionCommand{l_piton_language_str} contient le nom du langage courant
+(en minuscules). 
 
 \bigskip
 
 \colorbox{yellow!50}{\textbf{Nouveau 2.6}}\par\nobreak
 
-L'extension \pkg{piton} fournit une fonction Lua |piton.get_last_code| sans argument
-permettant de récupérer le code contenu dans le dernier environnement de \pkg{piton}.
+L'extension \pkg{piton} fournit une fonction Lua \Definition{piton.get_last_code} sans
+argument permettant de récupérer le code contenu dans le dernier environnement de \pkg{piton}.
 \begin{itemize}
 \item Les retours à la ligne (présents dans l'environnement de départ) apparaissent comme
 des caractères |\r| (c'est-à-dire des caractères U+000D).
