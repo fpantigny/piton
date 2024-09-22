@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{3.1x5}
-\def\PitonFileDate{2024/09/21}
+\def\PitonFileVersion{4.0}
+\def\PitonFileDate{2024/09/22}
 
 
 
@@ -682,6 +682,10 @@
         \str_set:Nn \l__piton_end_range_str { #1 }
       } ,
     range .value_required:n = true ,
+
+    env-used-by-split .code:n =
+      \lua_now:n { piton.env_used_by_split = '#1'} ,
+    env-used-by-split .initial:n = Piton ,
 
     resume .meta:n = line-numbers/resume ,
 
@@ -1507,6 +1511,7 @@
     end-of-broken-line,~
     end-range,~
     env-gobble,~
+    env-used-by-split,~
     font-command,~
     gobble,~
     indent-broken-lines,~

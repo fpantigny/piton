@@ -1310,6 +1310,7 @@ utilisée.\footnote{Avec la clé |splittable|, un environnement |{Piton}| est s�
 \index{split-on-empty-lines}
 \label{split-on-empty-lines}
 \index{split-separation}
+\index{env-used-by-split}
 
 L'exension \pkg{piton} fournit la clé \Definition{split-on-empty-lines}, qui ne doit pas
 être confondue avec la clé |splittable-on-empty-lines| définie précédemment. 
@@ -1334,12 +1335,24 @@ au final, correspond à une ligne vide dans le \textsc{pdf} produit (cet espace 
 est supprimé s'il tombe au niveau d'un saut de page). 
 \end{itemize}
 
-Chaque morceau du code informatique est formaté de manière autonome par un environnement
-|{Piton}|, avec éventuellement sa propre numérotation des lignes (si la clé |line-numbers|
-est active) et son propre fond coloré (si la clé |background-color| est utilisée) séparé
-des fonds des autres morceaux. Si elle est active, la clé |splittable| s'applique de
-manière autonome dans chaque morceau. Bien sûr, des sauts de page peuvent intervenir entre
-les différents morceaux du code, quelle que soit la valeur de la clé |splittable|.
+
+\colorbox{yellow!50}{\textbf{Nouveau 4.0}}\par\nobreak
+
+Chaque morceau du code informatique est formaté (de manière autonome) dans un
+environnement dont le nom est donné par la clé \Definition{env-used-by-split}. La valeur
+initiale de ce paramètre est, sans surprise, |Piton| et les différents morceaux sont donc
+composés dans des environnements |{Piton}|. Si on décide de donner une autre valeur à la
+clé |env-used-by-split|, on doit bien sûr donner le nom d'un environnement créé par
+|\NewPitonEnvironment| (cf.~partie~\ref{NewPitonEnvironment},
+p.~\pageref{NewPitonEnvironment}).
+
+\smallskip
+Chaque morceau du listing de départ étant composé dans son environnement, il dispose de sa
+propre numérotation des lignes (si la clé |line-numbers| est active) et de son propre fond
+coloré (si la clé |background-color| est utilisée), séparé des fonds des autres morceaux.
+Si elle est active, la clé |splittable| s'applique de manière autonome dans chaque
+morceau. Bien sûr, des sauts de page peuvent intervenir entre les différents morceaux du
+code, quelle que soit la valeur de la clé |splittable|.
 
 \bigskip
 \begin{Verbatim}
@@ -1364,6 +1377,7 @@ def cube(x):
     """Calcule le cube de x"""
     return x*x*x
 \end{Piton}
+
 
 \bigskip
 \textbf{Attention} : Comme chaque morceau est traité de manière indépendante, les

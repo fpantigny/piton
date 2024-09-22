@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{3.1x5}
-\def\PitonFileDate{2024/09/21}
+\def\PitonFileVersion{4.0}
+\def\PitonFileDate{2024/09/22}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "3.1x5" -- 2024/09/21
+piton_version = "4.0" -- 2024/09/22
 %</LUA>
 %\fi
 %
@@ -103,7 +103,7 @@ piton_version = "3.1x5" -- 2024/09/21
 % 
 % \bigskip
 % {\color{red} In the version 4.0, the syntax of the absolute and relative
-% pathes used in |\PitonInputFile| has been changed:
+% paths used in |\PitonInputFile| has been changed:
 % cf.~part~\ref{PitonInputFile}, p.~\pageref{PitonInputFile}.} 
 % 
 %
@@ -1007,7 +1007,7 @@ piton_version = "3.1x5" -- 2024/09/21
 %
 % \index{old-PitonInputFile}
 % \smallskip
-% The syntax for the absolute and relative pathes has been changed in order to
+% The syntax for the absolute and relative paths has been changed in order to
 % be conform to the traditionnal usages. However, it's possible to use the key
 % \Definition{old-PitonInputFile} at load-time (that is to say with the
 % |\usepackage|) in order to have the old behaviour (though, that key will be
@@ -1016,11 +1016,11 @@ piton_version = "3.1x5" -- 2024/09/21
 % \smallskip
 % Now, the syntax if the following one:
 % \begin{itemize}
-% \item The pathes beginning by |/| are absolute.
+% \item The paths beginning by |/| are absolute.
 %
 % \emph{Example} : |\PitonInputFile{/Users/joe/Documents/program.py}|
 %
-% \item The pathes which do not begin with |/| are relative to the current
+% \item The paths which do not begin with |/| are relative to the current
 % repertory. 
 %
 % \emph{Example} : |\PitonInputFile{my_listings/program.py}|
@@ -1031,7 +1031,7 @@ piton_version = "3.1x5" -- 2024/09/21
 % \emph{list} of paths where the files included by |\PitonInputFile| will be
 % searched. That list is comma separated.
 %
-% As previously, the absolute pathes must begin with |/|.
+% As previously, the absolute paths must begin with |/|.
 %
 % \bigskip
 % \subsubsection{Insertion of a part of a file}
@@ -1332,11 +1332,21 @@ piton_version = "3.1x5" -- 2024/09/21
 % background color is added to that empty line.
 % \end{itemize}
 %
-% Each chunk of the informatic listing will be formated independently in an
-% environment |{Piton}|, with, potentially its own line numbering (if the key
+%
+% \colorbox{yellow!50}{\textbf{New 4.0}}\par\nobreak
+% Each chunk of the informatic listing is composed in an environment whose name
+% is given by the key \Definition{env-used-by-split}. The initial value of that
+% parameter is, not surprisingly, |Piton| and, hence, the different chunks are
+% composed in several environments |{Piton}|. If one decides to change the value
+% of |env-used-by-split|, he should use the name of an environment created by
+% |\NewPitonEnvironment| (cf.~part~\ref{NewPitonEnvironment},
+% p.~\pageref{NewPitonEnvironment}).
+%
+% Each chunk of the informatic listing is formated in its own environment.
+% Therefore, it has its own line numbering (if the key
 % |line-numbers| is in force) and its own colored background (when the key
 % |background-color| is in force), separated from the background color of the
-% other chunks. I it is used, the key |splittable| applies in each chunk
+% other chunks. When used, the key |splittable| applies in each chunk
 % (independently of the other chunks). Of course, a page break may occur between
 % the chunks of code, regardless of the value of |splittable|.
 %
@@ -3246,7 +3256,6 @@ piton_version = "3.1x5" -- 2024/09/21
 %    \end{macrocode}
 % That parameter must contain elements to be inserted in \emph{vertical} mode by
 % TeX. 
-% 
 %
 % 
 % \medskip
@@ -4160,6 +4169,10 @@ piton_version = "3.1x5" -- 2024/09/21
         \str_set:Nn \l_@@_end_range_str { #1 } 
       } ,
     range .value_required:n = true ,
+
+    env-used-by-split .code:n = 
+      \lua_now:n { piton.env_used_by_split = '#1'} , 
+    env-used-by-split .initial:n = Piton ,
 
     resume .meta:n = line-numbers/resume , 
 
@@ -5582,6 +5595,7 @@ piton_version = "3.1x5" -- 2024/09/21
     end-of-broken-line,~
     end-range,~
     env-gobble,~
+    env-used-by-split,~
     font-command,~
     gobble,~
     indent-broken-lines,~
@@ -8291,10 +8305,10 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
      sprintL3 ( [[\l_@@_split_separation_tl ]] )
     end 
     tex.sprint 
-      (
-        [[\begin{Piton}]] .. "\r" 
+      ( 
+        [[\begin{]] .. piton.env_used_by_split .. "}\r"
         .. v 
-        .. [[\end{Piton}]] 
+        .. [[\end{]] .. piton.env_used_by_split .. "}"
       )
   end
   sprintL3 ( [[ \endgroup ]] ) 
@@ -9142,11 +9156,11 @@ end
 % \subsection*{Changes between versions 3.1 and 4.0}
 %
 % This version introduces an incompatibility: the syntax for the relative and
-% absolute pathes in |\PitonInputFile| and the key |path| has been changed to be
+% absolute paths in |\PitonInputFile| and the key |path| has been changed to be
 % conform to usual conventions. An temporary key |old-PitonInputFile|, available
 % at load-time, has been added for backward compatibility.
 %
-% New keys |font-command| and |splittable-on-empty-lines|.
+% New keys |font-command|, |splittable-on-empty-lines| and |env-used-by-split|.
 %
 %
 % \subsection*{Changes between versions 3.0 and 3.1}

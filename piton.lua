@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "3.1x5" -- 2024/09/21
+piton_version = "4.0" -- 2024/09/22
 
 
 
@@ -1388,9 +1388,9 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
     end
     tex.sprint
       (
-        [[\begin{Piton}]] .. "\r"
+        [[\begin{]] .. piton.env_used_by_split .. "}\r"
         .. v
-        .. [[\end{Piton}]]
+        .. [[\end{]] .. piton.env_used_by_split .. "}"
       )
   end
   sprintL3 ( [[ \endgroup ]] )
