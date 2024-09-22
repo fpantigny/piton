@@ -25,7 +25,6 @@
 
 
 
-
 \NeedsTeXFormat{LaTeX2e}
 \RequirePackage{l3keys2e}
 \ProvidesExplPackage
@@ -91,13 +90,20 @@
 \bool_new:N \g__piton_math_comments_bool
 \bool_new:N \g__piton_beamer_bool
 \tl_new:N \g__piton_escape_inside_tl
+\bool_new:N \l__piton_old_PitonInputFile_bool
 \keys_define:nn { piton / package }
   {
     footnote .bool_gset:N = \g__piton_footnote_bool ,
     footnotehyper .bool_gset:N = \g__piton_footnotehyper_bool ,
+    footnote .usage:n = load ,
+    footnotehyper .usage:n = load ,
 
     beamer .bool_gset:N = \g__piton_beamer_bool ,
     beamer .default:n = true ,
+    beamer .usage:n = load ,
+    old-PitonInputFile .bool_set:N = \l__piton_old_PitonInputFile_bool ,
+    old-PitonInputFile .default:n = true ,
+    old-PitonInputFile .usage:n = load ,
 
     unknown .code:n = \__piton_error:n { Unknown~key~for~package }
   }
@@ -105,8 +111,8 @@
   {
     Unknown~key.\\
     You~have~used~the~key~'\l_keys_key_str'~but~the~only~keys~available~here~
-    are~'beamer',~'footnote',~'footnotehyper'.~Other~keys~are~available~in~
-    \token_to_str:N \PitonOptions.\\
+    are~'beamer',~'footnote',~'footnotehyper'~and~'old-PitonInputFile'.~
+    Other~keys~are~available~in~\token_to_str:N \PitonOptions.\\
     That~key~will~be~ignored.
   }
 \ProcessKeysOptions { piton / package }
@@ -173,6 +179,8 @@
 \str_new:N \l__piton_path_write_str
 \bool_new:N \l__piton_in_PitonOptions_bool
 \bool_new:N \l__piton_in_PitonInputFile_bool
+\tl_new:N \l__piton_font_command_tl
+\tl_set:Nn \l__piton_font_command_tl { \ttfamily }
 \int_new:N \l__piton_nb_lines_int
 \int_new:N \l__piton_nb_non_empty_lines_int
 \int_new:N \g__piton_line_int
@@ -333,7 +341,7 @@
         \clist_if_empty:NF \l__piton_bg_color_clist
           {
             \dim_compare:nNnT \l__piton_left_margin_dim = \c_zero_dim
-               { \skip_horizontal:n { 0.5 em } }
+              { \skip_horizontal:n { 0.5 em } }
           }
         \coffin_typeset:Nnnnn \l_tmpa_coffin T l \c_zero_dim \c_zero_dim
       }
@@ -437,7 +445,6 @@
       }
       { \hbox { ~ } }
   }
-\bool_new:N \l__piton_old_PitonInputFile_bool
 \bool_new:N \l__piton_line_numbers_bool
 \bool_new:N \l__piton_skip_empty_lines_bool
 \bool_set_true:N \l__piton_skip_empty_lines_bool
@@ -525,9 +532,6 @@
       \lua_now:n { piton.addBeamerEnvironments('#1') } ,
     detected-beamer-environments .value_required:n = true ,
     detected-beamer-environments .usage:n = preamble ,
-    old-PitonInputFile .bool_set:N = \l__piton_old_PitonInputFile_bool ,
-    old-PitonInputFile .default:n = true ,
-    old-PitonInputFile .usage:n = preamble ,
     begin-escape .code:n =
       \lua_now:e { piton.begin_escape = "\lua_escape:n{#1}" } ,
     begin-escape .value_required:n = true ,
@@ -569,6 +573,8 @@
     path             .initial:n         = . ,
     path-write       .str_set:N         = \l__piton_path_write_str ,
     path-write       .value_required:n  = true ,
+    font-command     .tl_set:N          = \l__piton_font_command_tl ,
+    font-command     .value_required:n  = true ,
     gobble           .int_set:N         = \l__piton_gobble_int ,
     gobble           .value_required:n  = true ,
     auto-gobble      .code:n            = \int_set:Nn \l__piton_gobble_int { -1 } ,
@@ -820,16 +826,16 @@
           { \regex_replace_all:nnN { \x20 } { \x20 } \l_tmpa_tl }
       }
     \if_mode_math:
-       \text { \ttfamily \l_tmpa_tl }
+       \text { \l__piton_font_command_tl \l_tmpa_tl }
     \else:
-       \ttfamily \l_tmpa_tl
+       \l__piton_font_command_tl \l_tmpa_tl
     \fi:
     \group_end:
   }
 \NewDocumentCommand { \__piton_piton_verbatim } { v }
   {
     \group_begin:
-    \ttfamily
+    \l__piton_font_command_tl
     \automatichyphenmode = 1
     \cs_set_eq:NN \__piton_begin_line: \prg_do_nothing:
     \tl_set:Ne \l_tmpa_tl
@@ -940,13 +946,13 @@
           ####1
           \c_backslash_str end \c_left_brace_str #1 \c_right_brace_str
       }
-         {
+          {
             \group_end:
             \mode_if_vertical:TF { \noindent \mode_leave_vertical: } \newline
             \lua_now:e { piton.CountLines ( '\lua_escape:n{##1}' ) }
             \__piton_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
             \__piton_compute_width:
-            \ttfamily
+            \l__piton_font_command_tl
             \dim_zero:N \parskip
             \noindent
             \str_if_empty:NTF \l__piton_path_write_str
@@ -1129,7 +1135,7 @@
       \lua_now:e { piton.CountLinesFile ( '\l__piton_file_name_str' ) }
       \__piton_compute_left_margin:no { CountNonEmptyLinesFile } \l__piton_file_name_str
       \__piton_compute_width:
-      \ttfamily
+      \l__piton_font_command_tl
       \lua_now:e
         {
           piton.ParseFile(
@@ -1501,6 +1507,7 @@
     end-of-broken-line,~
     end-range,~
     env-gobble,~
+    font-command,~
     gobble,~
     indent-broken-lines,~
     language,~

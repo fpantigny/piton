@@ -363,6 +363,15 @@ piton_version = "3.1x5" -- 2024/09/21
 % (cf.~part~\ref{NewPitonLanguage}, p.~\pageref{NewPitonLanguage}.  
 %
 % The initial value is |Python|.
+%
+% \item \index{font-command}
+% \colorbox{yellow!50}{\textbf{New 4.0}}\par\nobreak
+%
+% The key \Definition{font-command} contains instructions of font which will be
+% inserted at the beginning of all the elements composed by \pkg{piton}.
+%
+% The initial value is |\ttfamily| and, thus, \pkg{piton} uses by default the
+% current monospaced font.
 % 
 % \item \index{gobble}\label{gobble} The key \Definition{gobble} takes in as
 % value a positive integer~$n$: the first $n$ characters are discarded (before
@@ -611,17 +620,17 @@ piton_version = "3.1x5" -- 2024/09/21
 % package \pkg{luacolor}).
 %
 % \begin{verbatim}
-% \SetPitonStyle{ Name.Function = \bfseries \highLight[red!50] }
+% \SetPitonStyle{ Name.Function = \bfseries \highLight[red!30] }
 % \end{verbatim}
 %
-% In that example, |\highLight[red!50]| must be considered as the name of a
+% In that example, |\highLight[red!30]| must be considered as the name of a
 % LaTeX command which takes in exactly one argument, since, usually, it is used
-% with |\highLight[red!50]{...}|.
+% with |\highLight[red!30]{...}|.
 %
 % \medskip
 % \begingroup
 % \SetPitonStyle 
-%   { Name.Function = \bfseries \highLight[red!50] }
+%   { Name.Function = \bfseries \highLight[red!30] }
 % With that setting, we will have : \piton{def cube(x) : return x * x * x }
 % \endgroup
 % 
@@ -1000,9 +1009,9 @@ piton_version = "3.1x5" -- 2024/09/21
 % \smallskip
 % The syntax for the absolute and relative pathes has been changed in order to
 % be conform to the traditionnal usages. However, it's possible to use the key
-% \Definition{old-PitonInputFile} in the preamble of the document LaTeX in order
-% to have the old behaviour (though, that key will be deleted in a future
-% version of \pkg{piton}!).
+% \Definition{old-PitonInputFile} at load-time (that is to say with the
+% |\usepackage|) in order to have the old behaviour (though, that key will be
+% deleted in a future version of \pkg{piton}!).
 %
 % \smallskip
 % Now, the syntax if the following one:
@@ -1200,7 +1209,9 @@ piton_version = "3.1x5" -- 2024/09/21
 % \begin{itemize}
 % \item \index{indent-broken-lines} With the key
 % \Definition{indent-broken-lines}, the indentation of a 
-% broken line is respected at carriage return.
+% broken line is respected at carriage return (on the condition that the used
+% font is a monospaced font and this is the case by default since the initial
+% value of |font-command| is |\ttfamily|).
 %
 % \item The key \Definition{end-of-broken-line} corresponds to the symbol placed
 % at the end of a broken line. The initial value is:
@@ -1267,7 +1278,8 @@ piton_version = "3.1x5" -- 2024/09/21
 % the restriction that no break will occur within the $n$ first lines of
 % the listing or within the $n$ last lines.\footnote{Remark that we speak of the
 % lines of the original informatic listing and such line may be composed on
-% several lines in the final PDF when the key |break-lines-in-Piton| is in force.}
+% several lines in the final \textsc{pdf} when the key |break-lines-in-Piton| is
+% in force.} 
 %
 % For example, a tuning with |splittable = 4| may be a good choice.
 %
@@ -1301,22 +1313,23 @@ piton_version = "3.1x5" -- 2024/09/21
 % \smallskip
 % In order to understand the behaviour of the key |split-on-empty-lines|, one
 % should imagine that he has to compose an informatic listing which contains
-% several definitions of informatic functions. In most of the informatic
+% several definitions of informatic functions. Usually, in the informatic
 % languages, those definitions of functions are separated by empty lines.
 %
 % \smallskip
 % The key |split-on-empty-lines| splits the listings on the empty lines. Several
 % empty lines are deleted and replaced by the content of the parameter
-% corresponding to the key |split-separation|.
+% corresponding to the key \Definition{split-separation}.
 % \begin{itemize}
 % \item That parameter must contain elements allowed to be inserted in
-% \emph{vertical mode} of TeX. For example, it's possible to put |\hrule|.
+% \emph{vertical mode} of TeX. For example, it's possible to put the TeX
+% primitive |\hrule|.
 %
 % \item The initial value of this parameter is
 % |\vspace{\baselineskip}\vspace{-1.25pt}| which corresponds eventually to an 
-% empty line in the final PDF (this vertical space is deleted if it occurs on a
-% page break). If the key |background-color| is in force, no background color is
-% added to that empty line.
+% empty line in the final \textsc{pdf} (this vertical space is deleted if it
+% occurs on a page break). If the key |background-color| is in force, no
+% background color is added to that empty line.
 % \end{itemize}
 %
 % Each chunk of the informatic listing will be formated independently in an
@@ -1324,10 +1337,36 @@ piton_version = "3.1x5" -- 2024/09/21
 % |line-numbers| is in force) and its own colored background (when the key
 % |background-color| is in force), separated from the background color of the
 % other chunks. I it is used, the key |splittable| applies in each chunk
-% (independently of the other chunks).
+% (independently of the other chunks). Of course, a page break may occur between
+% the chunks of code, regardless of the value of |splittable|.
 %
+% \bigskip
+% \begin{Verbatim}
+% \begin{Piton}[~emphase#split-on-empty-lines@,background-color=gray!15,line-numbers]
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+%
+% def cube(x):
+%     """Calcule the cube of x"""
+%     return x*x*x
+% \end{Piton}
+% \end{Verbatim}
+%
+%
+% \begin{Piton}[split-on-empty-lines,background-color=gray!15,line-numbers]
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+%
+% def cube(x):
+%     """Calcule the cube of x"""
+%     return x*x*x
+% \end{Piton}
+%
+% \bigskip
 % \textbf{Caution}: Since each chunk is treated independently of the others, the
-% commands specified by |detected-commandds| and the commands and environments
+% commands specified by |detected-commands| and the commands and environments
 % of Beamer automatically detected by \pkg{piton} must not cross the enmpty
 % lines of the original listing.
 %
@@ -1352,7 +1391,7 @@ piton_version = "3.1x5" -- 2024/09/21
 % identifiers.
 %
 % \item The second mandatory argument is a list of LaTeX instructions of the
-% same type as \pkg{piton} ``styles'' previously presented (cf~\ref{styles}
+% same type as \pkg{piton} ``styles'' previously presented (cf.~\ref{styles}
 % p.~\pageref{styles}). 
 % \end{itemize}
 % 
@@ -2936,7 +2975,8 @@ piton_version = "3.1x5" -- 2024/09/21
 %    \end{macrocode}
 %
 % \medskip
-% The following boolean corresponds to the key |math-comments| (available only at load-time).
+% The following boolean corresponds to the key |math-comments| (available only
+% in the preamble of the LaTeX document). 
 %    \begin{macrocode}
 \bool_new:N \g_@@_math_comments_bool
 %    \end{macrocode}
@@ -2946,6 +2986,16 @@ piton_version = "3.1x5" -- 2024/09/21
 \bool_new:N \g_@@_beamer_bool
 \tl_new:N \g_@@_escape_inside_tl 
 %    \end{macrocode}
+%
+% \medskip
+% In version 4.0 of \pkg{piton}, we changed the mechanism used by \pkg{piton}
+% to search the file to load with |\PitonInputFile|. With the key
+% |old-PitonInputFile|, it's possible to keep the old behaviour but it's only
+% for backward compatibility and it will be deleted in a future version.
+%    \begin{macrocode}
+\bool_new:N \l_@@_old_PitonInputFile_bool 
+%    \end{macrocode}
+%
 % 
 % \bigskip
 % We define a set of keys for the options at load-time.
@@ -2954,9 +3004,22 @@ piton_version = "3.1x5" -- 2024/09/21
   { 
     footnote .bool_gset:N = \g_@@_footnote_bool ,
     footnotehyper .bool_gset:N = \g_@@_footnotehyper_bool ,
+    footnote .usage:n = load , 
+    footnotehyper .usage:n = load ,
 
     beamer .bool_gset:N = \g_@@_beamer_bool ,
     beamer .default:n = true , 
+    beamer .usage:n = load ,
+%    \end{macrocode}
+% \medskip
+% In version 4.0 of \pkg{piton}, we changed the mechanism used by \pkg{piton}
+% to search the file to load with |\PitonInputFile|. With the key
+% |old-PitonInputFile|, it's possible to keep the old behaviour but it's only
+% for backward compatibility and it will be deleted in a future version.
+%    \begin{macrocode}
+    old-PitonInputFile .bool_set:N = \l_@@_old_PitonInputFile_bool ,
+    old-PitonInputFile .default:n = true , 
+    old-PitonInputFile .usage:n = load ,
 
     unknown .code:n = \@@_error:n { Unknown~key~for~package }
   }
@@ -2969,8 +3032,8 @@ piton_version = "3.1x5" -- 2024/09/21
   {
     Unknown~key.\\
     You~have~used~the~key~'\l_keys_key_str'~but~the~only~keys~available~here~
-    are~'beamer',~'footnote',~'footnotehyper'.~Other~keys~are~available~in~
-    \token_to_str:N \PitonOptions.\\ 
+    are~'beamer',~'footnote',~'footnotehyper'~and~'old-PitonInputFile'.~
+    Other~keys~are~available~in~\token_to_str:N \PitonOptions.\\ 
     That~key~will~be~ignored.
   }
 %    \end{macrocode}
@@ -3117,6 +3180,12 @@ piton_version = "3.1x5" -- 2024/09/21
 \bool_new:N \l_@@_in_PitonInputFile_bool 
 %    \end{macrocode}
 %
+% \medskip
+% The following parameter corresponds to the key |font-command|.
+%    \begin{macrocode}
+\tl_new:N \l_@@_font_command_tl
+\tl_set:Nn \l_@@_font_command_tl { \ttfamily }
+%    \end{macrocode}
 % 
 % \medskip
 % We will compute (with Lua) the numbers of lines of the listings (or
@@ -3602,7 +3671,7 @@ piton_version = "3.1x5" -- 2024/09/21
 % ... but if only if the key |left-margin| is not used !
 %    \begin{macrocode}
             \dim_compare:nNnT \l_@@_left_margin_dim = \c_zero_dim 
-               { \skip_horizontal:n { 0.5 em } }
+              { \skip_horizontal:n { 0.5 em } }
           }
         \coffin_typeset:Nnnnn \l_tmpa_coffin T l \c_zero_dim \c_zero_dim 
       }  
@@ -3724,8 +3793,8 @@ piton_version = "3.1x5" -- 2024/09/21
 % \item In fact, it will be inserted between two commands
 % |\@@_begin_line:|...|\@@_end_of_line:|. 
 % \item When the key |break-lines-in-Piton| is in force, a line of the
-% informatic code (the \emph{input}) may result in several lines in the PDF (the
-% \emph{output}). 
+% informatic code (the \emph{input}) may result in several lines in the
+% \textsc{pdf} (the \emph{output}). 
 % \item Remind that |\@@_newline:| has a rather complex behaviour because it will
 % finish and start paragraphs.
 % \end{itemize}
@@ -3735,7 +3804,7 @@ piton_version = "3.1x5" -- 2024/09/21
     \bool_if:NT \g_@@_footnote_bool \endsavenotes 
 %    \end{macrocode}
 % We recall that |\g_@@_line_int| is \emph{not} used for the number of line
-% printed in the PDF (when |line-numbers| is in force)...
+% printed in the \textsc{pdf} (when |line-numbers| is in force)...
 %    \begin{macrocode}
     \int_gincr:N \g_@@_line_int
 %    \end{macrocode}
@@ -3817,14 +3886,6 @@ piton_version = "3.1x5" -- 2024/09/21
 % \subsubsection{PitonOptions}
 %
 %
-% \medskip
-% In version 4.0 of \pkg{piton}, we changed the mechanisme used by \pkg{piton}
-% to search the file to load with |\PitonInputFile|. With the key
-% |old-PitonInputFile|, it's possible to keep the old behaviour but it's only
-% for backward compatibility and it will be deleted in a future version.
-%    \begin{macrocode}
-\bool_new:N \l_@@_old_PitonInputFile_bool 
-%    \end{macrocode}
 %
 % \medskip
 %    \begin{macrocode}
@@ -3936,16 +3997,6 @@ piton_version = "3.1x5" -- 2024/09/21
     detected-beamer-environments .usage:n = preamble , 
 %    \end{macrocode}
 %
-% \bigskip
-% In version 4.0 of \pkg{piton}, we changed the mechanism used by \pkg{piton}
-% to search the file to load with |\PitonInputFile|. With the key
-% |old-PitonInputFile|, it's possible to keep the old behaviour but it's only
-% for backward compatibility and it will be deleted in a future version.
-%    \begin{macrocode}
-    old-PitonInputFile .bool_set:N = \l_@@_old_PitonInputFile_bool ,
-    old-PitonInputFile .default:n = true , 
-    old-PitonInputFile .usage:n = preamble ,
-%    \end{macrocode}
 % 
 % Remark that the command |\lua_escape:n| is fully expandable. That's why we use
 % |\lua_now:e|.
@@ -4000,6 +4051,8 @@ piton_version = "3.1x5" -- 2024/09/21
     path             .initial:n         = . ,
     path-write       .str_set:N         = \l_@@_path_write_str ,
     path-write       .value_required:n  = true , 
+    font-command     .tl_set:N          = \l_@@_font_command_tl ,
+    font-command     .value_required:n  = true ,
     gobble           .int_set:N         = \l_@@_gobble_int , 
     gobble           .value_required:n  = true ,
     auto-gobble      .code:n            = \int_set:Nn \l_@@_gobble_int { -1 } , 
@@ -4424,9 +4477,9 @@ piton_version = "3.1x5" -- 2024/09/21
 % The command |\text| is provided by the package \pkg{amstext} (loaded by \pkg{piton}).
 %    \begin{macrocode}
     \if_mode_math:
-       \text { \ttfamily \l_tmpa_tl }
+       \text { \l_@@_font_command_tl \l_tmpa_tl }
     \else:
-       \ttfamily \l_tmpa_tl
+       \l_@@_font_command_tl \l_tmpa_tl
     \fi: 
     \group_end:
   }
@@ -4437,7 +4490,7 @@ piton_version = "3.1x5" -- 2024/09/21
 \NewDocumentCommand { \@@_piton_verbatim } { v }
   {
     \group_begin:
-    \ttfamily
+    \l_@@_font_command_tl
     \automatichyphenmode = 1
     \cs_set_eq:NN \@@_begin_line: \prg_do_nothing:
     \tl_set:Ne \l_tmpa_tl 
@@ -4628,7 +4681,7 @@ piton_version = "3.1x5" -- 2024/09/21
           ####1 
           \c_backslash_str end \c_left_brace_str #1 \c_right_brace_str
       }
-         { 
+          { 
             \group_end:
             \mode_if_vertical:TF { \noindent \mode_leave_vertical: } \newline 
 %    \end{macrocode}
@@ -4643,7 +4696,7 @@ piton_version = "3.1x5" -- 2024/09/21
 %    \begin{macrocode}
             \@@_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
             \@@_compute_width:
-            \ttfamily
+            \l_@@_font_command_tl
             \dim_zero:N \parskip
             \noindent
 %    \end{macrocode}
@@ -4928,7 +4981,7 @@ piton_version = "3.1x5" -- 2024/09/21
 %    \begin{macrocode}
       \@@_compute_left_margin:no { CountNonEmptyLinesFile } \l_@@_file_name_str
       \@@_compute_width:
-      \ttfamily
+      \l_@@_font_command_tl
       \lua_now:e
         { 
           piton.ParseFile(
@@ -5190,11 +5243,11 @@ piton_version = "3.1x5" -- 2024/09/21
 % ``internal style'' (not available for the final user). However, maybe we will
 % change that and document that style for the final user.
 %
-% \medskip
-% If the key |math-comments| has been used at load-time, we change the style
-% |Comment.Math| which should be considered only at an ``internal style''.
-% However, maybe we will document in a future version the possibility to write
-% change the style \emph{locally} in a document)].
+% \medskip 
+% If the key |math-comments| has been used in the preamble of the LaTeX
+% document, we change the style |Comment.Math| which should be considered only
+% at an ``internal style''. However, maybe we will document in a future version
+% the possibility to write change the style \emph{locally} in a document)].
 %    \begin{macrocode}
 \hook_gput_code:nnn { begindocument } { . } 
   { 
@@ -5529,6 +5582,7 @@ piton_version = "3.1x5" -- 2024/09/21
     end-of-broken-line,~
     end-range,~
     env-gobble,~
+    font-command,~
     gobble,~
     indent-broken-lines,~
     language,~
@@ -9089,7 +9143,10 @@ end
 %
 % This version introduces an incompatibility: the syntax for the relative and
 % absolute pathes in |\PitonInputFile| and the key |path| has been changed to be
-% conform to usual conventions.
+% conform to usual conventions. An temporary key |old-PitonInputFile|, available
+% at load-time, has been added for backward compatibility.
+%
+% New keys |font-command| and |splittable-on-empty-lines|.
 %
 %
 % \subsection*{Changes between versions 3.0 and 3.1}

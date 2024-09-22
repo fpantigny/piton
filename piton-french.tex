@@ -356,10 +356,6 @@ argument est pris \emph{en mode verbatim}. De ce fait, avec cette syntaxe, la co
 
 \section{Personnalisation}
 
-Concernant la fonte de caractères utilisée dans les listings produits par l'extension
-\pkg{piton}, il s'agit simplement de la fonte mono-chasse courante (\pkg{piton} utilise
-simplement en interne la commande LaTeX standard |\ttfamily|). Pour la changer, le mieux
-est d'utiliser |\setmonofont| de \pkg{fontspec}.
 
 \subsection{Les clés de la commande \textbackslash PitonOptions}
 
@@ -380,6 +376,16 @@ n'est pas prise en compte). On peut choisir l'un des cinq langages prédéfinis 
 avec |\NewPitonLanguage| (voir partie~\ref{NewPitonLanguage}, p.~\pageref{NewPitonLanguage}).
 
 La valeur initiale est |Python|.
+
+\item \index{font-command}
+\colorbox{yellow!50}{\textbf{Nouveau 4.0}}\par\nobreak
+
+La clé \Definition{font-command} contient des instructions de fonte qui seront
+insérées au début de chaque élément formaté par \pkg{piton}, que ce soit avec la commande
+|\piton|, l'environnement |{Piton}| ou bien la commande |\PitonInputFile|.
+
+La valeur initiale de ce paramètre |font-command| est |\ttfamily|, ce qui fait, que, par
+défaut, \pkg{piton} utilise la fonte mono-chasse courante.
 
 \item \index{gobble}\label{gobble} La clé \Definition{gobble} prend comme valeur un entier
 positif $n$ : les $n$ premiers caractères de chaque ligne sont alors retirés (avant
@@ -624,17 +630,17 @@ de sa définition (c'est-à-dire après le mot-clé |def|). Elle utilise la comm
 
 \begin{Verbatim}
 \SetPitonStyle
-  { Name.Function = \bfseries \hightLight[red!50] }
+  { Name.Function = \bfseries \hightLight[red!30] }
 \end{Verbatim}
 
-Ici, |\highLight[red!50]| doit être considéré comme le nom d'une fonction LaTeX qui prend
+Ici, |\highLight[red!30]| doit être considéré comme le nom d'une fonction LaTeX qui prend
 exactement un argument, puisque, habituellement, elle est utilisée avec
-|\highLight[red!50]{|\texttt{\slshape text}|}|.
+|\highLight[red!30]{|\texttt{\slshape text}|}|.
 
 \medskip
 \begingroup
 \SetPitonStyle 
-  { Name.Function = \bfseries \highLight[red!50] }
+  { Name.Function = \bfseries \highLight[red!30] }
 Avec ce réglage, on obtient : \piton{def cube(x) : return x * x * x }
 \endgroup
 
@@ -976,9 +982,11 @@ Par exemple, pour formater du code LaTeX, on pourra créer le language suivant :
 \begin{verbatim}
 \NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoletter = @_ }
 \end{verbatim}
-} Initialement, les caractères |@| et |_| sont des considérés comme des lettres car de
-nombreux langages de programmation les autorisent dans les mots-clés et les
-identificateurs. Avec \verb|alsoletter = @_|, on les retire de la catégorie des lettres.
+} 
+
+Initialement, les caractères |@| et |_| sont considérés comme des lettres car de nombreux
+langages de programmation les autorisent dans les mots-clés et les identificateurs. Avec
+\verb|alsoletter = @_|, on les retire de la catégorie des lettres.
 
 
 \section{Fonctionnalités avancées}
@@ -1007,9 +1015,9 @@ pas (lettre |F|).
 \index{old-PitonInputFile}
 La syntaxe pour les chemins absolus et relatifs a été changée pour être conforme aux
 usages traditionnels. Il est toutefois possible d'utiliser la clé
-\Definition{old-PitonInputFile} dans le préambule du document LaTeX pour avoir l'ancien
-comportement de |\PitonInputFile| (néanmoins, cette clé sera supprimée dans une prochaine
-version de \pkg{piton} !).
+\Definition{old-PitonInputFile} au chargement de l'extension (c'est-à-dire avec le
+|\usepackage|) pour avoir l'ancien comportement de |\PitonInputFile| (néanmoins, cette clé
+sera supprimée dans une prochaine version de \pkg{piton} !).
 
 \smallskip
 La syntaxe est maintenant la suivante : 
@@ -1049,9 +1057,9 @@ fichier d'origine, il convient d'utiliser la clé |line-numbers/absolute|.
 \textbf{Avec les numéros de lignes absolus}\par\nobreak
 
 La commande |\PitonInputFile| propose les clés \Definition{first-line} et
-\Definition{last-line} pour n'insérer que la partie du fichier comprise entre les lignes
-correspondantes. Ne pas confondre avec la clé |line-numbers/start| qui demande un
-numérotage des lignes commençant à la valeur donnée à cette clé (en un sens
+\Definition{last-line} qui permettent de n'insérer que la partie du fichier comprise entre
+les lignes correspondantes. Ne pas confondre avec la clé |line-numbers/start| qui demande
+un numérotage des lignes commençant à la valeur donnée à cette clé (en un sens
 |line-numbers/start| concerne la sortie alors que |first-line| et |last-line| concernent
 l'entrée).
 
@@ -1200,7 +1208,9 @@ coupures de ligne autorisées par |break-lines-in-Piton|.
 
 \begin{itemize}
 \item \index{indent-broken-lines} Avec la clé \Definition{indent-broken-lines},
-l'indentation de la ligne coupée est respectée à chaque retour à la ligne.
+l'indentation de la ligne coupée est respectée à chaque retour à la ligne (à condition que
+la fonte utilisée soit une fonte mono-chasse, ce qui est le cas par défaut puisque la
+valeur initiale de |font-command| est |\ttfamily|).
 
 \item \index{end-of-broken-line} La clé \Definition{end-of-broken-line} correspond au
 symbole placé à la fin d'une ligne coupée. Sa valeur initiale est :
@@ -1271,16 +1281,16 @@ Quand la clé |splittable| est utilisée avec la valeur numérique $n$ (qui doit
 entier naturel non nul) le listing pourra être coupé n'importe où avec cette exception
 qu'aucune coupure ne pourra avoir lieu entre les $n$~premières lignes, ni entre les
 $n$~dernières.\footnote{Remarquer que l'on parle des lignes du listing d'origine, une
-  telle ligne pouvant être composée sur plusieurs lignes dans le PDF final si la clé
-  |break-lines-in-Piton| est utilisée.}
+  telle ligne pouvant être composée sur plusieurs lignes dans le \textsc{pdf} final si la
+  clé |break-lines-in-Piton| est utilisée.}
 
 Par exemple, |splittable = 4| pourrait être un réglage raisonnable.
 
 Employée sans argument, la clé |splittable| est équivalente à |splittable = 1|, et les
 listings sont alors sécables n'importe où (ce n'est pas recommandable).
 
-La valeur initiale de la clé |splittable| vaut 100, ce qui fait que listings ne sont pas
-sécables. 
+La valeur initiale de la clé |splittable| vaut 100, ce qui fait que les listings ne sont
+pas sécables. 
 \end{itemize}
 
 \medskip
@@ -1317,23 +1327,48 @@ vides successives sont supprimées et remplacées par le contenu du paramètre c
 à la clé \Definition{split-separation}.
 \begin{itemize}
 \item Ce paramètre doit contenir du matériel à insérer en \emph{mode vertical} de TeX. On
-peut, par exemple, mettre |\hrule|.
+peut, par exemple, mettre la primmitive TeX |\hrule|.
 
 \item La valeur initiale de ce paramètre est |\vspace{\baselineskip}\vspace{-1.25pt}|, ce qui,
-au final, correspond à une ligne vide dans le PDF produit (cet espace vertical est
-supprimé s'il tombe au niveau d'un saut de page). 
+au final, correspond à une ligne vide dans le \textsc{pdf} produit (cet espace vertical
+est supprimé s'il tombe au niveau d'un saut de page). 
 \end{itemize}
 
 Chaque morceau du code informatique est formaté de manière autonome par un environnement
 |{Piton}|, avec éventuellement sa propre numérotation des lignes (si la clé |line-numbers|
 est active) et son propre fond coloré (si la clé |background-color| est utilisée) séparé
 des fonds des autres morceaux. Si elle est active, la clé |splittable| s'applique de
-manière autonome dans chaque morceau.
+manière autonome dans chaque morceau. Bien sûr, des sauts de page peuvent intervenir entre
+les différents morceaux du code, quelle que soit la valeur de la clé |splittable|.
 
-\smallskip
+\bigskip
+\begin{Verbatim}
+\begin{Piton}[~emphase#split-on-empty-lines@,background-color=gray!15,line-numbers]
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+
+def cube(x):
+    """Calcule le cube de x"""
+    return x*x*x
+\end{Piton}
+\end{Verbatim}
+
+
+\begin{Piton}[split-on-empty-lines,background-color=gray!15,line-numbers]
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+
+def cube(x):
+    """Calcule le cube de x"""
+    return x*x*x
+\end{Piton}
+
+\bigskip
 \textbf{Attention} : Comme chaque morceau est traité de manière indépendante, les
 commandes spécifiées par |detected-commands| et les commandes et environnements de Beamer
-automatiquement détectés par \pkg{ipton} ne doivent pas enjamber les lignes vides du
+automatiquement détectés par \pkg{piton} ne doivent pas enjamber les lignes vides du
 listing de départ. 
 
 

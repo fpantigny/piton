@@ -25,7 +25,6 @@ piton_version = "3.1x5" -- 2024/09/21
 
 
 
-
 if piton.comment_latex == nil then piton.comment_latex = ">" end
 piton.comment_latex = "#" .. piton.comment_latex
 local function sprintL3 ( s )
@@ -1391,7 +1390,7 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
       (
         [[\begin{Piton}]] .. "\r"
         .. v
-        .. [[\end{Piton} ]]
+        .. [[\end{Piton}]]
       )
   end
   sprintL3 ( [[ \endgroup ]] )
