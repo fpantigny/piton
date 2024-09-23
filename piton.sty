@@ -25,6 +25,7 @@
 
 
 
+
 \NeedsTeXFormat{LaTeX2e}
 \RequirePackage{l3keys2e}
 \ProvidesExplPackage
@@ -164,7 +165,7 @@
   }
 \lua_now:n
   {
-    piton.BeamerCommands = lpeg.P ( [[\uncover]] )
+    piton.BeamerCommands = lpeg.P [[\uncover]]
        + [[\only]] + [[\visible]] + [[\invisible]] + [[\alert]] + [[\action]]
     piton.beamer_environments = { "uncoverenv" , "onlyenv" , "visibleenv" ,
                "invisibleenv" ,  "alertenv" ,  "actionenv" }
@@ -1305,7 +1306,7 @@
     Identifier          = ,
     Directive           = \color[HTML]{AA6600} ,
     Tag                 = \colorbox{gray!10},
-    UserFunction        = ,
+    UserFunction        = \PitonStyle{Identifier} ,
     Prompt              = ,
     ParseAgain          = \__piton_piton_no_cr:n ,
     Discard             = \use_none:n
@@ -1567,9 +1568,9 @@
     local P , alpha , C , space , S , V
       = lpeg.P , lpeg.alpha , lpeg.C , lpeg.space , lpeg.S , lpeg.V
     local function add(...)
-          local s = P ( false )
-          for _ , x in ipairs({...}) do s = s + x end
-          return s
+            local s = P ( false )
+            for _ , x in ipairs({...}) do s = s + x end
+            return s
           end
     local my_lpeg =
       P {  "E" ,

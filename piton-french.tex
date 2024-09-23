@@ -528,9 +528,9 @@ caractères\footnote{Pour le language Python, cela ne s'applique que pour les ch
   courtes, c'est-à-dire celles délimitées par~\verb|'| ou~\verb|"|. En OCaml, cela ne
   s'applique pas pour les \emph{quoted strings}.} sont matérialisés par le caractère ␣
 (U+2423 : \textsc{open box}). Bien sûr, le caractère U+2423 doit être présent dans la
-fonte mono-chasse utilisée.\footnote{L'extension \pkg{piton} utilise simplement la fonte
-  mono-chasse courante. Pour la changer, le mieux est d'utiliser |\setmonofont| de
-  \pkg{fontspec}.}\par\nobreak
+fonte mono-chasse utilisée.\footnote{La valeur initial de |font-command| est |\ttfamily|
+  ce qui fait que, par défaut, l'extension \pkg{piton} utilise simplement la fonte
+  mono-chasse courante.}\par\nobreak
 %
 \begingroup
 \PitonOptions{show-spaces-in-strings}
@@ -608,7 +608,7 @@ particulier la coupure des pages et des lignes p.~\pageref{breakable}).
 \subsubsection{Notion de style}
 
 L'extension \pkg{piton} fournit la commande |\SetPitonStyle| pour personnaliser les
-différents styles utilisés pour formater les éléments syntaxiques des listings Python. Ces
+différents styles utilisés pour formater les éléments syntaxiques des listings informatiques. Ces
 personnalisations ont une portée qui correspond au groupe TeX courant.\footnote{On
   rappelle que tout environnement LaTeX est, en particulier, un groupe.}
 
@@ -715,10 +715,13 @@ Les styles fournis par défaut par \pkg{piton} sont tous définis globalement.
 Il existe un style spécial nommé |UserFunction|. Ce style s'applique aux noms des
 fonctions précédemment définies par l'utilisateur (par exemple, avec le langage Python,
 ces noms de fonctions sont ceux qui apparaissent après le mot-clé \piton{def} dans un
-listing Python précédent). La valeur initiale de ce style est nulle (=vide), ce qui fait
-que ces noms de fonctions sont formatés comme du texte courant (en noir). Néanmoins, il
-est possible de changer la valeur de ce style, comme tous les autres styles, avec la
-commande |\SetPitonStyle|.
+listing Python précédent). La valeur initiale de ce style est |\PitonStyle{Identifier}|,
+ce qui fait que ces noms de fonctions sont formatés comme les autres identificateurs
+(c'est-à-dire, par défaut, sans formatage particulier, si ce n'est celui donné par
+|font-command|).
+
+Néanmoins, il est possible de changer la valeur de ce style, comme tous les autres styles,
+avec la commande |\SetPitonStyle|.
 
 \medskip
 Dans l'exemple suivant, on règle les styles |Name.Function| et |UserFunction| de manière à
@@ -1655,20 +1658,20 @@ def fact(n):
 \index{end-escape}
 \label{escape}
 
-Il est aussi possible de surcharger les listings Python pour y insérer du code LaTeX à peu
-près n'importe où (mais entre deux lexèmes, bien entendu). Cette fonctionnalité n'est pas
-activée par défaut par \pkg{piton}. Pour l'utiliser, il faut spécifier les deux
-délimiteurs marquant l'échappement (le premier le commençant et le deuxième le terminant)
-en utilisant les clés \Definition{begin-escape} et \Definition{end-escape} (\emph{qui ne
-  sont accessibles que dans le préambule du document}). Les deux délimiteurs peuvent être
-identiques.
+Il est aussi possible de surcharger les listings informatiques pour y insérer du code
+LaTeX à peu près n'importe où (mais entre deux lexèmes, bien entendu). Cette
+fonctionnalité n'est pas activée par défaut par \pkg{piton}. Pour l'utiliser, il faut
+spécifier les deux délimiteurs marquant l'échappement (le premier le commençant et le
+deuxième le terminant) en utilisant les clés \Definition{begin-escape} et
+\Definition{end-escape} (\emph{qui ne sont accessibles que dans le préambule du
+  document}). Les deux délimiteurs peuvent être identiques.
 
 \medskip
 On reprend l'exemple précédent de la factorielle et on souhaite surligner en rose
 l'instruction qui contient l'appel récursif. La commande |\highLight| de \pkg{lua-ul}
 permet de le faire avec la syntaxe |\highLight[LightPink]{...}|. Du fait de la présence de
 l'argument optionnel entre crochets, on ne peut pas utiliser la clé |detected-commands|
-comme précédemment mais on peut utiliser le mécanisme «escape».
+comme précédemment mais on peut utiliser le mécanisme «escape» qui est plus général.
 
 \smallskip
 On suppose que le préambule du document contient l'instruction :
@@ -1699,10 +1702,10 @@ def fact(n):
 
 
 \bigskip
-\emph{Attention} : L'échappement vers LaTeX permis par les clés |begin-escape| et
-|end-escape| n'est pas actif dans les chaînes de caractères ni dans les commentaires (pour
-avoir un commentaire entièrement en échappement vers LaTeX, c'est-à-dire ce qui est appelé
-dans ce document «commentaire LaTeX», il suffit de le faire débuter par |#>|).
+\emph{Attention} : Le mécanisme «escape» n'est pas actif dans les chaînes de caractères ni
+dans les commentaires (pour avoir un commentaire entièrement en échappement vers LaTeX,
+c'est-à-dire ce qui est appelé dans ce document «commentaire LaTeX», il suffit de le faire
+débuter par |#>|).
 
 
 \subsubsection{Le mécanisme «escape-math»}
@@ -1711,7 +1714,7 @@ dans ce document «commentaire LaTeX», il suffit de le faire débuter par |#>|)
 \index{begin-escape-math}
 \index{end-escape-math}
 
-Le mécanisme «|escape-math|» est très similaire au mécanisme «|escape|» puisque la seule
+Le mécanisme «escape-math» est très similaire au mécanisme «escape» puisque la seule
 différence est que les éléments en échappement LaTeX y sont composés en mode mathématique.
 
 On active ce mécanisme avec les clés \Definition{begin-escape-math} et
@@ -1719,22 +1722,22 @@ On active ce mécanisme avec les clés \Definition{begin-escape-math} et
   document}).
 
 \medskip
-Malgré la proximité technique, les usages du mécanisme «|escape-math|» sont en fait assez
-différents de ceux du mécanisme «|escape|». En effet, comme le contenu en échappement est
-composé en mode mathématique, il est en particulier composé dans un groupe TeX et ne
+Malgré la proximité technique, les usages du mécanisme «escape-math» sont en fait assez
+différents de ceux du mécanisme «escape». En effet, comme le contenu en échappement est
+composé en mode mathématique, il est, en particulier, composé dans un groupe TeX et ne
 pourra donc pas servir à changer le formatage d'autres unités lexicales.
 
 \medskip
-Dans les langages où le caractère
-|$| ne joue pas un rôle syntaxique important, on peut assez naturellement vouloir activer
-le mécanisme «|escape-math|» avec le caractère |$|:
+Dans les langages où le caractère |$| ne joue pas un rôle syntaxique important, on peut
+assez naturellement vouloir activer le mécanisme «escape-math» avec le caractère |$|:
 \begin{Verbatim}
 \PitonOptions{~emphase#begin-escape-math=$,end-escape-math=$@}
 \end{Verbatim}
 Remarquer que le caractère |$| ne doit \emph{pas} être protégé par une contre-oblique. % $
 
 \bigskip
-Néanmoins, il est sans doute plus prudent d'utiliser |\(| et |\)|.
+Néanmoins, il est sans doute plus prudent d'utiliser |\(| et |\)|, qui sont des
+délimiteurs du mode mathématique proposés par LaTeX.
 \begin{Verbatim}
 \PitonOptions{~emphase#begin-escape-math=\(,end-escape-math=\)@}
 \end{Verbatim}
@@ -2019,7 +2022,7 @@ dans la préambule du document LaTeX :
 \begingroup
 \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 \begin{Verbatim}
-\PitonOptions{background-color=gray!10}
+\PitonOptions{background-color=gray!15}
 \begin{Piton}
 def arctan(x,n=10):
     if x < 0:
@@ -2033,7 +2036,7 @@ def arctan(x,n=10):
 \endgroup
 
 \begingroup
-\PitonOptions{background-color=gray!10}
+\PitonOptions{background-color=gray!15}
 \begin{Piton}
 def arctan(x,n=10):
     if x < 0:
@@ -2056,7 +2059,7 @@ qu'une telle |{minipage}| ne peut \emph{pas} être coupée par un saut de page.
 \begingroup
 \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 \begin{Verbatim}
-\PitonOptions{background-color=gray!10}
+\PitonOptions{background-color=gray!15}
 \emphase\begin{minipage}{\linewidth}
 \begin{Piton}
 def arctan(x,n=10):
@@ -2072,7 +2075,7 @@ def arctan(x,n=10):
 \endgroup
 
 \begingroup
-\PitonOptions{background-color=gray!10}
+\PitonOptions{background-color=gray!15}
 \begin{minipage}{\linewidth}
 \begin{Piton}
 def arctan(x,n=10):
@@ -2167,7 +2170,7 @@ numéros dépassent 10).
 \begingroup
 \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 \begin{Verbatim}
-~emphase&\PitonOptions{background-color=gray!10, left-margin = auto, line-numbers}@
+~emphase&\PitonOptions{background-color=gray!15, left-margin = auto, line-numbers}@
 \begin{Piton}
 def arctan(x,n=10):
     if x < 0:
@@ -2183,7 +2186,7 @@ def arctan(x,n=10):
 
 
 \begingroup
-\PitonOptions{background-color=gray!10,left-margin = auto, line-numbers}
+\PitonOptions{background-color=gray!15,left-margin = auto, line-numbers}
 \begin{Piton}
 def arctan(x,n=10):
     if x < 0:
@@ -2209,7 +2212,7 @@ commentaires LaTeX (qui débutent par |#>|) en butée à droite.
 \begingroup
 \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 \begin{Verbatim}
-\PitonOptions{background-color=gray!10}
+\PitonOptions{background-color=gray!15}
 ~emphase&\SetPitonStyle{Comment.LaTeX = \hfill \normalfont\color{gray}}@
 \begin{Piton}
 def arctan(x,n=10):
@@ -2224,7 +2227,7 @@ def arctan(x,n=10):
 \endgroup
 
 \begingroup
-\PitonOptions{background-color=gray!10}
+\PitonOptions{background-color=gray!15}
 \SetPitonStyle{Comment.LaTeX = \hfill \normalfont\color{gray}}
 \begin{Piton}
 def arctan(x,n=10):
@@ -2247,7 +2250,7 @@ sont nécessaires.
 \begingroup
 \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 \begin{Verbatim}
-\PitonOptions{width=min, background-color=gray!10}
+\PitonOptions{width=min, background-color=gray!15}
 ~emphase&\NewDocumentCommand{\MyLaTeXCommand}{m}{\hfill \normalfont\itshape\rlap{\quad #1}}@
 ~emphase&\SetPitonStyle{Comment.LaTeX = \MyLaTeXCommand}@
 \begin{Piton}
@@ -2268,7 +2271,7 @@ def arctan(x,n=10):
 
 
 \begingroup
-\PitonOptions{width = min, background-color=gray!10}
+\PitonOptions{width = min, background-color=gray!15}
 \NewDocumentCommand{\MyLaTeXCommand}{m}{\hfill \normalfont\itshape\rlap{\quad #1}}
 \SetPitonStyle{Comment.LaTeX = \MyLaTeXCommand}
 \begin{Piton}
@@ -2465,7 +2468,7 @@ car, bien sûr, c'est le retour fait par |{pythonrepl}| qui doit être traité p
    \PitonOptions
      { 
        background-color=white,
-       ~emphase#prompt-background-color = gray!10@,
+       ~emphase#prompt-background-color = gray!15@,
        ~#1
      }
    \PyLTVerbatimEnv
@@ -2509,7 +2512,7 @@ Voici un exemple d'utilisation de ce nouvel environnement |{PitonREPL}|.
 \ExplSyntaxOn
 \NewDocumentEnvironment { PitonREPL } { }
  { 
-   \PitonOptions{background-color=white,prompt-background-color = gray!10}
+   \PitonOptions{background-color=white,prompt-background-color = gray!15}
    \PyLTVerbatimEnv
    \begin{pythonrepl}
  }

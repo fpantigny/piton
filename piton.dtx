@@ -337,13 +337,9 @@ piton_version = "4.0" -- 2024/09/22
 % 
 % \section{Customization}
 %
-% With regard to the font used by \pkg{piton} in its listings, it's only the
-% current monospaced font. The package \pkg{piton} merely uses internally the
-% standard LaTeX command |\texttt|.
 %
 % \subsection{The keys of the command \textbackslash PitonOptions}
-%
-%
+
 %
 % \indexcommand{PitonOptions}
 % 
@@ -484,7 +480,7 @@ piton_version = "4.0" -- 2024/09/22
 % this case, the successive rows are colored by using the colors of the list in
 % a cyclic way.
 %
-% \emph{Example} : |\PitonOptions{background-color = {gray!5,white}}|
+% \emph{Example} : |\PitonOptions{background-color = {gray!15,white}}|
 %
 % The key |background-color| accepts a color defined «on the fly». For example,
 % it's possible to write |background-color = [cmyk]{0.1,0.05,0,0}|.
@@ -520,10 +516,10 @@ piton_version = "4.0" -- 2024/09/22
 % only to the short strings (delimited by~\verb|'| or~\verb|"|). In OCaml, that
 % feature does not apply to the \emph{quoted strings}.} are replaced by the
 % character~␣ (U+2423 : \textsc{open box}). Of course, that character~U+2423
-% must be present in the monospaced font which is used.\footnote{The package
-% \pkg{piton} simply uses the current monospaced font. The best way to change
-% that font is to use the command \texttt{\textbackslash setmonofont} of the
-% package \pkg{fontspec}.}\par\nobreak \begingroup
+% must be present in the monospaced font which is used.\footnote{The initial
+% value of |font-command| is |\ttfamily| and, thus,  by default, \pkg{piton}
+% merely uses the current monospaced font.}\par\nobreak 
+% \begingroup
 % \PitonOptions{show-spaces-in-strings} Example : 
 % \piton|my_string = 'Very good answer'| \endgroup
 %
@@ -596,7 +592,7 @@ piton_version = "4.0" -- 2024/09/22
 %
 % The package \pkg{piton} provides the command
 % \DefinitionCommand{SetPitonStyle} to customize the different styles used to
-% format the syntactic elements of the Python listings. The customizations done
+% format the syntactic elements of the informatic listings. The customizations done
 % by that command are limited to the current TeX group.\footnote{We remind that
 % a LaTeX environment is, in particular, a TeX group.}
 %
@@ -707,10 +703,12 @@ piton_version = "4.0" -- 2024/09/22
 % The extension \pkg{piton} provides a special style called~|UserFunction|. That
 % style applies to the names of the functions previously defined by the user
 % (for example, in Python, these names are those following the keyword
-% \piton{def} in a previous Python listing). The initial value of that style is
-% empty, and, therefore, the names of the functions are formatted as standard
-% text (in black). However, it's possible to change the value of that style, as
-% any other style, with the command |\SetPitonStyle|.
+% \piton{def} in a previous Python listing). The initial value of that style
+% |\PitonStyle{Identifier}| and, therefore, the names of the functions are
+% formatted like the other identifiers (that is to say, by default, with no
+% special formatting except the features provided in |font-command|). However,
+% it's possible to change the value of that style, as any other style, with the
+% command |\SetPitonStyle|.
 %
 % \medskip
 % In the following example, we tune the styles |Name.Function| and |UserFunction|
@@ -1635,7 +1633,7 @@ piton_version = "4.0" -- 2024/09/22
 %
 % \label{escape}
 %
-% It's also possible to overwrite the Python listings to insert LaTeX code
+% It's also possible to overwrite the informatic listings to insert LaTeX code
 % almost everywhere (but between lexical units, of course). By default,
 % \pkg{piton} does not fix any delimiters for that kind of escape.
 %
@@ -1653,8 +1651,8 @@ piton_version = "4.0" -- 2024/09/22
 % possible to achieve our goal with the more general mechanism ``escape''.
 %
 % \medskip
-% We assume that the preamble of the document contains
-% the following instruction:
+% We assume that the preamble of the document contains the following
+% instruction:
 %
 % \begin{Verbatim}
 % \PitonOptions{~emphase#begin-escape=!,end-escape=!@}
@@ -1683,16 +1681,15 @@ piton_version = "4.0" -- 2024/09/22
 %
 %
 % \bigskip
-% \emph{Caution} : The escape to LaTeX allowed by the |begin-escape| and
-% |end-escape| is not active in the strings nor in the Python comments (however,
-% it's possible to have a whole Python comment composed in LaTeX by beginning it
-% with |#>|; such comments are merely called ``LaTeX comments'' in this
-% document).
+% \emph{Caution} : The mechanism ``escape'' is not active in the strings nor in
+% the Python comments (however, it's possible to have a whole Python comment
+% composed in LaTeX by beginning it with |#>|; such comments are merely called
+% ``LaTeX comments'' in this document).
 % 
 %
 % \subsubsection{The mechanism ``escape-math''}
 % 
-% The mechanism ``|escape-math|'' is very similar to the mechanism ``|escape|''
+% The mechanism ``escape-math'' is very similar to the mechanism ``escape''
 % since the only difference is that the elements sent to LaTeX are composed in
 % the math mode of LaTeX.
 %
@@ -1701,13 +1698,13 @@ piton_version = "4.0" -- 2024/09/22
 % document}). 
 %
 % Despite the technical similarity, the use of the the mechanism
-% ``|escape-math|'' is in fact rather different from that of the mechanism
-% ``|escape|''. Indeed, since the elements are composed in a mathématical mode
-% of LaTeX, they are, in particular, composed within a TeX group and therefore,
+% ``escape-math'' is in fact rather different from that of the mechanism
+% ``escape''. Indeed, since the elements are composed in a mathematical mode
+% of LaTeX, they are, in particular, composed within a TeX group and, therefore,
 % they can't be used to change the formatting of other lexical units.
 %
 % In the languages where the character \verb|$| does not play a important role,
-% it's possible to activate that mechanism ``|escape-math|'' with the character
+% it's possible to activate that mechanism ``escape-math'' with the character
 % \verb|$|:
 % \begin{Verbatim}
 % \PitonOptions{~emphase#begin-escape-math=$,end-escape-math=$@}
@@ -1715,7 +1712,8 @@ piton_version = "4.0" -- 2024/09/22
 % Remark that the character \verb|$| must \emph{not} be protected by a backslash.
 %
 % \bigskip
-% However, it's probably more prudent to use |\(| et |\)|.
+% However, it's probably more prudent to use |\(| et |\)|, which are delimiters
+% of the mathematical mode provided by LaTeX.
 % \begin{Verbatim}
 % \PitonOptions{~emphase#begin-escape-math=\(,end-escape-math=\)@}
 % \end{Verbatim}
@@ -1997,7 +1995,7 @@ piton_version = "4.0" -- 2024/09/22
 % \begingroup
 % \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 % \begin{Verbatim}
-% \PitonOptions{background-color=gray!10}
+% \PitonOptions{background-color=gray!15}
 % \begin{Piton}
 % def arctan(x,n=10):
 %     if x < 0:
@@ -2011,7 +2009,7 @@ piton_version = "4.0" -- 2024/09/22
 % \endgroup
 %
 % \begingroup
-% \PitonOptions{background-color=gray!10}
+% \PitonOptions{background-color=gray!15}
 % \begin{Piton}
 % def arctan(x,n=10):
 %     if x < 0:
@@ -2034,7 +2032,7 @@ piton_version = "4.0" -- 2024/09/22
 % \begingroup
 % \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 % \begin{Verbatim}
-% \PitonOptions{background-color=gray!10}
+% \PitonOptions{background-color=gray!15}
 % \emphase\begin{minipage}{\linewidth}
 % \begin{Piton}
 % def arctan(x,n=10):
@@ -2050,7 +2048,7 @@ piton_version = "4.0" -- 2024/09/22
 % \endgroup
 %
 % \begingroup
-% \PitonOptions{background-color=gray!10}
+% \PitonOptions{background-color=gray!15}
 % \begin{minipage}{\linewidth}
 % \begin{Piton}
 % def arctan(x,n=10):
@@ -2134,7 +2132,7 @@ piton_version = "4.0" -- 2024/09/22
 % \index{numbers of the lines de code|emph}
 %
 % We remind that it's possible to have an automatic numbering of the lines in
-% the Python listings by using the key |line-numbers| (used without value).
+% the informatic listings by using the key |line-numbers| (used without value).
 %
 % By default, the numbers of the lines are composed by \pkg{piton} in an
 % overlapping position on the left (by using internally the command |\llap| of LaTeX).
@@ -2147,7 +2145,7 @@ piton_version = "4.0" -- 2024/09/22
 % \begingroup
 % \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 % \begin{Verbatim}
-% ~emphase&\PitonOptions{background-color=gray!10, left-margin = auto, line-numbers}@
+% ~emphase&\PitonOptions{background-color=gray!15, left-margin = auto, line-numbers}@
 % \begin{Piton}
 % def arctan(x,n=10):
 %     if x < 0:
@@ -2163,7 +2161,7 @@ piton_version = "4.0" -- 2024/09/22
 %
 %
 % \begingroup
-% \PitonOptions{background-color=gray!10,left-margin = auto, line-numbers}
+% \PitonOptions{background-color=gray!15,left-margin = auto, line-numbers}
 % \begin{Piton}
 % def arctan(x,n=10):
 %     if x < 0:
@@ -2190,7 +2188,7 @@ piton_version = "4.0" -- 2024/09/22
 % \begingroup
 % \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 % \begin{Verbatim}
-% \PitonOptions{background-color=gray!10}
+% \PitonOptions{background-color=gray!15}
 % ~emphase&\SetPitonStyle{Comment.LaTeX = \hfill \normalfont\color{gray}}@
 % \begin{Piton}
 % def arctan(x,n=10):
@@ -2205,7 +2203,7 @@ piton_version = "4.0" -- 2024/09/22
 % \endgroup
 %
 % \begingroup
-% \PitonOptions{background-color=gray!10}
+% \PitonOptions{background-color=gray!15}
 % \SetPitonStyle{Comment.LaTeX = \hfill \normalfont\color{gray}}
 % \begin{Piton}
 % def arctan(x,n=10):
@@ -2228,7 +2226,7 @@ piton_version = "4.0" -- 2024/09/22
 % \begingroup
 % \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 % \begin{Verbatim}
-% \PitonOptions{background-color=gray!10, width=min}
+% \PitonOptions{background-color=gray!15, width=min}
 % ~emphase&\NewDocumentCommand{\MyLaTeXCommand}{m}{\hfill \normalfont\itshape\rlap{\quad #1}}@
 % ~emphase&\SetPitonStyle{Comment.LaTeX = \MyLaTeXCommand}@
 % \begin{Piton}
@@ -2249,7 +2247,7 @@ piton_version = "4.0" -- 2024/09/22
 %
 %
 % \begingroup
-% \PitonOptions{background-color=gray!10, width=min}
+% \PitonOptions{background-color=gray!15, width=min}
 % \NewDocumentCommand{\MyLaTeXCommand}{m}{\hfill \normalfont\itshape\rlap{\quad #1}}
 % \SetPitonStyle{Comment.LaTeX = \MyLaTeXCommand}
 % \begin{Piton}
@@ -3139,7 +3137,7 @@ piton_version = "4.0" -- 2024/09/22
 %    \begin{macrocode}
 \lua_now:n 
   { 
-    piton.BeamerCommands = lpeg.P ( [[\uncover]] ) 
+    piton.BeamerCommands = lpeg.P [[\uncover]] 
        + [[\only]] + [[\visible]] + [[\invisible]] + [[\alert]] + [[\action]] 
     piton.beamer_environments = { "uncoverenv" , "onlyenv" , "visibleenv" , 
                "invisibleenv" ,  "alertenv" ,  "actionenv" }
@@ -3651,6 +3649,11 @@ piton_version = "4.0" -- 2024/09/22
                     tex.sprint
                       ( 
                         luatexbase.catcodetables.expl ,
+%    \end{macrocode}
+% Since the argument of |tostring| will be a integer of Lua (\emph{integer} is a
+% sub-type of \emph{number} introduced in Lua 5.3), the output will be of the
+% form |"3"| (and not |"3.0"|) which is what we want for |\int_set:Nn|.
+%    \begin{macrocode}
                         tostring 
                           ( piton.empty_lines
                               [ \int_eval:n { \g_@@_line_int + 1 } ] 
@@ -5246,13 +5249,13 @@ piton_version = "4.0" -- 2024/09/22
     Identifier          = ,
     Directive           = \color[HTML]{AA6600} ,
     Tag                 = \colorbox{gray!10}, 
-    UserFunction        = , 
+    UserFunction        = \PitonStyle{Identifier} ,
     Prompt              = , 
     ParseAgain          = \@@_piton_no_cr:n , 
     Discard             = \use_none:n 
   }
 %    \end{macrocode}
-% The styles |ParseAgain.noCR| should be considered as 
+% The styles |ParseAgain| should be considered as 
 % ``internal style'' (not available for the final user). However, maybe we will
 % change that and document that style for the final user.
 %
@@ -5680,9 +5683,9 @@ piton_version = "4.0" -- 2024/09/22
     local P , alpha , C , space , S , V
       = lpeg.P , lpeg.alpha , lpeg.C , lpeg.space , lpeg.S , lpeg.V
     local function add(...)
-          local s = P ( false ) 
-          for _ , x in ipairs({...}) do s = s + x end  
-          return s 
+            local s = P ( false ) 
+            for _ , x in ipairs({...}) do s = s + x end  
+            return s 
           end
     local my_lpeg = 
       P {  "E" ,
@@ -5734,14 +5737,14 @@ piton_version = "4.0" -- 2024/09/22
 % 
 %    \begin{macrocode}
 %<*LUA>
-if piton.comment_latex == nil then piton.comment_latex = ">" end 
+piton.comment_latex = piton.comment_latex or ">" 
 piton.comment_latex = "#" .. piton.comment_latex 
 %    \end{macrocode}
 %
 %
 %    \begin{macrocode}
 local function sprintL3 ( s ) 
-      tex.sprint ( luatexbase.catcodetables.expl , s ) 
+  tex.sprint ( luatexbase.catcodetables.expl , s ) 
 end 
 %    \end{macrocode}
 % 
@@ -5763,7 +5766,7 @@ local B , R = lpeg.B , lpeg.R
 % The function |Q| takes in as argument a pattern and returns a \textsc{lpeg}
 % \emph{which does a capture} of the pattern. That capture will be sent to LaTeX
 % with the catcode ``other'' for all the characters: it's suitable for elements
-% of the Python listings that \pkg{piton} will typeset verbatim (thanks to the
+% of the informatic listings that \pkg{piton} will typeset verbatim (thanks to the
 % catcode ``other''). 
 %    \begin{macrocode}
 local function Q ( pattern )
@@ -5808,9 +5811,9 @@ end
 %    \begin{macrocode}e
 local function K ( style , pattern )
   return
-     Lc ( "{\\PitonStyle{" .. style .. "}{" )
-     * Q ( pattern )
-     * Lc "}}"
+    Lc ( [[{\PitonStyle{]] .. style .. "}{" )
+    * Q ( pattern )
+    * Lc "}}"
 end
 %    \end{macrocode}
 % The formatting commands in a given \pkg{piton} style (eg. the style |Keyword|)
@@ -5826,9 +5829,9 @@ end
 %    \begin{macrocode}
 local function WithStyle ( style , pattern )
   return 
-       Ct ( Cc "Open" * Cc ( "{\\PitonStyle{" .. style .. "}{" ) * Cc "}}" ) 
-     * pattern 
-     * Ct ( Cc "Close" ) 
+      Ct ( Cc "Open" * Cc ( [[{\PitonStyle{]] .. style .. "}{" ) * Cc "}}" ) 
+    * pattern 
+    * Ct ( Cc "Close" ) 
 end
 %    \end{macrocode}
 % 
@@ -5838,8 +5841,7 @@ end
 %    \begin{macrocode}
 Escape = P ( false ) 
 EscapeClean = P ( false ) 
-if piton.begin_escape ~= nil
-then 
+if piton.begin_escape then 
   Escape = 
     P ( piton.begin_escape )
     * L ( ( 1 - P ( piton.end_escape ) ) ^ 1 ) 
@@ -5857,13 +5859,12 @@ end
 % 
 %    \begin{macrocode}
 EscapeMath = P ( false ) 
-if piton.begin_escape_math ~= nil
-then 
+if piton.begin_escape_math then 
   EscapeMath = 
     P ( piton.begin_escape_math )
     * Lc "\\ensuremath{" 
     * L ( ( 1 - P(piton.end_escape_math) ) ^ 1 )
-    * Lc ( "}" ) 
+    * Lc "}" 
     * P ( piton.end_escape_math )
 end
 %    \end{macrocode}
@@ -5933,27 +5934,23 @@ local Number =
 %    \end{macrocode}
 %
 % \bigskip
+% We will now define the LPEG |Word|.
+%
+% We have a problem in the following LPEG because, obviously, we should adjust
+% the list of symbols with the delimiters of the current language (no?).
+%    \begin{macrocode}
+local lpeg_central = 1 - S " '\"\r[({})]" - digit
+%    \end{macrocode}
 % We recall that |piton.begin_escape| and |piton_end_escape| are Lua strings
 % corresponding to the keys |begin-escape| and |end-escape|. 
 %    \begin{macrocode}
-local Word
 if piton.begin_escape then 
-  if piton.begin_escape_math then
-    Word = Q ( ( 1 - space - piton.begin_escape - piton.end_escape 
-                   -  piton.begin_escape_math - piton.end_escape_math
-                     - S "'\"\r[({})]" - digit ) ^ 1 )
-  else
-    Word = Q ( ( 1 - space - piton.begin_escape - piton.end_escape 
-                     - S "'\"\r[({})]" - digit ) ^ 1 )
-  end 
-else 
-  if piton.begin_escape_math then
-    Word = Q ( ( 1 - space - piton.begin_escape_math - piton.end_escape_math 
-                     - S "'\"\r[({})]" - digit ) ^ 1 )
-  else
-    Word = Q ( ( 1 - space - S "'\"\r[({})]" - digit ) ^ 1 )
-  end 
+  lpeg_central = lpeg_central - piton.begin_escape 
 end
+if piton.begin_escape_math then 
+  lpeg_central = lpeg_central - piton.begin_escape_math 
+end
+local Word = Q ( lpeg_central ^ 1 ) 
 %    \end{macrocode}
 %
 % \bigskip
@@ -5964,12 +5961,12 @@ local SkipSpace = Q " " ^ 0
 
 local Punct = Q ( S ".,:;!" )
 
-local Tab = "\t" * Lc [[\@@_tab:]]
+local Tab = "\t" * Lc [[ \@@_tab: ]]
 %    \end{macrocode}
 % 
 % \bigskip
 % Remember that |\@@_leading_space:| does \emph{not} create a space, only an
-% incrementation of the coutnter |\g_@@_indentation_int|.
+% incrementation of the counter |\g_@@_indentation_int|.
 %    \begin{macrocode}
 local SpaceIndentation = Lc [[\@@_leading_space:]] * Q " "
 %    \end{macrocode}
@@ -5987,17 +5984,6 @@ local Delim = Q ( S "[({})]" )
 % contain ␣ (U+2423) in order to visualize the spaces.
 %    \begin{macrocode}
 local VisualSpace = space * Lc [[\l_@@_space_tl]]
-%    \end{macrocode}
-%
-% \bigskip
-% Of course, the \textsc{lpeg} |strict_braces| is for balanced braces (without the
-% question of strings of an informatic language). 
-%    \begin{macrocode}
-  local strict_braces  =
-    P { "E" , 
-        E = ( "{" * V "F" * "}" + ( 1 - S ",{}" ) ) ^ 0  ,
-        F = ( "{" * V "F" * "}" + ( 1 - S "{}" ) ) ^ 0 
-      }
 %    \end{macrocode}
 %
 % \bigskip
@@ -6091,7 +6077,7 @@ BeamerBeginEnvironments =
     ( space ^ 0 * 
       L 
         ( 
-          P "\\begin{" * piton.BeamerEnvironments * "}"
+          P [[\begin{]] * piton.BeamerEnvironments * "}"
           * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
         )
       * "\r" 
@@ -6102,7 +6088,7 @@ BeamerBeginEnvironments =
 %    \begin{macrocode}
 BeamerEndEnvironments = 
     ( space ^ 0 * 
-      L ( P "\\end{" * piton.BeamerEnvironments * "}" ) 
+      L ( P [[end{]] * piton.BeamerEnvironments * "}" ) 
       * "\r"
     ) ^ 0 
 %    \end{macrocode}
@@ -6136,7 +6122,7 @@ local function Compute_Beamer ( lang , braces )
 % 
 %
 % \bigskip
-% For the command |\\alt|, the specification of the overlays (between angular
+% For the command |\alt|, the specification of the overlays (between angular
 % brackets) is mandatory. 
 %    \begin{macrocode}
   lpeg = lpeg +
@@ -6150,11 +6136,11 @@ local function Compute_Beamer ( lang , braces )
 %    \end{macrocode}
 %
 % \bigskip
-% For |\\temporal|, the specification of the overlays (between angular brackets)
+% For |\temporal|, the specification of the overlays (between angular brackets)
 % is mandatory. 
 %    \begin{macrocode}
   lpeg = lpeg +
-      L ( ( P [[\temporal]] ) * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
+      L ( P [[\temporal]] * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
       * ( braces 
           / ( function ( s ) 
               if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
@@ -6173,24 +6159,24 @@ local function Compute_Beamer ( lang , braces )
 % Now, the environments of Beamer.
 %    \begin{macrocode}
   for _ , x in ipairs ( piton.beamer_environments ) do
-  lpeg = lpeg + 
-        Ct ( Cc "Open" 
-             * C ( 
-                    P ( "\\begin{" .. x .. "}" )
-                    * ( "<" * ( 1 - P ">") ^ 0 * ">" ) ^ -1 
-                  ) 
-             * Cc ( "\\end{" .. x ..  "}" )
-            ) 
-        * ( 
-            ( ( 1 - P ( "\\end{" .. x .. "}" ) ) ^ 0 ) 
-                / ( function ( s ) 
-                    if s ~= '' 
-                    then return LPEG1[lang] : match ( s ) 
-                    end 
-                    end ) 
-          )
-        * P ( "\\end{" .. x .. "}" ) 
-        * Ct ( Cc "Close" ) 
+    lpeg = lpeg + 
+          Ct ( Cc "Open" 
+               * C ( 
+                      P ( [[\begin{]] .. x .. "}" )
+                      * ( "<" * ( 1 - P ">") ^ 0 * ">" ) ^ -1 
+                    ) 
+               * Cc ( [[\end{]] .. x ..  "}" )
+              ) 
+          * ( 
+              ( ( 1 - P ( [[\end{]] .. x .. "}" ) ) ^ 0 ) 
+                  / ( function ( s ) 
+                      if s ~= '' 
+                      then return LPEG1[lang] : match ( s ) 
+                      end 
+                      end ) 
+            )
+          * P ( [[\end{]] .. x .. "}" ) 
+          * Ct ( Cc "Close" ) 
   end 
 %    \end{macrocode}
 %
@@ -6223,7 +6209,7 @@ local CommentMath =
 % |\@@_begin_line:|, it's too late to change de background).
 %    \begin{macrocode}
 local PromptHastyDetection = 
-  ( # ( P ">>>" + "..." ) * Lc [[\@@_prompt:]] ) ^ -1 
+  ( # ( P ">>>" + "..." ) * Lc [[ \@@_prompt: ]] ) ^ -1 
 %    \end{macrocode}
 % We remind that the marker |#| of \textsc{lpeg} specifies that the pattern will be
 % detected but won't consume any character.
@@ -6256,7 +6242,7 @@ local EOL =
     Ct ( 
          Cc "EOL"
          * 
-         Ct ( Lc [[\@@_end_line:]]
+         Ct ( Lc [[ \@@_end_line: ]]
               * BeamerEndEnvironments 
               *
                 (
@@ -6271,7 +6257,7 @@ local EOL =
                   + 
                     BeamerBeginEnvironments 
                   * PromptHastyDetection
-                  * Lc [[\@@_newline:\@@_begin_line:]]
+                  * Lc [[ \@@_newline:\@@_begin_line: ]]
                   * Prompt
                 )
             )
@@ -6291,7 +6277,7 @@ local CommentLaTeX =
   P ( piton.comment_latex ) 
   * Lc [[{\PitonStyle{Comment.LaTeX}{\ignorespaces]]
   * L ( ( 1 - P "\r" ) ^ 0 ) 
-  * Lc [[}}]]
+  * Lc "}}"
   * ( EOL + -1 )  
 %    \end{macrocode}
 % 
@@ -6751,12 +6737,12 @@ do
     * SkipSpace
     * ( Q "->" * SkipSpace * K ( 'Name.Type' , identifier ) ) ^ -1
 %    \end{macrocode}
-% Here, we need a \pkg{piton} style |ParseAgain.noCR| which will be linked to
+% Here, we need a \pkg{piton} style |ParseAgain| which will be linked to
 % |\@@_piton_no_cr:n| (that means that the capture will be parsed once again by
 % \pkg{piton}). We could avoid that kind of trick by using a non-terminal of a
 % grammar but we have probably here a better legibility.
 %    \begin{macrocode}
-    * K ( 'ParseAgain.noCR' , ( 1 - S ":\r" ) ^ 0 ) 
+    * K ( 'ParseAgain;noCR' , ( 1 - S ":\r" ) ^ 0 ) 
     * Q ":" 
     * ( SkipSpace
         * ( EOL + CommentLaTeX + Comment ) -- in all cases, that contains an EOL
@@ -6786,7 +6772,9 @@ do
 % \paragraph{The main LPEG for the language Python}
 %
 %    \begin{macrocode}
-  local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
+  local EndKeyword 
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape +
+    EscapeMath + -1 
 %    \end{macrocode}
 %
 % First, the main loop :
@@ -6821,7 +6809,7 @@ do
 %    \end{macrocode}
 %
 % \bigskip
-% Here, we must not put |local|!
+% Here, we must not put |local|, of course.
 %    \begin{macrocode}
   LPEG1['python'] = Main ^ 0 
 %    \end{macrocode}
@@ -6838,12 +6826,12 @@ do
          ( space ^ 0 * "\r" ) ^ -1 
          * BeamerBeginEnvironments 
          * PromptHastyDetection
-         * Lc [[\@@_begin_line:]]
+         * Lc [[ \@@_begin_line: ]]
          * Prompt 
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
          * -1 
-         * Lc [[\@@_end_line:]] 
+         * Lc [[ \@@_end_line: ]] 
        )
 %    \end{macrocode}
 %
@@ -6890,7 +6878,7 @@ do
 %    \begin{macrocode}
   local function K ( style , pattern )
   return
-     Lc ( "{\\PitonStyle{" .. style .. "}{" )
+     Lc ( [[{\PitonStyle{]] .. style .. "}{" )
      * Q ( pattern )
      * Lc "}}"
   end
@@ -6900,7 +6888,7 @@ do
 %    \begin{macrocode}
   local function WithStyle ( style , pattern )
   return
-       Ct ( Cc "Open" * Cc ( "{\\PitonStyle{" .. style .. "}{" ) * Cc "}}" )
+       Ct ( Cc "Open" * Cc ( [[{\PitonStyle{]] .. style .. "}{" ) * Cc "}}" )
      * ( pattern + Beamer + DetectedCommands + EscapeMath + Escape )
      * Ct ( Cc "Close" )
   end
@@ -7065,7 +7053,7 @@ do
 % \bigskip
 %    \begin{macrocode}
   local EndKeyword 
-   = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1 
 %    \end{macrocode}
 %
 % \bigskip
@@ -7385,7 +7373,7 @@ do
 %    \end{macrocode}
 %
 % \bigskip
-% % Here, we must not put |local|!
+% % Here, we must not put |local|, of course.
 %    \begin{macrocode}
   LPEG1['ocaml'] = Main ^ 0
 %    \end{macrocode}
@@ -7406,14 +7394,14 @@ do
         +
         ( space ^ 0 * "\r" ) ^ -1
         * BeamerBeginEnvironments
-        * Lc [[\@@_begin_line:]]
+        * Lc [[ \@@_begin_line: ]]
         * SpaceIndentation ^ 0
-        * ( ( space * Lc [[\@@_trailing_space:]] ) ^ 1 * -1 
+        * ( ( space * Lc [[ \@@_trailing_space: ]] ) ^ 1 * -1 
               + space ^ 0 * EOL 
               + Main 
           ) ^ 0
         * -1
-        * Lc [[\@@_end_line:]]
+        * Lc [[ \@@_end_line: ]]
       )
 %    \end{macrocode}
 % 
@@ -7570,7 +7558,8 @@ do
 % \paragraph{The main LPEG for the language C}
 %
 %    \begin{macrocode}
-  local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
+  local EndKeyword 
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1 
 %    \end{macrocode}
 %
 % First, the main loop :
@@ -7600,7 +7589,7 @@ do
 %    \end{macrocode}
 %
 % \bigskip
-% Here, we must not put |local|!
+% Here, we must not put |local|, of course.
 %    \begin{macrocode}
   LPEG1['c'] = Main ^ 0 
 %    \end{macrocode}
@@ -7616,11 +7605,11 @@ do
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1 
          * BeamerBeginEnvironments 
-         * Lc [[\@@_begin_line:]]
+         * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
          * -1 
-         * Lc [[\@@_end_line:]] 
+         * Lc [[ \@@_end_line: ]] 
        )
 %    \end{macrocode}
 %
@@ -7713,14 +7702,14 @@ do
 %    \end{macrocode}
 % Remind that, in Lua, it's possible to return \emph{several} values. 
 %    \begin{macrocode}
-          then return { "{\\PitonStyle{Keyword}{" } ,
+          then return { [[\PitonStyle{Keyword}{]] } ,
                       { luatexbase.catcodetables.other , s } ,
                       { "}}" }
           else if set_builtins[string.upper(s)]
-               then return { "{\\PitonStyle{Name.Builtin}{" } ,
+               then return { [[\PitonStyle{Name.Builtin}{]] } ,
                            { luatexbase.catcodetables.other , s } ,
                            { "}}" }
-               else return { "{\\PitonStyle{Name.Field}{" } ,
+               else return { [[\PitonStyle{Name.Field}{]] } ,
                            { luatexbase.catcodetables.other , s } ,
                            { "}}" }
                end
@@ -7783,7 +7772,8 @@ do
 % \paragraph{The main LPEG for the language SQL}
 %
 %    \begin{macrocode}
-  local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
+  local EndKeyword 
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1 
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -7828,7 +7818,8 @@ do
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
-  local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1 
+  local EndKeyword 
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1 
 %    \end{macrocode}
 %
 %
@@ -7854,7 +7845,7 @@ do
 %    \end{macrocode}
 %
 % \bigskip
-% Here, we must not put |local|!
+% Here, we must not put |local|, of course.
 %    \begin{macrocode}
   LPEG1['sql'] = Main ^ 0 
 %    \end{macrocode}
@@ -7870,11 +7861,11 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
          * BeamerBeginEnvironments 
-         * Lc [[\@@_begin_line:]]
+         * Lc [[  \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
          * -1 
-         * Lc [[\@@_end_line:]]
+         * Lc [[ \@@_end_line: ]]
        )
 %    \end{macrocode}
 %
@@ -7886,7 +7877,7 @@ end
 % 
 % \subsubsection{The language ``Minimal''}
 % 
-% We open a Lua local scope for the language ``|minimal|'' (of course, there
+% We open a Lua local scope for the language ``Minimal'' (of course, there
 % will be also global definitions).
 %    \begin{macrocode}
 do 
@@ -7948,7 +7939,7 @@ do
 %    \end{macrocode}
 %
 % \bigskip
-% Here, we must not put |local|!
+% Here, we must not put |local|, of course.
 %    \begin{macrocode}
   LPEG1['minimal'] = Main ^ 0
 
@@ -7956,17 +7947,88 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
          * BeamerBeginEnvironments 
-         * Lc [[\@@_begin_line:]]
+         * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
          * -1 
-         * Lc [[\@@_end_line:]]
+         * Lc [[ \@@_end_line: ]]
        )
 %    \end{macrocode}
 % 
 %
 % \bigskip
-% End of the Lua scope for the language ``|minimal|''.
+% End of the Lua scope for the language ``Minimal''.
+%    \begin{macrocode}
+end
+%    \end{macrocode}
+%
+% \subsubsection{The language ``Verbatim''}
+% 
+% We open a Lua local scope for the language ``Verbatim'' (of course, there
+% will be also global definitions).
+%    \begin{macrocode}
+do 
+%    \end{macrocode}
+
+% \bigskip
+% Here, we don't use |braces| as done with the other languages because we don't
+% have have to take into account the strings (there is no string in the langage
+% ``Verbatim''). 
+%    \begin{macrocode}
+  local braces = 
+      P { "E" ,
+           E = ( "{" * V "E" * "}" + ( 1 - S "{}" ) ) ^ 0 
+        }
+
+  if piton.beamer then Beamer = Compute_Beamer ( 'verbatim' , braces ) end
+
+  DetectedCommands = Compute_DetectedCommands ( 'verbatim' , braces ) 
+
+  LPEG_cleaner['verbatim'] = Compute_LPEG_cleaner ( 'verbatim' , braces ) 
+%    \end{macrocode}
+% 
+% Now, you will construct the LPEG Word.
+%    \begin{macrocode}
+  local lpeg_central = 1 - S " \\\r"
+  if piton.begin_escape then 
+    lpeg_central = lpeg_central - piton.begin_escape 
+  end
+  if piton.begin_escape_math then 
+    lpeg_central = lpeg_central - piton.begin_escape_math 
+  end
+  local Word = Q ( lpeg_central ^ 1 ) 
+
+  local Main = 
+       space ^ 0 * EOL
+       + Space 
+       + Tab
+       + Escape + EscapeMath 
+       + Beamer
+       + DetectedCommands
+       + Q [[\]]
+       + Word
+%    \end{macrocode}
+%
+% \bigskip
+% Here, we must not put |local|, of course.
+%    \begin{macrocode}
+  LPEG1['verbatim'] = Main ^ 0
+
+  LPEG2['verbatim'] = 
+    Ct (
+         ( space ^ 0 * "\r" ) ^ -1 
+         * BeamerBeginEnvironments 
+         * Lc [[ \@@_begin_line: ]]
+         * SpaceIndentation ^ 0 
+         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
+         * -1 
+         * Lc [[ \@@_end_line: ]]
+       )
+%    \end{macrocode}
+% 
+%
+% \bigskip
+% End of the Lua scope for the language ``|verbatim|''.
 %    \begin{macrocode}
 end
 %    \end{macrocode}
@@ -7985,8 +8047,7 @@ end
 %    \begin{macrocode}
 function piton.Parse ( language , code )
   local t = LPEG2[language] : match ( code ) 
-  if t == nil 
-  then 
+  if t == nil then 
     sprintL3 [[ \@@_error_or_warning:n { SyntaxError } ]] 
     return -- to exit in force the function
   end 
@@ -8046,6 +8107,11 @@ function piton.ParseFile
   ( lang , name , first_line , last_line , splittable , split )
   local s = ''
   local i = 0 
+%    \end{macrocode}
+% At the date of septembre 2024, LuaLaTeX uses Lua 5.3 and not 5.4. In the
+% version 5.4, |io.lines| returns four values (and not just one) but the
+% following code should be correct.
+%    \begin{macrocode}
   for line in io.lines ( name ) do 
     i = i + 1 
     if i >= first_line then 
@@ -8293,16 +8359,16 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
             ) ^ 0 
           ) 
      ) : match ( gobble ( n , code ) )
-  sprintL3 ( [[ \begingroup ]] ) 
+  sprintL3 [[ \begingroup ]] 
   sprintL3 
     ( 
-      [[ \PitonOptions { split-on-empty-lines=false, gobble = 0, ]]
+      [[ \PitonOptions { split-on-empty-lines = false, gobble = 0, ]]
       .. "language = " .. lang .. "," 
       .. "splittable = " .. splittable .. "}"
     )
   for k , v in pairs ( chunks ) do 
     if k > 1 then 
-     sprintL3 ( [[\l_@@_split_separation_tl ]] )
+      sprintL3 [[ \l_@@_split_separation_tl ]] 
     end 
     tex.sprint 
       ( 
@@ -8311,7 +8377,7 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
         .. [[\end{]] .. piton.env_used_by_split .. "}"
       )
   end
-  sprintL3 ( [[ \endgroup ]] ) 
+  sprintL3 [[ \endgroup ]] 
 end 
 %    \end{macrocode}
 %
@@ -8399,10 +8465,10 @@ end
 %    \begin{macrocode}
 function piton.CountNonEmptyLinesFile ( name )
   local count = 0 
-  for line in io.lines ( name ) 
-  do if not ( ( P " " ^ 0 * -1 ) : match ( line ) ) then
+  for line in io.lines ( name ) do 
+    if not ( ( P " " ^ 0 * -1 ) : match ( line ) ) then
        count = count + 1 
-     end
+    end
   end
   sprintL3 
    ( string.format ( [[ \int_set:Nn \l_@@_nb_non_empty_lines_int { % i } ]] , count ) ) 
@@ -8421,23 +8487,25 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
   local first_line = -1
   local count = 0
   local last_found = false
-  for line in io.lines ( file_name )
-  do if first_line == -1
-     then if string.sub ( line , 1 , #s ) == s 
-          then first_line = count 
-          end 
-     else if string.sub ( line , 1 , #t ) == t
-          then last_found = true 
-               break 
-          end 
-     end 
-     count = count + 1 
+  for line in io.lines ( file_name ) do 
+    if first_line == -1 then 
+      if string.sub ( line , 1 , #s ) == s then 
+        first_line = count 
+      end 
+    else 
+      if string.sub ( line , 1 , #t ) == t then 
+        last_found = true 
+        break 
+      end 
+    end 
+    count = count + 1 
   end
-  if first_line == -1 
-  then sprintL3 [[ \@@_error_or_warning:n { begin~marker~not~found } ]] 
-  else if last_found == false
-       then sprintL3 [[ \@@_error_or_warning:n { end~marker~not~found } ]] 
-       end
+  if first_line == -1 then 
+    sprintL3 [[ \@@_error_or_warning:n { begin~marker~not~found } ]] 
+  else 
+    if last_found == false then 
+      sprintL3 [[ \@@_error_or_warning:n { end~marker~not~found } ]] 
+    end
   end
   sprintL3 ( 
       [[ \int_set:Nn \l_@@_first_line_int { ]] .. first_line .. ' + 2 }' 
@@ -8479,11 +8547,11 @@ function piton.ComputeLinesStatus ( code , splittable )
   if piton.beamer then
     lpeg_line_beamer = 
        space ^ 0 
-        * P "\\begin{" * piton.BeamerEnvironments * "}"
+        * P [[\begin{]] * piton.BeamerEnvironments * "}"
         * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1 
        +
        space ^ 0 
-        * P "\\end{" * piton.BeamerEnvironments * "}" 
+        * P [[\end{]] * piton.BeamerEnvironments * "}" 
   else 
     lpeg_line_beamer = P ( false ) 
   end 
@@ -8495,7 +8563,7 @@ function piton.ComputeLinesStatus ( code , splittable )
            +
            P " " ^ 0 * "\r" * Cc ( 0 )
            + 
-           ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )  
+           ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )
          ) ^ 0
          * 
          ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
@@ -8507,7 +8575,7 @@ function piton.ComputeLinesStatus ( code , splittable )
     Ct ( 
          ( lpeg_line_beamer * "\r" 
            +
-           ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 ) 
+           ( 1 - P "\r" ) ^ 0 * "\r" * Cc ( 1 )
          ) ^ 0 
          * 
          ( lpeg_line_beamer + ( 1 - P "\r" ) ^ 1 * Cc ( 1 ) ) ^ -1
@@ -8604,14 +8672,14 @@ function piton.new_language ( lang , definition )
 % a key |alsoother|.
 %    \begin{macrocode}
   function add_to_letter ( c )
-     if c ~= " " then table.insert ( extra_letters , c ) end
+    if c ~= " " then table.insert ( extra_letters , c ) end
   end 
 %    \end{macrocode}
 %
 % For the digits, it's straitforward.
 %    \begin{macrocode}
   function add_to_digit ( c )
-     if c ~= " " then digit = digit + c end 
+    if c ~= " " then digit = digit + c end 
   end 
 %    \end{macrocode}
 %
@@ -8652,13 +8720,23 @@ function piton.new_language ( lang , definition )
 % Now, the first transformation of the definition of the language, as provided
 % by the final user in the argument |definition| of |piton.new_language|.
 %    \begin{macrocode}
-  local cut_definition =
-    P { "E" ,
-        E = Ct ( V "F" * ( "," * V "F" ) ^ 0 ) ,
-        F = Ct ( space ^ 0 * C ( alpha ^ 1 ) * space ^ 0 
-                * ( "=" * space ^ 0 * C ( strict_braces ) ) ^ -1 )
-      }
-  local def_table = cut_definition : match ( definition )
+  local def_table 
+  if ( S ", " ^ 0 * -1 ) : match ( definition ) then 
+    def_table = {} 
+  else
+    local strict_braces  =
+      P { "E" , 
+          E = ( "{" * V "F" * "}" + ( 1 - S ",{}" ) ) ^ 0  ,
+          F = ( "{" * V "F" * "}" + ( 1 - S "{}" ) ) ^ 0 
+        }
+    local cut_definition =
+      P { "E" ,
+          E = Ct ( V "F" * ( "," * V "F" ) ^ 0 ) ,
+          F = Ct ( space ^ 0 * C ( alpha ^ 1 ) * space ^ 0 
+                  * ( "=" * space ^ 0 * C ( strict_braces ) ) ^ -1 )
+        }
+    def_table = cut_definition : match ( definition )
+  end 
 %    \end{macrocode}
 % The definition of the language, provided by the final user of \pkg{piton} is
 % now in the Lua table |def_table|. We will use it \emph{several times}.
@@ -8948,7 +9026,7 @@ function piton.new_language ( lang , definition )
         CommentDelim = CommentDelim + 
             Ct ( Cc "Open" 
                  * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 
-                 *  Q ( arg3 ) 
+                 * Q ( arg3 ) 
                  * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
             * Ct ( Cc "Close" ) 
             * ( EOL + -1 )
@@ -9061,7 +9139,7 @@ function piton.new_language ( lang , definition )
 % The \textsc{lpeg} |LPEG1[lang]| is used to reformat small elements, for
 % example the arguments of the ``detected commands''.
 %
-% Of course, here, we must not put |local|!
+% Of course, here, we must not put |local|, of course.
 %   \begin{macrocode}
   LPEG1[lang] = Main ^ 0 
 %    \end{macrocode}

@@ -25,10 +25,11 @@ piton_version = "4.0" -- 2024/09/22
 
 
 
-if piton.comment_latex == nil then piton.comment_latex = ">" end
+
+piton.comment_latex = piton.comment_latex or ">"
 piton.comment_latex = "#" .. piton.comment_latex
 local function sprintL3 ( s )
-      tex.sprint ( luatexbase.catcodetables.expl , s )
+  tex.sprint ( luatexbase.catcodetables.expl , s )
 end
 local P, S, V, C, Ct, Cc = lpeg.P, lpeg.S, lpeg.V, lpeg.C, lpeg.Ct, lpeg.Cc
 local Cs , Cg , Cmt , Cb = lpeg.Cs, lpeg.Cg , lpeg.Cmt , lpeg.Cb
@@ -44,20 +45,19 @@ local function Lc ( string )
 end
 local function K ( style , pattern )
   return
-     Lc ( "{\\PitonStyle{" .. style .. "}{" )
-     * Q ( pattern )
-     * Lc "}}"
+    Lc ( [[{\PitonStyle{]] .. style .. "}{" )
+    * Q ( pattern )
+    * Lc "}}"
 end
 local function WithStyle ( style , pattern )
   return
-       Ct ( Cc "Open" * Cc ( "{\\PitonStyle{" .. style .. "}{" ) * Cc "}}" )
-     * pattern
-     * Ct ( Cc "Close" )
+      Ct ( Cc "Open" * Cc ( [[{\PitonStyle{]] .. style .. "}{" ) * Cc "}}" )
+    * pattern
+    * Ct ( Cc "Close" )
 end
 Escape = P ( false )
 EscapeClean = P ( false )
-if piton.begin_escape ~= nil
-then
+if piton.begin_escape then
   Escape =
     P ( piton.begin_escape )
     * L ( ( 1 - P ( piton.end_escape ) ) ^ 1 )
@@ -68,13 +68,12 @@ then
     * P ( piton.end_escape )
 end
 EscapeMath = P ( false )
-if piton.begin_escape_math ~= nil
-then
+if piton.begin_escape_math then
   EscapeMath =
     P ( piton.begin_escape_math )
     * Lc "\\ensuremath{"
     * L ( ( 1 - P(piton.end_escape_math) ) ^ 1 )
-    * Lc ( "}" )
+    * Lc "}"
     * P ( piton.end_escape_math )
 end
 lpeg.locale(lpeg)
@@ -95,39 +94,24 @@ local Number =
       * ( S "eE" * S "+-" ^ -1 * digit ^ 1 ) ^ -1
       + digit ^ 1
     )
-local Word
+local lpeg_central = 1 - S " '\"\r[({})]" - digit
 if piton.begin_escape then
-  if piton.begin_escape_math then
-    Word = Q ( ( 1 - space - piton.begin_escape - piton.end_escape
-                   -  piton.begin_escape_math - piton.end_escape_math
-                     - S "'\"\r[({})]" - digit ) ^ 1 )
-  else
-    Word = Q ( ( 1 - space - piton.begin_escape - piton.end_escape
-                     - S "'\"\r[({})]" - digit ) ^ 1 )
-  end
-else
-  if piton.begin_escape_math then
-    Word = Q ( ( 1 - space - piton.begin_escape_math - piton.end_escape_math
-                     - S "'\"\r[({})]" - digit ) ^ 1 )
-  else
-    Word = Q ( ( 1 - space - S "'\"\r[({})]" - digit ) ^ 1 )
-  end
+  lpeg_central = lpeg_central - piton.begin_escape
 end
+if piton.begin_escape_math then
+  lpeg_central = lpeg_central - piton.begin_escape_math
+end
+local Word = Q ( lpeg_central ^ 1 )
 local Space = Q " " ^ 1
 
 local SkipSpace = Q " " ^ 0
 
 local Punct = Q ( S ".,:;!" )
 
-local Tab = "\t" * Lc [[\__piton_tab:]]
+local Tab = "\t" * Lc [[ \__piton_tab: ]]
 local SpaceIndentation = Lc [[\__piton_leading_space:]] * Q " "
 local Delim = Q ( S "[({})]" )
 local VisualSpace = space * Lc [[\l__piton_space_tl]]
-  local strict_braces  =
-    P { "E" ,
-        E = ( "{" * V "F" * "}" + ( 1 - S ",{}" ) ) ^ 0  ,
-        F = ( "{" * V "F" * "}" + ( 1 - S "{}" ) ) ^ 0
-      }
 local LPEG0 = { }
 local LPEG1 = { }
 local LPEG2 = { }
@@ -175,14 +159,14 @@ BeamerBeginEnvironments =
     ( space ^ 0 *
       L
         (
-          P "\\begin{" * piton.BeamerEnvironments * "}"
+          P [[\begin{]] * piton.BeamerEnvironments * "}"
           * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
         )
       * "\r"
     ) ^ 0
 BeamerEndEnvironments =
     ( space ^ 0 *
-      L ( P "\\end{" * piton.BeamerEnvironments * "}" )
+      L ( P [[end{]] * piton.BeamerEnvironments * "}" )
       * "\r"
     ) ^ 0
 local function Compute_Beamer ( lang , braces )
@@ -208,7 +192,7 @@ local function Compute_Beamer ( lang , braces )
          ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
      * L ( P "}" )
   lpeg = lpeg +
-      L ( ( P [[\temporal]] ) * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
+      L ( P [[\temporal]] * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
       * ( braces
           / ( function ( s )
               if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
@@ -222,31 +206,31 @@ local function Compute_Beamer ( lang , braces )
               if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
       * L ( P "}" )
   for _ , x in ipairs ( piton.beamer_environments ) do
-  lpeg = lpeg +
-        Ct ( Cc "Open"
-             * C (
-                    P ( "\\begin{" .. x .. "}" )
-                    * ( "<" * ( 1 - P ">") ^ 0 * ">" ) ^ -1
-                  )
-             * Cc ( "\\end{" .. x ..  "}" )
+    lpeg = lpeg +
+          Ct ( Cc "Open"
+               * C (
+                      P ( [[\begin{]] .. x .. "}" )
+                      * ( "<" * ( 1 - P ">") ^ 0 * ">" ) ^ -1
+                    )
+               * Cc ( [[\end{]] .. x ..  "}" )
+              )
+          * (
+              ( ( 1 - P ( [[\end{]] .. x .. "}" ) ) ^ 0 )
+                  / ( function ( s )
+                      if s ~= ''
+                      then return LPEG1[lang] : match ( s )
+                      end
+                      end )
             )
-        * (
-            ( ( 1 - P ( "\\end{" .. x .. "}" ) ) ^ 0 )
-                / ( function ( s )
-                    if s ~= ''
-                    then return LPEG1[lang] : match ( s )
-                    end
-                    end )
-          )
-        * P ( "\\end{" .. x .. "}" )
-        * Ct ( Cc "Close" )
+          * P ( [[\end{]] .. x .. "}" )
+          * Ct ( Cc "Close" )
   end
   return lpeg
 end
 local CommentMath =
   P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$" -- $
 local PromptHastyDetection =
-  ( # ( P ">>>" + "..." ) * Lc [[\__piton_prompt:]] ) ^ -1
+  ( # ( P ">>>" + "..." ) * Lc [[ \__piton_prompt: ]] ) ^ -1
 local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ^ -1  )
 local EOL =
   P "\r"
@@ -257,7 +241,7 @@ local EOL =
     Ct (
          Cc "EOL"
          *
-         Ct ( Lc [[\__piton_end_line:]]
+         Ct ( Lc [[ \__piton_end_line: ]]
               * BeamerEndEnvironments
               *
                 (
@@ -265,7 +249,7 @@ local EOL =
                   +
                     BeamerBeginEnvironments
                   * PromptHastyDetection
-                  * Lc [[\__piton_newline:\__piton_begin_line:]]
+                  * Lc [[ \__piton_newline:\__piton_begin_line: ]]
                   * Prompt
                 )
             )
@@ -276,7 +260,7 @@ local CommentLaTeX =
   P ( piton.comment_latex )
   * Lc [[{\PitonStyle{Comment.LaTeX}{\ignorespaces]]
   * L ( ( 1 - P "\r" ) ^ 0 )
-  * Lc [[}}]]
+  * Lc "}}"
   * ( EOL + -1 )
 do
   local Operator =
@@ -520,7 +504,7 @@ do
     * Q "("  * Params * Q ")"
     * SkipSpace
     * ( Q "->" * SkipSpace * K ( 'Name.Type' , identifier ) ) ^ -1
-    * K ( 'ParseAgain.noCR' , ( 1 - S ":\r" ) ^ 0 )
+    * K ( 'ParseAgain;noCR' , ( 1 - S ":\r" ) ^ 0 )
     * Q ":"
     * ( SkipSpace
         * ( EOL + CommentLaTeX + Comment ) -- in all cases, that contains an EOL
@@ -529,7 +513,9 @@ do
         * StringDoc ^ 0 -- there may be additional docstrings
       ) ^ -1
   local ExceptionInConsole = Exception *  Q ( ( 1 - P "\r" ) ^ 0 ) * EOL
-  local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
+  local EndKeyword
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape +
+    EscapeMath + -1
   local Main =
        space ^ 0 * EOL -- faut-il le mettre en commentaire ?
        + Space
@@ -563,12 +549,12 @@ do
          ( space ^ 0 * "\r" ) ^ -1
          * BeamerBeginEnvironments
          * PromptHastyDetection
-         * Lc [[\__piton_begin_line:]]
+         * Lc [[ \__piton_begin_line: ]]
          * Prompt
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
-         * Lc [[\__piton_end_line:]]
+         * Lc [[ \__piton_end_line: ]]
        )
 end
 do
@@ -586,13 +572,13 @@ do
   end
   local function K ( style , pattern )
   return
-     Lc ( "{\\PitonStyle{" .. style .. "}{" )
+     Lc ( [[{\PitonStyle{]] .. style .. "}{" )
      * Q ( pattern )
      * Lc "}}"
   end
   local function WithStyle ( style , pattern )
   return
-       Ct ( Cc "Open" * Cc ( "{\\PitonStyle{" .. style .. "}{" ) * Cc "}}" )
+       Ct ( Cc "Open" * Cc ( [[{\PitonStyle{]] .. style .. "}{" ) * Cc "}}" )
      * ( pattern + Beamer + DetectedCommands + EscapeMath + Escape )
      * Ct ( Cc "Close" )
   end
@@ -665,7 +651,7 @@ do
     + K ( 'Keyword.Constant' , P "true" + "false" )
     + K ( 'Keyword.Governing', governing_keyword )
   local EndKeyword
-   = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1
   local identifier = ( R "az" + "_" ) * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
                      - ( OperatorWord + Keyword ) * EndKeyword
   local Identifier = K ( 'Identifier.Internal' , identifier )
@@ -889,14 +875,14 @@ do
         +
         ( space ^ 0 * "\r" ) ^ -1
         * BeamerBeginEnvironments
-        * Lc [[\__piton_begin_line:]]
+        * Lc [[ \__piton_begin_line: ]]
         * SpaceIndentation ^ 0
-        * ( ( space * Lc [[\__piton_trailing_space:]] ) ^ 1 * -1
+        * ( ( space * Lc [[ \__piton_trailing_space: ]] ) ^ 1 * -1
               + space ^ 0 * EOL
               + Main
           ) ^ 0
         * -1
-        * Lc [[\__piton_end_line:]]
+        * Lc [[ \__piton_end_line: ]]
       )
 end
 do
@@ -966,7 +952,8 @@ do
                  * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0
                  * Q "*/"
               ) -- $
-  local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
+  local EndKeyword
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1
   local Main =
        space ^ 0 * EOL
        + Space
@@ -994,11 +981,11 @@ do
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
          * BeamerBeginEnvironments
-         * Lc [[\__piton_begin_line:]]
+         * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
-         * Lc [[\__piton_end_line:]]
+         * Lc [[ \__piton_end_line: ]]
        )
 end
 do
@@ -1042,14 +1029,14 @@ do
     (
       function (s)
           if set_keywords[string.upper(s)] -- the keywords are case-insensitive in SQL
-          then return { "{\\PitonStyle{Keyword}{" } ,
+          then return { [[\PitonStyle{Keyword}{]] } ,
                       { luatexbase.catcodetables.other , s } ,
                       { "}}" }
           else if set_builtins[string.upper(s)]
-               then return { "{\\PitonStyle{Name.Builtin}{" } ,
+               then return { [[\PitonStyle{Name.Builtin}{]] } ,
                            { luatexbase.catcodetables.other , s } ,
                            { "}}" }
-               else return { "{\\PitonStyle{Name.Field}{" } ,
+               else return { [[\PitonStyle{Name.Field}{]] } ,
                            { luatexbase.catcodetables.other , s } ,
                            { "}}" }
                end
@@ -1073,7 +1060,8 @@ do
                  * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0
                  * Q "*/"
               ) -- $
-  local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
+  local EndKeyword
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1
   local TableField =
          K ( 'Name.Table' , identifier )
        * Q "."
@@ -1112,7 +1100,8 @@ do
         + LuaKeyword "TABLE"
       )
       * ( Space + EOL ) * OneTable
-  local EndKeyword = Space + Punct + Delim + EOL + Beamer + DetectedCommands + -1
+  local EndKeyword
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1
   local Main =
        space ^ 0 * EOL
        + Space
@@ -1135,11 +1124,11 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
          * BeamerBeginEnvironments
-         * Lc [[\__piton_begin_line:]]
+         * Lc [[  \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
-         * Lc [[\__piton_end_line:]]
+         * Lc [[ \__piton_end_line: ]]
        )
 end
 do
@@ -1195,17 +1184,59 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
          * BeamerBeginEnvironments
-         * Lc [[\__piton_begin_line:]]
+         * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
-         * Lc [[\__piton_end_line:]]
+         * Lc [[ \__piton_end_line: ]]
+       )
+end
+do
+
+  local braces =
+      P { "E" ,
+           E = ( "{" * V "E" * "}" + ( 1 - S "{}" ) ) ^ 0
+        }
+
+  if piton.beamer then Beamer = Compute_Beamer ( 'verbatim' , braces ) end
+
+  DetectedCommands = Compute_DetectedCommands ( 'verbatim' , braces )
+
+  LPEG_cleaner['verbatim'] = Compute_LPEG_cleaner ( 'verbatim' , braces )
+  local lpeg_central = 1 - S " \\\r"
+  if piton.begin_escape then
+    lpeg_central = lpeg_central - piton.begin_escape
+  end
+  if piton.begin_escape_math then
+    lpeg_central = lpeg_central - piton.begin_escape_math
+  end
+  local Word = Q ( lpeg_central ^ 1 )
+
+  local Main =
+       space ^ 0 * EOL
+       + Space
+       + Tab
+       + Escape + EscapeMath
+       + Beamer
+       + DetectedCommands
+       + Q [[\]]
+       + Word
+  LPEG1['verbatim'] = Main ^ 0
+
+  LPEG2['verbatim'] =
+    Ct (
+         ( space ^ 0 * "\r" ) ^ -1
+         * BeamerBeginEnvironments
+         * Lc [[ \__piton_begin_line: ]]
+         * SpaceIndentation ^ 0
+         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
+         * -1
+         * Lc [[ \__piton_end_line: ]]
        )
 end
 function piton.Parse ( language , code )
   local t = LPEG2[language] : match ( code )
-  if t == nil
-  then
+  if t == nil then
     sprintL3 [[ \__piton_error_or_warning:n { SyntaxError } ]]
     return -- to exit in force the function
   end
@@ -1375,16 +1406,16 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
             ) ^ 0
           )
      ) : match ( gobble ( n , code ) )
-  sprintL3 ( [[ \begingroup ]] )
+  sprintL3 [[ \begingroup ]]
   sprintL3
     (
-      [[ \PitonOptions { split-on-empty-lines=false, gobble = 0, ]]
+      [[ \PitonOptions { split-on-empty-lines = false, gobble = 0, ]]
       .. "language = " .. lang .. ","
       .. "splittable = " .. splittable .. "}"
     )
   for k , v in pairs ( chunks ) do
     if k > 1 then
-     sprintL3 ( [[\l__piton_split_separation_tl ]] )
+      sprintL3 [[ \l__piton_split_separation_tl ]]
     end
     tex.sprint
       (
@@ -1393,7 +1424,7 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
         .. [[\end{]] .. piton.env_used_by_split .. "}"
       )
   end
-  sprintL3 ( [[ \endgroup ]] )
+  sprintL3 [[ \endgroup ]]
 end
 function piton.RetrieveGobbleSplitParse ( lang , n , splittable , code )
   local s
@@ -1436,10 +1467,10 @@ function piton.CountLinesFile ( name )
 end
 function piton.CountNonEmptyLinesFile ( name )
   local count = 0
-  for line in io.lines ( name )
-  do if not ( ( P " " ^ 0 * -1 ) : match ( line ) ) then
+  for line in io.lines ( name ) do
+    if not ( ( P " " ^ 0 * -1 ) : match ( line ) ) then
        count = count + 1
-     end
+    end
   end
   sprintL3
    ( string.format ( [[ \int_set:Nn \l__piton_nb_non_empty_lines_int { % i } ]] , count ) )
@@ -1450,23 +1481,25 @@ function piton.ComputeRange(marker_beginning,marker_end,file_name)
   local first_line = -1
   local count = 0
   local last_found = false
-  for line in io.lines ( file_name )
-  do if first_line == -1
-     then if string.sub ( line , 1 , #s ) == s
-          then first_line = count
-          end
-     else if string.sub ( line , 1 , #t ) == t
-          then last_found = true
-               break
-          end
-     end
-     count = count + 1
+  for line in io.lines ( file_name ) do
+    if first_line == -1 then
+      if string.sub ( line , 1 , #s ) == s then
+        first_line = count
+      end
+    else
+      if string.sub ( line , 1 , #t ) == t then
+        last_found = true
+        break
+      end
+    end
+    count = count + 1
   end
-  if first_line == -1
-  then sprintL3 [[ \__piton_error_or_warning:n { begin~marker~not~found } ]]
-  else if last_found == false
-       then sprintL3 [[ \__piton_error_or_warning:n { end~marker~not~found } ]]
-       end
+  if first_line == -1 then
+    sprintL3 [[ \__piton_error_or_warning:n { begin~marker~not~found } ]]
+  else
+    if last_found == false then
+      sprintL3 [[ \__piton_error_or_warning:n { end~marker~not~found } ]]
+    end
   end
   sprintL3 (
       [[ \int_set:Nn \l__piton_first_line_int { ]] .. first_line .. ' + 2 }'
@@ -1477,11 +1510,11 @@ function piton.ComputeLinesStatus ( code , splittable )
   if piton.beamer then
     lpeg_line_beamer =
        space ^ 0
-        * P "\\begin{" * piton.BeamerEnvironments * "}"
+        * P [[\begin{]] * piton.BeamerEnvironments * "}"
         * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
        +
        space ^ 0
-        * P "\\end{" * piton.BeamerEnvironments * "}"
+        * P [[\end{]] * piton.BeamerEnvironments * "}"
   else
     lpeg_line_beamer = P ( false )
   end
@@ -1547,10 +1580,10 @@ function piton.new_language ( lang , definition )
   local alpha , digit = lpeg.alpha , lpeg.digit
   local extra_letters = { "@" , "_" , "$" } -- $
   function add_to_letter ( c )
-     if c ~= " " then table.insert ( extra_letters , c ) end
+    if c ~= " " then table.insert ( extra_letters , c ) end
   end
   function add_to_digit ( c )
-     if c ~= " " then digit = digit + c end
+    if c ~= " " then digit = digit + c end
   end
   local other = S ":_@+-*/<>!?;.()[]~^=#&\"\'\\$" -- $
   local extra_others = { }
@@ -1560,13 +1593,23 @@ function piton.new_language ( lang , definition )
        other = other + P ( c )
      end
   end
-  local cut_definition =
-    P { "E" ,
-        E = Ct ( V "F" * ( "," * V "F" ) ^ 0 ) ,
-        F = Ct ( space ^ 0 * C ( alpha ^ 1 ) * space ^ 0
-                * ( "=" * space ^ 0 * C ( strict_braces ) ) ^ -1 )
-      }
-  local def_table = cut_definition : match ( definition )
+  local def_table
+  if ( S ", " ^ 0 * -1 ) : match ( definition ) then
+    def_table = {}
+  else
+    local strict_braces  =
+      P { "E" ,
+          E = ( "{" * V "F" * "}" + ( 1 - S ",{}" ) ) ^ 0  ,
+          F = ( "{" * V "F" * "}" + ( 1 - S "{}" ) ) ^ 0
+        }
+    local cut_definition =
+      P { "E" ,
+          E = Ct ( V "F" * ( "," * V "F" ) ^ 0 ) ,
+          F = Ct ( space ^ 0 * C ( alpha ^ 1 ) * space ^ 0
+                  * ( "=" * space ^ 0 * C ( strict_braces ) ) ^ -1 )
+        }
+    def_table = cut_definition : match ( definition )
+  end
   local tex_braced_arg = "{" * C ( ( 1 - P "}" ) ^ 0 ) * "}"
   local tex_arg = tex_braced_arg + C ( 1 )
   local tex_option_arg =  "[" * C ( ( 1 - P "]" ) ^ 0 ) * "]" + Cc ( nil )
@@ -1742,7 +1785,7 @@ function piton.new_language ( lang , definition )
         CommentDelim = CommentDelim +
             Ct ( Cc "Open"
                  * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
-                 *  Q ( arg3 )
+                 * Q ( arg3 )
                  * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
             * Ct ( Cc "Close" )
             * ( EOL + -1 )
