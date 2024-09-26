@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.0x3}
-\def\PitonFileDate{2024/09/26}
+\def\PitonFileVersion{4.0x2}
+\def\PitonFileDate{2024/09/24}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.0x3" -- 2024/09/26
+piton_version = "4.0x2" -- 2024/09/24
 %</LUA>
 %\fi
 %
@@ -5178,6 +5178,8 @@ piton_version = "4.0x3" -- 2024/09/26
   {
     String       .meta:n = { String.Long = #1 , String.Short = #1 } ,
     Comment.Math .tl_set:c = pitonStyle _ Comment.Math  ,
+    ParseAgain   .tl_set:c = pitonStyle _ ParseAgain , 
+    ParseAgain   .value_required:n = true ,
     unknown         .code:n = 
       \@@_error:n { Unknown~key~for~SetPitonStyle }
   }
@@ -5259,9 +5261,12 @@ piton_version = "4.0x3" -- 2024/09/26
     Tag                 = \colorbox{gray!10}, 
     UserFunction        = \PitonStyle{Identifier} ,
     Prompt              = , 
+    ParseAgain          = \@@_piton:n , 
     Discard             = \use_none:n 
   }
 %    \end{macrocode}
+% The style |ParseAgain| is an ``internal style'' (not available for the final
+% user).
 %
 % \medskip 
 % If the key |math-comments| has been used in the preamble of the LaTeX
@@ -9105,11 +9110,7 @@ function piton.new_language ( lang , definition )
         = args_for_moredelims : match ( x[2] )  
       local MyFun = Q 
       if arg1 == "*" or arg1 == "**" then
-        function MyFun ( x ) 
-          if x ~= '' then return
-            LPEG1[lang] : match ( x ) 
-          end 
-        end
+        MyFun = function ( x ) return K ( 'ParseAgain' , x ) end
       end
       local left_delim 
       if arg2 : match "i" then

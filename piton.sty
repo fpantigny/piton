@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.0}
-\def\PitonFileDate{2024/09/22}
+\def\PitonFileVersion{4.0x3}
+\def\PitonFileDate{2024/09/26}
 
 
 
@@ -234,8 +234,7 @@
     \int_gadd:Nn \g__piton_indentation_int \l__piton_tab_size_int
   }
 \int_new:N \l__piton_gobble_int
-\tl_new:N \l__piton_space_tl
-\tl_set_eq:NN \l__piton_space_tl \nobreakspace
+\tl_set_eq:NN \l__piton_space_in_string_tl \nobreakspace
 \int_new:N \g__piton_indentation_int
 \cs_new_protected:Npn \__piton_leading_space:
   { \int_gincr:N \g__piton_indentation_int }
@@ -273,7 +272,7 @@
     \tl_set:Nn \l_tmpa_tl { #1 }
     \bool_if:NTF \l__piton_show_spaces_bool
       {
-        \tl_set:Nn \l__piton_space_tl { ␣ } % U+2423
+        \tl_set:Nn \l__piton_space_in_string_tl { ␣ } % U+2423
         \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl
       }
       {
@@ -284,7 +283,7 @@
               { \c { __piton_breakable_space: } }
               \l_tmpa_tl
             \regex_replace_all:nnN
-              { \c { l__piton_space_tl } }
+              { \c { l__piton_space_in_string_tl } }
               { \c { __piton_breakable_space: } }
               \l_tmpa_tl
           }
@@ -560,10 +559,10 @@
     math-comments .bool_gset:N = \g__piton_math_comments_bool ,
     math-comments .default:n  = true ,
     math-comments .usage:n = preamble ,
-    language         .code:n =
+    language      .code:n =
       \str_set:Ne \l_piton_language_str { \str_lowercase:n { #1 } } ,
-    language         .value_required:n  = true ,
-    path .code:n =
+    language      .value_required:n  = true ,
+    path          .code:n =
       \seq_clear:N \l__piton_path_seq
       \clist_map_inline:nn { #1 }
         {
@@ -589,7 +588,7 @@
     splittable-on-empty-lines .default:n  = true ,
 
     split-on-empty-lines .bool_set:N = \l__piton_split_on_empty_lines_bool ,
-    split-on-empty-lines .default:n = true ,
+    split-on-empty-lines .default:n  = true ,
 
     split-separation .tl_set:N         = \l__piton_split_separation_tl ,
     split-separation .value_required:n = true ,
@@ -644,7 +643,7 @@
     tab-size         .value_required:n  = true ,
     show-spaces      .bool_set:N        = \l__piton_show_spaces_bool ,
     show-spaces      .value_forbidden:n = true ,
-    show-spaces-in-strings .code:n      = \tl_set:Nn \l__piton_space_tl { ␣ } , % U+2423
+    show-spaces-in-strings .code:n      = \tl_set:Nn \l__piton_space_in_string_tl { ␣ } , % U+2423
     show-spaces-in-strings .value_forbidden:n = true ,
     break-lines-in-Piton .bool_set:N    = \l__piton_break_lines_in_Piton_bool ,
     break-lines-in-Piton .default:n     = true ,
@@ -685,7 +684,7 @@
     range .value_required:n = true ,
 
     env-used-by-split .code:n =
-      \lua_now:n { piton.env_used_by_split = '#1'} ,
+      \lua_now:n { piton.env_used_by_split = '#1' } ,
     env-used-by-split .initial:n = Piton ,
 
     resume .meta:n = line-numbers/resume ,
@@ -795,8 +794,8 @@
   {
     \tl_set:Ne \l_tmpa_tl
       {
-         \tl_if_blank:nF { #3 } { [ \str_lowercase:n { #3 } ] }
-         \str_lowercase:n { #4 }
+        \tl_if_blank:nF { #3 } { [ \str_lowercase:n { #3 } ] }
+        \str_lowercase:n { #4 }
       }
     \prop_get:NoNTF \g__piton_languages_prop \l_tmpa_tl \l_tmpb_tl
       { \__piton_NewPitonLanguage:nnno { #1 } { #2 } { #5 } \l_tmpb_tl }
@@ -810,6 +809,8 @@
 \NewDocumentCommand { \__piton_piton_standard } { m }
   {
     \group_begin:
+    \bool_if:NT \l__piton_break_lines_in_piton_bool
+      { \tl_set_eq:NN \l__piton_space_in_string_tl \space }
     \automatichyphenmode = 1
     \cs_set_eq:NN \\ \c_backslash_str
     \cs_set_eq:NN \% \c_percent_str
@@ -1242,14 +1243,14 @@
       {
         #1 .value_required:n = true ,
         #1 .code:n =
-         \tl_set:cn
-           {
-             pitonStyle _
-             \str_if_empty:NF \l__piton_SetPitonStyle_option_str
-               { \l__piton_SetPitonStyle_option_str _ }
-             #1
-           }
-           { ##1 }
+          \tl_set:cn
+            {
+              pitonStyle _
+              \str_if_empty:NF \l__piton_SetPitonStyle_option_str
+                { \l__piton_SetPitonStyle_option_str _ }
+              #1
+            }
+            { ##1 }
       }
   }
 
@@ -1257,15 +1258,14 @@
   {
     String       .meta:n = { String.Long = #1 , String.Short = #1 } ,
     Comment.Math .tl_set:c = pitonStyle _ Comment.Math  ,
-    ParseAgain   .tl_set:c = pitonStyle _ ParseAgain ,
-    ParseAgain   .value_required:n = true ,
     unknown         .code:n =
       \__piton_error:n { Unknown~key~for~SetPitonStyle }
   }
 \SetPitonStyle[OCaml]
   {
     TypeExpression =
-      \SetPitonStyle { Identifier = \PitonStyle { Name.Type } } \__piton_piton:n ,
+      \SetPitonStyle { Identifier = \PitonStyle { Name.Type } }
+      \__piton_piton:n ,
   }
 \clist_gput_left:Nn \g__piton_styles_clist { String }
 \clist_gsort:Nn \g__piton_styles_clist
@@ -1299,7 +1299,7 @@
     Comment.LaTeX       = \normalfont \color[rgb]{.468,.532,.6} ,
     Name.Type           = \color[HTML]{336666} ,
     InitialValues       = \__piton_piton:n ,
-    Interpol.Inside     = \color{black}\__piton_piton:n ,
+    Interpol.Inside     = \l__piton_font_command_tl \__piton_piton:n ,
     TypeParameter       = \color[HTML]{336666} \itshape ,
     Preproc             = \color[HTML]{AA6600} \slshape ,
     Identifier.Internal = \__piton_identifier:n ,
@@ -1308,7 +1308,6 @@
     Tag                 = \colorbox{gray!10},
     UserFunction        = \PitonStyle{Identifier} ,
     Prompt              = ,
-    ParseAgain          = \__piton_piton_no_cr:n ,
     Discard             = \use_none:n
   }
 \hook_gput_code:nnn { begindocument } { . }
@@ -1337,7 +1336,7 @@
     \cs_if_exist_use:cF { PitonIdentifier _ \l_piton_language_str _ #1 }
       {
         \cs_if_exist_use:cF { PitonIdentifier _ #1 }
-          { \PitonStyle { Identifier }  }
+          { \PitonStyle { Identifier } }
       }
     { #1 }
   }
@@ -1567,28 +1566,30 @@
     lpeg.locale(lpeg)
     local P , alpha , C , space , S , V
       = lpeg.P , lpeg.alpha , lpeg.C , lpeg.space , lpeg.S , lpeg.V
-    local function add(...)
-            local s = P ( false )
-            for _ , x in ipairs({...}) do s = s + x end
-            return s
-          end
+    local add
+    function add(...)
+      local s = P ( false )
+      for _ , x in ipairs({...}) do s = s + x end
+      return s
+    end
     local my_lpeg =
       P {  "E" ,
            E = ( V "F" * ( "," * V "F" ) ^ 0 ) / add ,
            F = space ^ 0 * ( ( alpha ^ 1 ) / "\\%0" ) * space ^ 0
         }
-    function piton.addDetectedCommands( key_value )
+    function piton.addDetectedCommands ( key_value )
       piton.DetectedCommands = piton.DetectedCommands + my_lpeg : match ( key_value )
     end
     function piton.addBeamerCommands( key_value )
       piton.BeamerCommands
        = piton.BeamerCommands + my_lpeg : match ( key_value )
     end
-    local function insert(...)
-          local s = piton.beamer_environments
-          for _ , x in ipairs({...}) do table.insert(s,x) end
-          return s
-          end
+    local insert
+    function insert(...)
+      local s = piton.beamer_environments
+      for _ , x in ipairs({...}) do table.insert(s,x) end
+      return s
+    end
     local my_lpeg_bis =
       P {  "E" ,
            E = ( V "F" * ( "," * V "F" ) ^ 0 ) / insert ,

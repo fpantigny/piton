@@ -382,7 +382,8 @@ La valeur initiale est |Python|.
 
 La clé \Definition{font-command} contient des instructions de fonte qui seront
 insérées au début de chaque élément formaté par \pkg{piton}, que ce soit avec la commande
-|\piton|, l'environnement |{Piton}| ou bien la commande |\PitonInputFile|.
+|\piton|, l'environnement |{Piton}| ou bien la commande |\PitonInputFile| (il n'y a que
+les «commentaires LaTeX» pour lesquels ces instructions de fonte ne sont pas utilisées).
 
 La valeur initiale de ce paramètre |font-command| est |\ttfamily|, ce qui fait, que, par
 défaut, \pkg{piton} utilise la fonte mono-chasse courante.
@@ -1189,7 +1190,8 @@ que le fichier soit structuré correctement!):
 
 Par défaut, les éléments produits par \pkg{piton} ne peuvent pas être coupés par une fin
 de ligne. Il existe néanmoins des clés pour autoriser de telles coupures (les points de
-coupure possibles sont les espaces, y compris les espaces dans les chaînes Python).
+coupure possibles sont les espaces, y compris les espaces qui sont dans les chaînes de
+caractères des langages informatiques).
 \begin{itemize}
 \item \index{break-lines!break-lines-in-piton} Avec la clé
 \Definition{break-lines-in-piton}, les coupures de ligne sont autorisées dans la commande

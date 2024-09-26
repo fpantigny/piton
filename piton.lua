@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.0" -- 2024/09/22
+piton_version = "4.0x3" -- 2024/09/26
 
 
 
@@ -28,32 +28,36 @@ piton_version = "4.0" -- 2024/09/22
 
 piton.comment_latex = piton.comment_latex or ">"
 piton.comment_latex = "#" .. piton.comment_latex
-local function sprintL3 ( s )
+local sprintL3
+function sprintL3 ( s )
   tex.sprint ( luatexbase.catcodetables.expl , s )
 end
 local P, S, V, C, Ct, Cc = lpeg.P, lpeg.S, lpeg.V, lpeg.C, lpeg.Ct, lpeg.Cc
 local Cs , Cg , Cmt , Cb = lpeg.Cs, lpeg.Cg , lpeg.Cmt , lpeg.Cb
 local B , R = lpeg.B , lpeg.R
-local function Q ( pattern )
+local Q
+function Q ( pattern )
   return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
 end
-local function L ( pattern )
-  return Ct ( C ( pattern ) )
+local L
+function L ( pattern ) return
+  Ct ( C ( pattern ) )
 end
-local function Lc ( string )
-  return Cc ( { luatexbase.catcodetables.expl , string } )
+local Lc
+function Lc ( string ) return
+  Cc ( { luatexbase.catcodetables.expl , string } )
 end
-local function K ( style , pattern )
-  return
-    Lc ( [[{\PitonStyle{]] .. style .. "}{" )
-    * Q ( pattern )
-    * Lc "}}"
+local K
+function K ( style , pattern ) return
+  Lc ( [[ {\PitonStyle{ ]] .. style .. "}{" )
+  * Q ( pattern )
+  * Lc "}}"
 end
-local function WithStyle ( style , pattern )
-  return
-      Ct ( Cc "Open" * Cc ( [[{\PitonStyle{]] .. style .. "}{" ) * Cc "}}" )
-    * pattern
-    * Ct ( Cc "Close" )
+local WithStyle
+function WithStyle ( style , pattern ) return
+    Ct ( Cc "Open" * Cc ( [[{\PitonStyle{]] .. style .. "}{" ) * Cc "}}" )
+  * pattern
+  * Ct ( Cc "Close" )
 end
 Escape = P ( false )
 EscapeClean = P ( false )
@@ -109,36 +113,45 @@ local SkipSpace = Q " " ^ 0
 local Punct = Q ( S ".,:;!" )
 
 local Tab = "\t" * Lc [[ \__piton_tab: ]]
-local SpaceIndentation = Lc [[\__piton_leading_space:]] * Q " "
+local SpaceIndentation = Lc [[ \__piton_leading_space: ]] * Q " "
 local Delim = Q ( S "[({})]" )
-local VisualSpace = space * Lc [[\l__piton_space_tl]]
+local SpaceInString = space * Lc [[ \l__piton_space_in_string_tl ]]
 local LPEG0 = { }
 local LPEG1 = { }
 local LPEG2 = { }
 local LPEG_cleaner = { }
-local function Compute_braces ( lpeg_string ) return
-    P { "E" ,
-         E =
-             (
-               "{" * V "E" * "}"
-               +
-               lpeg_string
-               +
-               ( 1 - S "{}" )
-             ) ^ 0
-      }
+local Compute_braces
+function Compute_braces ( lpeg_string ) return
+  P { "E" ,
+       E =
+           (
+             "{" * V "E" * "}"
+             +
+             lpeg_string
+             +
+             ( 1 - S "{}" )
+           ) ^ 0
+    }
 end
-local function Compute_DetectedCommands ( lang , braces ) return
-  Ct ( Cc "Open"
+local Compute_DetectedCommands
+function Compute_DetectedCommands ( lang , braces ) return
+  Ct (
+       Cc "Open"
         * C ( piton.DetectedCommands * space ^ 0 * P "{" )
         * Cc "}"
      )
    * ( braces
-       / ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
+       / ( function ( s )
+             if s ~= '' then return
+               LPEG1[lang] : match ( s )
+             end
+           end )
+     )
    * P "}"
    * Ct ( Cc "Close" )
 end
-local function Compute_LPEG_cleaner ( lang , braces ) return
+local Compute_LPEG_cleaner
+function Compute_LPEG_cleaner ( lang , braces ) return
   Ct ( ( piton.DetectedCommands * "{"
           * ( braces
               / ( function ( s )
@@ -166,10 +179,11 @@ BeamerBeginEnvironments =
     ) ^ 0
 BeamerEndEnvironments =
     ( space ^ 0 *
-      L ( P [[end{]] * piton.BeamerEnvironments * "}" )
+      L ( P [[\end{]] * piton.BeamerEnvironments * "}" )
       * "\r"
     ) ^ 0
-local function Compute_Beamer ( lang , braces )
+local Compute_Beamer
+function Compute_Beamer ( lang , braces )
   local lpeg = L ( P [[\pause]] * ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ -1 )
   lpeg = lpeg +
       Ct ( Cc "Open"
@@ -184,7 +198,7 @@ local function Compute_Beamer ( lang , braces )
        * "}"
        * Ct ( Cc "Close" )
   lpeg = lpeg +
-    L ( P [[\alt]] * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
+    L ( P [[\alt]] * "<" * ( 1 - P ">" ) ^ 0 * ">{" )
      * ( braces /
          ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
      * L ( P "}{" )
@@ -192,7 +206,7 @@ local function Compute_Beamer ( lang , braces )
          ( function ( s ) if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
      * L ( P "}" )
   lpeg = lpeg +
-      L ( P [[\temporal]] * "<" * ( 1 - P ">" ) ^ 0 * ">" * "{" )
+      L ( P [[\temporal]] * "<" * ( 1 - P ">" ) ^ 0 * ">{" )
       * ( braces
           / ( function ( s )
               if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
@@ -217,9 +231,9 @@ local function Compute_Beamer ( lang , braces )
           * (
               ( ( 1 - P ( [[\end{]] .. x .. "}" ) ) ^ 0 )
                   / ( function ( s )
-                      if s ~= ''
-                      then return LPEG1[lang] : match ( s )
-                      end
+                        if s ~= '' then return
+                          LPEG1[lang] : match ( s )
+                        end
                       end )
             )
           * P ( [[\end{]] .. x .. "}" )
@@ -358,7 +372,7 @@ do
                 * Q ( P ":" * ( 1 - S "}:'" ) ^ 0 ) ^ -1
                 * K ( 'String.Interpol' , "}" )
                +
-               VisualSpace
+               SpaceInString
                +
                Q ( ( P "\\'" + "\\\\" + "{{" + "}}" + 1 - S " {}'" ) ^ 1 )
              ) ^ 0
@@ -366,7 +380,7 @@ do
          +
            Q ( P "'" + "r'" + "R'" )
            * ( Q ( ( P "\\'" + "\\\\" + 1 - S " '\r%" ) ^ 1 )
-               + VisualSpace
+               + SpaceInString
                + PercentInterpol
                + Q "%"
              ) ^ 0
@@ -380,7 +394,7 @@ do
                  * ( K ( 'String.Interpol' , ":" ) * Q ( (1 - S "}:\"") ^ 0 ) ) ^ -1
                  * K ( 'String.Interpol' , "}" )
                +
-               VisualSpace
+               SpaceInString
                +
                Q ( ( P "\\\"" + "\\\\" + "{{" + "}}" + 1 - S " {}\"" ) ^ 1 )
               ) ^ 0
@@ -388,7 +402,7 @@ do
          +
            Q ( P "\"" + "r\"" + "R\"" )
            * ( Q ( ( P "\\\"" + "\\\\" + 1 - S " \"\r%" ) ^ 1 )
-               + VisualSpace
+               + SpaceInString
                + PercentInterpol
                + Q "%"
              ) ^ 0
@@ -406,7 +420,7 @@ do
      )
   if piton.beamer then Beamer = Compute_Beamer ( 'python' , braces ) end
   DetectedCommands = Compute_DetectedCommands ( 'python' , braces )
-  LPEG_cleaner['python'] = Compute_LPEG_cleaner ( 'python' , braces )
+  LPEG_cleaner.python = Compute_LPEG_cleaner ( 'python' , braces )
   local SingleLongString =
     WithStyle ( 'String.Long' ,
        ( Q ( S "fF" * P "'''" )
@@ -504,7 +518,13 @@ do
     * Q "("  * Params * Q ")"
     * SkipSpace
     * ( Q "->" * SkipSpace * K ( 'Name.Type' , identifier ) ) ^ -1
-    * K ( 'ParseAgain;noCR' , ( 1 - S ":\r" ) ^ 0 )
+    * ( C ( ( 1 - S ":\r" ) ^ 0 )
+         / ( function ( s )
+               if s ~= '' then return
+                 LPEG1.python : match ( s )
+               end
+             end )
+      )
     * Q ":"
     * ( SkipSpace
         * ( EOL + CommentLaTeX + Comment ) -- in all cases, that contains an EOL
@@ -543,8 +563,8 @@ do
        + Identifier
        + Number
        + Word
-  LPEG1['python'] = Main ^ 0
-  LPEG2['python'] =
+  LPEG1.python = Main ^ 0
+  LPEG2.python =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
          * BeamerBeginEnvironments
@@ -565,29 +585,29 @@ do
     Beamer = Compute_Beamer ( 'ocaml' , braces )
   end
   DetectedCommands = Compute_DetectedCommands ( 'ocaml' , braces )
-  local function Q ( pattern )
-    return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther )
-                * C ( pattern ) )
-           + Beamer + DetectedCommands + EscapeMath + Escape
+  local Q
+  function Q ( pattern ) return
+    Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
+    + Beamer + DetectedCommands + EscapeMath + Escape
   end
-  local function K ( style , pattern )
-  return
-     Lc ( [[{\PitonStyle{]] .. style .. "}{" )
-     * Q ( pattern )
-     * Lc "}}"
+  local K
+  function K ( style , pattern ) return
+    Lc ( [[ {\PitonStyle{ ]] .. style  .. "}{" )
+    * Q ( pattern )
+    * Lc "}}"
   end
-  local function WithStyle ( style , pattern )
-  return
-       Ct ( Cc "Open" * Cc ( [[{\PitonStyle{]] .. style .. "}{" ) * Cc "}}" )
-     * ( pattern + Beamer + DetectedCommands + EscapeMath + Escape )
-     * Ct ( Cc "Close" )
+  local WithStyle
+  function WithStyle ( style , pattern ) return
+      Ct ( Cc "Open" * Cc ( [[{\PitonStyle{]] .. style .. "}{" ) * Cc "}}" )
+    * ( pattern + Beamer + DetectedCommands + EscapeMath + Escape )
+    * Ct ( Cc "Close" )
   end
   local balanced_parens =
     P { "E" , E = ( "(" * V "E" * ")" + ( 1 - S "()" ) ) ^ 0 }
   local ocaml_string =
     Q "\""
   * (
-      VisualSpace
+      SpaceInString
       +
       Q ( ( 1 - S " \"\r" ) ^ 1 )
       +
@@ -704,7 +724,7 @@ do
       K ( 'Name.Field' , identifier ) * SkipSpace
     * Q "=" * SkipSpace
     * ( expression_for_fields_value
-        / ( function ( s ) return LPEG1['ocaml'] : match ( s ) end )
+        / ( function ( s ) return LPEG1.ocaml : match ( s ) end )
       )
     * SkipSpace
   local Record =
@@ -745,7 +765,7 @@ do
         P "Division_by_zero" + "End_of_File" + "Failure" + "Invalid_argument" +
         "Match_failure" + "Not_found" + "Out_of_memory" + "Stack_overflow" +
         "Sys_blocked_io" + "Sys_error" + "Undefined_recursive_module" )
-  LPEG_cleaner['ocaml'] = Compute_LPEG_cleaner ( 'ocaml' , braces )
+  LPEG_cleaner.ocaml = Compute_LPEG_cleaner ( 'ocaml' , braces )
   local Argument =
     (  Q "~" * Identifier * Q ":" * SkipSpace ) ^ -1
     *
@@ -848,7 +868,7 @@ do
       + String + QuotedString + Char
       + Comment
       + Operator
-      + Q ( "~" ) * Identifier * ( Q ":" ) ^ -1
+      + Q "~" * Identifier * ( Q ":" ) ^ -1
       + Q ":" * # (1 - P ":") * SkipSpace
           * K ( 'TypeExpression' , balanced_parens ) * SkipSpace * Q ")"
       + Exception
@@ -866,8 +886,8 @@ do
       + Delim
       + Number
       + Word
-  LPEG1['ocaml'] = Main ^ 0
-  LPEG2['ocaml'] =
+  LPEG1.ocaml = Main ^ 0
+  LPEG2.ocaml =
     Ct (
         ( P ":" + Identifier * SkipSpace * Q ":" )
           * SkipSpace
@@ -928,7 +948,7 @@ do
   String =
     WithStyle ( 'String.Long' ,
         Q "\""
-        * ( VisualSpace
+        * ( SpaceInString
             + K ( 'String.Interpol' ,
                   "%" * ( S "difcspxXou" + "ld" + "li" + "hd" + "hi" )
                 )
@@ -939,7 +959,7 @@ do
   local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
   if piton.beamer then Beamer = Compute_Beamer ( 'c' , braces ) end
   DetectedCommands = Compute_DetectedCommands ( 'c' , braces )
-  LPEG_cleaner['c'] = Compute_LPEG_cleaner ( 'c' , braces )
+  LPEG_cleaner.c = Compute_LPEG_cleaner ( 'c' , braces )
   local Preproc = K ( 'Preproc' , "#" * ( 1 - P "\r" ) ^ 0  ) * ( EOL + -1 )
   local Comment =
     WithStyle ( 'Comment' ,
@@ -976,8 +996,8 @@ do
        + Identifier
        + Number
        + Word
-  LPEG1['c'] = Main ^ 0
-  LPEG2['c'] =
+  LPEG1.c = Main ^ 0
+  LPEG2.c =
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
          * BeamerBeginEnvironments
@@ -989,22 +1009,23 @@ do
        )
 end
 do
-  local function LuaKeyword ( name )
-  return
-     Lc [[{\PitonStyle{Keyword}{]]
-     * Q ( Cmt (
-                 C ( identifier ) ,
-                 function ( s , i , a ) return string.upper ( a ) == name end
-               )
-         )
-     * Lc "}}"
+  local LuaKeyword
+  function LuaKeyword ( name ) return
+    Lc [[ {\PitonStyle{Keyword}{ ]]
+    * Q ( Cmt (
+                C ( letter * alphanum ^ 0 ) ,
+                function ( s , i , a ) return string.upper ( a ) == name end
+              )
+        )
+    * Lc "}}"
   end
   local identifier =
     letter * ( alphanum + "-" ) ^ 0
     + P '"' * ( ( 1 - P '"' ) ^ 1 ) * '"'
   local Operator =
     K ( 'Operator' , P "=" + "!=" + "<>" + ">=" + ">" + "<=" + "<"  + S "*+/" )
-  local function Set ( list )
+  local Set
+  function Set ( list )
     local set = { }
     for _, l in ipairs ( list ) do set[l] = true end
     return set
@@ -1027,19 +1048,21 @@ do
   local Identifier =
     C ( identifier ) /
     (
-      function (s)
-          if set_keywords[string.upper(s)] -- the keywords are case-insensitive in SQL
-          then return { [[\PitonStyle{Keyword}{]] } ,
-                      { luatexbase.catcodetables.other , s } ,
-                      { "}}" }
-          else if set_builtins[string.upper(s)]
-               then return { [[\PitonStyle{Name.Builtin}{]] } ,
-                           { luatexbase.catcodetables.other , s } ,
-                           { "}}" }
-               else return { [[\PitonStyle{Name.Field}{]] } ,
-                           { luatexbase.catcodetables.other , s } ,
-                           { "}}" }
-               end
+      function ( s )
+          if set_keywords[string.upper(s)] then return
+            { [[{\PitonStyle{Keyword}{]] } ,
+            { luatexbase.catcodetables.other , s } ,
+            { "}}" }
+          else
+            if set_builtins[string.upper(s)] then return
+              { [[{\PitonStyle{Name.Builtin}{]] } ,
+              { luatexbase.catcodetables.other , s } ,
+              { "}}" }
+            else return
+              { [[{\PitonStyle{Name.Field}{]] } ,
+              { luatexbase.catcodetables.other , s } ,
+              { "}}" }
+            end
           end
       end
     )
@@ -1047,7 +1070,7 @@ do
   local braces = Compute_braces ( "'" * ( 1 - P "'" ) ^ 1 * "'" )
   if piton.beamer then Beamer = Compute_Beamer ( 'sql' , braces ) end
   DetectedCommands = Compute_DetectedCommands ( 'sql' , braces )
-  LPEG_cleaner['sql'] = Compute_LPEG_cleaner ( 'sql' , braces )
+  LPEG_cleaner.sql = Compute_LPEG_cleaner ( 'sql' , braces )
   local Comment =
     WithStyle ( 'Comment' ,
        Q "--"   -- syntax of SQL92
@@ -1101,7 +1124,8 @@ do
       )
       * ( Space + EOL ) * OneTable
   local EndKeyword
-    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1
+    = Space + Punct + Delim + EOL + Beamer
+        + DetectedCommands + Escape + EscapeMath + -1
   local Main =
        space ^ 0 * EOL
        + Space
@@ -1119,12 +1143,12 @@ do
        + ( TableField + Identifier ) * ( Space + Operator + Punct + Delim + EOL + -1 )
        + Number
        + Word
-  LPEG1['sql'] = Main ^ 0
-  LPEG2['sql'] =
+  LPEG1.sql = Main ^ 0
+  LPEG2.sql =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
          * BeamerBeginEnvironments
-         * Lc [[  \__piton_begin_line: ]]
+         * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
@@ -1144,7 +1168,7 @@ do
   local String =
     WithStyle ( 'String.Short' ,
                 Q "\""
-                * ( VisualSpace
+                * ( SpaceInString
                     + Q ( ( P "\\\"" + 1 - S " \"" ) ^ 1 )
                   ) ^ 0
                 * Q "\""
@@ -1155,7 +1179,7 @@ do
 
   DetectedCommands = Compute_DetectedCommands ( 'minimal' , braces )
 
-  LPEG_cleaner['minimal'] = Compute_LPEG_cleaner ( 'minimal' , braces )
+  LPEG_cleaner.minimal = Compute_LPEG_cleaner ( 'minimal' , braces )
 
   local identifier = letter * alphanum ^ 0
 
@@ -1178,9 +1202,9 @@ do
        + Identifier
        + Number
        + Word
-  LPEG1['minimal'] = Main ^ 0
+  LPEG1.minimal = Main ^ 0
 
-  LPEG2['minimal'] =
+  LPEG2.minimal =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
          * BeamerBeginEnvironments
@@ -1202,7 +1226,7 @@ do
 
   DetectedCommands = Compute_DetectedCommands ( 'verbatim' , braces )
 
-  LPEG_cleaner['verbatim'] = Compute_LPEG_cleaner ( 'verbatim' , braces )
+  LPEG_cleaner.verbatim = Compute_LPEG_cleaner ( 'verbatim' , braces )
   local lpeg_central = 1 - S " \\\r"
   if piton.begin_escape then
     lpeg_central = lpeg_central - piton.begin_escape
@@ -1221,9 +1245,9 @@ do
        + DetectedCommands
        + Q [[\]]
        + Word
-  LPEG1['verbatim'] = Main ^ 0
+  LPEG1.verbatim = Main ^ 0
 
-  LPEG2['verbatim'] =
+  LPEG2.verbatim =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
          * BeamerBeginEnvironments
@@ -1337,18 +1361,20 @@ local TabsAutoGobbleLPEG =
 local EnvGobbleLPEG =
       ( ( 1 - P "\r" ) ^ 0 * "\r" ) ^ 0
     * Ct ( C " " ^ 0 * -1 ) / table.getn
-local function remove_before_cr ( input_string )
-    local match_result = ( P "\r" ) : match ( input_string )
-    if match_result then
-      return string.sub ( input_string , match_result )
-    else
-      return input_string
-    end
+local remove_before_cr
+function remove_before_cr ( input_string )
+  local match_result = ( P "\r" ) : match ( input_string )
+  if match_result then return
+    string.sub ( input_string , match_result )
+  else return
+    input_string
+  end
 end
-local function gobble ( n , code )
+local gobble
+function gobble ( n , code )
   code = remove_before_cr ( code )
-  if n == 0 then
-    return code
+  if n == 0 then return
+    code
   else
     if n == -1 then
       n = AutoGobbleLPEG : match ( code )
@@ -1361,10 +1387,9 @@ local function gobble ( n , code )
         end
       end
     end
-    if n == 0 then
-      return code
-    else
-      return
+    if n == 0 then return
+      code
+    else return
       ( Ct (
              ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
                * ( C "\r" * ( 1 - P "\r" ) ^ (-n) * C ( ( 1 - P "\r" ) ^ 0 )
@@ -1556,7 +1581,7 @@ function piton.ComputeLinesStatus ( code , splittable )
             lines_status[i+j] = 2
         end
         for j = 1 , s - 1 do
-          if i - j - 1 == 0 then break end
+          if i - j == 1 then break end
           if lines_status[i-j-1] == 0 then break end
           lines_status[i-j-1] = 2
         end
@@ -1588,10 +1613,10 @@ function piton.new_language ( lang , definition )
   local other = S ":_@+-*/<>!?;.()[]~^=#&\"\'\\$" -- $
   local extra_others = { }
   function add_to_other ( c )
-     if c ~= " " then
-       extra_others[c] = true
-       other = other + P ( c )
-     end
+    if c ~= " " then
+      extra_others[c] = true
+      other = other + P ( c )
+    end
   end
   local def_table
   if ( S ", " ^ 0 * -1 ) : match ( definition ) then
@@ -1683,11 +1708,13 @@ function piton.new_language ( lang , definition )
              * ( P "}" ) ^ 1 * space ^ 0 ,
          F = space ^ 0 * C ( letter * alphanum ^ 0 + other ^ 1 ) * space ^ 0
       }
-  local function keyword_to_lpeg ( name )
-  return
+  local keyword_to_lpeg
+  function keyword_to_lpeg ( name ) return
     Q ( Cmt (
               C ( identifier ) ,
-              function(s,i,a) return string.upper(a) == string.upper(name) end
+              function ( s , i , a ) return
+                string.upper ( a ) == string.upper ( name )
+              end
             )
       )
   end
@@ -1701,7 +1728,7 @@ function piton.new_language ( lang , definition )
      then
         local keywords = P ( false )
         local style = [[\PitonStyle{Keyword}]]
-        if x[1] == "moredirectives" then style = [[ \PitonStyle{Directive} ]] end
+        if x[1] == "moredirectives" then style = [[\PitonStyle{Directive}]] end
         style =  tex_option_arg : match ( x[2] ) or style
         local n = tonumber ( style )
         if n then
@@ -1756,7 +1783,7 @@ function piton.new_language ( lang , definition )
      local pattern =
          prefix
          * Q ( arg3 )
-         * ( VisualSpace + Q ( central_pattern ^ 1 ) + EOL ) ^ 0
+         * ( SpaceInString + Q ( central_pattern ^ 1 ) + EOL ) ^ 0
          * Q ( arg4 )
       Long_string = Long_string + pattern
       LongString = LongString +
@@ -1829,7 +1856,11 @@ function piton.new_language ( lang , definition )
         = args_for_moredelims : match ( x[2] )
       local MyFun = Q
       if arg1 == "*" or arg1 == "**" then
-        MyFun = function ( x ) return K ( 'ParseAgain.noCR' , x ) end
+        function MyFun ( x )
+          if x ~= '' then return
+            LPEG1[lang] : match ( x )
+          end
+        end
       end
       local left_delim
       if arg2 : match "i" then
@@ -1886,11 +1917,11 @@ function piton.new_language ( lang , definition )
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
          * BeamerBeginEnvironments
-         * Lc [[\__piton_begin_line:]]
+         * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
-         * Lc [[\__piton_end_line:]]
+         * Lc [[ \__piton_end_line: ]]
        )
   if left_tag then
     local Tag = Ct ( Cc "Open" * Cc ( "{" .. style_tag .. "{" ) * Cc "}}" )
@@ -1935,7 +1966,7 @@ function piton.new_language ( lang , definition )
            * SpaceIndentation ^ 0
            * LPEG1[lang]
            * -1
-           * Lc [[\__piton_end_line:]]
+           * Lc [[ \__piton_end_line: ]]
          )
   end
 end
