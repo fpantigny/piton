@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.0x3" -- 2024/09/26
+piton_version = "4.0x4" -- 2024/10/05
 
 
 
@@ -155,7 +155,11 @@ function Compute_LPEG_cleaner ( lang , braces ) return
   Ct ( ( piton.DetectedCommands * "{"
           * ( braces
               / ( function ( s )
-                  if s ~= '' then return LPEG_cleaner[lang] : match ( s ) end  end ) )
+                    if s ~= '' then return
+                      LPEG_cleaner[lang] : match ( s )
+                    end
+                  end )
+            )
           * "}"
          + EscapeClean
          +  C ( P ( 1 ) )
@@ -1034,10 +1038,11 @@ do
    {
      "ADD" , "AFTER" , "ALL" , "ALTER" , "AND" , "AS" , "ASC" , "BETWEEN" , "BY" ,
      "CHANGE" , "COLUMN" , "CREATE" , "CROSS JOIN" , "DELETE" , "DESC" , "DISTINCT" ,
-     "DROP" , "FROM" , "GROUP" , "HAVING" , "IN" , "INNER" , "INSERT" , "INTO" , "IS" ,
-     "JOIN" , "LEFT" , "LIKE" , "LIMIT" , "MERGE" , "NOT" , "NULL" , "ON" , "OR" ,
-     "ORDER" , "OVER" , "RIGHT" , "SELECT" , "SET" , "TABLE" , "THEN" , "TRUNCATE" ,
-     "UNION" , "UPDATE" , "VALUES" , "WHEN" , "WHERE" , "WITH"
+     "DROP" , "EXCEPT" , "FROM" , "GROUP" , "HAVING" , "IN" , "INNER" ,
+     "INSERT" , "INTERSECT" , "INTO" , "IS" , "JOIN" , "LEFT" , "LIKE" , "LIMIT" ,
+     "MERGE" , "NOT" , "NULL" , "OFFSET" , "ON" , "OR" , "ORDER" , "OVER" ,
+     "RIGHT" , "SELECT" , "SET" , "TABLE" , "THEN" , "TRUNCATE" , "UNION" ,
+     "UPDATE" , "VALUES" , "WHEN" , "WHERE" , "WITH"
    }
   local set_builtins = Set
    {
@@ -1412,8 +1417,8 @@ function piton.GobbleParse ( lang , n , splittable , code )
   if piton.write and piton.write ~= '' then
     local file = io.open ( piton.write , piton.write_mode )
     if file then
-      file:write ( piton.get_last_code ( ) )
-      file:close ( )
+      file : write ( piton.get_last_code ( ) )
+      file : close ( )
     else
       sprintL3 [[ \__piton_error_or_warning:n { FileError } ]]
     end

@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.0x3}
+\def\PitonFileVersion{4.0x4}
 \def\PitonFileDate{2024/09/26}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.0x3" -- 2024/09/26
+piton_version = "4.0x4" -- 2024/10/05
 %</LUA>
 %\fi
 %
@@ -455,7 +455,7 @@ piton_version = "4.0x3" -- 2024/09/26
 %         skip-empty-lines = false ,
 %         label-empty-lines = false ,
 %         sep = 1 em ,
-%         line-format = \footnotesize \color{blue}
+%         format = \footnotesize \color{blue}
 %       }
 %   }
 % \end{Verbatim}
@@ -2415,51 +2415,55 @@ piton_version = "4.0x3" -- 2024/09/26
 %
 % \begin{center}
 % \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
-%   \toprule
-%   \normalfont Style  & Use \\
-%   \midrule
-%   Number & the numbers \\
-%   String.Short & the short strings (entre \texttt{'} ou \texttt{"}) \\
-%   String.Long & the long strings (entre \texttt{'''} ou \texttt{"""}) excepted
-%                 the doc-strings (governed by |String.Doc|)\\
-%   String & that key fixes both |String.Short| et |String.Long| \\
-%   String.Doc & the doc-strings (only with |"""| following PEP~257) \\
-%   String.Interpol & the syntactic elements of the fields of the f-strings
-%   (that is to say the characters \texttt{\{} et \texttt{\}}); that style
-%   inherits for the styles |String.Short| and |String.Long| (according the kind
-%   of string where the interpolation appears) \\
-%   Interpol.Inside & the content of the interpolations in the f-strings (that
-%   is to say the elements between \texttt{\{} and~\texttt{\}}); if the final
-%   user has not set that key, those elements will be formatted by \pkg{piton}
-%   as done for any Python code. \\
-%   Operator & the following operators: \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ \verb|@| \\
-%   Operator.Word & the following operators: |in|, |is|, |and|, |or| et |not| \\
-%   Name.Builtin & almost all the functions predefined by Python \\
-%   Name.Decorator & the decorators (instructions beginning by \verb|@|) \\
-%   Name.Namespace & the name of the modules \\
-%   Name.Class & the name of the Python classes defined by the user \emph{at their point of definition} (with the keyword |class|) \\ 
-%   Name.Function & the name of the Python functions defined by the user \emph{at their
-%   point of definition} (with the keyword |def|) \\ 
-%   UserFunction & the name of the Python functions previously defined by the user
-%                  (the initial value of that parameter is empty and, hence, these
-%                  elements are drawn, by default, in the current color, usually black) \\
-%   Exception & les exceptions prédéfinies (ex.: \texttt{SyntaxError}) \\
-%   InitialValues & the initial values (and the preceding symbol |=|) of the
-%   optional arguments in the definitions of functions; if the final
-%   user has not set that key, those elements will be formatted by \pkg{piton}
-%   as done for any Python code. \\
-%   Comment & the comments beginning with \texttt{\#} \\
-%   Comment.LaTeX & the comments beginning with \texttt{\#>}, which are composed by
-%   \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
-%   Keyword.Constant & |True|, |False| et |None| \\
-%   Keyword & the following keywords:
-%             \ttfamily assert, break, case, continue, del,
-%             elif, else, except, exec, finally, for, from, 
-%             global, if, import, in, lambda, non local,
-%             pass, raise, return, try, while,
-%             with, yield et yield from.\\
-%  Identifier & the identifiers. \\
-%   \bottomrule
+% \toprule
+% \normalfont Style  & Use \\
+% \midrule
+% Number & the numbers \\
+% String.Short & the short strings (entre \texttt{'} ou \texttt{"}) \\
+% String.Long & the long strings (entre \texttt{'''} ou \texttt{"""}) excepted
+%               the doc-strings (governed by |String.Doc|)\\
+% String & that key fixes both |String.Short| et |String.Long| \\
+% String.Doc & the doc-strings (only with |"""| following PEP~257) \\
+% String.Interpol & the syntactic elements of the fields of the f-strings
+% (that is to say the characters \texttt{\{} et \texttt{\}}); that style
+% inherits for the styles |String.Short| and |String.Long| (according the kind
+% of string where the interpolation appears) \\
+% Interpol.Inside & the content of the interpolations in the f-strings (that
+% is to say the elements between \texttt{\{} and~\texttt{\}}); if the final
+% user has not set that key, those elements will be formatted by \pkg{piton}
+% as done for any Python code. \\
+% Operator & the following operators: \texttt{!= == << >> - \~{} + / * \% = < >
+% \& .} \verb+|+ \verb|@| \\ 
+% Operator.Word & the following operators: |in|, |is|, |and|, |or| et |not| \\
+% Name.Builtin & almost all the functions predefined by Python \\
+% Name.Decorator & the decorators (instructions beginning by \verb|@|) \\
+% Name.Namespace & the name of the modules \\
+% Name.Class & the name of the Python classes defined by the user \emph{at their
+% point of definition} (with the keyword |class|) \\  
+% Name.Function & the name of the Python functions defined by the user \emph{at their
+% point of definition} (with the keyword |def|) \\ 
+% UserFunction & the name of the Python functions previously defined by the user
+%                (the initial value of that parameter is
+%                {\ttfamily \textbackslash PitonStyle\{Identifier\}} and,
+%                therefore, the names of that functions are formatted like the
+%                identifiers).  \\
+% Exception & les exceptions prédéfinies (ex.: \texttt{SyntaxError}) \\
+% InitialValues & the initial values (and the preceding symbol |=|) of the
+% optional arguments in the definitions of functions; if the final
+% user has not set that key, those elements will be formatted by \pkg{piton}
+% as done for any Python code. \\
+% Comment & the comments beginning with \texttt{\#} \\
+% Comment.LaTeX & the comments beginning with \texttt{\#>}, which are composed by
+% \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
+% Keyword.Constant & |True|, |False| et |None| \\
+% Keyword & the following keywords:
+%           \ttfamily assert, break, case, continue, del,
+%           elif, else, except, exec, finally, for, from, 
+%           global, if, import, in, lambda, non local,
+%           pass, raise, return, try, while,
+%           with, yield et yield from.\\
+% Identifier & the identifiers. \\
+% \bottomrule
 % \end{tabularx}
 % \end{center}
 %
@@ -2503,9 +2507,10 @@ piton_version = "4.0x3" -- 2024/09/26
 %   Name.Module & the name of the modules \\
 %   Name.Function & the name of the Python functions defined by the user \emph{at their
 %   point of definition} (with the keyword |let|) \\ 
-%   UserFunction & the name of the OCaml functions previously defined by the user
-%                  (the initial value of that parameter is empty and these
-%                  elements are drawn in the current color, usually black) \\
+%   UserFunction & the name of the Python functions previously defined by the user
+%                  (the initial value of that parameter is
+%                  {\ttfamily \textbackslash PitonStyle\{Identifier\}} and,
+%                  therefore, the names of that functions are formatted like the identifiers). \\
 %   Exception & the predefined exceptions (eg : |End_of_File|) \\
 %   TypeParameter &  the parameters of the types \\
 %   Comment & the comments, between |(*| et |*)|; these comments may be nested \\
@@ -2553,18 +2558,23 @@ piton_version = "4.0x3" -- 2024/09/26
 % String.Long & the strings (between \texttt{"}) \\
 % String.Interpol &  the elements \texttt{\%d}, \texttt{\%i}, \texttt{\%f},
 % \texttt{\%c}, etc. in the strings; that style inherits from the style |String.Long| \\
-% Operator & the following operators : \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ \verb|@| \\
+% Operator & the following operators : 
+% \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ \verb|@| \\ 
 % Name.Type & the following predefined types:
-%   |bool|, |char|, |char16_t|, |char32_t|, |double|, |float|, |int|, |int8_t|, |int16_t|, |int32_t|, 
-%   |int64_t|, |long|, |short|, |signed|, |unsigned|, |void| et |wchar_t| \\ 
-% Name.Builtin & the following predefined functions: |printf|, |scanf|, |malloc|, |sizeof| and |alignof|  \\
-%   Name.Class & le nom des classes au moment de leur définition, c'est-à-dire
+%   |bool|, |char|, |char16_t|, |char32_t|, |double|, |float|, |int|, |int8_t|,
+%   |int16_t|, |int32_t|, |int64_t|, |long|, |short|, |signed|, |unsigned|,
+%   |void| et |wchar_t| \\  
+% Name.Builtin & the following predefined functions: |printf|, |scanf|,
+% |malloc|, |sizeof| and |alignof|  \\ 
+% Name.Class & le nom des classes au moment de leur définition, c'est-à-dire
 %   après le mot-clé \verb|class| \\
-%   Name.Function & the name of the Python functions defined by the user \emph{at their
+% Name.Function & the name of the Python functions defined by the user \emph{at their
 %   point of definition} (with the keyword |let|) \\ 
-%   UserFunction & the name of the Python functions previously defined by the user
-%                  (the initial value of that parameter is empty and these
-%                  elements are drawn in the current color, usually black) \\
+% UserFunction & the name of the Python functions previously defined by the user
+%                  (the initial value of that parameter is
+%                  {\ttfamily \textbackslash PitonStyle\{Identifier\}} and,
+%                  therefore, the names of that functions are formatted like the
+%                  identifiers). \\ 
 % Preproc & the instructions of the preprocessor (beginning par |#|) \\
 % Comment & the comments (beginning by \texttt{//} or between |/*| and |*/|) \\
 % Comment.LaTeX & the comments beginning by  \texttt{//>} which are composed by
@@ -2573,10 +2583,10 @@ piton_version = "4.0x3" -- 2024/09/26
 % Keyword & the following keywords:
 % |alignas|, |asm|, |auto|, |break|, |case|, |catch|, |class|, 
 % |constexpr|, |const|, |continue|, |decltype|, |do|, |else|, |enum|,
-% |extern|, |for|, |goto|, |if|, |nexcept|, |private|, |public|, |register|, |restricted|, |try|, 
-% |return|, |static|, |static_assert|, |struct|, |switch|, |thread_local|, |throw|, 
-% |typedef|, |union|, |using|, |virtual|, |volatile| and |while|
-% \\
+% |extern|, |for|, |goto|, |if|, |nexcept|, |private|, |public|, |register|,
+% |restricted|, |try|, |return|, |static|, |static_assert|, |struct|, |switch|,
+% |thread_local|, |throw|, |typedef|, |union|, |using|, |virtual|, |volatile|
+% and |while| \\
 %  Identifier & the identifiers. \\
 % \bottomrule
 % \end{tabularx}
@@ -6063,7 +6073,11 @@ function Compute_LPEG_cleaner ( lang , braces ) return
   Ct ( ( piton.DetectedCommands * "{" 
           * ( braces 
               / ( function ( s ) 
-                  if s ~= '' then return LPEG_cleaner[lang] : match ( s ) end  end ) )
+                    if s ~= '' then return 
+                      LPEG_cleaner[lang] : match ( s ) 
+                    end  
+                  end ) 
+            )
           * "}" 
          + EscapeClean
          +  C ( P ( 1 ) )
@@ -7684,25 +7698,34 @@ do
 % complication. We will catch the keywords with the identifiers and, then,
 % distinguish the keywords with a Lua function. However, some keywords will be
 % caught in special LPEG because we want to detect the names of the SQL tables.
+% 
+% \bigskip
+% The following function converts a comma-separated list in a ``set'', that is
+% to say a Lua table with a fast way to test whether a string belongs to that
+% set (eventually, the indexation of the components of the table is no longer
+% done by integers but by the strings themselves). 
 %    \begin{macrocode}
   local Set
   function Set ( list )
     local set = { }
-    for _, l in ipairs ( list ) do set[l] = true end
+    for _ , l in ipairs ( list ) do set[l] = true end
     return set
   end
 %    \end{macrocode}
 % 
 % \bigskip
+% We now use the previsou function |Set| to creates the ``sets'' |set_keywords|
+% and |set_builtin|.
 %    \begin{macrocode}
   local set_keywords = Set
    { 
      "ADD" , "AFTER" , "ALL" , "ALTER" , "AND" , "AS" , "ASC" , "BETWEEN" , "BY" ,
      "CHANGE" , "COLUMN" , "CREATE" , "CROSS JOIN" , "DELETE" , "DESC" , "DISTINCT" , 
-     "DROP" , "FROM" , "GROUP" , "HAVING" , "IN" , "INNER" , "INSERT" , "INTO" , "IS" , 
-     "JOIN" , "LEFT" , "LIKE" , "LIMIT" , "MERGE" , "NOT" , "NULL" , "ON" , "OR" , 
-     "ORDER" , "OVER" , "RIGHT" , "SELECT" , "SET" , "TABLE" , "THEN" , "TRUNCATE" , 
-     "UNION" , "UPDATE" , "VALUES" , "WHEN" , "WHERE" , "WITH"
+     "DROP" , "EXCEPT" , "FROM" , "GROUP" , "HAVING" , "IN" , "INNER" , 
+     "INSERT" , "INTERSECT" , "INTO" , "IS" , "JOIN" , "LEFT" , "LIKE" , "LIMIT" ,
+     "MERGE" , "NOT" , "NULL" , "OFFSET" , "ON" , "OR" , "ORDER" , "OVER" ,
+     "RIGHT" , "SELECT" , "SET" , "TABLE" , "THEN" , "TRUNCATE" , "UNION" ,
+     "UPDATE" , "VALUES" , "WHEN" , "WHERE" , "WITH" 
    }
 %    \end{macrocode}
 % 
@@ -8359,8 +8382,8 @@ function piton.GobbleParse ( lang , n , splittable , code )
   if piton.write and piton.write ~= '' then 
     local file = io.open ( piton.write , piton.write_mode ) 
     if file then 
-      file:write ( piton.get_last_code ( ) ) 
-      file:close ( )
+      file : write ( piton.get_last_code ( ) ) 
+      file : close ( )
     else
       sprintL3 [[ \@@_error_or_warning:n { FileError } ]] 
     end  
@@ -8949,7 +8972,8 @@ function piton.new_language ( lang , definition )
 % languages TeX, LaTeX, et \emph{al}. In that case, there is two kinds of
 % keywords (= control sequences).
 % \begin{itemize}
-% \item those beginning with |\| and a sequence of characters of catcode ``|letter|'';
+% \item those beginning with |\| and a sequence of characters of catcode
+% ``|letter|''; 
 % \item those beginning by |\| followed by one character of catcode ``|other|''.
 % \end{itemize}
 % The following code addresses both cases. Of course, the \textsc{lpeg} pattern
@@ -9194,7 +9218,8 @@ function piton.new_language ( lang , definition )
        )
 %    \end{macrocode}
 %
-% If the key |tag| has been used. Of course, this feature is designed for the \textsc{html}.
+% If the key |tag| has been used. Of course, this feature is designed for the
+% \textsc{html}. 
 %    \begin{macrocode}
   if left_tag then
     local Tag = Ct ( Cc "Open" * Cc ( "{" .. style_tag .. "{" ) * Cc "}}" ) 

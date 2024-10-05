@@ -472,7 +472,7 @@ disponible, c'est-à-dire que l'on peut écrire :
         skip-empty-lines = false ,
         label-empty-lines = false ,
         sep = 1 em ,
-        line-format = \footnotesize \color{blue}
+        format = \footnotesize \color{blue}
       }
   }
 \end{Verbatim}
@@ -609,9 +609,10 @@ particulier la coupure des pages et des lignes p.~\pageref{breakable}).
 \subsubsection{Notion de style}
 
 L'extension \pkg{piton} fournit la commande |\SetPitonStyle| pour personnaliser les
-différents styles utilisés pour formater les éléments syntaxiques des listings informatiques. Ces
-personnalisations ont une portée qui correspond au groupe TeX courant.\footnote{On
-  rappelle que tout environnement LaTeX est, en particulier, un groupe.}
+différents styles utilisés pour formater les éléments syntaxiques des listings
+informatiques. Ces personnalisations ont une portée qui correspond au groupe TeX
+courant.\footnote{On rappelle que tout environnement LaTeX est, en particulier, un
+  groupe.}
 
 \bigskip
 \indexcommand{SetPitonStyle} La commande |\SetPitonStyle| prend en argument une liste de
@@ -2148,8 +2149,8 @@ dans une variable Lua si on doit l'utiliser plusieurs fois.
 \end{itemize}
 
 \medskip
-Pour un exemple d'utilisation, voir la partie concernant l'utilisation (standard) de \pkg{pyluatex},
-partie~\ref{pyluatex}, p.~\pageref{pyluatex}.
+Pour un exemple d'utilisation, voir la partie concernant l'utilisation (standard) de
+\pkg{pyluatex}, partie~\ref{pyluatex}, p.~\pageref{pyluatex}.
 
 \section{Exemples}
 
@@ -2629,54 +2630,55 @@ Pygments.\footnote{Voir \url{https://pygments.org/styles/}. À remarquer que, pa
 
 \begin{center}
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
-  \toprule
-  \normalfont Style  & Usage \\
-  \midrule
-  Number & les nombres \\
-  String.Short & les chaînes de caractères courtes (entre \texttt{'} ou \texttt{"}) \\
-  String.Long & les chaînes de caractères longues (entre \texttt{'''} ou \texttt{"""})
-                sauf les chaînes de documentation (qui sont gérées par |String.Doc|)\\
-  String & cette clé fixe à la fois |String.Short| et |String.Long| \\
-  String.Doc & les chaînes de documentation (seulement entre |"""| suivant PEP~257) \\
-  String.Interpol & les éléments syntaxiques des champs des f-strings (c'est-à-dire les
-                    caractères \texttt{\{} et \texttt{\}}) ; ce style hérite des styles
-                    |String.Short| et |String.Long| (suivant la chaîne où apparaît
-                    l'interpolation)\\ 
-  Interpol.Inside & le contenu des interpolations dans les f-strings (c'est-à-dire les
-                    éléments qui se trouvent entre \texttt{\{} et~\texttt{\}} ; si
-                    l'utilisateur n'a pas fixé ce style, ces éléments sont analysés et
-                    formatés par \pkg{piton} au même titre que le reste du code. \\ 
-  Operator & les opérateurs suivants : \texttt{!= == << >> - \~{} + / * \% = < > \& .}
-             \verb+|+ |@| \\  
-  Operator.Word & les opérateurs suivants : |in|, |is|, |and|, |or| et |not| \\
-  Name.Builtin & la plupart des fonctions prédéfinies par Python \\
-  Name.Decorator & les décorateurs (instructions débutant par \verb|@|) \\
-  Name.Namespace & le nom des modules (= bibliothèques extérieures) \\
-  Name.Class & le nom des classes au moment de leur définition, c'est-à-dire après le
-               mot-clé \verb|class| \\ 
-  Name.Function & le nom des fonctions définies par l'utilisateur \emph{au moment de leur
-                  définition} (après le mot-clé |def|) \\
-  UserFunction & le nom des fonctions précédemment définies par l'utilisateur (la valeur
-                 initiale de ce paramètre est vide et ces éléments sont affichés en noir
-                 --- ou plutôt dans la couleur courante) \\ 
-  Exception & les exceptions prédéfinies (ex.: \texttt{SyntaxError}) \\
-  InitialValues & les valeurs initiales (et le symbole |=| qui précède) des arguments
-                  optionnels dans les définitions de fonctions ; si l'utilisateur n'a pas
-                  fixé ce style, ces éléments sont analysés et formatés par \pkg{piton} 
-                  au même titre que le reste du code.\\
-  Comment & les commentaires commençant par \texttt{\#} \\
-  Comment.LaTeX & les commentaires commençant par \texttt{\#>} qui sont composés par
-                  \pkg{piton} comme du code LaTeX (et appelés simplement «commentaires
-                  LaTeX» dans ce document) \\ 
-  Keyword.Constant & |True|, |False| et |None| \\
-  Keyword & les mots-clés suivants :
-            \ttfamily assert, break, case, continue, del,
-            elif, else, except, exec, finally, for, from, 
-            global, if, import, in, lambda, non local,
-            pass, raise, return, try, while,
-            with, yield et yield from.\\
-  Identifier & les identificateurs. \\
-  \bottomrule
+\toprule
+\normalfont Style  & Usage \\
+\midrule
+Number & les nombres \\
+String.Short & les chaînes de caractères courtes (entre \texttt{'} ou \texttt{"}) \\
+String.Long & les chaînes de caractères longues (entre \texttt{'''} ou \texttt{"""})
+              sauf les chaînes de documentation (qui sont gérées par |String.Doc|)\\
+String & cette clé fixe à la fois |String.Short| et |String.Long| \\
+String.Doc & les chaînes de documentation (seulement entre |"""| suivant PEP~257) \\
+String.Interpol & les éléments syntaxiques des champs des f-strings (c'est-à-dire les
+                  caractères \texttt{\{} et \texttt{\}}) ; ce style hérite des styles
+                  |String.Short| et |String.Long| (suivant la chaîne où apparaît
+                  l'interpolation)\\ 
+Interpol.Inside & le contenu des interpolations dans les f-strings (c'est-à-dire les
+                  éléments qui se trouvent entre \texttt{\{} et~\texttt{\}}) ; si
+                  l'utilisateur n'a pas fixé ce style, ces éléments sont analysés et
+                  formatés par \pkg{piton} au même titre que le reste du code. \\ 
+Operator & les opérateurs suivants : \texttt{!= == << >> - \~{} + / * \% = < > \& .}
+           \verb+|+ |@| \\  
+Operator.Word & les opérateurs suivants : |in|, |is|, |and|, |or| et |not| \\
+Name.Builtin & la plupart des fonctions prédéfinies par Python \\
+Name.Decorator & les décorateurs (instructions débutant par \verb|@|) \\
+Name.Namespace & le nom des modules (= bibliothèques extérieures) \\
+Name.Class & le nom des classes au moment de leur définition, c'est-à-dire après le
+             mot-clé \verb|class| \\ 
+Name.Function & le nom des fonctions définies par l'utilisateur \emph{au moment de leur
+                définition} (après le mot-clé |def|) \\
+UserFunction & le nom des fonctions précédemment définies par l'utilisateur (la valeur
+               initiale de ce paramètre est {\ttfamily \textbackslash
+               PitonStyle\{Identifier\}}, ce qui fait que ces noms de fonctions sont 
+               affichés comme les identifiants) \\ 
+Exception & les exceptions prédéfinies (ex.: \texttt{SyntaxError}) \\
+InitialValues & les valeurs initiales (et le symbole |=| qui précède) des arguments
+                optionnels dans les définitions de fonctions ; si l'utilisateur n'a pas
+                fixé ce style, ces éléments sont analysés et formatés par \pkg{piton} 
+                au même titre que le reste du code.\\
+Comment & les commentaires commençant par \texttt{\#} \\
+Comment.LaTeX & les commentaires commençant par \texttt{\#>} qui sont composés par
+                \pkg{piton} comme du code LaTeX (et appelés simplement «commentaires
+                LaTeX» dans ce document) \\ 
+Keyword.Constant & |True|, |False| et |None| \\
+Keyword & les mots-clés suivants :
+          \ttfamily assert, break, case, continue, del,
+          elif, else, except, exec, finally, for, from, 
+          global, if, import, in, lambda, non local,
+          pass, raise, return, try, while,
+          with, yield et yield from.\\
+Identifier & les identificateurs. \\
+\bottomrule
 \end{tabularx}
 \end{center}
 
@@ -2724,8 +2726,9 @@ L'option est aussi disponible pour |\PitonInputFile| : |\PitonInputFile[language
   Name.Function & le nom des fonctions définies par l'utilisateur \emph{au moment de leur
                   définition} (après le mot-clé |let|) \\  
   UserFunction & le nom des fonctions précédemment définies par l'utilisateur (la valeur
-                 initiale de ce paramètre est vide et ces éléments sont affichés en noir
-                 --- ou plutôt dans la couleur courante) \\ 
+                 initiale de ce paramètre est {\ttfamily \textbackslash
+                 PitonStyle\{Identifier\}}, ce qui fait que ces noms de fonctions sont
+                 affichés comme les identifiants) \\ 
   Exception & les exceptions prédéfinies (ex. : |End_of_File|) \\
   TypeParameter & les paramétreurs de type \\
   Comment & les commentaires, entre |(*| et |*)| ; ces commentaires peuvent être imbriqués \\
@@ -2780,12 +2783,14 @@ Name.Type & les types prédéfinis suivants : |bool|, |char|, |char16_t|, |char3
             |short|, |signed|, |unsigned|, |void| et |wchar_t| \\  
 Name.Builtin & les fonctions prédéfinies suivantes : |printf|, |scanf|, |malloc|, |sizeof|
                et  |alignof|  \\ 
-  Name.Class & le nom des classes au moment de leur définition, c'est-à-dire après le
+Name.Class & le nom des classes au moment de leur définition, c'est-à-dire après le
                mot-clé |class| \\ 
-Name.Function & le nom des fonctions définies par l'utilisateur \emph{au moment de leur définition} \\
+Name.Function & le nom des fonctions définies par l'utilisateur \emph{au moment de leur
+                définition} \\
 UserFunction & le nom des fonctions précédemment définies par l'utilisateur (la valeur
-               initiale de ce paramètre est vide et ces éléments sont affichés en noir ---
-               ou plutôt dans la couleur courante) \\ 
+               initiale de ce paramètre est {\ttfamily \textbackslash
+               PitonStyle\{Identifier\}}, ce qui fait que ces noms de fonctions sont
+               affichés comme les identifiants) \\ 
 Preproc & les instructions du préprocesseur (commençant par |#|) \\
 Comment & les commentaires (commençant par \texttt{//} ou entre |/*| et |*/|) \\
 Comment.LaTeX & les commentaires commençant par \texttt{//>} qui sont composés par
