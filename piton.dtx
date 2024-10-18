@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.0x4}
-\def\PitonFileDate{2024/09/26}
+\def\PitonFileVersion{4.1}
+\def\PitonFileDate{2024/10/18}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.0x4" -- 2024/10/05
+piton_version = "4.1" -- 2024/10/18
 %</LUA>
 %\fi
 %
@@ -102,7 +102,7 @@ piton_version = "4.0x4" -- 2024/10/05
 % \end{abstract}
 % 
 % \bigskip
-% {\color{red} In the version 4.0, the syntax of the absolute and relative
+% {\color{red} Since the version 4.0, the syntax of the absolute and relative
 % paths used in |\PitonInputFile| has been changed:
 % cf.~part~\ref{PitonInputFile}, p.~\pageref{PitonInputFile}.} 
 % 
@@ -275,7 +275,8 @@ piton_version = "4.0x4" -- 2024/10/05
 % {\color{cyan} but the commands |\{| and |\}| are also provided for individual braces};
 %
 % \item the LaTeX commands\footnote{That concerns the commands beginning with a
-% backslash but also the active characters (with catcode equal to 13). } are fully expanded and not executed,
+% backslash but also the active characters (with catcode equal to 13). } are
+% fully expanded and not executed,
 %
 % {\color{cyan} so it's possible to use |\\| to insert a backslash}.
 % \end{itemize}
@@ -354,9 +355,10 @@ piton_version = "4.0x4" -- 2024/10/05
 % \begin{itemize}
 % \item The key \Definition{language} specifies which computer language is
 % considered (that key is case-insensitive). It's possible to use the name of
-% the five built-in languages (|Python|, |OCaml|, |C|, |SQL| and |minimal|) or
-% the name of the language defined by the user with |\NewPitonLanguage|
-% (cf.~part~\ref{NewPitonLanguage}, p.~\pageref{NewPitonLanguage}.  
+% the six built-in languages (|Python|, |OCaml|, |C|, |SQL|, |minimal| and
+% |verbatim|) or the name of a language defined by the user with
+% |\NewPitonLanguage| (cf.~part~\ref{NewPitonLanguage},
+% p.~\pageref{NewPitonLanguage}).   
 %
 % The initial value is |Python|.
 %
@@ -633,8 +635,9 @@ piton_version = "4.0x4" -- 2024/10/05
 % 
 % \bigskip
 % The different styles, and their use by \pkg{piton} in the different languages
-% which it supports (Python, OCaml, C, SQL and ``|minimal|''), are described in
-% the part \ref{Semantic}, starting at the page \pageref{Semantic}. 
+% which it supports (Python, OCaml, C, SQL, ``|minimal|'' and ``|verbatim|''),
+% are described in the part \ref{Semantic}, starting at the page
+% \pageref{Semantic}.  
 % 
 %
 % \bigskip
@@ -853,8 +856,8 @@ piton_version = "4.0x4" -- 2024/10/05
 % syntax of~|\lstdefinelanguage|.
 %
 % Let's precise that \pkg{piton} does \emph{not} use that command to define the
-% languages provided natively (Python, OCaml, C, SQL and |minimal|), which
-% allows more powerful parsers.
+% languages provided natively (Python, OCaml, C, SQL, |minimal| and |verbatim|),
+% which allows more powerful parsers.
 %
 % \medskip
 % For example, in the file |lstlang1.sty|, which is one of the definition files
@@ -1013,7 +1016,7 @@ piton_version = "4.0x4" -- 2024/10/05
 % deleted in a future version of \pkg{piton}!).
 %
 % \smallskip
-% Now, the syntax if the following one:
+% Now, the syntax is the following one:
 % \begin{itemize}
 % \item The paths beginning by |/| are absolute.
 %
@@ -1253,6 +1256,13 @@ piton_version = "4.0x4" -- 2024/10/05
 %     return dict
 % \end{Piton}
 % \end{center}
+%
+% \bigskip
+% \colorbox{yellow!50}{\bfseries{New 4.1}}\par\nobreak
+%
+% \smallskip
+% With the key \Definition{break-strings-anywhere}, the strings may be broken
+% anywhere (and not only on the spaces). 
 %
 % \subsubsection{Page breaks}
 % \label{page breaks}
@@ -2472,21 +2482,11 @@ piton_version = "4.0x4" -- 2024/10/05
 %
 % \subsection{The language OCaml}
 %
-% It's possible to switch to the language |OCaml| with |\PitonOptions{language = OCaml}|.
+% It's possible to switch to the language |OCaml| with the key |language|:
+% |language = OCaml|. 
 %
+% 
 % \bigskip
-% It's also possible to set the language OCaml for an individual environment |{Piton}|. 
-% %
-% \begin{Verbatim}
-% \begin{Piton}~emphase#[language=OCaml]@
-% ...
-% \end{Piton}
-% \end{Verbatim}
-%
-% \bigskip
-% The option exists also for |\PitonInputFile| : |\PitonInputFile[language=OCaml]{...}|
-%
-% \vspace{1cm}
 %
 %
 % \begin{center}
@@ -2533,22 +2533,10 @@ piton_version = "4.0x4" -- 2024/10/05
 % \subsection[The language C (and C++)]{The language C (and \CC)}
 %
 % 
-% It's possible to switch to the language |C| with |\PitonOptions{language = C}|.
+% It's possible to switch to the language |C| with the key |language|: |language = C|.
 %
 % \bigskip
-% It's also possible to set the language C for an individual environment |{Piton}|. 
-% %
-% \begin{Verbatim}
-% \begin{Piton}~emphase#[language=C]@
-% ...
-% \end{Piton}
-% \end{Verbatim}
-%
-% \bigskip
-% The option exists also for |\PitonInputFile| : |\PitonInputFile[language=C]{...}|
-%
-% \vspace{1cm}
-%
+% 
 % \begin{center}
 % \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 % \toprule
@@ -2597,22 +2585,9 @@ piton_version = "4.0x4" -- 2024/10/05
 % \subsection{The language SQL}
 %
 % 
-% It's possible to switch to the language |SQL| with |\PitonOptions{language = SQL}|.
+% It's possible to switch to the language |SQL| with the key |language|: |language = SQL|.
 %
 % \bigskip
-% It's also possible to set the language SQL for an individual environment |{Piton}|. 
-% %
-% \begin{Verbatim}
-% \begin{Piton}~emphase#[language=SQL]@
-% ...
-% \end{Piton}
-% \end{Verbatim}
-%
-% \bigskip
-% The option exists also for |\PitonInputFile| : |\PitonInputFile[language=SQL]{...}|
-%
-%
-% \vspace{1cm}
 %
 % \begin{center}
 % \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
@@ -2652,51 +2627,6 @@ piton_version = "4.0x4" -- 2024/10/05
 % \end{Verbatim}
 %
 % \newpage
-%
-% \subsection{The language ``minimal''}
-%
-% It's possible to switch to the language ``|minimal|'' with |\PitonOptions{language = minimal}|.
-%
-% \bigskip
-% It's also possible to set the language ``|minimal|'' for an individual environment |{Piton}|. 
-% %
-% \begin{Verbatim}
-% \begin{Piton}~emphase#[language=minimal]@
-% ...
-% \end{Piton}
-% \end{Verbatim}
-%
-% \bigskip
-% The option exists also for |\PitonInputFile| : |\PitonInputFile[language=minimal]{...}|
-%
-%
-% \label{minimal}
-%
-% \vspace{1cm}
-%
-% \begin{center}
-% \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
-% \toprule
-% \normalfont Style  & Usage \\
-% \midrule
-% Number & the numbers \\
-% String & the strings (between \texttt{"}) \\
-% Comment & the comments (which begin with |#|) \\
-% Comment.LaTeX &  the comments beginning with \texttt{\#>}, which are composed by
-%   \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document)
-%   \\
-%  Identifier & the identifiers. \\
-% \bottomrule
-% \end{tabularx}
-% \end{center}
-%
-% \bigskip
-% That language is provided for the final user who might wish to add keywords in
-% that language (with the command |\SetPitonIdentifier|: cf. \ref{SetPitonIdentifier},
-% p.~\pageref{SetPitonIdentifier}) in order to create, for example, a language
-% for pseudo-code.
-%
-% \newpage
 % \subsection{The languages defined by \textbackslash NewPitonLanguage}
 %
 % \vspace{1cm}
@@ -2727,6 +2657,68 @@ piton_version = "4.0x4" -- 2024/10/05
 % \end{tabularx}
 % \end{center}
 %
+%
+%
+%
+% \subsection{The language ``minimal''}
+%
+% \label{minimal}
+%
+% It's possible to switch to the language ``|minimal|'' with the key |language|:
+% |language = minimal|.
+%
+% \bigskip
+%
+% \begin{center}
+% \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+% \toprule
+% \normalfont Style  & Usage \\
+% \midrule
+% Number & the numbers \\
+% String & the strings (between \texttt{"}) \\
+% Comment & the comments (which begin with |#|) \\
+% Comment.LaTeX &  the comments beginning with \texttt{\#>}, which are composed by
+%   \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document)
+%   \\
+%  Identifier & the identifiers. \\
+% \bottomrule
+% \end{tabularx}
+% \end{center}
+%
+% \bigskip
+% That language is provided for the final user who might wish to add keywords in
+% that language (with the command |\SetPitonIdentifier|: cf. \ref{SetPitonIdentifier},
+% p.~\pageref{SetPitonIdentifier}) in order to create, for example, a language
+% for pseudo-code.
+%
+% \vspace{1cm}
+% 
+% \subsection{The language ``verbatim''}
+%
+% \label{verbatim}
+%
+% \colorbox{yellow!50}{\textbf{New 4.1}}
+%
+% It's possible to switch to the language ``|verbatim|'' with the key |language|:
+% |language = verbatim|.
+%
+% \bigskip
+%
+% \begin{center}
+% \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+% \toprule
+% \normalfont Style  & Usage \\
+% \midrule
+% None... & \\
+% \bottomrule
+% \end{tabularx}
+% \end{center}
+%
+% The language |verbatim| doen't provide any style and, thus, does not do any
+% syntactic formating. However, it's possible to use the mechanism
+% |detected-commands| (cf. part~\ref{detected-commands},
+% p.~\pageref{detected-commands}) and the detection of the commands and
+% environments of Beamer.
 %
 %
 % \newpage
@@ -2950,6 +2942,7 @@ piton_version = "4.0x4" -- 2024/10/05
 \sys_if_engine_luatex:F { \msg_critical:nn { piton } { LuaLaTeX~mandatory } }
 %    \end{macrocode}
 % 
+% 
 % \bigskip
 %    \begin{macrocode}
 \RequirePackage { luatexbase } 
@@ -2973,10 +2966,8 @@ piton_version = "4.0x4" -- 2024/10/05
 %
 % \bigskip
 %    \begin{macrocode}
-\file_if_exist:nF { piton.lua }
-  { \msg_fatal:nn { piton } { piton.lua~not~found } }
+\file_if_exist:nF { piton.lua } { \@@_fatal:n { piton.lua~not~found } }
 %    \end{macrocode}
-%
 %
 %
 % \bigskip
@@ -3355,9 +3346,12 @@ piton_version = "4.0x4" -- 2024/10/05
 %    \begin{macrocode}
 \bool_new:N \l_@@_break_lines_in_piton_bool
 %    \end{macrocode}
-% However, the key |break-lines_in_piton| raises that boolean but also executes
-% |\tl_set_eq:NN \l_@@_space_in_string_tl \space|. The initial value of
-% |\l_@@_space_in_string_tl| is |\nobreakspace|.
+% However, the key |break-lines_in_piton| raises that boolean but also executes the
+% following instruction:
+% 
+% \quad |\tl_set_eq:NN \l_@@_space_in_string_tl \space| 
+
+% The initial value of |\l_@@_space_in_string_tl| is |\nobreakspace|.
 % 
 % \bigskip
 % The following dimension will be the width of the listing constructed by
@@ -3574,6 +3568,7 @@ piton_version = "4.0x4" -- 2024/10/05
 % \subsubsection{Treatment of a line of code}
 % 
 %    \begin{macrocode}
+\cs_generate_variant:Nn \@@_replace_spaces:n { o }
 \cs_new_protected:Npn \@@_replace_spaces:n #1 
   {
     \tl_set:Nn \l_tmpa_tl { #1 } 
@@ -3682,12 +3677,9 @@ piton_version = "4.0x4" -- 2024/10/05
               { \int_compare_p:nNn \l_tmpa_int = \c_one_int }
               { ! \l_@@_skip_empty_lines_bool }
               { \int_gincr:N \g_@@_visual_line_int }
-            \bool_if:nT
-              { 
-                \int_compare_p:nNn \l_tmpa_int = \c_one_int
-                ||
-                ( ! \l_@@_skip_empty_lines_bool && \l_@@_label_empty_lines_bool ) 
-              }
+            \bool_lazy_or:nnT
+              { \int_compare_p:nNn \l_tmpa_int = \c_one_int }
+              { ! \l_@@_skip_empty_lines_bool && \l_@@_label_empty_lines_bool }
               \@@_print_number: 
           }
 %    \end{macrocode}
@@ -3796,13 +3788,14 @@ piton_version = "4.0x4" -- 2024/10/05
 % drawn with zero width and, thus, it will be a mere strut (and we need that strut).
 %    \begin{macrocode}
       { \dim_zero:N \l_@@_width_dim }
-      { \exp_args:No \@@_color_i:n \l_tmpa_tl }
+      { \@@_color_i:o \l_tmpa_tl }
   }
 %    \end{macrocode}
 %
 % The following command |\@@_color:n| will accept both the instruction
 % |\@@_color:n { red!15 }| and the instruction |\@@_color:n { [rgb]{0.9,0.9,0} }|.
 %    \begin{macrocode}
+\cs_generate_variant:Nn \@@_color_i:n { o }
 \cs_set_protected:Npn \@@_color_i:n #1
   {
     \tl_if_head_eq_meaning:nNTF { #1 } [ 
@@ -4009,6 +4002,8 @@ piton_version = "4.0x4" -- 2024/10/05
 %    \begin{macrocode}
 \keys_define:nn { PitonOptions }
   {
+    break-strings-anywhere .code:n = 
+     \cs_set_eq:NN \@@_break_anywhere:n \@@_actually_break_anywhere:n ,
 %    \end{macrocode}
 % First, we put keys that should be available only in the preamble.
 %    \begin{macrocode}
@@ -4150,7 +4145,8 @@ piton_version = "4.0x4" -- 2024/10/05
     tab-size         .value_required:n  = true , 
     show-spaces      .bool_set:N        = \l_@@_show_spaces_bool ,
     show-spaces      .value_forbidden:n = true ,
-    show-spaces-in-strings .code:n      = \tl_set:Nn \l_@@_space_in_string_tl { ␣ } , % U+2423
+    show-spaces-in-strings .code:n      = 
+        \tl_set:Nn \l_@@_space_in_string_tl { ␣ } , % U+2423
     show-spaces-in-strings .value_forbidden:n = true ,
     break-lines-in-Piton .bool_set:N    = \l_@@_break_lines_in_Piton_bool ,
     break-lines-in-Piton .default:n     = true ,
@@ -4202,7 +4198,7 @@ piton_version = "4.0x4" -- 2024/10/05
     all-line-numbers .code:n = 
       \bool_set_true:N \l_@@_line_numbers_bool 
       \bool_set_false:N \l_@@_skip_empty_lines_bool ,
-    all-line-numbers .value_forbidden:n = true ,
+    all-line-numbers .value_forbidden:n = true 
   }
 %    \end{macrocode}
 %
@@ -4400,11 +4396,12 @@ piton_version = "4.0x4" -- 2024/10/05
 % |\AtBeginDocument|. Hence, we will put also in a |\AtBeginDocument| the
 % utilisation of the Lua function |piton.new_language| (which does the main job).
 %    \begin{macrocode}
-    \exp_args:No \@@_NewPitonLanguage:nn \l_tmpa_tl { #3 }
+    \@@_NewPitonLanguage:on \l_tmpa_tl { #3 }
   }
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
+\cs_generate_variant:Nn \@@_NewPitonLanguage:nn { o }
 \cs_new_protected:Npn \@@_NewPitonLanguage:nn #1 #2
   {
     \hook_gput_code:nnn { begindocument } { . }
@@ -4444,6 +4441,7 @@ piton_version = "4.0x4" -- 2024/10/05
 %
 %  \bigskip
 %    \begin{macrocode}
+\cs_generate_variant:Nn \@@_NewPitonLanguage:nnnn { n n n o }
 \cs_new_protected:Npn \@@_NewPitonLanguage:nnnn #1 #2 #3 #4
 %    \end{macrocode}
 % In the following line, we write |#4,#3| and not |#3,#4| because we want that the
@@ -4451,7 +4449,6 @@ piton_version = "4.0x4" -- 2024/10/05
 % in the language we define.
 %    \begin{macrocode}
   { \@@_NewPitonLanguage:nnn { #1 } { #2 } { #4 , #3 } }
-\cs_generate_variant:Nn \@@_NewPitonLanguage:nnnn { n n n o }
 %    \end{macrocode}
 % 
 % \bigskip
@@ -4569,7 +4566,7 @@ piton_version = "4.0x4" -- 2024/10/05
       }
     \bool_if:NT \l_@@_show_spaces_bool
       { \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl } % U+2423
-    \exp_args:No \@@_replace_spaces:n \l_tmpa_tl 
+    \@@_replace_spaces:o \l_tmpa_tl 
     \group_end:
   }
 %    \end{macrocode}
@@ -4611,6 +4608,7 @@ piton_version = "4.0x4" -- 2024/10/05
 % the following function is the name of the Lua function that will be applied to
 % the second argument in order to count the number of lines.
 %    \begin{macrocode}
+\cs_generate_variant:Nn \@@_compute_left_margin:nn { n o }
 \cs_new_protected:Npn \@@_compute_left_margin:nn #1 #2
   {
     \bool_lazy_and:nnT \l_@@_left_margin_auto_bool \l_@@_line_numbers_bool
@@ -4635,7 +4633,6 @@ piton_version = "4.0x4" -- 2024/10/05
            { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
        }
   }
-\cs_generate_variant:Nn \@@_compute_left_margin:nn { n o }
 %    \end{macrocode}
 % 
 %
@@ -5068,8 +5065,8 @@ piton_version = "4.0x4" -- 2024/10/05
 % unlikely, suffixes) added to the markers by the functions
 % |\@@_marker_beginning:n| and |\@@_marker_end:n|
 %    \begin{macrocode}
-    \exp_args:Nno \regex_replace_all:nnN { \\\# } \c_hash_str \l_tmpa_str
-    \exp_args:Nno \regex_replace_all:nnN { \\\# } \c_hash_str \l_tmpb_str
+    \regex_replace_all:nnN { \\\# } \c_hash_str \l_tmpa_str
+    \regex_replace_all:nnN { \\\# } \c_hash_str \l_tmpb_str
     \lua_now:e
       { 
         piton.ComputeRange
@@ -5222,7 +5219,18 @@ piton_version = "4.0x4" -- 2024/10/05
   } 
 %    \end{macrocode}
 % 
-%
+% \bigskip
+%    \begin{macrocode}
+\cs_set_eq:NN \@@_break_anywhere:n \prg_do_nothing:
+\cs_new_protected:Npn \@@_actually_break_anywhere:n #1
+  {
+    \seq_clear:N \l_tmpa_seq
+    \tl_map_inline:nn { #1 }
+      { \seq_put_right:Nn \l_tmpa_seq { ##1 } }
+    \seq_use:Nn \l_tmpa_seq { \- }
+  }
+%    \end{macrocode}
+% 
 % \bigskip
 % \subsubsection{The initial styles}
 %
@@ -5249,7 +5257,7 @@ piton_version = "4.0x4" -- 2024/10/05
     Number              = \color[HTML]{FF6600} ,
     Operator            = \color[HTML]{555555} ,
     Operator.Word       = \bfseries ,
-    String              = \color[HTML]{CC3300} ,         
+    String              = \color[HTML]{CC3300} \@@_break_anywhere:n , 
     String.Doc          = \color[HTML]{CC3300} \itshape , 
     String.Interpol     = \color[HTML]{AA0000} ,
     Comment.LaTeX       = \normalfont \color[rgb]{.468,.532,.6} , 
@@ -5392,12 +5400,13 @@ piton_version = "4.0x4" -- 2024/10/05
 % \bigskip
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_clear_functions_i:n #1
-  { \exp_args:Ne \@@_clear_functions_ii:n { \str_lowercase:n { #1 } } }
+  { \@@_clear_functions_ii:n { \str_lowercase:n { #1 } } }
 %    \end{macrocode}
 % 
 % The following command clears the list of the user-defined functions for the
 % language provided in argument (mandatory in lower case). 
 %    \begin{macrocode}
+\cs_generate_variant:Nn \@@_clear_functions_ii:n { e }
 \cs_new_protected:Npn \@@_clear_functions_ii:n #1 
   {
     \seq_if_exist:cT { g_@@_functions _ #1 _ seq }
@@ -5434,7 +5443,7 @@ piton_version = "4.0x4" -- 2024/10/05
 %
 %     \begin{macrocode}
 \AddToHook { env / piton / begin } 
-  { \msg_fatal:nn { piton } { No~environment~piton } }
+  { \@@_fatal:n { No~environment~piton } }
 
 \msg_new:nnn { piton } { No~environment~piton }
   { 
@@ -5604,6 +5613,7 @@ piton_version = "4.0x4" -- 2024/10/05
     break-lines,~
     break-lines-in-piton,~
     break-lines-in-Piton,~
+    break-strings-anywhere,~
     continuation-symbol,~ 
     continuation-symbol-on-indentation,~
     detected-beamer-commands,~
@@ -5668,7 +5678,7 @@ piton_version = "4.0x4" -- 2024/10/05
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_test_version:n #1
   { 
-    \str_if_eq:VnF \PitonFileVersion { #1 } 
+    \str_if_eq:onF \PitonFileVersion { #1 } 
       { \@@_error:n { bad~version~of~piton.lua } }
   }
 %    \end{macrocode}
@@ -6085,6 +6095,29 @@ function Compute_LPEG_cleaner ( lang , braces ) return
 end
 %    \end{macrocode}
 % 
+% \bigskip
+% The following function |ParseAgain| will be used in the definitions of the
+% LPEG of the different informatic languages when we will need to
+% \emph{parse again} a small chunk of code. It's a way to avoid the use of a actual
+% \emph{grammar} of LPEG (in a sens, a recursive regular expression). 
+%
+% Remark that there is no \pkg{piton} style associated to a chunk of code which
+% is analyzed by |ParseAgain|. If we wish a \pkg{piton} style available to the
+% final user (if he wish to format that element with a uniform font instead of
+% an analyze by |ParseAgain|), we have to use |\@@_piton:n|. 
+%    \begin{macrocode}
+local ParseAgain 
+function ParseAgain ( code ) 
+  if code ~= '' then return 
+%    \end{macrocode}
+% The variable |piton.language| is set in the function |piton.Parse|.
+%    \begin{macrocode}
+    LPEG1[piton.language] : match ( code ) 
+  end 
+end 
+%    \end{macrocode}
+% 
+%
 %
 % \bigskip
 % \paragraph{Constructions for Beamer}
@@ -6316,7 +6349,6 @@ local CommentLaTeX =
   * ( EOL + -1 )  
 %    \end{macrocode}
 % 
-%
 % 
 % \bigskip
 % \subsubsection{The language Python}
@@ -6774,13 +6806,7 @@ do
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
-    * ( C ( ( 1 - S ":\r" ) ^ 0 ) 
-         / ( function ( s ) 
-               if s ~= '' then return 
-                 LPEG1.python : match ( s )
-               end 
-             end ) 
-      ) 
+    * ( C ( ( 1 - S ":\r" ) ^ 0 ) / ParseAgain )
     * Q ":" 
     * ( SkipSpace
         * ( EOL + CommentLaTeX + Comment ) -- in all cases, that contains an EOL
@@ -7091,7 +7117,8 @@ do
 % \bigskip
 %    \begin{macrocode}
   local EndKeyword 
-    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1 
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape 
+       + EscapeMath + -1 
 %    \end{macrocode}
 %
 % \bigskip
@@ -7183,9 +7210,7 @@ do
   local OneField =
       K ( 'Name.Field' , identifier ) * SkipSpace
     * Q "=" * SkipSpace
-    * ( expression_for_fields_value
-        / ( function ( s ) return LPEG1.ocaml : match ( s ) end )
-      )
+    * ( expression_for_fields_value / ParseAgain )
     * SkipSpace
 %    \end{macrocode}
 %
@@ -7597,7 +7622,8 @@ do
 %
 %    \begin{macrocode}
   local EndKeyword 
-    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1 
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape +
+    EscapeMath  + -1 
 %    \end{macrocode}
 %
 % First, the main loop :
@@ -7823,7 +7849,8 @@ do
 %
 %    \begin{macrocode}
   local EndKeyword 
-    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1 
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + 
+      EscapeMath + -1 
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -8097,6 +8124,10 @@ end
 % \bigskip
 %    \begin{macrocode}
 function piton.Parse ( language , code )
+%    \end{macrocode}
+% The variable |piton.language| will be used by the function |ParseAgain|.
+%    \begin{macrocode}
+  piton.language = language
   local t = LPEG2[language] : match ( code ) 
   if t == nil then 
     sprintL3 [[ \@@_error_or_warning:n { SyntaxError } ]] 
@@ -8147,6 +8178,7 @@ function piton.Parse ( language , code )
 end
 %    \end{macrocode}
 %
+
 %    
 %
 % \bigskip
@@ -9291,6 +9323,12 @@ end
 %
 % \verb|https://github.com/fpantigny/piton|
 %
+% \subsection*{Changes between versions 4.0 and 4.1}
+%
+% New language |verbatim|.
+%
+% New key |break-strings-anywhere|.
+% 
 % \subsection*{Changes between versions 3.1 and 4.0}
 %
 % This version introduces an incompatibility: the syntax for the relative and

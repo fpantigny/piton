@@ -114,7 +114,7 @@ fait en utilisant la bibliothèque Lua LPEG.
 
 
 \bigskip
-{\color{red} Dans la version 4.0, la syntaxe des chemins absolus et relatifs utilisés dans
+{\color{red} Depuis la version 4.0, la syntaxe des chemins absolus et relatifs utilisés dans
 |\PitonInputFile| a été changée : cf.~partie~\ref{PitonInputFile}, p.~\pageref{PitonInputFile}.}
 
 \section{Présentation}
@@ -188,8 +188,9 @@ levée.
 Les langages informatiques pris en charge par \pkg{piton} se classent en deux catégories :
 \begin{itemize}
 \item les langages reconnus nativement par \pkg{piton} qui sont au nombre de cinq :
-Python, OCaml, SQL, C (ou plutôt \CC) et un langage nommé |minimal|\footnote{Le langage
-  |minimal| peut servir pour formater du pseudo-code : cf.~p.~\pageref{minimal}.} ;
+Python, OCaml, SQL, C (ou plutôt \CC) et deux langages minimalistes nommés |minimal|\footnote{Le langage
+  |minimal| peut servir pour formater du pseudo-code : cf.~p.~\pageref{minimal}.}  et
+|verbatim|; 
 \item les langages définis par l'utilisateur avec la commande |\NewPitonLanguage| décrite
 p.~\pageref{NewPitonLanguage} (les parseurs de ces langages ne pourront jamais être aussi
 précis que ceux proposés nativement par \pkg{piton)}.
@@ -371,9 +372,10 @@ crochets).
 
 \begin{itemize}
 \item La clé \Definition{language} spécifie le langage informatique considéré (la casse
-n'est pas prise en compte). On peut choisir l'un des cinq langages prédéfinis (|Python|,
-|OCaml|, |C|, |SQL| et |minimal|) ou bien le nom d'un langage défini par l'utilisateur
-avec |\NewPitonLanguage| (voir partie~\ref{NewPitonLanguage}, p.~\pageref{NewPitonLanguage}).
+n'est pas prise en compte). On peut choisir l'un des six langages prédéfinis (|Python|,
+|OCaml|, |C|, |SQL|, |minimal| et |verbatim|) ou bien le nom d'un langage défini par
+l'utilisateur avec |\NewPitonLanguage| (voir partie~\ref{NewPitonLanguage},
+p.~\pageref{NewPitonLanguage}). 
 
 La valeur initiale est |Python|.
 
@@ -863,8 +865,8 @@ la même syntaxe que |\lstdefinelanguage|.
 
 \medskip
 Précisons tout de suite que l'extension \pkg{piton} n'utilise \emph{pas} cette commande
-pour définir les langages qu'elle propose nativement (Python, C, OCaml, SQL et
-|minimal|), ce qui permet de proposer des parseurs plus puissants.
+pour définir les langages qu'elle propose nativement (Python, C, OCaml, SQL, |minimal| et
+|verbatim|), ce qui permet de proposer des parseurs plus puissants. 
 
 \medskip
 Par exemple, dans le fichier |lstlang1.sty|, qui est un des fichiers de definition des
@@ -1258,6 +1260,13 @@ def dict_of_liste(liste):
 \end{Piton}
 \end{center}
 
+
+\bigskip
+\colorbox{yellow!50}{\bfseries{Nouveau 4.1}}\par\nobreak
+
+\smallskip
+Avec la clé \Definition{break-strings-anywhere}, les chaînes de caractères pourront être
+coupées n'importe où (et pas seulement sur les espaces). 
 
 
 \subsubsection{Coupure des pages}
@@ -2498,7 +2507,7 @@ Voici un exemple d'utilisation de ce nouvel environnement |{PitonREPL}|.
 \begin{Verbatim}
 ~emphase#\begin{PitonREPL}@
     def valeur_absolue(x):
-        "Renvoie la valeur absolue de x"
+        """Renvoie la valeur absolue de x"""
         if x > 0:
            return x
         else:
@@ -2534,7 +2543,7 @@ Voici un exemple d'utilisation de ce nouvel environnement |{PitonREPL}|.
  
 \begin{PitonREPL}
     def valeur_absolue(x):
-        "Renvoie la valeur absolue de x"
+        """Renvoie la valeur absolue de x"""
         if x > 0:
            return x
         else:
@@ -2577,7 +2586,7 @@ L'exemple précédent donne alors :
 \begin{Verbatim}
 ~emphase#\begin{PitonREPL}@
     def valeur_absolue(x):
-        "Renvoie la valeur absolue de x"
+        """Renvoie la valeur absolue de x"""
         if x > 0:
            return x
         else:
@@ -2593,7 +2602,7 @@ L'exemple précédent donne alors :
 
 \begin{PitonREPL}
     def valeur_absolue(x):
-        "Renvoie la valeur absolue de x"
+        """Renvoie la valeur absolue de x"""
         if x > 0:
            return x
         else:
@@ -2687,23 +2696,10 @@ Identifier & les identificateurs. \\
 
 \subsection{Le langage OCaml}
 
-On peut basculer vers le langage |OCaml| avec |\PitonOptions{language = OCaml}|
-
-\bigskip
-On peut aussi choisir le langage |OCaml| pour un environnement |{Piton}| individuel :
-%
-\begin{Verbatim}
-\begin{Piton}~emphase#[language=OCaml]@
-...
-\end{Piton}
-\end{Verbatim}
+On peut basculer vers le langage |OCaml| avec la clé |language| : |language = OCaml|
 
 
 \bigskip
-L'option est aussi disponible pour |\PitonInputFile| : |\PitonInputFile[language=OCaml]{...}|
-
-
-\vspace{1cm}
 
 
 \begin{center}
@@ -2751,21 +2747,10 @@ L'option est aussi disponible pour |\PitonInputFile| : |\PitonInputFile[language
 \subsection[Le langage C (et C++)]{Le langage C (et \CC)}
 
 
-On peut basculer vers le langage |C| avec |\PitonOptions{language = C}|
+On peut basculer vers le langage |C| avec la clé |language| : |language = C|
+
 
 \bigskip
-On peut aussi choisir le langage |C| pour un environnement |{Piton}| individuel :
-%
-\begin{Verbatim}
-\begin{Piton}~emphase#[language=C]@
-...
-\end{Piton}
-\end{Verbatim}
-
-\bigskip
-L'option est aussi disponible pour |\PitonInputFile| : |\PitonInputFile[language=C]{...}|
-
-\vspace{1cm}
 
 \begin{center}
 \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
@@ -2814,22 +2799,10 @@ Identifier & les identificateurs. \\
 
 \subsection{Le langage SQL}
 
-On peut basculer vers le langage |SQL| avec |\PitonOptions{language = SQL}|
+On peut basculer vers le langage |SQL| avec la clé |language| : |language = SQL|
+
 
 \bigskip
-On peut aussi choisir le langage |SQL| pour un environnement |{Piton}| individuel :
-%
-\begin{Verbatim}
-\begin{Piton}~emphase#[language=SQL]@
-...
-\end{Piton}
-\end{Verbatim}
-
-\bigskip
-L'option est aussi disponible pour |\PitonInputFile| : |\PitonInputFile[language=SQL]{...}|
-
-
-\vspace{1cm}
 
 \begin{center}
 \begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
@@ -2869,56 +2842,6 @@ style |Keywords| localement pour le langage SQL avec l'instruction :
 \SetPitonStyle~emphase#[SQL]@{Keywords = \bfseries \MakeUppercase}
 \end{Verbatim}
 
-
-
-\newpage
-
-\subsection{Le langage «minimal»}
-
-
-\label{minimal}
-\index{minimal (langage «minimal»)}
-
-On peut basculer vers le langage «|minimal|» avec |\PitonOptions{language = minimal}|
-
-\bigskip
-On peut aussi choisir le langage «|minimal|» pour un environnement |{Piton}| individuel :
-%
-\begin{Verbatim}
-\begin{Piton}~emphase#[language=minimal]@
-...
-\end{Piton}
-\end{Verbatim}
-
-\bigskip
-L'option est aussi disponible pour |\PitonInputFile| : |\PitonInputFile[language=minimal]{...}|
-
-
-\vspace{1cm}
-
-\begin{center}
-\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
-\toprule
-\normalfont Style  & Usage \\
-\midrule
-Number & les nombres \\
-String & les chaînes de caractères (qui sont entre \texttt{"}) \\
-Comment & les commentaires (qui débutent par |#|) \\
-Comment.LaTeX & les commentaires commençant par \texttt{\#>} qui sont composés par
-                \pkg{piton} comme du code LaTeX (et appelés simplement «commentaires
-                LaTeX» dans ce document) \\ 
-Identifier & les identificateurs. \\
-\bottomrule
-\end{tabularx}
-\end{center}
-
-\bigskip
-Ce langage «|minimal|» est proposé par \pkg{piton} à l'utilisateur final pour qu'il puisse
-y ajouter des formatages de mots-clés avec la commande |\SetPitonIdentifier| (cf.
-\ref{SetPitonIdentifier}, p.~\pageref{SetPitonIdentifier}) et créer par exemple un langage
-pour pseudo-code.
-
-
 \newpage
 
 \subsection{Les langages définis par la commande \textbackslash NewPitonLanguage}
@@ -2954,6 +2877,79 @@ Identifier & les identificateurs. \\
 \bottomrule
 \end{tabularx}
 \end{center}
+
+
+
+\newpage
+
+\subsection{Le langage «minimal»}
+
+
+\label{minimal}
+\index{minimal (langage «minimal»)}
+
+On peut basculer vers le langage «|minimal|» avec la clé |language| : |language = minimal|
+
+
+\bigskip
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\normalfont Style  & Usage \\
+\midrule
+Number & les nombres \\
+String & les chaînes de caractères (qui sont entre \texttt{"}) \\
+Comment & les commentaires (qui débutent par |#|) \\
+Comment.LaTeX & les commentaires commençant par \texttt{\#>} qui sont composés par
+                \pkg{piton} comme du code LaTeX (et appelés simplement «commentaires
+                LaTeX» dans ce document) \\ 
+Identifier & les identificateurs. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\bigskip
+Ce langage «|minimal|» est proposé par \pkg{piton} à l'utilisateur final pour qu'il puisse
+y ajouter des formatages de mots-clés avec la commande |\SetPitonIdentifier| (cf.
+\ref{SetPitonIdentifier}, p.~\pageref{SetPitonIdentifier}) et créer par exemple un langage
+pour pseudo-code.
+
+\vspace{2cm}
+
+\subsection{Le langage «verbatim»}
+
+
+\label{verbatim}
+\index{verbatim (langage «verbatim»)}
+
+
+\colorbox{yellow!50}{\textbf{Nouveau 4.1}}
+
+
+\bigskip
+
+On peut basculer vers le langage «|verbatim|» avec la clé |language| : |language = verbatim|
+
+\bigskip
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\normalfont Style  & Usage \\
+\midrule
+\emph{rien...} & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\bigskip
+Le language «|verbatim|» ne propose aucun style et ne fait donc aucun formatage
+syntaxique. On peut néanmoins y utiliser le mécanisme |detected-commands| (cf. partie
+\ref{detected-commands}, p.~\pageref{detected-commands}) ainsi que le
+mécanisme de détection des commandes et des environnements de Beamer.
+
+
 
 
 

@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.0x4" -- 2024/10/05
+piton_version = "4.1" -- 2024/10/18
 
 
 
@@ -164,6 +164,12 @@ function Compute_LPEG_cleaner ( lang , braces ) return
          + EscapeClean
          +  C ( P ( 1 ) )
         ) ^ 0 ) / table.concat
+end
+local ParseAgain
+function ParseAgain ( code )
+  if code ~= '' then return
+    LPEG1[piton.language] : match ( code )
+  end
 end
 local Beamer = P ( false )
 local BeamerBeginEnvironments = P ( true )
@@ -522,13 +528,7 @@ do
     * Q "("  * Params * Q ")"
     * SkipSpace
     * ( Q "->" * SkipSpace * K ( 'Name.Type' , identifier ) ) ^ -1
-    * ( C ( ( 1 - S ":\r" ) ^ 0 )
-         / ( function ( s )
-               if s ~= '' then return
-                 LPEG1.python : match ( s )
-               end
-             end )
-      )
+    * ( C ( ( 1 - S ":\r" ) ^ 0 ) / ParseAgain )
     * Q ":"
     * ( SkipSpace
         * ( EOL + CommentLaTeX + Comment ) -- in all cases, that contains an EOL
@@ -675,7 +675,8 @@ do
     + K ( 'Keyword.Constant' , P "true" + "false" )
     + K ( 'Keyword.Governing', governing_keyword )
   local EndKeyword
-    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape
+       + EscapeMath + -1
   local identifier = ( R "az" + "_" ) * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
                      - ( OperatorWord + Keyword ) * EndKeyword
   local Identifier = K ( 'Identifier.Internal' , identifier )
@@ -727,9 +728,7 @@ do
   local OneField =
       K ( 'Name.Field' , identifier ) * SkipSpace
     * Q "=" * SkipSpace
-    * ( expression_for_fields_value
-        / ( function ( s ) return LPEG1.ocaml : match ( s ) end )
-      )
+    * ( expression_for_fields_value / ParseAgain )
     * SkipSpace
   local Record =
     Q "{" * SkipSpace
@@ -977,7 +976,8 @@ do
                  * Q "*/"
               ) -- $
   local EndKeyword
-    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape +
+    EscapeMath  + -1
   local Main =
        space ^ 0 * EOL
        + Space
@@ -1031,7 +1031,7 @@ do
   local Set
   function Set ( list )
     local set = { }
-    for _, l in ipairs ( list ) do set[l] = true end
+    for _ , l in ipairs ( list ) do set[l] = true end
     return set
   end
   local set_keywords = Set
@@ -1089,7 +1089,8 @@ do
                  * Q "*/"
               ) -- $
   local EndKeyword
-    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape + EscapeMath -1
+    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape +
+      EscapeMath + -1
   local TableField =
          K ( 'Name.Table' , identifier )
        * Q "."
@@ -1264,6 +1265,7 @@ do
        )
 end
 function piton.Parse ( language , code )
+  piton.language = language
   local t = LPEG2[language] : match ( code )
   if t == nil then
     sprintL3 [[ \__piton_error_or_warning:n { SyntaxError } ]]
@@ -1299,6 +1301,7 @@ function piton.Parse ( language , code )
     end
   end
 end
+
 function piton.ParseFile
   ( lang , name , first_line , last_line , splittable , split )
   local s = ''
