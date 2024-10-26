@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.1}
-\def\PitonFileDate{2024/10/18}
+\def\PitonFileVersion{4.1x1}
+\def\PitonFileDate{2024/10/26}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.1" -- 2024/10/18
+piton_version = "4.1x1" -- 2024/10/26
 %</LUA>
 %\fi
 %
@@ -4003,7 +4003,11 @@ piton_version = "4.1" -- 2024/10/18
 \keys_define:nn { PitonOptions }
   {
     break-strings-anywhere .code:n = 
-     \cs_set_eq:NN \@@_break_anywhere:n \@@_actually_break_anywhere:n ,
+     \cs_set_eq:NN \@@_break_strings_anywhere:n \@@_actually_break_anywhere:n ,
+    break-strings-anywhere .value_forbidden:n = true , 
+    break-numbers-anywhere .code:n = 
+     \cs_set_eq:NN \@@_break_numbers_anywhere:n \@@_actually_break_numbers:n , 
+    break-numbers-anywhere .value_forbidden:n = true , 
 %    \end{macrocode}
 % First, we put keys that should be available only in the preamble.
 %    \begin{macrocode}
@@ -5221,7 +5225,8 @@ piton_version = "4.1" -- 2024/10/18
 % 
 % \bigskip
 %    \begin{macrocode}
-\cs_set_eq:NN \@@_break_anywhere:n \prg_do_nothing:
+\cs_set_eq:NN \@@_break_strings_anywhere:n \prg_do_nothing:
+\cs_set_eq:NN \@@_break_numbers_anywhere:n \prg_do_nothing:
 \cs_new_protected:Npn \@@_actually_break_anywhere:n #1
   {
     \seq_clear:N \l_tmpa_seq
@@ -5254,10 +5259,10 @@ piton_version = "4.1" -- 2024/10/18
     Name.Field          = \color[HTML]{AA6600} , 
     Name.Module         = \color[HTML]{0060A0} \bfseries ,
     Name.Table          = \color[HTML]{309030} ,
-    Number              = \color[HTML]{FF6600} ,
+    Number              = \color[HTML]{FF6600} \@@_actually_break_anywhere:n ,
     Operator            = \color[HTML]{555555} ,
     Operator.Word       = \bfseries ,
-    String              = \color[HTML]{CC3300} \@@_break_anywhere:n , 
+    String              = \color[HTML]{CC3300} \@@_actually_break_anywhere:n ,
     String.Doc          = \color[HTML]{CC3300} \itshape , 
     String.Interpol     = \color[HTML]{AA0000} ,
     Comment.LaTeX       = \normalfont \color[rgb]{.468,.532,.6} , 
@@ -5613,6 +5618,7 @@ piton_version = "4.1" -- 2024/10/18
     break-lines,~
     break-lines-in-piton,~
     break-lines-in-Piton,~
+    break-numbers-anywhere,~
     break-strings-anywhere,~
     continuation-symbol,~ 
     continuation-symbol-on-indentation,~
