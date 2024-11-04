@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.1x1}
-\def\PitonFileDate{2024/10/26}
+\def\PitonFileVersion{4.1x3}
+\def\PitonFileDate{2024/10/28}
 
 
 
@@ -519,12 +519,10 @@
   }
 \keys_define:nn { PitonOptions }
   {
-    break-strings-anywhere .code:n =
-     \cs_set_eq:NN \__piton_break_strings_anywhere:n \__piton_actually_break_anywhere:n ,
-    break-strings-anywhere .value_forbidden:n = true ,
-    break-numbers-anywhere .code:n =
-     \cs_set_eq:NN \__piton_break_numbers_anywhere:n \__piton_actually_break_numbers:n ,
-    break-numbers-anywhere .value_forbidden:n = true ,
+    break-strings-anywhere .bool_set:N = \l__piton_break_strings_anywhere_bool ,
+    break-strings-anywhere .default:n = true ,
+    break-numbers-anywhere .bool_set:N = \l__piton_break_numbers_anywhere_bool ,
+    break-numbers-anywhere .default:n = true  ,
     detected-commands .code:n =
       \lua_now:n { piton.addDetectedCommands('#1') } ,
     detected-commands .value_required:n = true ,
@@ -816,7 +814,9 @@
 \NewDocumentCommand { \__piton_piton_standard } { m }
   {
     \group_begin:
-    \bool_if:NT \l__piton_break_lines_in_piton_bool
+    \bool_lazy_or:nnT
+    \l__piton_break_lines_in_piton_bool
+    \l__piton_break_strings_anywhere_bool
       { \tl_set_eq:NN \l__piton_space_in_string_tl \space }
     \automatichyphenmode = 1
     \cs_set_eq:NN \\ \c_backslash_str
@@ -848,7 +848,6 @@
 \NewDocumentCommand { \__piton_piton_verbatim } { v }
   {
     \group_begin:
-    \l__piton_font_command_tl
     \automatichyphenmode = 1
     \cs_set_eq:NN \__piton_begin_line: \prg_do_nothing:
     \tl_set:Ne \l_tmpa_tl
@@ -859,7 +858,11 @@
       }
     \bool_if:NT \l__piton_show_spaces_bool
       { \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl } % U+2423
-    \l_tmpa_tl
+    \if_mode_math:
+       \text { \l__piton_font_command_tl \l_tmpa_tl }
+    \else:
+       \l__piton_font_command_tl \l_tmpa_tl
+    \fi:
     \group_end:
   }
 
@@ -961,7 +964,7 @@
       }
           {
             \group_end:
-            \mode_if_vertical:TF { \noindent \mode_leave_vertical: } \newline
+            \mode_if_vertical:TF \noindent \newline
             \lua_now:e { piton.CountLines ( '\lua_escape:n{##1}' ) }
             \__piton_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
             \__piton_compute_width:
@@ -1229,6 +1232,7 @@
     Name.Table ,
     Name.Type ,
     Number ,
+    Number.Internal ,
     Operator ,
     Operator.Word ,
     Preproc ,
@@ -1236,7 +1240,9 @@
     String.Doc ,
     String.Interpol ,
     String.Long ,
+    String.Long.Internal ,
     String.Short ,
+    String.Short.Internal ,
     Tag ,
     TypeParameter ,
     UserFunction ,
@@ -1282,49 +1288,82 @@
       \sort_return_swapped:
   }
 \cs_set_eq:NN \__piton_break_strings_anywhere:n \prg_do_nothing:
+
 \cs_set_eq:NN \__piton_break_numbers_anywhere:n \prg_do_nothing:
+
 \cs_new_protected:Npn \__piton_actually_break_anywhere:n #1
   {
-    \seq_clear:N \l_tmpa_seq
-    \tl_map_inline:nn { #1 }
+    \tl_set:Nn \l_tmpa_tl { #1 }
+    \regex_replace_all:nnN { \x20 } { \c { space } } \l_tmpa_tl
+    \tl_map_inline:Nn \l_tmpa_tl
       { \seq_put_right:Nn \l_tmpa_seq { ##1 } }
     \seq_use:Nn \l_tmpa_seq { \- }
   }
+\cs_new_protected:Npn \__piton_string_long:n #1
+  {
+    \PitonStyle { String.Long }
+      {
+        \bool_if:NT \l__piton_break_strings_anywhere_bool
+          { \__piton_actually_break_anywhere:n }
+        { #1 }
+      }
+  }
+\cs_new_protected:Npn \__piton_string_short:n #1
+  {
+    \PitonStyle { String.Short }
+      {
+        \bool_if:NT \l__piton_break_strings_anywhere_bool
+          { \__piton_actually_break_anywhere:n }
+        { #1 }
+      }
+  }
+\cs_new_protected:Npn \__piton_number:n #1
+  {
+    \PitonStyle { Number }
+      {
+        \bool_if:NT \l__piton_break_numbers_anywhere_bool
+          { \__piton_actually_break_anywhere:n }
+        { #1 }
+      }
+  }
 \SetPitonStyle
   {
-    Comment             = \color[HTML]{0099FF} \itshape ,
-    Exception           = \color[HTML]{CC0000} ,
-    Keyword             = \color[HTML]{006699} \bfseries ,
-    Keyword.Governing   = \color[HTML]{006699} \bfseries ,
-    Keyword.Constant    = \color[HTML]{006699} \bfseries ,
-    Name.Builtin        = \color[HTML]{336666} ,
-    Name.Decorator      = \color[HTML]{9999FF},
-    Name.Class          = \color[HTML]{00AA88} \bfseries ,
-    Name.Function       = \color[HTML]{CC00FF} ,
-    Name.Namespace      = \color[HTML]{00CCFF} ,
-    Name.Constructor    = \color[HTML]{006000} \bfseries ,
-    Name.Field          = \color[HTML]{AA6600} ,
-    Name.Module         = \color[HTML]{0060A0} \bfseries ,
-    Name.Table          = \color[HTML]{309030} ,
-    Number              = \color[HTML]{FF6600} \__piton_actually_break_anywhere:n ,
-    Operator            = \color[HTML]{555555} ,
-    Operator.Word       = \bfseries ,
-    String              = \color[HTML]{CC3300} \__piton_actually_break_anywhere:n ,
-    String.Doc          = \color[HTML]{CC3300} \itshape ,
-    String.Interpol     = \color[HTML]{AA0000} ,
-    Comment.LaTeX       = \normalfont \color[rgb]{.468,.532,.6} ,
-    Name.Type           = \color[HTML]{336666} ,
-    InitialValues       = \__piton_piton:n ,
-    Interpol.Inside     = \l__piton_font_command_tl \__piton_piton:n ,
-    TypeParameter       = \color[HTML]{336666} \itshape ,
-    Preproc             = \color[HTML]{AA6600} \slshape ,
-    Identifier.Internal = \__piton_identifier:n ,
-    Identifier          = ,
-    Directive           = \color[HTML]{AA6600} ,
-    Tag                 = \colorbox{gray!10},
-    UserFunction        = \PitonStyle{Identifier} ,
-    Prompt              = ,
-    Discard             = \use_none:n
+    Comment               = \color[HTML]{0099FF} \itshape ,
+    Exception             = \color[HTML]{CC0000} ,
+    Keyword               = \color[HTML]{006699} \bfseries ,
+    Keyword.Governing     = \color[HTML]{006699} \bfseries ,
+    Keyword.Constant      = \color[HTML]{006699} \bfseries ,
+    Name.Builtin          = \color[HTML]{336666} ,
+    Name.Decorator        = \color[HTML]{9999FF},
+    Name.Class            = \color[HTML]{00AA88} \bfseries ,
+    Name.Function         = \color[HTML]{CC00FF} ,
+    Name.Namespace        = \color[HTML]{00CCFF} ,
+    Name.Constructor      = \color[HTML]{006000} \bfseries ,
+    Name.Field            = \color[HTML]{AA6600} ,
+    Name.Module           = \color[HTML]{0060A0} \bfseries ,
+    Name.Table            = \color[HTML]{309030} ,
+    Number                = \color[HTML]{FF6600} ,
+    Number.Internal       = \__piton_number:n ,
+    Operator              = \color[HTML]{555555} ,
+    Operator.Word         = \bfseries ,
+    String                = \color[HTML]{CC3300} ,
+    String.Long.Internal  = \__piton_string_long:n ,
+    String.Short.Internal = \__piton_string_short:n ,
+    String.Doc            = \color[HTML]{CC3300} \itshape ,
+    String.Interpol       = \color[HTML]{AA0000} ,
+    Comment.LaTeX         = \normalfont \color[rgb]{.468,.532,.6} ,
+    Name.Type             = \color[HTML]{336666} ,
+    InitialValues         = \__piton_piton:n ,
+    Interpol.Inside       = \l__piton_font_command_tl \__piton_piton:n ,
+    TypeParameter         = \color[HTML]{336666} \itshape ,
+    Preproc               = \color[HTML]{AA6600} \slshape ,
+    Identifier.Internal   = \__piton_identifier:n ,
+    Identifier            = ,
+    Directive             = \color[HTML]{AA6600} ,
+    Tag                   = \colorbox{gray!10},
+    UserFunction          = \PitonStyle{Identifier} ,
+    Prompt                = ,
+    Discard               = \use_none:n
   }
 \hook_gput_code:nnn { begindocument } { . }
   {

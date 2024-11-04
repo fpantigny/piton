@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.1x1}
-\def\PitonFileDate{2024/10/26}
+\def\PitonFileVersion{4.1x3}
+\def\PitonFileDate{2024/10/28}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.1x1" -- 2024/10/26
+piton_version = "4.1x3" -- 2024/11/04
 %</LUA>
 %\fi
 %
@@ -305,7 +305,7 @@ piton_version = "4.1x1" -- 2024/10/26
 % It's possible to use the command |\piton| in the arguments of a
 % LaTeX command.\footnote{For example, it's possible to use the command
 % \texttt{\textbackslash piton} in a footnote. Example :
-% \piton{s = 'A string'}.}
+% \piton{s = 123}.}
 %
 % However, since the argument is expanded (in the TeX sens), one should take
 % care not using in its argument \emph{fragile} commands (that is to say
@@ -315,7 +315,8 @@ piton_version = "4.1x1" -- 2024/10/26
 % \item {\color{blue} \textsf{Syntax} \verb!\piton|...|!}\par\nobreak
 %
 % When the argument of the command |\piton| is provided between two identical
-% characters, that argument is taken in a \emph{verbatim mode}. Therefore, with
+% characters (all the characters are allowed except |%|, |\|, |#|, |{|, |}| and
+% the space), that argument is taken in a \emph{verbatim mode}. Therefore, with
 % that syntax, the command |\piton| can't be used within the argument of another
 % command. 
 %
@@ -1263,6 +1264,13 @@ piton_version = "4.1x1" -- 2024/10/26
 % \smallskip
 % With the key \Definition{break-strings-anywhere}, the strings may be broken
 % anywhere (and not only on the spaces). 
+%
+% \bigskip
+% \colorbox{yellow!50}{\bfseries{New 4.2}}\par\nobreak
+%
+% \smallskip
+% With the key \Definition{break-numbers-anywhere}, the numbers may be broken
+% anywhere.
 %
 % \subsubsection{Page breaks}
 % \label{page breaks}
@@ -2601,19 +2609,33 @@ piton_version = "4.1x1" -- 2024/10/26
 % Name.Table & the names of the tables \\
 % Name.Field & the names of the fields of the tables \\
 % Name.Builtin & the following built-in functions (their names are \emph{not} case-sensitive): 
-%    |avg|, |count|, |char_lenght|, |concat|, |curdate|, |current_date|,
+%    |avg|, |count|, |char_length|, |concat|, |curdate|, |current_date|,
 %    |date_format|, |day|, |lower|, |ltrim|, |max|, |min|, |month|, |now|,
 %    |rank|, |round|, |rtrim|, |substring|, |sum|, |upper| and |year|. \\
 % Comment & the comments (beginning by \texttt{--} or between |/*| and |*/|) \\
 % Comment.LaTeX & the comments beginning by  \texttt{-->} which are composed by
 % \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
 % Keyword & the following keywords (their names are \emph{not} case-sensitive):
-% |add|, |after|, |all|, |alter|, |and|, |as|, |asc|, |between|, |by|,
-% |change|, |column|, |create|, |cross join|, |delete|, |desc|, |distinct|, 
-% |drop|, |from|, |group|, |having|, |in|, |inner|, |insert|, |into|, |is|, 
-% |join|, |left|, |like|, |limit|, |merge|, |not|, |null|, |on|, |or|, 
-% |order|, |over|, |right|, |select|, |set|, |table|, |then|, |truncate|, 
-% |union|, |update|, |values|, |when|, |where| and |with|. \\
+% |abort|, |action|, |add|, |after|, |all|, |alter|, |always|, |analyze|,
+% |and|, |as|, |asc|, |attach|, |autoincrement|, |before|, |begin|, |between|,
+% |by|, |cascade|, |case|, |cast|, |check|, |collate|, |column|, |commit|,
+% |conflict|, |constraint|, |create|, |cross|, |current|, |current_date|,
+% |current_time|, |current_timestamp|, |database|, |default|, |deferrable|,
+% |deferred|, |delete|, |desc|, |detach|, |distinct|, |do|, |drop|, |each|,
+% |else|, |end|, |escape|, |except|, |exclude|, |exclusive|, |exists|,
+% |explain|, |fail|, |filter|, |first|, |following|, |for|, |foreign|, |from|,
+% |full|, |generated|, |glob|, |group|, |groups|, |having|, |if|, |ignore|,
+% |immediate|, |in|, |index|, |indexed|, |initially|, |inner|, |insert|,
+% |instead|, |intersect|, |into|, |is|, |isnull|, |join|, |key|, |last|,
+% |left|, |like|, |limit|, |match|, |materialized|, |natural|, |no|, |not|,
+% |nothing|, |notnull|, |null|, |nulls|, |of|, |offset|, |on|, |or|, |order|,
+% |others|, |outer|, |over|, |partition|, |plan|, |pragma|, |preceding|,
+% |primary|, |query|, |raise|, |range|, |recursive|, |references|, |regexp|,
+% |reindex|, |release|, |rename|, |replace|, |restrict|, |returning|, |right|,
+% |rollback|, |row|, |rows|, |savepoint|, |select|, |set|, |table|, |temp|,
+% |temporary|, |then|, |ties|, |to|, |transaction|, |trigger|, |unbounded|,
+% |union|, |unique|, |update|, |using|, |vacuum|, |values|, |view|, |virtual|,
+% |when|, |where|, |window|, |with|, |without| \\
 % \bottomrule
 % \end{tabularx}
 % \end{center}
@@ -4002,12 +4024,10 @@ piton_version = "4.1x1" -- 2024/10/26
 %    \begin{macrocode}
 \keys_define:nn { PitonOptions }
   {
-    break-strings-anywhere .code:n = 
-     \cs_set_eq:NN \@@_break_strings_anywhere:n \@@_actually_break_anywhere:n ,
-    break-strings-anywhere .value_forbidden:n = true , 
-    break-numbers-anywhere .code:n = 
-     \cs_set_eq:NN \@@_break_numbers_anywhere:n \@@_actually_break_numbers:n , 
-    break-numbers-anywhere .value_forbidden:n = true , 
+    break-strings-anywhere .bool_set:N = \l_@@_break_strings_anywhere_bool ,
+    break-strings-anywhere .default:n = true , 
+    break-numbers-anywhere .bool_set:N = \l_@@_break_numbers_anywhere_bool ,
+    break-numbers-anywhere .default:n = true  ,
 %    \end{macrocode}
 % First, we put keys that should be available only in the preamble.
 %    \begin{macrocode}
@@ -4465,7 +4485,15 @@ piton_version = "4.1x1" -- 2024/10/26
 \NewDocumentCommand { \@@_piton_standard } { m }
   {
     \group_begin:
-    \bool_if:NT \l_@@_break_lines_in_piton_bool
+    \bool_lazy_or:nnT 
+    \l_@@_break_lines_in_piton_bool
+%    \end{macrocode}
+% We have also to deal with the case of |break-strings-anywhere| because,
+% otherwise, the |\nobreakspace| would result in a sequence of TeX instructions
+% and we would have difficulities during the insertion of all the commands |\-|
+% (to allow breaks anywhere in the string).
+%    \begin{macrocode}
+    \l_@@_break_strings_anywhere_bool
       { \tl_set_eq:NN \l_@@_space_in_string_tl \space }
 %    \end{macrocode}
 % The following tuning of LuaTeX in order to avoid all breaks of lines on the
@@ -4526,7 +4554,6 @@ piton_version = "4.1x1" -- 2024/10/26
 \NewDocumentCommand { \@@_piton_verbatim } { v }
   {
     \group_begin:
-    \l_@@_font_command_tl
     \automatichyphenmode = 1
     \cs_set_eq:NN \@@_begin_line: \prg_do_nothing:
     \tl_set:Ne \l_tmpa_tl 
@@ -4537,7 +4564,11 @@ piton_version = "4.1x1" -- 2024/10/26
       }
     \bool_if:NT \l_@@_show_spaces_bool
       { \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl } % U+2423
-    \l_tmpa_tl 
+    \if_mode_math:
+       \text { \l_@@_font_command_tl \l_tmpa_tl }
+    \else:
+       \l_@@_font_command_tl \l_tmpa_tl
+    \fi: 
     \group_end:
   }
 %    \end{macrocode}
@@ -4719,7 +4750,7 @@ piton_version = "4.1x1" -- 2024/10/26
       }
           { 
             \group_end:
-            \mode_if_vertical:TF { \noindent \mode_leave_vertical: } \newline 
+            \mode_if_vertical:TF \noindent \newline 
 %    \end{macrocode}
 % The following line is only to compute |\l_@@_lines_int| which will be used
 % only when both |left-margin=auto| and |skip-empty-lines = false| are in force.
@@ -5146,6 +5177,7 @@ piton_version = "4.1x1" -- 2024/10/26
     Name.Table , 
     Name.Type ,
     Number ,
+    Number.Internal ,
     Operator ,
     Operator.Word ,
     Preproc ,
@@ -5153,7 +5185,9 @@ piton_version = "4.1x1" -- 2024/10/26
     String.Doc ,
     String.Interpol ,
     String.Long ,
+    String.Long.Internal ,
     String.Short ,    
+    String.Short.Internal ,    
     Tag ,  
     TypeParameter ,    
     UserFunction ,
@@ -5225,14 +5259,53 @@ piton_version = "4.1x1" -- 2024/10/26
 % 
 % \bigskip
 %    \begin{macrocode}
+% \bool_new:N \l_@@_break_strings_anywhere_bool
 \cs_set_eq:NN \@@_break_strings_anywhere:n \prg_do_nothing:
+
 \cs_set_eq:NN \@@_break_numbers_anywhere:n \prg_do_nothing:
+
 \cs_new_protected:Npn \@@_actually_break_anywhere:n #1
   {
-    \seq_clear:N \l_tmpa_seq
-    \tl_map_inline:nn { #1 }
+    \tl_set:Nn \l_tmpa_tl { #1 }
+%    \end{macrocode}
+% We have to begin by a substituation for the spaces. Otherwise, they would be
+% gobbled in the |\tl_map_inline:Nn|.
+%    \begin{macrocode}
+    \regex_replace_all:nnN { \x20 } { \c { space } } \l_tmpa_tl 
+    \tl_map_inline:Nn \l_tmpa_tl
       { \seq_put_right:Nn \l_tmpa_seq { ##1 } }
     \seq_use:Nn \l_tmpa_seq { \- }
+  }
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_string_long:n #1
+  {
+    \PitonStyle { String.Long } 
+      { 
+        \bool_if:NT \l_@@_break_strings_anywhere_bool
+          { \@@_actually_break_anywhere:n }
+        { #1 } 
+      }
+  }
+\cs_new_protected:Npn \@@_string_short:n #1
+  {
+    \PitonStyle { String.Short } 
+      { 
+        \bool_if:NT \l_@@_break_strings_anywhere_bool
+          { \@@_actually_break_anywhere:n }
+        { #1 } 
+      }
+  }
+\cs_new_protected:Npn \@@_number:n #1 
+  {
+    \PitonStyle { Number } 
+      { 
+        \bool_if:NT \l_@@_break_numbers_anywhere_bool
+          { \@@_actually_break_anywhere:n }
+        { #1 } 
+      }
   }
 %    \end{macrocode}
 % 
@@ -5245,44 +5318,47 @@ piton_version = "4.1x1" -- 2024/10/26
 %    \begin{macrocode}
 \SetPitonStyle
   {                                                       
-    Comment             = \color[HTML]{0099FF} \itshape , 
-    Exception           = \color[HTML]{CC0000} ,
-    Keyword             = \color[HTML]{006699} \bfseries , 
-    Keyword.Governing   = \color[HTML]{006699} \bfseries , 
-    Keyword.Constant    = \color[HTML]{006699} \bfseries ,               
-    Name.Builtin        = \color[HTML]{336666} ,
-    Name.Decorator      = \color[HTML]{9999FF}, 
-    Name.Class          = \color[HTML]{00AA88} \bfseries ,
-    Name.Function       = \color[HTML]{CC00FF} , 
-    Name.Namespace      = \color[HTML]{00CCFF} , 
-    Name.Constructor    = \color[HTML]{006000} \bfseries , 
-    Name.Field          = \color[HTML]{AA6600} , 
-    Name.Module         = \color[HTML]{0060A0} \bfseries ,
-    Name.Table          = \color[HTML]{309030} ,
-    Number              = \color[HTML]{FF6600} \@@_actually_break_anywhere:n ,
-    Operator            = \color[HTML]{555555} ,
-    Operator.Word       = \bfseries ,
-    String              = \color[HTML]{CC3300} \@@_actually_break_anywhere:n ,
-    String.Doc          = \color[HTML]{CC3300} \itshape , 
-    String.Interpol     = \color[HTML]{AA0000} ,
-    Comment.LaTeX       = \normalfont \color[rgb]{.468,.532,.6} , 
-    Name.Type           = \color[HTML]{336666} ,
-    InitialValues       = \@@_piton:n ,
-    Interpol.Inside     = \l_@@_font_command_tl \@@_piton:n ,
-    TypeParameter       = \color[HTML]{336666} \itshape ,
-    Preproc             = \color[HTML]{AA6600} \slshape ,
+    Comment               = \color[HTML]{0099FF} \itshape , 
+    Exception             = \color[HTML]{CC0000} ,
+    Keyword               = \color[HTML]{006699} \bfseries , 
+    Keyword.Governing     = \color[HTML]{006699} \bfseries , 
+    Keyword.Constant      = \color[HTML]{006699} \bfseries ,               
+    Name.Builtin          = \color[HTML]{336666} ,
+    Name.Decorator        = \color[HTML]{9999FF}, 
+    Name.Class            = \color[HTML]{00AA88} \bfseries ,
+    Name.Function         = \color[HTML]{CC00FF} , 
+    Name.Namespace        = \color[HTML]{00CCFF} , 
+    Name.Constructor      = \color[HTML]{006000} \bfseries , 
+    Name.Field            = \color[HTML]{AA6600} , 
+    Name.Module           = \color[HTML]{0060A0} \bfseries ,
+    Name.Table            = \color[HTML]{309030} ,
+    Number                = \color[HTML]{FF6600} ,
+    Number.Internal       = \@@_number:n ,
+    Operator              = \color[HTML]{555555} ,
+    Operator.Word         = \bfseries ,
+    String                = \color[HTML]{CC3300} ,
+    String.Long.Internal  = \@@_string_long:n , 
+    String.Short.Internal = \@@_string_short:n , 
+    String.Doc            = \color[HTML]{CC3300} \itshape , 
+    String.Interpol       = \color[HTML]{AA0000} ,
+    Comment.LaTeX         = \normalfont \color[rgb]{.468,.532,.6} , 
+    Name.Type             = \color[HTML]{336666} ,
+    InitialValues         = \@@_piton:n ,
+    Interpol.Inside       = \l_@@_font_command_tl \@@_piton:n ,
+    TypeParameter         = \color[HTML]{336666} \itshape ,
+    Preproc               = \color[HTML]{AA6600} \slshape ,
 %    \end{macrocode}
 % We need the command |\@@_identifier:n| because of the command
 % |\SetPitonIdentifier|. The command |\@@_identifier:n| will potentially call
 % the style |Identifier| (which is a user-style, not an internal style).
 %    \begin{macrocode}
-    Identifier.Internal = \@@_identifier:n , 
-    Identifier          = ,
-    Directive           = \color[HTML]{AA6600} ,
-    Tag                 = \colorbox{gray!10}, 
-    UserFunction        = \PitonStyle{Identifier} ,
-    Prompt              = , 
-    Discard             = \use_none:n 
+    Identifier.Internal   = \@@_identifier:n , 
+    Identifier            = ,
+    Directive             = \color[HTML]{AA6600} ,
+    Tag                   = \colorbox{gray!10}, 
+    UserFunction          = \PitonStyle{Identifier} ,
+    Prompt                = , 
+    Discard               = \use_none:n 
   }
 %    \end{macrocode}
 %
@@ -5898,9 +5974,9 @@ EscapeMath = P ( false )
 if piton.begin_escape_math then 
   EscapeMath = 
     P ( piton.begin_escape_math )
-    * Lc "\\ensuremath{" 
+    * Lc "$"
     * L ( ( 1 - P(piton.end_escape_math) ) ^ 1 )
-    * Lc "}" 
+    * Lc "$" 
     * P ( piton.end_escape_math )
 end
 %    \end{macrocode}
@@ -5960,7 +6036,7 @@ local Identifier = K ( 'Identifier.Internal' , identifier )
 % \pkg{piton} styles (but this is only a convention).
 %    \begin{macrocode}
 local Number =
-  K ( 'Number' ,
+  K ( 'Number.Internal' ,
       ( digit ^ 1 * P "." * # ( 1 - P "." ) * digit ^ 0 
         + digit ^ 0 * P "." * digit ^ 1 
         + digit ^ 1 )
@@ -6292,7 +6368,7 @@ local PromptHastyDetection =
 % With the following \textsc{lpeg}, a style will actually be applied to the
 % prompt (for instance, it's possible to decide to discard these prompts).
 %    \begin{macrocode}
-local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ^ -1  ) 
+local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ) ^ -1  
 %    \end{macrocode}
 %    
 %
@@ -6533,7 +6609,7 @@ do
 % style of the encompassing string, that is to say |String.Short| or
 % |String.Long|.} in that interpolation:
 %
-% \piton{f'Total price: {total+1:.2f} €'}
+% |\piton{f'Total price: {total+1:.2f} €'}|
 %
 %
 % \bigskip
@@ -6561,7 +6637,7 @@ do
 % @@\_piton:n} which means that the interpolations are parsed once again by \pkg{piton}.}
 %    \begin{macrocode}
   local SingleShortString =
-    WithStyle ( 'String.Short' ,
+    WithStyle ( 'String.Short.Internal' ,
 %    \end{macrocode}
 % First, we deal with the f-strings of Python, which are prefixed by |f| or |F|.
 %    \begin{macrocode}
@@ -6592,7 +6668,7 @@ do
 %
 %    \begin{macrocode}
   local DoubleShortString =
-    WithStyle ( 'String.Short' , 
+    WithStyle ( 'String.Short.Internal' , 
            Q ( P "f\"" + "F\"" ) 
            * ( 
                K ( 'String.Interpol' , "{" )
@@ -6657,7 +6733,7 @@ do
 % 
 %    \begin{macrocode}
   local SingleLongString =
-    WithStyle ( 'String.Long' , 
+    WithStyle ( 'String.Long.Internal' , 
        ( Q ( S "fF" * P "'''" )
            * (
                K ( 'String.Interpol' , "{" )
@@ -6686,7 +6762,7 @@ do
 %   
 %    \begin{macrocode}
   local DoubleLongString =
-    WithStyle ( 'String.Long' ,
+    WithStyle ( 'String.Long.Internal' ,
        (
           Q ( S "fF" * "\"\"\"" )
           * (
@@ -6987,7 +7063,7 @@ do
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-  local String = WithStyle ( 'String.Long' , ocaml_string )
+  local String = WithStyle ( 'String.Long.Internal' , ocaml_string )
 %    \end{macrocode}
 %
 % \bigskip
@@ -7014,7 +7090,7 @@ do
 % The \textsc{lpeg} |QuotedStringBis| will do the second analysis. 
 %    \begin{macrocode}
   local QuotedStringBis =
-    WithStyle ( 'String.Long' ,
+    WithStyle ( 'String.Long.Internal' ,
         (
           Space
           +
@@ -7147,7 +7223,7 @@ do
 % In OCmal, \emph{character} is a type different of the type |string|.
 %    \begin{macrocode}
   local Char =
-    K ( 'String.Short',
+    K ( 'String.Short.Internal',
       P "'" *
       (
         ( 1 - S "'\\" )
@@ -7289,19 +7365,45 @@ do
 %    \end{macrocode}
 %
 % \bigskip
+% An argument in the definition of a OCaml function may be of the form
+% |(pattern:type)|. |pattern| may be a single identifier but it's not mandatory.
+% First instance, it's possible to write in OCaml:
+%
+% |let head (a::q) = a|
+%
+% First, we write a pattern (in the LPEG sens!) to match what will be the
+% pattern (in the OCaml sens).
+%    \begin{macrocode}
+  local pattern_part = 
+    ( P "(" * balanced_parens * ")" + ( 1 - S ":()" ) + P "::" ) ^ 0 
+%    \end{macrocode}
+% For the ``type'' part, the LPEG-pattern will merely be |balanced_parens|.
+% 
+% \bigskip
+% We can now write a LPEG |Argument| which catches a argument of function (in
+% the definition of the function).
 %    \begin{macrocode}
   local Argument =
 %    \end{macrocode}
-% For the labels of the labeled arguments. Maybe you will, in the future, create
-% a style for those elements.
+% The following line is for the labels of the labeled arguments. Maybe we will,
+% in the future, create a style for those elements.
 %    \begin{macrocode}
     (  Q "~" * Identifier * Q ":" * SkipSpace ) ^ -1
     *
-    ( K ( 'Identifier.Internal' , identifier )
-      + Q "(" * SkipSpace
-        * K ( 'Identifier.Internal' , identifier ) * SkipSpace
-        * Q ":" * SkipSpace
-        * K ( 'TypeExpression' , balanced_parens ) * SkipSpace
+%    \end{macrocode}
+% Now, the argument itself, either a single identifier, or a construction
+% between parentheses
+%    \begin{macrocode}
+    ( 
+        K ( 'Identifier.Internal' , identifier )
+      + 
+        Q "(" * SkipSpace
+        * ( C ( pattern_part ) / ParseAgain ) 
+        * SkipSpace
+%    \end{macrocode}
+% Of course, the specification of type is optional.
+%    \begin{macrocode}
+        * ( Q ":" * K ( 'TypeExpression' , balanced_parens ) * SkipSpace ) ^ -1
         * Q ")"
     )
 %    \end{macrocode}
@@ -7322,8 +7424,7 @@ do
       * (
           Q "=" * SkipSpace * K ( 'Keyword' , "function" )
           +
-          Argument
-          * ( SkipSpace * Argument ) ^ 0
+          Argument * ( SkipSpace * Argument ) ^ 0
           * (
               SkipSpace
               * Q ":"
@@ -7457,7 +7558,7 @@ do
 % type such as |my_type -> 'a list| (in that case, the argument of |\piton|
 % \emph{must} begin by a colon).
 %    \begin{macrocode}
-        ( P ":" + Identifier * SkipSpace * Q ":" )
+        ( P ":" + Identifier * SkipSpace * Q ":" ) * # ( 1 - P ":" ) 
           * SkipSpace
           * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 )
         +
@@ -7563,7 +7664,7 @@ do
 %
 %    \begin{macrocode}
   String = 
-    WithStyle ( 'String.Long' ,
+    WithStyle ( 'String.Long.Internal' ,
         Q "\"" 
         * ( SpaceInString 
             + K ( 'String.Interpol' , 
@@ -7746,25 +7847,39 @@ do
 %    \end{macrocode}
 % 
 % \bigskip
-% We now use the previsou function |Set| to creates the ``sets'' |set_keywords|
-% and |set_builtin|.
+% We now use the previous function |Set| to creates the ``sets'' |set_keywords|
+% and |set_builtin|. That list of keywords comes from
+% \url{https://sqlite.org/lang_keywords.html}.
 %    \begin{macrocode}
   local set_keywords = Set
    { 
-     "ADD" , "AFTER" , "ALL" , "ALTER" , "AND" , "AS" , "ASC" , "BETWEEN" , "BY" ,
-     "CHANGE" , "COLUMN" , "CREATE" , "CROSS JOIN" , "DELETE" , "DESC" , "DISTINCT" , 
-     "DROP" , "EXCEPT" , "FROM" , "GROUP" , "HAVING" , "IN" , "INNER" , 
-     "INSERT" , "INTERSECT" , "INTO" , "IS" , "JOIN" , "LEFT" , "LIKE" , "LIMIT" ,
-     "MERGE" , "NOT" , "NULL" , "OFFSET" , "ON" , "OR" , "ORDER" , "OVER" ,
-     "RIGHT" , "SELECT" , "SET" , "TABLE" , "THEN" , "TRUNCATE" , "UNION" ,
-     "UPDATE" , "VALUES" , "WHEN" , "WHERE" , "WITH" 
+     "ABORT", "ACTION", "ADD", "AFTER", "ALL", "ALTER", "ALWAYS", "ANALYZE",
+     "AND", "AS", "ASC", "ATTACH", "AUTOINCREMENT", "BEFORE", "BEGIN", "BETWEEN",
+     "BY", "CASCADE", "CASE", "CAST", "CHECK", "COLLATE", "COLUMN", "COMMIT",
+     "CONFLICT", "CONSTRAINT", "CREATE", "CROSS", "CURRENT", "CURRENT_DATE",
+     "CURRENT_TIME", "CURRENT_TIMESTAMP", "DATABASE", "DEFAULT", "DEFERRABLE",
+     "DEFERRED", "DELETE", "DESC", "DETACH", "DISTINCT", "DO", "DROP", "EACH",
+     "ELSE", "END", "ESCAPE", "EXCEPT", "EXCLUDE", "EXCLUSIVE", "EXISTS",
+     "EXPLAIN", "FAIL", "FILTER", "FIRST", "FOLLOWING", "FOR", "FOREIGN", "FROM",
+     "FULL", "GENERATED", "GLOB", "GROUP", "GROUPS", "HAVING", "IF", "IGNORE",
+     "IMMEDIATE", "IN", "INDEX", "INDEXED", "INITIALLY", "INNER", "INSERT",
+     "INSTEAD", "INTERSECT", "INTO", "IS", "ISNULL", "JOIN", "KEY", "LAST",
+     "LEFT", "LIKE", "LIMIT", "MATCH", "MATERIALIZED", "NATURAL", "NO", "NOT",
+     "NOTHING", "NOTNULL", "NULL", "NULLS", "OF", "OFFSET", "ON", "OR", "ORDER",
+     "OTHERS", "OUTER", "OVER", "PARTITION", "PLAN", "PRAGMA", "PRECEDING",
+     "PRIMARY", "QUERY", "RAISE", "RANGE", "RECURSIVE", "REFERENCES", "REGEXP",
+     "REINDEX", "RELEASE", "RENAME", "REPLACE", "RESTRICT", "RETURNING", "RIGHT",
+     "ROLLBACK", "ROW", "ROWS", "SAVEPOINT", "SELECT", "SET", "TABLE", "TEMP",
+     "TEMPORARY", "THEN", "TIES", "TO", "TRANSACTION", "TRIGGER", "UNBOUNDED",
+     "UNION", "UNIQUE", "UPDATE", "USING", "VACUUM", "VALUES", "VIEW", "VIRTUAL",
+     "WHEN", "WHERE", "WINDOW", "WITH", "WITHOUT"
    }
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
   local set_builtins = Set
    { 
-     "AVG" , "COUNT" , "CHAR_LENGHT" , "CONCAT" , "CURDATE" , "CURRENT_DATE" ,
+     "AVG" , "COUNT" , "CHAR_LENGTH" , "CONCAT" , "CURDATE" , "CURRENT_DATE" ,
      "DATE_FORMAT" , "DAY" , "LOWER" , "LTRIM" , "MAX" , "MIN" , "MONTH" , "NOW" ,
      "RANK" , "ROUND" , "RTRIM" , "SUBSTRING" , "SUM" , "UPPER" , "YEAR" 
    }
@@ -7804,7 +7919,7 @@ do
 % \paragraph{The strings of SQL}
 %
 %    \begin{macrocode}
-  local String = K ( 'String.Long' , "'" * ( 1 - P "'" ) ^ 1 * "'" ) 
+  local String = K ( 'String.Long.Internal' , "'" * ( 1 - P "'" ) ^ 1 * "'" ) 
 %    \end{macrocode}
 % 
 % \bigskip
@@ -7978,7 +8093,7 @@ do
        * ( EOL + -1 )
 
   local String = 
-    WithStyle ( 'String.Short' ,
+    WithStyle ( 'String.Short.Internal' ,
                 Q "\"" 
                 * ( SpaceInString 
                     + Q ( ( P "\\\"" + 1 - S " \"" ) ^ 1 ) 
@@ -8905,7 +9020,7 @@ function piton.new_language ( lang , definition )
 % computed. 
 %    \begin{macrocode}
   local Number =
-    K ( 'Number' ,
+    K ( 'Number.Internal' ,
         ( digit ^ 1 * "." * # ( 1 - P "." ) * digit ^ 0 
           + digit ^ 0 * "." * digit ^ 1 
           + digit ^ 1 )
@@ -9329,6 +9444,10 @@ end
 %
 % \verb|https://github.com/fpantigny/piton|
 %
+% \subsection*{Changes between versions 4.1 and 4.2}
+%
+% New key |break-numbers-anywhere|.
+% 
 % \subsection*{Changes between versions 4.0 and 4.1}
 %
 % New language |verbatim|.

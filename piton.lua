@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.1x1" -- 2024/10/26
+piton_version = "4.1x3" -- 2024/11/04
 
 
 
@@ -75,9 +75,9 @@ EscapeMath = P ( false )
 if piton.begin_escape_math then
   EscapeMath =
     P ( piton.begin_escape_math )
-    * Lc "\\ensuremath{"
+    * Lc "$"
     * L ( ( 1 - P(piton.end_escape_math) ) ^ 1 )
-    * Lc "}"
+    * Lc "$"
     * P ( piton.end_escape_math )
 end
 lpeg.locale(lpeg)
@@ -91,7 +91,7 @@ local alphanum = letter + digit
 local identifier = letter * alphanum ^ 0
 local Identifier = K ( 'Identifier.Internal' , identifier )
 local Number =
-  K ( 'Number' ,
+  K ( 'Number.Internal' ,
       ( digit ^ 1 * P "." * # ( 1 - P "." ) * digit ^ 0
         + digit ^ 0 * P "." * digit ^ 1
         + digit ^ 1 )
@@ -255,7 +255,7 @@ local CommentMath =
   P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$" -- $
 local PromptHastyDetection =
   ( # ( P ">>>" + "..." ) * Lc [[ \__piton_prompt: ]] ) ^ -1
-local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ^ -1  )
+local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ) ^ -1
 local EOL =
   P "\r"
   *
@@ -374,7 +374,7 @@ do
         * S "sdfFeExXorgiGauc%"
       )
   local SingleShortString =
-    WithStyle ( 'String.Short' ,
+    WithStyle ( 'String.Short.Internal' ,
            Q ( P "f'" + "F'" )
            * (
                K ( 'String.Interpol' , "{" )
@@ -396,7 +396,7 @@ do
              ) ^ 0
            * Q "'" )
   local DoubleShortString =
-    WithStyle ( 'String.Short' ,
+    WithStyle ( 'String.Short.Internal' ,
            Q ( P "f\"" + "F\"" )
            * (
                K ( 'String.Interpol' , "{" )
@@ -432,7 +432,7 @@ do
   DetectedCommands = Compute_DetectedCommands ( 'python' , braces )
   LPEG_cleaner.python = Compute_LPEG_cleaner ( 'python' , braces )
   local SingleLongString =
-    WithStyle ( 'String.Long' ,
+    WithStyle ( 'String.Long.Internal' ,
        ( Q ( S "fF" * P "'''" )
            * (
                K ( 'String.Interpol' , "{" )
@@ -458,7 +458,7 @@ do
         )
         * Q "'''"  )
   local DoubleLongString =
-    WithStyle ( 'String.Long' ,
+    WithStyle ( 'String.Long.Internal' ,
        (
           Q ( S "fF" * "\"\"\"" )
           * (
@@ -618,7 +618,7 @@ do
       EOL
     ) ^ 0
   * Q "\""
-  local String = WithStyle ( 'String.Long' , ocaml_string )
+  local String = WithStyle ( 'String.Long.Internal' , ocaml_string )
   local ext = ( R "az" + "_" ) ^ 0
   local open = "{" * Cg ( ext , 'init' ) * "|"
   local close = "|" * C ( ext ) * "}"
@@ -626,7 +626,7 @@ do
     Cmt ( close * Cb ( 'init' ) ,
           function ( s , i , a , b ) return a == b end )
   local QuotedStringBis =
-    WithStyle ( 'String.Long' ,
+    WithStyle ( 'String.Long.Internal' ,
         (
           Space
           +
@@ -681,7 +681,7 @@ do
                      - ( OperatorWord + Keyword ) * EndKeyword
   local Identifier = K ( 'Identifier.Internal' , identifier )
   local Char =
-    K ( 'String.Short',
+    K ( 'String.Short.Internal',
       P "'" *
       (
         ( 1 - S "'\\" )
@@ -769,14 +769,18 @@ do
         "Match_failure" + "Not_found" + "Out_of_memory" + "Stack_overflow" +
         "Sys_blocked_io" + "Sys_error" + "Undefined_recursive_module" )
   LPEG_cleaner.ocaml = Compute_LPEG_cleaner ( 'ocaml' , braces )
+  local pattern_part =
+    ( P "(" * balanced_parens * ")" + ( 1 - S ":()" ) + P "::" ) ^ 0
   local Argument =
     (  Q "~" * Identifier * Q ":" * SkipSpace ) ^ -1
     *
-    ( K ( 'Identifier.Internal' , identifier )
-      + Q "(" * SkipSpace
-        * K ( 'Identifier.Internal' , identifier ) * SkipSpace
-        * Q ":" * SkipSpace
-        * K ( 'TypeExpression' , balanced_parens ) * SkipSpace
+    (
+        K ( 'Identifier.Internal' , identifier )
+      +
+        Q "(" * SkipSpace
+        * ( C ( pattern_part ) / ParseAgain )
+        * SkipSpace
+        * ( Q ":" * K ( 'TypeExpression' , balanced_parens ) * SkipSpace ) ^ -1
         * Q ")"
     )
   local DefFunction =
@@ -791,8 +795,7 @@ do
       * (
           Q "=" * SkipSpace * K ( 'Keyword' , "function" )
           +
-          Argument
-          * ( SkipSpace * Argument ) ^ 0
+          Argument * ( SkipSpace * Argument ) ^ 0
           * (
               SkipSpace
               * Q ":"
@@ -892,7 +895,7 @@ do
   LPEG1.ocaml = Main ^ 0
   LPEG2.ocaml =
     Ct (
-        ( P ":" + Identifier * SkipSpace * Q ":" )
+        ( P ":" + Identifier * SkipSpace * Q ":" ) * # ( 1 - P ":" )
           * SkipSpace
           * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 )
         +
@@ -949,7 +952,7 @@ do
   local DefClass =
     K ( 'Keyword' , "class" ) * Space * K ( 'Name.Class' , identifier )
   String =
-    WithStyle ( 'String.Long' ,
+    WithStyle ( 'String.Long.Internal' ,
         Q "\""
         * ( SpaceInString
             + K ( 'String.Interpol' ,
@@ -1036,17 +1039,30 @@ do
   end
   local set_keywords = Set
    {
-     "ADD" , "AFTER" , "ALL" , "ALTER" , "AND" , "AS" , "ASC" , "BETWEEN" , "BY" ,
-     "CHANGE" , "COLUMN" , "CREATE" , "CROSS JOIN" , "DELETE" , "DESC" , "DISTINCT" ,
-     "DROP" , "EXCEPT" , "FROM" , "GROUP" , "HAVING" , "IN" , "INNER" ,
-     "INSERT" , "INTERSECT" , "INTO" , "IS" , "JOIN" , "LEFT" , "LIKE" , "LIMIT" ,
-     "MERGE" , "NOT" , "NULL" , "OFFSET" , "ON" , "OR" , "ORDER" , "OVER" ,
-     "RIGHT" , "SELECT" , "SET" , "TABLE" , "THEN" , "TRUNCATE" , "UNION" ,
-     "UPDATE" , "VALUES" , "WHEN" , "WHERE" , "WITH"
+     "ABORT", "ACTION", "ADD", "AFTER", "ALL", "ALTER", "ALWAYS", "ANALYZE",
+     "AND", "AS", "ASC", "ATTACH", "AUTOINCREMENT", "BEFORE", "BEGIN", "BETWEEN",
+     "BY", "CASCADE", "CASE", "CAST", "CHECK", "COLLATE", "COLUMN", "COMMIT",
+     "CONFLICT", "CONSTRAINT", "CREATE", "CROSS", "CURRENT", "CURRENT_DATE",
+     "CURRENT_TIME", "CURRENT_TIMESTAMP", "DATABASE", "DEFAULT", "DEFERRABLE",
+     "DEFERRED", "DELETE", "DESC", "DETACH", "DISTINCT", "DO", "DROP", "EACH",
+     "ELSE", "END", "ESCAPE", "EXCEPT", "EXCLUDE", "EXCLUSIVE", "EXISTS",
+     "EXPLAIN", "FAIL", "FILTER", "FIRST", "FOLLOWING", "FOR", "FOREIGN", "FROM",
+     "FULL", "GENERATED", "GLOB", "GROUP", "GROUPS", "HAVING", "IF", "IGNORE",
+     "IMMEDIATE", "IN", "INDEX", "INDEXED", "INITIALLY", "INNER", "INSERT",
+     "INSTEAD", "INTERSECT", "INTO", "IS", "ISNULL", "JOIN", "KEY", "LAST",
+     "LEFT", "LIKE", "LIMIT", "MATCH", "MATERIALIZED", "NATURAL", "NO", "NOT",
+     "NOTHING", "NOTNULL", "NULL", "NULLS", "OF", "OFFSET", "ON", "OR", "ORDER",
+     "OTHERS", "OUTER", "OVER", "PARTITION", "PLAN", "PRAGMA", "PRECEDING",
+     "PRIMARY", "QUERY", "RAISE", "RANGE", "RECURSIVE", "REFERENCES", "REGEXP",
+     "REINDEX", "RELEASE", "RENAME", "REPLACE", "RESTRICT", "RETURNING", "RIGHT",
+     "ROLLBACK", "ROW", "ROWS", "SAVEPOINT", "SELECT", "SET", "TABLE", "TEMP",
+     "TEMPORARY", "THEN", "TIES", "TO", "TRANSACTION", "TRIGGER", "UNBOUNDED",
+     "UNION", "UNIQUE", "UPDATE", "USING", "VACUUM", "VALUES", "VIEW", "VIRTUAL",
+     "WHEN", "WHERE", "WINDOW", "WITH", "WITHOUT"
    }
   local set_builtins = Set
    {
-     "AVG" , "COUNT" , "CHAR_LENGHT" , "CONCAT" , "CURDATE" , "CURRENT_DATE" ,
+     "AVG" , "COUNT" , "CHAR_LENGTH" , "CONCAT" , "CURDATE" , "CURRENT_DATE" ,
      "DATE_FORMAT" , "DAY" , "LOWER" , "LTRIM" , "MAX" , "MIN" , "MONTH" , "NOW" ,
      "RANK" , "ROUND" , "RTRIM" , "SUBSTRING" , "SUM" , "UPPER" , "YEAR"
    }
@@ -1071,7 +1087,7 @@ do
           end
       end
     )
-  local String = K ( 'String.Long' , "'" * ( 1 - P "'" ) ^ 1 * "'" )
+  local String = K ( 'String.Long.Internal' , "'" * ( 1 - P "'" ) ^ 1 * "'" )
   local braces = Compute_braces ( "'" * ( 1 - P "'" ) ^ 1 * "'" )
   if piton.beamer then Beamer = Compute_Beamer ( 'sql' , braces ) end
   DetectedCommands = Compute_DetectedCommands ( 'sql' , braces )
@@ -1172,7 +1188,7 @@ do
        * ( EOL + -1 )
 
   local String =
-    WithStyle ( 'String.Short' ,
+    WithStyle ( 'String.Short.Internal' ,
                 Q "\""
                 * ( SpaceInString
                     + Q ( ( P "\\\"" + 1 - S " \"" ) ^ 1 )
@@ -1688,7 +1704,7 @@ function piton.new_language ( lang , definition )
     end
   end
   local Number =
-    K ( 'Number' ,
+    K ( 'Number.Internal' ,
         ( digit ^ 1 * "." * # ( 1 - P "." ) * digit ^ 0
           + digit ^ 0 * "." * digit ^ 1
           + digit ^ 1 )

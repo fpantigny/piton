@@ -324,7 +324,7 @@ et |@|) doivent être insérés sans contre-oblique.
 \bigskip
 La commande |\piton| avec son argument entre accolades peut être utilisée dans les
 arguments des autres commandes LaTeX.\footnote{La commande |\piton| peut par exemple être
-  utilisée dans une note de bas de page. Exemple : \piton{s = 'Une chaîne'}.}
+utilisée dans une note de bas de page. Exemple : \piton{x = 123}.}
 
 En revanche, comme son argument subit un développement (au sens de TeX), il faut prendre 
 soin à ne pas utiliser dans son argument de commandes fragiles (c'est-à-dire des commandes
@@ -333,9 +333,11 @@ qui ne sont ni \emph{protected} ni \emph{fully expandable}).
 \bigskip
 \item {\color{blue} \textsf{Syntaxe} \verb!\piton|...|!}\par\nobreak
 
-Quand la commande |\piton| prend son argument entre deux caractères identiques, cet
-argument est pris \emph{en mode verbatim}. De ce fait, avec cette syntaxe, la commande
-|\piton| ne peut \emph{pas} être utilisée dans l'argument d'une autre fonction.
+Quand la commande |\piton| prend son argument entre deux caractères identiques (tous les
+caractères sont autorisés sauf |%|, 
+|\|, |#|, |{|, |}| et l'espace), cet argument est pris \emph{en mode verbatim}. De ce
+fait, avec cette syntaxe, la commande |\piton| ne peut \emph{pas} être utilisée dans
+l'argument d'une autre fonction. 
 
 \medskip
 \begin{tabular}{>{\color{gray}}w{l}{75mm}@{\hspace*{1cm}}l}
@@ -1267,6 +1269,13 @@ def dict_of_liste(liste):
 \smallskip
 Avec la clé \Definition{break-strings-anywhere}, les chaînes de caractères pourront être
 coupées n'importe où (et pas seulement sur les espaces). 
+
+
+\bigskip
+\colorbox{yellow!50}{\bfseries{Nouveau 4.2}}\par\nobreak
+
+\smallskip
+Avec la clé \Definition{break-numbers-anywhere}, les nombres peuvent être coupés n'importe où.
 
 
 \subsubsection{Coupure des pages}
@@ -2824,13 +2833,27 @@ Comment & les commentaires (débutant par |--| ou bien entre |/*| et |*/|) \\
 Comment.LaTeX & les commentaires commençant par \texttt{-->} qui sont composés par
                 \pkg{piton} comme du code LaTeX (et appelés simplement «commentaires
                 LaTeX» dans ce document) \\ 
-Keyword & les mots-clés suivants (leur nom n'est \emph{pas} sensible à la casse) : |add|,
-          |after|, |all|, |alter|, |and|, |as|, |asc|, |between|, |by|, |change|,
-          |column|, |create|, |cross join|, |delete|, |desc|, |distinct|, |drop|, |from|,
-          |group|, |having|, |in|, |inner|, |insert|, |into|, |is|, |join|, |left|,
-          |like|, |limit|, |merge|, |not|, |null|, |on|, |or|, |order|, |over|, |right|,
-          |select|, |set|, |table|, |then|, |truncate|, |union|, |update|, |values|,
-          |when|, |where| et |with|. \\ 
+Keyword & les mots-clés suivants (leur nom n'est \emph{pas} sensible à la casse) :
+     |abort|, |action|, |add|, |after|, |all|, |alter|, |always|, |analyze|,
+     |and|, |as|, |asc|, |attach|, |autoincrement|, |before|, |begin|, |between|,
+     |by|, |cascade|, |case|, |cast|, |check|, |collate|, |column|, |commit|,
+     |conflict|, |constraint|, |create|, |cross|, |current|, |current_date|,
+     |current_time|, |current_timestamp|, |database|, |default|, |deferrable|,
+     |deferred|, |delete|, |desc|, |detach|, |distinct|, |do|, |drop|, |each|,
+     |else|, |end|, |escape|, |except|, |exclude|, |exclusive|, |exists|,
+     |explain|, |fail|, |filter|, |first|, |following|, |for|, |foreign|, |from|,
+     |full|, |generated|, |glob|, |group|, |groups|, |having|, |if|, |ignore|,
+     |immediate|, |in|, |index|, |indexed|, |initially|, |inner|, |insert|,
+     |instead|, |intersect|, |into|, |is|, |isnull|, |join|, |key|, |last|,
+     |left|, |like|, |limit|, |match|, |materialized|, |natural|, |no|, |not|,
+     |nothing|, |notnull|, |null|, |nulls|, |of|, |offset|, |on|, |or|, |order|,
+     |others|, |outer|, |over|, |partition|, |plan|, |pragma|, |preceding|,
+     |primary|, |query|, |raise|, |range|, |recursive|, |references|, |regexp|,
+     |reindex|, |release|, |rename|, |replace|, |restrict|, |returning|, |right|,
+     |rollback|, |row|, |rows|, |savepoint|, |select|, |set|, |table|, |temp|,
+     |temporary|, |then|, |ties|, |to|, |transaction|, |trigger|, |unbounded|,
+     |union|, |unique|, |update|, |using|, |vacuum|, |values|, |view|, |virtual|,
+     |when|, |where|, |window|, |with|, |without| \\
 \bottomrule
 \end{tabularx}
 \end{center}
