@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.1x3" -- 2024/11/04
+piton_version = "4.1x4" -- 2024/11/17
 
 
 
@@ -609,16 +609,28 @@ do
   local balanced_parens =
     P { "E" , E = ( "(" * V "E" * ")" + ( 1 - S "()" ) ) ^ 0 }
   local ocaml_string =
-    Q "\""
+    P "\""
   * (
-      SpaceInString
+      P " "
       +
-      Q ( ( 1 - S " \"\r" ) ^ 1 )
+      P ( ( 1 - S " \"\r" ) ^ 1 )
       +
-      EOL
+      EOL -- ?
     ) ^ 0
-  * Q "\""
-  local String = WithStyle ( 'String.Long.Internal' , ocaml_string )
+  * P "\""
+  local String =
+    WithStyle
+      ( 'String.Long.Internal' ,
+          Q "\""
+        * (
+            SpaceInString
+            +
+            Q ( ( 1 - S " \"\r" ) ^ 1 )
+            +
+            EOL
+          ) ^ 0
+        * Q "\""
+      )
   local ext = ( R "az" + "_" ) ^ 0
   local open = "{" * Cg ( ext , 'init' ) * "|"
   local close = "|" * C ( ext ) * "}"
@@ -680,8 +692,7 @@ do
   local identifier = ( R "az" + "_" ) * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
                      - ( OperatorWord + Keyword ) * EndKeyword
   local Identifier = K ( 'Identifier.Internal' , identifier )
-  local Char =
-    K ( 'String.Short.Internal',
+  local ocaml_char =
       P "'" *
       (
         ( 1 - S "'\\" )
@@ -693,13 +704,15 @@ do
                       * ( digit + R "af" + R "AF" )
               + P "o" * R "03" * R "07" * R "07" )
       )
-      * "'" )
+      * "'"
+  local Char =
+    K ( 'String.Short.Internal', ocaml_char )
   local TypeParameter =
     K ( 'TypeParameter' ,
         "'" * Q"_" ^ -1 * alpha ^ 1 * ( # ( 1 - P "'" ) + -1 ) )
   local expression_for_fields_type =
     P { "E" ,
-        E =  (   "{" * V "F" * "}"
+        E =  (  "{" * V "F" * "}"
               + "(" * V "F" * ")"
               + TypeParameter
               + ( 1 - S "{}()[]\r;" ) ) ^ 0 ,
@@ -712,12 +725,13 @@ do
         E =  (   "{" * V "F" * "}"
               + "(" * V "F" * ")"
               + "[" * V "F" * "]"
-              + String + QuotedString + Char
-              + ( 1 - S "{}()[]\r;" ) ) ^ 0 ,
+              + ocaml_string + ocaml_char
+              + ( 1 - S "{}()[];" ) ) ^ 0 ,
         F = (    "{" * V "F" * "}"
               + "(" * V "F" * ")"
               + "[" * V "F" * "]"
-              + ( 1 - S "{}()[]\r\"'" )) ^ 0
+              + ocaml_string + ocaml_char
+              + ( 1 - S "{}()[]\"'" )) ^ 0
       }
   local OneFieldDefinition =
       ( K ( 'Keyword' , "mutable" ) * SkipSpace ) ^ -1
@@ -728,7 +742,7 @@ do
   local OneField =
       K ( 'Name.Field' , identifier ) * SkipSpace
     * Q "=" * SkipSpace
-    * ( expression_for_fields_value / ParseAgain )
+    * ( C ( expression_for_fields_value ) / ParseAgain )
     * SkipSpace
   local Record =
     Q "{" * SkipSpace

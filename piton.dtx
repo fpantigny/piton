@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.1x3}
-\def\PitonFileDate{2024/10/28}
+\def\PitonFileVersion{4.1x4}
+\def\PitonFileDate{2024/11/17}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.1x3" -- 2024/11/04
+piton_version = "4.1x4" -- 2024/11/17
 %</LUA>
 %\fi
 %
@@ -5100,8 +5100,12 @@ piton_version = "4.1x3" -- 2024/11/04
 % unlikely, suffixes) added to the markers by the functions
 % |\@@_marker_beginning:n| and |\@@_marker_end:n|
 %    \begin{macrocode}
-    \regex_replace_all:nnN { \\\# } \c_hash_str \l_tmpa_str
-    \regex_replace_all:nnN { \\\# } \c_hash_str \l_tmpb_str
+    \regex_replace_all:nVN { \\\# } \c_hash_str \l_tmpa_str 
+    \regex_replace_all:nVN { \\\# } \c_hash_str \l_tmpb_str
+%    \end{macrocode}
+% However, it seems that our programmation is not good programmation because
+% our |\l_tmpa_str| is not a valid |str| value (maybe we should correct that).
+%    \begin{macrocode}
     \lua_now:e
       { 
         piton.ComputeRange
@@ -5268,7 +5272,7 @@ piton_version = "4.1x3" -- 2024/11/04
   {
     \tl_set:Nn \l_tmpa_tl { #1 }
 %    \end{macrocode}
-% We have to begin by a substituation for the spaces. Otherwise, they would be
+% We have to begin by a substitution for the spaces. Otherwise, they would be
 % gobbled in the |\tl_map_inline:Nn|.
 %    \begin{macrocode}
     \regex_replace_all:nnN { \x20 } { \c { space } } \l_tmpa_tl 
@@ -7051,19 +7055,31 @@ do
 % \paragraph{The strings of OCaml}
 %    \begin{macrocode}
   local ocaml_string =
-    Q "\""
+    P "\""
   * (
-      SpaceInString
+      P " " 
       +
-      Q ( ( 1 - S " \"\r" ) ^ 1 )
+      P ( ( 1 - S " \"\r" ) ^ 1 )
       +
-      EOL
+      EOL -- ?
     ) ^ 0
-  * Q "\""
+  * P "\""
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-  local String = WithStyle ( 'String.Long.Internal' , ocaml_string )
+  local String = 
+    WithStyle 
+      ( 'String.Long.Internal' , 
+          Q "\""
+        * (
+            SpaceInString
+            +
+            Q ( ( 1 - S " \"\r" ) ^ 1 )
+            +
+            EOL
+          ) ^ 0
+        * Q "\""
+      )
 %    \end{macrocode}
 %
 % \bigskip
@@ -7222,8 +7238,7 @@ do
 % \bigskip
 % In OCmal, \emph{character} is a type different of the type |string|.
 %    \begin{macrocode}
-  local Char =
-    K ( 'String.Short.Internal',
+  local ocaml_char = 
       P "'" *
       (
         ( 1 - S "'\\" )
@@ -7235,7 +7250,9 @@ do
                       * ( digit + R "af" + R "AF" )
               + P "o" * R "03" * R "07" * R "07" )
       )
-      * "'" )
+      * "'"
+  local Char =
+    K ( 'String.Short.Internal', ocaml_char ) 
 %    \end{macrocode}
 %
 % \bigskip
@@ -7251,7 +7268,7 @@ do
 %    \begin{macrocode}
   local expression_for_fields_type =
     P { "E" ,
-        E =  (   "{" * V "F" * "}"
+        E =  (  "{" * V "F" * "}"
               + "(" * V "F" * ")"
               + TypeParameter
               + ( 1 - S "{}()[]\r;" ) ) ^ 0 ,
@@ -7268,12 +7285,13 @@ do
         E =  (   "{" * V "F" * "}"
               + "(" * V "F" * ")"
               + "[" * V "F" * "]"
-              + String + QuotedString + Char
-              + ( 1 - S "{}()[]\r;" ) ) ^ 0 ,
+              + ocaml_string + ocaml_char
+              + ( 1 - S "{}()[];" ) ) ^ 0 ,
         F = (    "{" * V "F" * "}"
               + "(" * V "F" * ")"
               + "[" * V "F" * "]"
-              + ( 1 - S "{}()[]\r\"'" )) ^ 0
+              + ocaml_string + ocaml_char
+              + ( 1 - S "{}()[]\"'" )) ^ 0
       }
 %    \end{macrocode}
 %
@@ -7292,7 +7310,10 @@ do
   local OneField =
       K ( 'Name.Field' , identifier ) * SkipSpace
     * Q "=" * SkipSpace
-    * ( expression_for_fields_value / ParseAgain )
+%    \end{macrocode}
+% Don't forget the parentheses!
+%    \end{document}
+    * ( C ( expression_for_fields_value ) / ParseAgain ) 
     * SkipSpace
 %    \end{macrocode}
 %

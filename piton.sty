@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.1x3}
-\def\PitonFileDate{2024/10/28}
+\def\PitonFileVersion{4.1x4}
+\def\PitonFileDate{2024/11/17}
 
 
 
@@ -1175,8 +1175,8 @@
   {
     \str_set:Ne \l_tmpa_str { \__piton_marker_beginning:n \l__piton_begin_range_str }
     \str_set:Ne \l_tmpb_str { \__piton_marker_end:n \l__piton_end_range_str }
-    \regex_replace_all:nnN { \\\# } \c_hash_str \l_tmpa_str
-    \regex_replace_all:nnN { \\\# } \c_hash_str \l_tmpb_str
+    \regex_replace_all:nVN { \\\# } \c_hash_str \l_tmpa_str
+    \regex_replace_all:nVN { \\\# } \c_hash_str \l_tmpb_str
     \lua_now:e
       {
         piton.ComputeRange
