@@ -116,6 +116,13 @@
     That~key~will~be~ignored.
   }
 \ProcessKeysOptions { piton / package }
+\msg_new:nnn { piton } { old-PitonInputFile }
+  {
+    Be~careful:~The~key~'old-PitonInputFile'~will~be~deleted~
+    in~a~future~version~of~'piton'.
+  }
+\bool_if:NT \l__piton_old_PitonInputFile_bool
+  { \msg_warning:nn { piton } { old-PitonInputFile } }
 \IfClassLoadedTF { beamer } { \bool_gset_true:N \g__piton_beamer_bool } { }
 \IfPackageLoadedTF { beamerarticle } { \bool_gset_true:N \g__piton_beamer_bool } { }
 \lua_now:n { piton = piton~or~{ } }

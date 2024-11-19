@@ -39,7 +39,7 @@
 \PitonOptions
   { 
     splittable = 4 ,
-    math-comments,
+    math-comments ,
     begin-escape = ! ,
     end-escape = ! ,
     begin-escape-math = \( , 
@@ -3078,6 +3078,17 @@ piton_version = "4.2" -- 2024/11/18
 \ProcessKeysOptions { piton / package }
 %    \end{macrocode}
 %
+% 
+% \bigskip
+%    \begin{macrocode}
+\msg_new:nnn { piton } { old-PitonInputFile }
+  {
+    Be~careful:~The~key~'old-PitonInputFile'~will~be~deleted~
+    in~a~future~version~of~'piton'.
+  }
+\bool_if:NT \l_@@_old_PitonInputFile_bool
+  { \msg_warning:nn { piton } { old-PitonInputFile } }
+%    \end{macrocode}
 % 
 % \bigskip
 %    \begin{macrocode}
@@ -7312,7 +7323,7 @@ do
     * Q "=" * SkipSpace
 %    \end{macrocode}
 % Don't forget the parentheses!
-%    \end{document}
+%    \begin{macrocode}
     * ( C ( expression_for_fields_value ) / ParseAgain ) 
     * SkipSpace
 %    \end{macrocode}
