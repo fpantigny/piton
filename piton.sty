@@ -971,6 +971,7 @@
       }
           {
             \group_end:
+            \IfPackageLoadedT { babel } { \languageshorthands { none } }
             \mode_if_vertical:TF \noindent \newline
             \lua_now:e { piton.CountLines ( '\lua_escape:n{##1}' ) }
             \__piton_compute_left_margin:nn { CountNonEmptyLines } { ##1 }

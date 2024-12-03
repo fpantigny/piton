@@ -2672,7 +2672,7 @@ piton_version = "4.2" -- 2024/11/18
 %           the keywords are case-sensitive or not) \\ 
 % Directive & the directives defined in |\NewPitonLanguage| by the key
 % |moredirectives| \\
-% Tag & the ``tags'' defines by the key |tag| (the lexical units detected within
+% Tag & the ``tags'' defined by the key |tag| (the lexical units detected within
 % the tag will also be formatted with their own style) \\
 %  Identifier & the identifiers. \\
 % \bottomrule
@@ -4761,11 +4761,16 @@ piton_version = "4.2" -- 2024/11/18
       }
           { 
             \group_end:
+%    \end{macrocode}
+% We deactivate all the ``shorthands'' of \pkg{babel} (when \pkg{babel} is
+% loaded). 
+%    \begin{macrocode}
+            \IfPackageLoadedT { babel } { \languageshorthands { none } }
             \mode_if_vertical:TF \noindent \newline 
 %    \end{macrocode}
 % The following line is only to compute |\l_@@_lines_int| which will be used
 % only when both |left-margin=auto| and |skip-empty-lines = false| are in force.
-% You should change that.
+% We should change that.
 %    \begin{macrocode}
             \lua_now:e { piton.CountLines ( '\lua_escape:n{##1}' ) }
 %    \end{macrocode}
@@ -8944,8 +8949,8 @@ function piton.new_language ( lang , definition )
       extra_others[c] = true 
 %    \end{macrocode}
 % The \textsc{lpeg} pattern |other| will be used in conjunction with the key
-% |tag| (mainly for the language \textsc{html}) for the character |/| in the
-% closing tags |</....>|).
+% |tag| (mainly for languages such as \textsc{html} and \textsc{xml}) for the
+% character |/| in the closing tags |</....>|).
 %    \begin{macrocode}
       other = other + P ( c )
     end 
@@ -9404,7 +9409,7 @@ function piton.new_language ( lang , definition )
 %    \end{macrocode}
 %
 % If the key |tag| has been used. Of course, this feature is designed for the
-% \textsc{html}. 
+% languages such as \textsc{html} and \textsc{xml}.
 %    \begin{macrocode}
   if left_tag then
     local Tag = Ct ( Cc "Open" * Cc ( "{" .. style_tag .. "{" ) * Cc "}}" ) 
