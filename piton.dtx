@@ -67,7 +67,7 @@
         \vphantom{gl}\textbackslash #1}}}
 
 
-\PitonOptions{gobble=2}
+\PitonOptions{gobble=2} 
 
 \EnableCrossrefs
 
@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.2}
-\def\PitonFileDate{2024/11/18}
+\def\PitonFileVersion{4.2a}
+\def\PitonFileDate{2024/12/06}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.2" -- 2024/11/18
+piton_version = "4.2a" -- 2024/12/06
 %</LUA>
 %\fi
 %
@@ -4762,10 +4762,13 @@ piton_version = "4.2" -- 2024/11/18
           { 
             \group_end:
 %    \end{macrocode}
-% We deactivate all the ``shorthands'' of \pkg{babel} (when \pkg{babel} is
-% loaded). 
+% Maybe, we should deactivate all the ``shorthands'' of \pkg{babel} (when
+% \pkg{babel} is loaded) with the following instruction:
+%
+% \verb|\IfPackageLoadedT { babel } { \languageshorthands { none } }|
+%
+% But we should be sure that there is no consequence in the LaTeX comments...
 %    \begin{macrocode}
-            \IfPackageLoadedT { babel } { \languageshorthands { none } }
             \mode_if_vertical:TF \noindent \newline 
 %    \end{macrocode}
 % The following line is only to compute |\l_@@_lines_int| which will be used
@@ -9268,6 +9271,7 @@ function piton.new_language ( lang , definition )
         local arg3 = ( tex_braced_arg + C ( P ( 1 ) ^ 0 * -1 ) )
                      : match ( other_args ) 
         if arg3 == [[\#]] then arg3 = "#" end -- mandatory
+        if arg3 == [[\%]] then arg3 = "%" end -- mandatory¨
         CommentDelim = CommentDelim + 
             Ct ( Cc "Open" 
                  * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" ) 

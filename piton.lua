@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.2" -- 2024/11/18
+piton_version = "4.2a" -- 2024/12/06
 
 
 
@@ -1847,6 +1847,7 @@ function piton.new_language ( lang , definition )
         local arg3 = ( tex_braced_arg + C ( P ( 1 ) ^ 0 * -1 ) )
                      : match ( other_args )
         if arg3 == [[\#]] then arg3 = "#" end -- mandatory
+        if arg3 == [[\%]] then arg3 = "%" end -- mandatory¨
         CommentDelim = CommentDelim +
             Ct ( Cc "Open"
                  * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )

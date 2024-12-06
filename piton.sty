@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.2}
-\def\PitonFileDate{2024/11/18}
+\def\PitonFileVersion{4.2a}
+\def\PitonFileDate{2024/12/06}
 
 
 
@@ -971,7 +971,6 @@
       }
           {
             \group_end:
-            \IfPackageLoadedT { babel } { \languageshorthands { none } }
             \mode_if_vertical:TF \noindent \newline
             \lua_now:e { piton.CountLines ( '\lua_escape:n{##1}' ) }
             \__piton_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
