@@ -1,7 +1,7 @@
 % \iffalse -*- coding: utf-8 ; -*- \fi 
 % \iffalse meta-comment
 %
-% Copyright (C) 2022-2024 by F. Pantigny
+% Copyright (C) 2022-2025 by F. Pantigny
 % -----------------------------------
 %
 % This file may be distributed and/or modified under the
@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.2a}
-\def\PitonFileDate{2024/12/06}
+\def\PitonFileVersion{4.2bx}
+\def\PitonFileDate{2025/03/03}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.2a" -- 2024/12/06
+piton_version = "4.2bx" -- 2025/03/03
 %</LUA>
 %\fi
 %
@@ -100,11 +100,6 @@ piton_version = "4.2a" -- 2024/12/06
 % The package \pkg{piton} provides tools to typeset computer listings, with
 % syntactic highlighting, by using the Lua library LPEG. It requires LuaLaTeX.
 % \end{abstract}
-% 
-% \bigskip
-% {\color{red} Since the version 4.0, the syntax of the absolute and relative
-% paths used in |\PitonInputFile| has been changed:
-% cf.~part~\ref{PitonInputFile}, p.~\pageref{PitonInputFile}.} 
 % 
 %
 % \section{Presentation}
@@ -2679,6 +2674,41 @@ piton_version = "4.2a" -- 2024/12/06
 % \end{tabularx}
 % \end{center}
 %
+%
+%\vspace{1cm}
+% Here is for example a definition for the language HTML, obtained with a slight
+% adaptation of the definition done by \pkg{listings} (file |lstlang1.sty|).
+%
+% \medskip
+% \begin{Verbatim}[formatcom=\small]
+% \NewPitonLanguage{HTML}%
+%   {morekeywords={A,ABBR,ACRONYM,ADDRESS,APPLET,AREA,B,BASE,BASEFONT,%
+%       BDO,BIG,BLOCKQUOTE,BODY,BR,BUTTON,CAPTION,CENTER,CITE,CODE,COL,%
+%       COLGROUP,DD,DEL,DFN,DIR,DIV,DL,DOCTYPE,DT,EM,FIELDSET,FONT,FORM,%
+%       FRAME,FRAMESET,HEAD,HR,H1,H2,H3,H4,H5,H6,HTML,I,IFRAME,IMG,INPUT,%
+%       INS,ISINDEX,KBD,LABEL,LEGEND,LH,LI,LINK,LISTING,MAP,META,MENU,%
+%       NOFRAMES,NOSCRIPT,OBJECT,OPTGROUP,OPTION,P,PARAM,PLAINTEXT,PRE,%
+%       OL,Q,S,SAMP,SCRIPT,SELECT,SMALL,SPAN,STRIKE,STRING,STRONG,STYLE,%
+%       SUB,SUP,TABLE,TBODY,TD,TEXTAREA,TFOOT,TH,THEAD,TITLE,TR,TT,U,UL,%
+%       VAR,XMP,%
+%       accesskey,action,align,alink,alt,archive,axis,background,bgcolor,%
+%       border,cellpadding,cellspacing,charset,checked,cite,class,classid,%
+%       code,codebase,codetype,color,cols,colspan,content,coords,data,%
+%       datetime,defer,disabled,dir,event,error,for,frameborder,headers,%
+%       height,href,hreflang,hspace,http-equiv,id,ismap,label,lang,link,%
+%       longdesc,marginwidth,marginheight,maxlength,media,method,multiple,%
+%       name,nohref,noresize,noshade,nowrap,onblur,onchange,onclick,%
+%       ondblclick,onfocus,onkeydown,onkeypress,onkeyup,onload,onmousedown,%
+%       profile,readonly,onmousemove,onmouseout,onmouseover,onmouseup,%
+%       onselect,onunload,rel,rev,rows,rowspan,scheme,scope,scrolling,%
+%       selected,shape,size,src,standby,style,tabindex,text,title,type,%
+%       units,usemap,valign,value,valuetype,vlink,vspace,width,xmlns},%
+%    tag=<>,%
+%    alsoletter = - ,%
+%    sensitive=f,%
+%    morestring=[d]",
+%   }
+% \end{Verbatim}
 %
 %
 %
@@ -5295,6 +5325,7 @@ piton_version = "4.2a" -- 2024/12/06
 % gobbled in the |\tl_map_inline:Nn|.
 %    \begin{macrocode}
     \regex_replace_all:nnN { \x20 } { \c { space } } \l_tmpa_tl 
+    \seq_clear:N \l_tmpa_seq % added 2025/03/03
     \tl_map_inline:Nn \l_tmpa_tl
       { \seq_put_right:Nn \l_tmpa_seq { ##1 } }
     \seq_use:Nn \l_tmpa_seq { \- }
@@ -6391,9 +6422,17 @@ local PromptHastyDetection =
 % With the following \textsc{lpeg}, a style will actually be applied to the
 % prompt (for instance, it's possible to decide to discard these prompts).
 %    \begin{macrocode}
-local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ) ^ -1  
+local Prompt = 
+  K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 + P ( true ) ) ) ^ -1  
 %    \end{macrocode}
-%    
+% The |P ( true )| at the end is mandatory because we want the style to be
+% \emph{always} applied, even with an empty argument, in order, for example to
+% add a ``false'' prompt marker with the tuning:
+% 
+% \begin{Verbatim}
+% \SetPitonStyle{ Prompt = >>>\space }
+% \end{Verbatim}
+% 
 %
 %
 % \bigskip
@@ -8018,7 +8057,7 @@ do
   local TableField = 
          K ( 'Name.Table' , identifier ) 
        * Q "." 
-       * K ( 'Name.Field' , identifier ) 
+       * ( DetectedCommands + ( K ( 'Name.Field' , identifier ) ) ^ 0 )
 
   local OneField = 
     ( 

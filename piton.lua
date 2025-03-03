@@ -6,7 +6,7 @@
 --
 -- piton.dtx  (with options: `LUA')
 -- ---------------------------------------------
--- Copyright (C) 2022-2024 by F. Pantigny
+-- Copyright (C) 2022-2025 by F. Pantigny
 -- 
 -- This file may be distributed and/or modified under the
 -- conditions of the LaTeX Project Public License, either
@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.2a" -- 2024/12/06
+piton_version = "4.2bx" -- 2025/03/03
 
 
 
@@ -255,7 +255,8 @@ local CommentMath =
   P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$" -- $
 local PromptHastyDetection =
   ( # ( P ">>>" + "..." ) * Lc [[ \__piton_prompt: ]] ) ^ -1
-local Prompt = K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 ) ) ^ -1
+local Prompt =
+  K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 + P ( true ) ) ) ^ -1
 local EOL =
   P "\r"
   *
@@ -1124,7 +1125,7 @@ do
   local TableField =
          K ( 'Name.Table' , identifier )
        * Q "."
-       * K ( 'Name.Field' , identifier )
+       * ( DetectedCommands + ( K ( 'Name.Field' , identifier ) ) ^ 0 )
 
   local OneField =
     (

@@ -6,7 +6,7 @@
 %%
 %% piton.dtx  (with options: `STY')
 %% -------------------------------------------
-%% Copyright (C) 2022-2024 by F. Pantigny
+%% Copyright (C) 2022-2025 by F. Pantigny
 %% 
 %% This file may be distributed and/or modified under the
 %% conditions of the LaTeX Project Public License, either
@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.2a}
-\def\PitonFileDate{2024/12/06}
+\def\PitonFileVersion{4.2bx}
+\def\PitonFileDate{2025/03/03}
 
 
 
@@ -1302,6 +1302,7 @@
   {
     \tl_set:Nn \l_tmpa_tl { #1 }
     \regex_replace_all:nnN { \x20 } { \c { space } } \l_tmpa_tl
+    \seq_clear:N \l_tmpa_seq % added 2025/03/03
     \tl_map_inline:Nn \l_tmpa_tl
       { \seq_put_right:Nn \l_tmpa_seq { ##1 } }
     \seq_use:Nn \l_tmpa_seq { \- }

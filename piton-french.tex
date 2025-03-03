@@ -113,10 +113,6 @@ fait en utilisant la bibliothèque Lua LPEG.
 \end{abstract}
 
 
-\bigskip
-{\color{red} Depuis la version 4.0, la syntaxe des chemins absolus et relatifs utilisés dans
-|\PitonInputFile| a été changée : cf.~partie~\ref{PitonInputFile}, p.~\pageref{PitonInputFile}.}
-
 \section{Présentation}
 
 L'extension \pkg{piton} utilise la librairie Lua nommée LPEG\footnote{LPEG est une
@@ -160,13 +156,10 @@ Les principaux concurrents de l'extension \pkg{piton} sont certainement les exte
 bien connues \pkg{listings} et \pkg{minted}.
 
 
-% \medskip
-% Le nom de cette extension (\pkg{piton}) a été choisi un peu arbitrairement en référence
-% aux pitons d'alpinisme qui servent à gravir les montagnes.
+\medskip
+Le nom de cette extension (\pkg{piton}) a été choisi un peu arbitrairement en référence
+aux pitons d'alpinisme qui servent à gravir les montagnes.
 
-
-
-\section{Installation}
 
 L'extension \pkg{piton} est composée de deux fichiers : |piton.sty| et |piton.lua| (le
 fichier LaTeX |piton.sty| chargé par |\usepackage| va à son tour charger le fichier
@@ -2901,6 +2894,41 @@ Identifier & les identificateurs. \\
 \end{tabularx}
 \end{center}
 
+
+\vspace{1cm}
+Voici une possibilité de définition d'un language HTML, obtenu par une légère adaptation
+de la définition faite par \pkg{listings} (fichier |lstlang1.sty|).
+
+\medskip
+\begin{Verbatim}[formatcom=\small]
+\NewPitonLanguage{HTML}%
+  {morekeywords={A,ABBR,ACRONYM,ADDRESS,APPLET,AREA,B,BASE,BASEFONT,%
+      BDO,BIG,BLOCKQUOTE,BODY,BR,BUTTON,CAPTION,CENTER,CITE,CODE,COL,%
+      COLGROUP,DD,DEL,DFN,DIR,DIV,DL,DOCTYPE,DT,EM,FIELDSET,FONT,FORM,%
+      FRAME,FRAMESET,HEAD,HR,H1,H2,H3,H4,H5,H6,HTML,I,IFRAME,IMG,INPUT,%
+      INS,ISINDEX,KBD,LABEL,LEGEND,LH,LI,LINK,LISTING,MAP,META,MENU,%
+      NOFRAMES,NOSCRIPT,OBJECT,OPTGROUP,OPTION,P,PARAM,PLAINTEXT,PRE,%
+      OL,Q,S,SAMP,SCRIPT,SELECT,SMALL,SPAN,STRIKE,STRING,STRONG,STYLE,%
+      SUB,SUP,TABLE,TBODY,TD,TEXTAREA,TFOOT,TH,THEAD,TITLE,TR,TT,U,UL,%
+      VAR,XMP,%
+      accesskey,action,align,alink,alt,archive,axis,background,bgcolor,%
+      border,cellpadding,cellspacing,charset,checked,cite,class,classid,%
+      code,codebase,codetype,color,cols,colspan,content,coords,data,%
+      datetime,defer,disabled,dir,event,error,for,frameborder,headers,%
+      height,href,hreflang,hspace,http-equiv,id,ismap,label,lang,link,%
+      longdesc,marginwidth,marginheight,maxlength,media,method,multiple,%
+      name,nohref,noresize,noshade,nowrap,onblur,onchange,onclick,%
+      ondblclick,onfocus,onkeydown,onkeypress,onkeyup,onload,onmousedown,%
+      profile,readonly,onmousemove,onmouseout,onmouseover,onmouseup,%
+      onselect,onunload,rel,rev,rows,rowspan,scheme,scope,scrolling,%
+      selected,shape,size,src,standby,style,tabindex,text,title,type,%
+      units,usemap,valign,value,valuetype,vlink,vspace,width,xmlns},%
+   tag=<>,%
+   alsoletter = - ,%
+   sensitive=f,%
+   morestring=[d]",
+  }
+\end{Verbatim}
 
 
 \newpage
