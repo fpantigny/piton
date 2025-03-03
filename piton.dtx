@@ -5869,15 +5869,15 @@ piton_version = "4.2bx" -- 2025/03/03
 %
 %    \begin{macrocode}
     local insert
-    function insert(...)
+    function insert(x)
       local s = piton.beamer_environments
-      for _ , x in ipairs({...}) do table.insert(s,x) end  
-      return s 
+      table.insert(s,x)
+      return s
     end
     local my_lpeg_bis = 
       P {  "E" ,
-           E = ( V "F" * ( "," * V "F" ) ^ 0 ) / insert ,
-           F = space ^ 0 * ( alpha ^ 1 ) * space ^ 0 
+           E = ( V "F" * ( "," * V "F" ) ^ 0 ) ,
+           F = space ^ 0 * ( alpha ^ 1 / insert ) * space ^ 0 
         }
     function piton.addBeamerEnvironments( key_value )
       piton.beamer_environments = my_lpeg_bis : match ( key_value ) 
