@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.2bx" -- 2025/03/03
+piton_version = "4.2c" -- 2025/03/04
 
 
 
@@ -654,8 +654,7 @@ do
   local QuotedString =
     C ( open * ( 1 - closeeq ) ^ 0  * close ) /
     ( function ( s ) return QuotedStringBis : match ( s ) end )
-  local Comment =
-    WithStyle ( 'Comment' ,
+  local comment =
       P {
           "A" ,
           A = Q "(*"
@@ -666,7 +665,8 @@ do
                   + EOL
                 ) ^ 0
               * Q "*)"
-        }   )
+        }
+  local Comment = WithStyle ( 'Comment' , comment )
   local Delim = Q ( P "[|" + "|]" + S "[()]" )
   local Punct = Q ( S ",:;!" )
   local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
@@ -749,13 +749,10 @@ do
     * Q "=" * SkipSpace
     * ( C ( expression_for_fields_value ) / ParseAgain )
     * SkipSpace
-  local Record =
+  local RecordVal =
     Q "{" * SkipSpace
     *
       (
-        OneFieldDefinition
-        * ( Q ";" * SkipSpace * ( Comment * SkipSpace ) ^ 0 * OneFieldDefinition ) ^ 0
-        +
         OneField * ( Q ";" * SkipSpace * ( Comment * SkipSpace ) ^ 0 * OneField ) ^ 0
       )
     * SkipSpace
@@ -764,6 +761,20 @@ do
     * Comment ^ -1
     * SkipSpace
     * Q "}"
+  local RecordType =
+    Q "{" * SkipSpace
+    *
+      (
+        OneFieldDefinition
+        * ( Q ";" * SkipSpace * ( Comment * SkipSpace ) ^ 0 * OneFieldDefinition ) ^ 0
+      )
+    * SkipSpace
+    * Q ";" ^ -1
+    * SkipSpace
+    * Comment ^ -1
+    * SkipSpace
+    * Q "}"
+  local Record = RecordType + RecordVal
   local DotNotation =
     (
         K ( 'Name.Module' , cap_identifier )
@@ -866,19 +877,31 @@ do
   local DefType =
     K ( 'Keyword.Governing' , "type" )
     * Space
-    * K ( 'TypeExpression' , Q ( 1 - P "=" ) ^ 1 )
+    * K ( 'TypeExpression' , Q ( 1 - P "=" - P "+=" ) ^ 1 )
     * SkipSpace
     * ( Q "+=" + Q "=" )
     * SkipSpace
     * (
-        Record
+        RecordType
         +
         WithStyle
          (
            'TypeExpression' ,
            (
-             ( EOL + Q ( 1 - P ";;" - governing_keyword ) ) ^ 0
-             * ( # ( governing_keyword ) + Q ";;" )
+             (
+               EOL
+               + comment
+               +  Q ( 1
+                      - P ";;"
+                      - ( ( Space + EOL ) * governing_keyword * EndKeyword )
+                    )
+             ) ^ 0
+             *
+             (
+               # ( ( Space + EOL ) * governing_keyword * EndKeyword )
+               + Q ";;"
+               + -1
+             )
            )
          )
       )

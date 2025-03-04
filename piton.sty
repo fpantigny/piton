@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.2bx}
-\def\PitonFileDate{2025/03/03}
+\def\PitonFileVersion{4.2c}
+\def\PitonFileDate{2025/03/04}
 
 
 
@@ -1661,7 +1661,8 @@
       piton.BeamerCommands
        = piton.BeamerCommands + my_lpeg : match ( key_value )
     end
-    for _, v in ipairs({'uncover', 'only', 'visible', 'invisible', 'alert', 'action'}) do
+    for _ , v in ipairs ( { 'uncover', 'only',
+            'visible', 'invisible', 'alert', 'action' } ) do
       piton.addBeamerCommands(v)
     end
     local insert

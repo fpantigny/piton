@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.2bx}
-\def\PitonFileDate{2025/03/03}
+\def\PitonFileVersion{4.2c}
+\def\PitonFileDate{2025/03/04}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.2bx" -- 2025/03/03
+piton_version = "4.2c" -- 2025/03/04
 %</LUA>
 %\fi
 %
@@ -4978,12 +4978,12 @@ piton_version = "4.2bx" -- 2025/03/03
     \bool_if:NTF \l_@@_old_PitonInputFile_bool
       {
         \bool_set_false:N \l_tmpa_bool
-        \seq_map_inline:Nn \l__piton_path_seq
+        \seq_map_inline:Nn \l_@@_path_seq
           {
-            \str_set:Nn \l__piton_file_name_str { ##1 / #3 }
-            \file_if_exist:nT { \l__piton_file_name_str }
+            \str_set:Nn \l_@@_file_name_str { ##1 / #3 }
+            \file_if_exist:nT { \l_@@_file_name_str }
               {
-                \__piton_input_file:nn { #1 } { #2 }
+                \@@_input_file:nn { #1 } { #2 }
                 \bool_set_true:N \l_tmpa_bool
                 \seq_map_break:
               }
@@ -5696,7 +5696,7 @@ piton_version = "4.2bx" -- 2025/03/03
 %   \begin{macrocode}
 \@@_msg_new:nn { SyntaxError }
   {
-    Syntax~Error~on~page~\__piton_thepage:.\\
+    Syntax~Error~on~page~\@@_thepage:.\\
     Your~code~of~the~language~'\l_piton_language_str'~is~not~
     syntactically~correct.\\  
     It~won't~be~printed~in~the~PDF~file.
@@ -5878,7 +5878,8 @@ piton_version = "4.2bx" -- 2025/03/03
       piton.BeamerCommands 
        = piton.BeamerCommands + my_lpeg : match ( key_value ) 
     end
-    for _, v in ipairs({'uncover', 'only', 'visible', 'invisible', 'alert', 'action'}) do 
+    for _ , v in ipairs ( { 'uncover', 'only', 
+            'visible', 'invisible', 'alert', 'action' } ) do 
       piton.addBeamerCommands(v)
     end
 %    \end{macrocode}
@@ -7092,6 +7093,12 @@ do
   end
   DetectedCommands = Compute_DetectedCommands ( 'ocaml' , braces )
   local Q
+%    \end{macrocode}
+% Usually, the following version of the function |Q| will be used without the
+% second arguemnt (|strict|), that is to say in a loosy way. However, in some
+% circunstancies, we will a need the ``strict'' version, for instance in
+% |DefFunction|. 
+%    \begin{macrocode}
   function Q ( pattern, strict ) 
     if strict ~= nil then
       return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
@@ -7212,8 +7219,7 @@ do
 % embed also a treatment for the end of lines (since the comments may be multi-lines).
 % 
 %    \begin{macrocode}
-  local Comment =
-    WithStyle ( 'Comment' ,
+  local comment = 
       P {
           "A" ,
           A = Q "(*"
@@ -7224,7 +7230,8 @@ do
                   + EOL
                 ) ^ 0
               * Q "*)"
-        }   )
+        }   
+  local Comment = WithStyle ( 'Comment' , comment ) 
 %    \end{macrocode}
 %
 % 
@@ -7396,16 +7403,12 @@ do
 %    \end{macrocode}
 %
 % \bigskip
-% The \emph{records} may occur in the definitions of type (beginning by |type|)
-% but also when used as values.
+% The \emph{records}.
 %    \begin{macrocode}
-  local Record =
+  local RecordVal =
     Q "{" * SkipSpace
     *
       (
-        OneFieldDefinition 
-        * ( Q ";" * SkipSpace * ( Comment * SkipSpace ) ^ 0 * OneFieldDefinition ) ^ 0
-        +
         OneField * ( Q ";" * SkipSpace * ( Comment * SkipSpace ) ^ 0 * OneField ) ^ 0
       )
     * SkipSpace
@@ -7414,6 +7417,20 @@ do
     * Comment ^ -1
     * SkipSpace
     * Q "}"
+  local RecordType =
+    Q "{" * SkipSpace
+    *
+      (
+        OneFieldDefinition
+        * ( Q ";" * SkipSpace * ( Comment * SkipSpace ) ^ 0 * OneFieldDefinition ) ^ 0
+      )
+    * SkipSpace
+    * Q ";" ^ -1
+    * SkipSpace
+    * Comment ^ -1
+    * SkipSpace
+    * Q "}"
+  local Record = RecordType + RecordVal
 %    \end{macrocode}
 %
 % \paragraph{DotNotation}
@@ -7523,7 +7540,7 @@ do
       * (
 %    \end{macrocode}
 % You use here the argument |strict| in order to allow a correct analyse of 
-% |let x = \uncover<2->{y}| (elsewhere, it's interpredted as a definition of a OCaml
+% |let x = \uncover<2->{y}| (elsewhere, it's interpreted as a definition of a OCaml
 % function). 
 %    \begin{macrocode}
           Q "=" * SkipSpace * K ( 'Keyword' , "function" , true )
@@ -7590,19 +7607,34 @@ do
   local DefType =
     K ( 'Keyword.Governing' , "type" )
     * Space
-    * K ( 'TypeExpression' , Q ( 1 - P "=" ) ^ 1 )
-    * SkipSpace 
-    * ( Q "+=" + Q "=" ) 
+    * K ( 'TypeExpression' , Q ( 1 - P "=" - P "+=" ) ^ 1 )
     * SkipSpace
-    * ( 
-        Record 
+    * ( Q "+=" + Q "=" )
+    * SkipSpace
+    * (
+        RecordType
         +
+%    \end{macrocode}
+% The following lines are a suggestion of Y. Salmon. 
+%    \begin{macrocode}
         WithStyle
-         ( 
-           'TypeExpression' , 
-           ( 
-             ( EOL + Q ( 1 - P ";;" - governing_keyword ) ) ^ 0 
-             * ( # ( governing_keyword ) + Q ";;" ) 
+         (
+           'TypeExpression' ,
+           (
+             (  
+               EOL 
+               + comment 
+               +  Q ( 1 
+                      - P ";;" 
+                      - ( ( Space + EOL ) * governing_keyword * EndKeyword )
+                    ) 
+             ) ^ 0  
+             * 
+             ( 
+               # ( ( Space + EOL ) * governing_keyword * EndKeyword )
+               + Q ";;" 
+               + -1 
+             ) 
            )
          )
       )
@@ -9644,6 +9676,9 @@ end
 % The key |escape-inside| is deprecated: use |begin-escape| and |end-escape|.
 %
 %
+% \section*{Acknowledgments}
+%
+% Acknowledgments to Yann Salmon for its numerous suggestions of improvments.
 %
 % \tableofcontents
 %
