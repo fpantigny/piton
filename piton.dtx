@@ -5038,6 +5038,11 @@ piton_version = "4.2bx" -- 2025/03/03
           { \@@_error_or_warning:n { overlay~without~beamer } }
       }
     \group_begin:
+% The following line is to allow programs such as |latexmk| to be aware that the
+% file (read by |\PitonInputFile|) is loaded during the compilation of the LaTeX
+% document. 
+%    \begin{macrocode}
+      \iow_log:e {(\l_@@_file_name_str)}
       \int_zero_new:N \l_@@_first_line_int
       \int_zero_new:N \l_@@_last_line_int 
       \int_set_eq:NN \l_@@_last_line_int \c_max_int
@@ -5086,6 +5091,7 @@ piton_version = "4.2bx" -- 2025/03/03
       \int_compare:nNnT \g_@@_visual_line_int < \c_zero_int 
         { \int_gzero:N \g_@@_visual_line_int }
       \mode_if_vertical:TF \mode_leave_vertical: \newline 
+      \dim_zero:N \parskip % added 2025/03/03
 %    \end{macrocode}
 % We count with Lua the number of lines of the argument. The result will be
 % stored by Lua in |\l_@@_nb_lines_int|. 
@@ -5115,12 +5121,6 @@ piton_version = "4.2bx" -- 2025/03/03
 %    \end{macrocode}
 %
 % 
-% The following line is to allow programs such as |latexmk| to be aware that the
-% file (read by |\PitonInputFile|) is loaded during the compilation of the LaTeX
-% document. 
-%    \begin{macrocode}
-    \iow_log:e {(\l_@@_file_name_str)}
-%    \end{macrocode}
 % We recall that, if we are in Beamer, the command |\PitonInputFile| is
 % ``overlay-aware'' and that's why we close now an environment |{uncoverenv}|
 % that we have opened at the beginning of the command.
@@ -5676,6 +5676,19 @@ piton_version = "4.2bx" -- 2025/03/03
     Your~whole~file~'\l_@@_file_name_str'~will~be~included.
   }
 %    \end{macrocode}
+%
+%    \begin{macrocode}
+\cs_new_nopar:Nn \@@_thepage:
+  {
+    \thepage
+    \cs_if_exist:NT \insertframenumber
+      {
+        ~(frame~\insertframenumber
+        \cs_if_exist:NT \beamer@slidenumber { ,~slide~\insertslidenumber }
+        )
+      } 
+  }
+%    \end{macrocode}
 % 
 % We don't give the name |syntax error| for the following error because you
 % should not give a name with a space because such space could be replaced by
@@ -5683,7 +5696,7 @@ piton_version = "4.2bx" -- 2025/03/03
 %   \begin{macrocode}
 \@@_msg_new:nn { SyntaxError }
   {
-    Syntax~Error.\\
+    Syntax~Error~on~page~\__piton_thepage:.\\
     Your~code~of~the~language~'\l_piton_language_str'~is~not~
     syntactically~correct.\\  
     It~won't~be~printed~in~the~PDF~file.
@@ -5865,6 +5878,9 @@ piton_version = "4.2bx" -- 2025/03/03
       piton.BeamerCommands 
        = piton.BeamerCommands + my_lpeg : match ( key_value ) 
     end
+    for _, v in ipairs({'uncover', 'only', 'visible', 'invisible', 'alert', 'action'}) do 
+      piton.addBeamerCommands(v)
+    end
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -5876,8 +5892,8 @@ piton_version = "4.2bx" -- 2025/03/03
     end
     local my_lpeg_bis = 
       P {  "E" ,
-           E = ( V "F" * ( "," * V "F" ) ^ 0 ) ,
-           F = space ^ 0 * ( alpha ^ 1 / insert ) * space ^ 0 
+           E = ( V "F" * ( "," * V "F" ) ^ 0 ) / insert ,
+           F = space ^ 0 * ( alpha ^ 1 ) * space ^ 0 
         }
     function piton.addBeamerEnvironments( key_value )
       piton.beamer_environments = my_lpeg_bis : match ( key_value ) 
@@ -6529,7 +6545,7 @@ do
 
   local Keyword = 
     K ( 'Keyword' ,
-        P "as" + "assert" + "break" + "case" + "class" + "continue" + "def" +
+        P  "assert" + "as" + "break" + "case" + "class" + "continue" + "def" +
         "del" + "elif" + "else" + "except" + "exec" + "finally" + "for" + "from" +
         "global" + "if" + "import" + "lambda" + "non local" + "pass" + "return" +
         "try" + "while" + "with" + "yield" + "yield from" )
@@ -7076,18 +7092,22 @@ do
   end
   DetectedCommands = Compute_DetectedCommands ( 'ocaml' , braces )
   local Q
-  function Q ( pattern ) return 
-    Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) ) 
-    + Beamer + DetectedCommands + EscapeMath + Escape
+  function Q ( pattern, strict ) 
+    if strict ~= nil then
+      return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
+    else
+      return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
+          + Beamer + DetectedCommands + EscapeMath + Escape
+    end     
   end
 %    \end{macrocode}
 %
 % \bigskip
 %    \begin{macrocode}
   local K
-  function K ( style , pattern ) return
-    Lc ( [[ {\PitonStyle{ ]] .. style  .. "}{" )
-    * Q ( pattern )
+  function K ( style , pattern, strict ) return
+    Lc ( [[ {\PitonStyle{ ]] .. style .. "}{" )
+    * Q ( pattern, strict )
     * Lc "}}"
   end
 %    \end{macrocode}
@@ -7097,7 +7117,7 @@ do
   local WithStyle
   function WithStyle ( style , pattern ) return
       Ct ( Cc "Open" * Cc ( [[{\PitonStyle{]] .. style .. "}{" ) * Cc "}}" )
-    * ( pattern + Beamer + DetectedCommands + EscapeMath + Escape )
+    * (pattern + Beamer + DetectedCommands + EscapeMath + Escape)
     * Ct ( Cc "Close" )
   end
 %    \end{macrocode}
@@ -7233,7 +7253,7 @@ do
 % mode of Emacs.
 %    \begin{macrocode}
         + Q "::" 
-        + Q "[" * SkipSpace * Q "]" )
+        + Q ( "[" , true ) * SkipSpace * Q ( "]" , true) )
 %    \end{macrocode}
 %
 % \bigskip
@@ -7245,7 +7265,7 @@ do
 %    \begin{macrocode}
   local OperatorWord =
     K ( 'Operator.Word' ,
-        P "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" )
+        P "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" + "not" )
 %    \end{macrocode}
 % 
 % \bigskip
@@ -7426,7 +7446,7 @@ do
 % \bigskip
 %    \begin{macrocode}
   local Builtin =
-    K ( 'Name.Builtin' , P "not" + "incr" + "decr" + "fst" + "snd" + "ref" )
+    K ( 'Name.Builtin' , P "incr" + "decr" + "fst" + "snd" + "ref" )
 %    \end{macrocode}
 %
 % \bigskip
@@ -7501,7 +7521,12 @@ do
       * K ( 'Name.Function.Internal' , identifier )
       * Space
       * (
-          Q "=" * SkipSpace * K ( 'Keyword' , "function" )
+%    \end{macrocode}
+% You use here the argument |strict| in order to allow a correct analyse of 
+% |let x = \uncover<2->{y}| (elsewhere, it's interpredted as a definition of a OCaml
+% function). 
+%    \begin{macrocode}
+          Q "=" * SkipSpace * K ( 'Keyword' , "function" , true )
           +
           Argument * ( SkipSpace * Argument ) ^ 0
           * (

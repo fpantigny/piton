@@ -303,7 +303,7 @@ do
 
   local Keyword =
     K ( 'Keyword' ,
-        P "as" + "assert" + "break" + "case" + "class" + "continue" + "def" +
+        P  "assert" + "as" + "break" + "case" + "class" + "continue" + "def" +
         "del" + "elif" + "else" + "except" + "exec" + "finally" + "for" + "from" +
         "global" + "if" + "import" + "lambda" + "non local" + "pass" + "return" +
         "try" + "while" + "with" + "yield" + "yield from" )
@@ -591,20 +591,24 @@ do
   end
   DetectedCommands = Compute_DetectedCommands ( 'ocaml' , braces )
   local Q
-  function Q ( pattern ) return
-    Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
-    + Beamer + DetectedCommands + EscapeMath + Escape
+  function Q ( pattern, strict )
+    if strict ~= nil then
+      return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
+    else
+      return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
+          + Beamer + DetectedCommands + EscapeMath + Escape
+    end
   end
   local K
-  function K ( style , pattern ) return
-    Lc ( [[ {\PitonStyle{ ]] .. style  .. "}{" )
-    * Q ( pattern )
+  function K ( style , pattern, strict ) return
+    Lc ( [[ {\PitonStyle{ ]] .. style .. "}{" )
+    * Q ( pattern, strict )
     * Lc "}}"
   end
   local WithStyle
   function WithStyle ( style , pattern ) return
       Ct ( Cc "Open" * Cc ( [[{\PitonStyle{]] .. style .. "}{" ) * Cc "}}" )
-    * ( pattern + Beamer + DetectedCommands + EscapeMath + Escape )
+    * (pattern + Beamer + DetectedCommands + EscapeMath + Escape)
     * Ct ( Cc "Close" )
   end
   local balanced_parens =
@@ -670,11 +674,11 @@ do
     K ( 'Name.Constructor' ,
         Q "`" ^ -1 * cap_identifier
         + Q "::"
-        + Q "[" * SkipSpace * Q "]" )
+        + Q ( "[" , true ) * SkipSpace * Q ( "]" , true) )
   local ModuleType = K ( 'Name.Type' , cap_identifier )
   local OperatorWord =
     K ( 'Operator.Word' ,
-        P "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" )
+        P "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" + "not" )
   local governing_keyword = P "and" + "begin" + "class" + "constraint" +
         "end" + "external" + "functor" + "include" + "inherit" + "initializer" +
         "in" + "let" + "method" + "module" + "object" + "open" + "rec" + "sig" +
@@ -777,7 +781,7 @@ do
         "//" + "**" + ";;" + "->" + "+." + "-." + "*." + "/."
         + S "-~+/*%=<>&@|" )
   local Builtin =
-    K ( 'Name.Builtin' , P "not" + "incr" + "decr" + "fst" + "snd" + "ref" )
+    K ( 'Name.Builtin' , P "incr" + "decr" + "fst" + "snd" + "ref" )
   local Exception =
     K (   'Exception' ,
         P "Division_by_zero" + "End_of_File" + "Failure" + "Invalid_argument" +
@@ -808,7 +812,7 @@ do
       * K ( 'Name.Function.Internal' , identifier )
       * Space
       * (
-          Q "=" * SkipSpace * K ( 'Keyword' , "function" )
+          Q "=" * SkipSpace * K ( 'Keyword' , "function" , true )
           +
           Argument * ( SkipSpace * Argument ) ^ 0
           * (
