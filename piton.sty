@@ -90,7 +90,6 @@
 \bool_new:N \g__piton_math_comments_bool
 \bool_new:N \g__piton_beamer_bool
 \tl_new:N \g__piton_escape_inside_tl
-\bool_new:N \l__piton_old_PitonInputFile_bool
 \keys_define:nn { piton / package }
   {
     footnote .bool_gset:N = \g__piton_footnote_bool ,
@@ -101,9 +100,6 @@
     beamer .bool_gset:N = \g__piton_beamer_bool ,
     beamer .default:n = true ,
     beamer .usage:n = load ,
-    old-PitonInputFile .bool_set:N = \l__piton_old_PitonInputFile_bool ,
-    old-PitonInputFile .default:n = true ,
-    old-PitonInputFile .usage:n = load ,
 
     unknown .code:n = \__piton_error:n { Unknown~key~for~package }
   }
@@ -111,18 +107,11 @@
   {
     Unknown~key.\\
     You~have~used~the~key~'\l_keys_key_str'~but~the~only~keys~available~here~
-    are~'beamer',~'footnote',~'footnotehyper'~and~'old-PitonInputFile'.~
+    are~'beamer',~'footnote',~and~'footnotehyper'.~
     Other~keys~are~available~in~\token_to_str:N \PitonOptions.\\
     That~key~will~be~ignored.
   }
 \ProcessKeysOptions { piton / package }
-\msg_new:nnn { piton } { old-PitonInputFile }
-  {
-    Be~careful:~The~key~'old-PitonInputFile'~will~be~deleted~
-    in~a~future~version~of~'piton'.
-  }
-\bool_if:NT \l__piton_old_PitonInputFile_bool
-  { \msg_warning:nn { piton } { old-PitonInputFile } }
 \IfClassLoadedTF { beamer } { \bool_gset_true:N \g__piton_beamer_bool } { }
 \IfPackageLoadedTF { beamerarticle } { \bool_gset_true:N \g__piton_beamer_bool } { }
 \lua_now:n { piton = piton~or~{ } }
@@ -1065,33 +1054,16 @@
 \NewDocumentCommand { \PitonInputFileTF } { d < > O { } m m m }
   {
     \group_begin:
-    \bool_if:NTF \l__piton_old_PitonInputFile_bool
+    \seq_concat:NNN
+      \l_file_search_path_seq
+      \l__piton_path_seq
+      \l_file_search_path_seq
+    \file_get_full_name:nNTF { #3 } \l__piton_file_name_str
       {
-        \bool_set_false:N \l_tmpa_bool
-        \seq_map_inline:Nn \l__piton_path_seq
-          {
-            \str_set:Nn \l__piton_file_name_str { ##1 / #3 }
-            \file_if_exist:nT { \l__piton_file_name_str }
-              {
-                \__piton_input_file:nn { #1 } { #2 }
-                \bool_set_true:N \l_tmpa_bool
-                \seq_map_break:
-              }
-          }
-        \bool_if:NTF \l_tmpa_bool { #4 } { #5 }
+        \__piton_input_file:nn { #1 } { #2 }
+        #4
       }
-      {
-        \seq_concat:NNN
-          \l_file_search_path_seq
-          \l__piton_path_seq
-          \l_file_search_path_seq
-        \file_get_full_name:nNTF { #3 } \l__piton_file_name_str
-          {
-            \__piton_input_file:nn { #1 } { #2 }
-            #4
-          }
-          { #5 }
-      }
+      { #5 }
     \group_end:
   }
 \cs_new_protected:Npn \__piton_unknown_file:n #1
