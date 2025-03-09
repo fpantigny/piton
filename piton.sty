@@ -27,12 +27,20 @@
 
 
 \NeedsTeXFormat{LaTeX2e}
-\RequirePackage{l3keys2e}
 \ProvidesExplPackage
   {piton}
   {\PitonFileDate}
   {\PitonFileVersion}
   {Highlight informatic listings with LPEG on LuaLaTeX}
+\msg_new:nnn { piton } { latex-too-old }
+  {
+    Your~LaTeX~release~is~too~old. \\
+    You~need~at~least~a~the~version~of~2023-11-01
+  }
+\IfFormatAtLeastTF
+  { 2023-11-01 }
+  { }
+  { \msg_fatal:nn { piton } { latex-too-old } }
 \RequirePackage { amstext }
 \cs_new_protected:Npn \__piton_error:n { \msg_error:nn { piton } }
 \cs_new_protected:Npn \__piton_warning:n { \msg_warning:nn { piton } }
@@ -111,7 +119,7 @@
     Other~keys~are~available~in~\token_to_str:N \PitonOptions.\\
     That~key~will~be~ignored.
   }
-\ProcessKeysOptions { piton / package }
+\ProcessKeyOptions [ piton / package ]
 \IfClassLoadedTF { beamer } { \bool_gset_true:N \g__piton_beamer_bool } { }
 \IfPackageLoadedTF { beamerarticle } { \bool_gset_true:N \g__piton_beamer_bool } { }
 \lua_now:n { piton = piton~or~{ } }

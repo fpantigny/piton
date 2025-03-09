@@ -2902,7 +2902,6 @@ piton_version = "4.2c" -- 2025/03/04
 %    \begin{macrocode}
 %<*STY>
 \NeedsTeXFormat{LaTeX2e}
-\RequirePackage{l3keys2e}
 \ProvidesExplPackage
   {piton}
   {\PitonFileDate}
@@ -2910,6 +2909,20 @@ piton_version = "4.2c" -- 2025/03/04
   {Highlight informatic listings with LPEG on LuaLaTeX}
 %    \end{macrocode}
 %
+%    \begin{macrocode}
+\msg_new:nnn { piton } { latex-too-old }
+  { 
+    Your~LaTeX~release~is~too~old. \\
+    You~need~at~least~a~the~version~of~2023-11-01 
+  }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\IfFormatAtLeastTF
+  { 2023-11-01 } 
+  { } 
+  { \msg_fatal:nn { piton } { latex-too-old } }
+%    \end{macrocode}
 % \bigskip
 % The command |\text| provided by the package \pkg{amstext} will be used to
 % allow the use of the command |\pion{...}| (with the standard syntax) in
@@ -3076,7 +3089,7 @@ piton_version = "4.2c" -- 2025/03/04
 % \bigskip
 % We process the options provided by the user at load-time.
 %    \begin{macrocode}
-\ProcessKeysOptions { piton / package }
+\ProcessKeyOptions [ piton / package ]
 %    \end{macrocode}
 %
 % 
