@@ -220,10 +220,8 @@ fonctionnalités s'appliquent aussi aux autres langages.
 L'extension \pkg{piton} se charge simplement avec |\usepackage{piton}|.
 
 \smallskip
-Si, à la fin du prambule, l'extension \pkg{xcolor} n'a pas été chargée (par l'utilisateur
-ou par une extension chargée dans le préambule), \pkg{piton} charge l'extension
-\pkg{xcolor} avec |\usepackage{xcolor}|, c'est-à-dire sans aucune option. L'extension
-\pkg{piton} ne charge pas d'autre extension. Elle n'utilise pas de programme extérieur.
+Elle utilise et charge l'extension \pkg{xcolor}. Elle n'utilise pas de programme
+extérieur. 
 
 \subsection{Les commandes et environnements à la disposition de l'utilisateur}
 
@@ -794,6 +792,7 @@ Comme l'environnement |{Piton}| a besoin d'absorber son contenu d'une manière s
 peu près comme du texte verbatim), il n'est pas possible de définir de nouveaux
 environnements directement au-dessus de l'environnement |{Piton}| avec les commandes
 classiques |\newenvironment| (de LaTeX standard) et |\NewDocumentEnvironment| (de LaTeX3).
+Il n'est pas possible non plus d'utiliser |\NewEnvironmentCopy|.
 
 C'est pourquoi \pkg{piton} propose une commande \DefinitionCommand{NewPitonEnvironment}.
 Cette commande a la même syntaxe que la commande classique

@@ -98,7 +98,7 @@
 \bool_new:N \g__piton_math_comments_bool
 \bool_new:N \g__piton_beamer_bool
 \tl_new:N \g__piton_escape_inside_tl
-\keys_define:nn { piton / package }
+\keys_define:nn { piton }
   {
     footnote .bool_gset:N = \g__piton_footnote_bool ,
     footnotehyper .bool_gset:N = \g__piton_footnotehyper_bool ,
@@ -114,18 +114,18 @@
 \__piton_msg_new:nn { Unknown~key~for~package }
   {
     Unknown~key.\\
-    You~have~used~the~key~'\l_keys_key_str'~but~the~only~keys~available~here~
+    You~have~used~the~key~'\l_keys_key_str'~when~loading~piton~
+    but~the~only~keys~available~here~
     are~'beamer',~'footnote',~and~'footnotehyper'.~
     Other~keys~are~available~in~\token_to_str:N \PitonOptions.\\
     That~key~will~be~ignored.
   }
-\ProcessKeyOptions [ piton / package ]
+\ProcessKeyOptions
 \IfClassLoadedTF { beamer } { \bool_gset_true:N \g__piton_beamer_bool } { }
 \IfPackageLoadedTF { beamerarticle } { \bool_gset_true:N \g__piton_beamer_bool } { }
 \lua_now:n { piton = piton~or~{ } }
 \bool_if:NT \g__piton_beamer_bool { \lua_now:n { piton.beamer = true } }
-\hook_gput_code:nnn { begindocument / before } { . }
-  { \IfPackageLoadedTF { xcolor } { } { \usepackage { xcolor } } }
+\RequirePackage { xcolor }
 \__piton_msg_new:nn { footnote~with~footnotehyper~package }
   {
     Footnote~forbidden.\\
@@ -173,6 +173,7 @@
     piton.beamer_environments = { "uncoverenv" , "onlyenv" , "visibleenv" ,
                "invisibleenv" ,  "alertenv" ,  "actionenv" }
     piton.DetectedCommands = lpeg.P ( false )
+    piton.RawDetectedCommands = lpeg.P ( false )
     piton.last_code = ''
     piton.last_language = ''
   }
@@ -531,6 +532,10 @@
       \lua_now:n { piton.addDetectedCommands('#1') } ,
     detected-commands .value_required:n = true ,
     detected-commands .usage:n = preamble ,
+    raw-detected-commands .code:n =
+      \lua_now:n { piton.addRawDetectedCommands('#1') } ,
+    raw-detected-commands .value_required:n = true ,
+    raw-detected-commands .usage:n = preamble ,
     detected-beamer-commands .code:n =
       \lua_now:n { piton.addBeamerCommands('#1') } ,
     detected-beamer-commands .value_required:n = true ,
@@ -1580,6 +1585,7 @@
     path,~
     path-write,~
     prompt-background-color,~
+    raw-detected-commands,~
     resume,~
     show-spaces,~
     show-spaces-in-strings,~
@@ -1635,7 +1641,12 @@
            F = space ^ 0 * ( ( alpha ^ 1 ) / "\\%0" ) * space ^ 0
         }
     function piton.addDetectedCommands ( key_value )
-      piton.DetectedCommands = piton.DetectedCommands + my_lpeg : match ( key_value )
+      piton.DetectedCommands
+        = piton.DetectedCommands + my_lpeg : match ( key_value )
+    end
+    function piton.addRawDetectedCommands ( key_value )
+      piton.RawDetectedCommands
+        = piton.RawDetectedCommands + my_lpeg : match ( key_value )
     end
     function piton.addBeamerCommands( key_value )
       piton.BeamerCommands

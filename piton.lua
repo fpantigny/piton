@@ -150,6 +150,10 @@ function Compute_DetectedCommands ( lang , braces ) return
    * P "}"
    * Ct ( Cc "Close" )
 end
+local Compute_RawDetectedCommands
+function Compute_RawDetectedCommands ( lang , braces ) return
+  Ct ( C ( piton.RawDetectedCommands * space ^ 0 * P "{" * braces * P "}" ) )
+end
 local Compute_LPEG_cleaner
 function Compute_LPEG_cleaner ( lang , braces ) return
   Ct ( ( piton.DetectedCommands * "{"
@@ -431,6 +435,7 @@ do
      )
   if piton.beamer then Beamer = Compute_Beamer ( 'python' , braces ) end
   DetectedCommands = Compute_DetectedCommands ( 'python' , braces )
+       + Compute_RawDetectedCommands ( 'python' , braces )
   LPEG_cleaner.python = Compute_LPEG_cleaner ( 'python' , braces )
   local SingleLongString =
     WithStyle ( 'String.Long.Internal' ,
@@ -589,7 +594,9 @@ do
   if piton.beamer then
     Beamer = Compute_Beamer ( 'ocaml' , braces )
   end
-  DetectedCommands = Compute_DetectedCommands ( 'ocaml' , braces )
+  DetectedCommands =
+    Compute_DetectedCommands ( 'ocaml' , braces )
+    + Compute_RawDetectedCommands ( 'ocaml' , braces )
   local Q
   function Q ( pattern, strict )
     if strict ~= nil then
@@ -1006,7 +1013,9 @@ do
       )
   local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
   if piton.beamer then Beamer = Compute_Beamer ( 'c' , braces ) end
-  DetectedCommands = Compute_DetectedCommands ( 'c' , braces )
+  DetectedCommands =
+    Compute_DetectedCommands ( 'c' , braces )
+    + Compute_RawDetectedCommands ( 'c' , braces )
   LPEG_cleaner.c = Compute_LPEG_cleaner ( 'c' , braces )
   local Preproc = K ( 'Preproc' , "#" * ( 1 - P "\r" ) ^ 0  ) * ( EOL + -1 )
   local Comment =
@@ -1132,7 +1141,9 @@ do
   local String = K ( 'String.Long.Internal' , "'" * ( 1 - P "'" ) ^ 1 * "'" )
   local braces = Compute_braces ( "'" * ( 1 - P "'" ) ^ 1 * "'" )
   if piton.beamer then Beamer = Compute_Beamer ( 'sql' , braces ) end
-  DetectedCommands = Compute_DetectedCommands ( 'sql' , braces )
+  DetectedCommands =
+    Compute_DetectedCommands ( 'sql' , braces )
+    + Compute_RawDetectedCommands ( 'sql' , braces )
   LPEG_cleaner.sql = Compute_LPEG_cleaner ( 'sql' , braces )
   local Comment =
     WithStyle ( 'Comment' ,
@@ -1241,7 +1252,9 @@ do
 
   if piton.beamer then Beamer = Compute_Beamer ( 'minimal' , braces ) end
 
-  DetectedCommands = Compute_DetectedCommands ( 'minimal' , braces )
+  DetectedCommands =
+    Compute_DetectedCommands ( 'minimal' , braces )
+    + Compute_RawDetectedCommands ( 'minimal' , braces )
 
   LPEG_cleaner.minimal = Compute_LPEG_cleaner ( 'minimal' , braces )
 
@@ -1288,7 +1301,9 @@ do
 
   if piton.beamer then Beamer = Compute_Beamer ( 'verbatim' , braces ) end
 
-  DetectedCommands = Compute_DetectedCommands ( 'verbatim' , braces )
+  DetectedCommands =
+    Compute_DetectedCommands ( 'verbatim' , braces )
+    + Compute_RawDetectedCommands ( 'verbatim' , braces )
 
   LPEG_cleaner.verbatim = Compute_LPEG_cleaner ( 'verbatim' , braces )
   local lpeg_central = 1 - S " \\\r"
@@ -1861,7 +1876,9 @@ function piton.new_language ( lang , definition )
   local braces = Compute_braces ( long_string )
   if piton.beamer then Beamer = Compute_Beamer ( lang , braces ) end
 
-  DetectedCommands = Compute_DetectedCommands ( lang , braces )
+  DetectedCommands =
+    Compute_DetectedCommands ( lang , braces )
+    + Compute_RawDetectedCommands ( lang , braces )
 
   LPEG_cleaner[lang] = Compute_LPEG_cleaner ( lang , braces )
   local CommentDelim = P ( false )

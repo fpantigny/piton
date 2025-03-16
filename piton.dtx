@@ -170,11 +170,8 @@ piton_version = "4.2c" -- 2025/03/04
 % The package \pkg{piton} should be loaded by: |\usepackage{piton}|.
 %
 % \smallskip
-% If, at the end of the preamble, the package \pkg{xcolor} has not been loaded
-% (by the final user or by another package), \pkg{piton} loads \pkg{xcolor} with
-% the instruction |\usepackage{xcolor}| (that is to say without any option).
-% The package \pkg{piton} doesn't load any other package. It does not any
-% exterior program.
+% The package \pkg{piton} uses and \emph{loads} the package \pkg{xcolor}. It
+% does not use any exterior program.
 %
 % \subsection{Choice of the computer language}
 %
@@ -779,7 +776,7 @@ piton_version = "4.2c" -- 2025/03/04
 % or less as verbatim text), it's not possible to construct new environments
 % directly over the environment |{Piton}| with the classical commands
 % |\newenvironment| (of standard LaTeX) or |\NewDocumentEnvironment| (of
-% LaTeX3). 
+% LaTeX3). |\NewEnvironmentCopy| can also not be used.
 %
 % That's why \pkg{piton} provides a command
 % \DefinitionCommand{NewPitonEnvironment}. That command takes in three mandatory
@@ -3057,7 +3054,7 @@ piton_version = "4.2c" -- 2025/03/04
 % \bigskip
 % We define a set of keys for the options at load-time.
 %    \begin{macrocode}
-\keys_define:nn { piton / package }
+\keys_define:nn { piton }
   { 
     footnote .bool_gset:N = \g_@@_footnote_bool ,
     footnotehyper .bool_gset:N = \g_@@_footnotehyper_bool ,
@@ -3071,14 +3068,13 @@ piton_version = "4.2c" -- 2025/03/04
     unknown .code:n = \@@_error:n { Unknown~key~for~package }
   }
 %    \end{macrocode}
-%
-%
 % 
 %    \begin{macrocode}
 \@@_msg_new:nn { Unknown~key~for~package }
   {
     Unknown~key.\\
-    You~have~used~the~key~'\l_keys_key_str'~but~the~only~keys~available~here~
+    You~have~used~the~key~'\l_keys_key_str'~when~loading~piton~
+    but~the~only~keys~available~here~
     are~'beamer',~'footnote',~and~'footnotehyper'.~
     Other~keys~are~available~in~\token_to_str:N \PitonOptions.\\ 
     That~key~will~be~ignored.
@@ -3089,7 +3085,7 @@ piton_version = "4.2c" -- 2025/03/04
 % \bigskip
 % We process the options provided by the user at load-time.
 %    \begin{macrocode}
-\ProcessKeyOptions [ piton / package ]
+\ProcessKeyOptions 
 %    \end{macrocode}
 %
 % 
@@ -3103,8 +3099,7 @@ piton_version = "4.2c" -- 2025/03/04
 % 
 % \bigskip
 %    \begin{macrocode}
-\hook_gput_code:nnn { begindocument / before } { . }
-  { \IfPackageLoadedTF { xcolor } { } { \usepackage { xcolor } } }
+\RequirePackage { xcolor } 
 %    \end{macrocode}
 %
 %
@@ -3181,6 +3176,7 @@ piton_version = "4.2c" -- 2025/03/04
     piton.beamer_environments = { "uncoverenv" , "onlyenv" , "visibleenv" , 
                "invisibleenv" ,  "alertenv" ,  "actionenv" }
     piton.DetectedCommands = lpeg.P ( false ) 
+    piton.RawDetectedCommands = lpeg.P ( false ) 
     piton.last_code = ''
     piton.last_language = ''
   }
@@ -4049,6 +4045,10 @@ piton_version = "4.2c" -- 2025/03/04
       \lua_now:n { piton.addDetectedCommands('#1') } ,
     detected-commands .value_required:n = true , 
     detected-commands .usage:n = preamble , 
+    raw-detected-commands .code:n =  
+      \lua_now:n { piton.addRawDetectedCommands('#1') } ,
+    raw-detected-commands .value_required:n = true , 
+    raw-detected-commands .usage:n = preamble , 
     detected-beamer-commands .code:n =  
       \lua_now:n { piton.addBeamerCommands('#1') } ,
     detected-beamer-commands .value_required:n = true , 
@@ -5733,6 +5733,7 @@ piton_version = "4.2c" -- 2025/03/04
     path,~
     path-write,~
     prompt-background-color,~
+    raw-detected-commands,~
     resume,~
     show-spaces,~
     show-spaces-in-strings,~
@@ -5822,7 +5823,12 @@ piton_version = "4.2c" -- 2025/03/04
            F = space ^ 0 * ( ( alpha ^ 1 ) / "\\%0" ) * space ^ 0 
         }
     function piton.addDetectedCommands ( key_value )
-      piton.DetectedCommands = piton.DetectedCommands + my_lpeg : match ( key_value ) 
+      piton.DetectedCommands 
+        = piton.DetectedCommands + my_lpeg : match ( key_value ) 
+    end
+    function piton.addRawDetectedCommands ( key_value )
+      piton.RawDetectedCommands 
+        = piton.RawDetectedCommands + my_lpeg : match ( key_value ) 
     end
     function piton.addBeamerCommands( key_value )
       piton.BeamerCommands 
@@ -6179,6 +6185,13 @@ function Compute_DetectedCommands ( lang , braces ) return
 end
 %    \end{macrocode}
 %
+%    \begin{macrocode}
+local Compute_RawDetectedCommands
+function Compute_RawDetectedCommands ( lang , braces ) return 
+  Ct ( C ( piton.RawDetectedCommands * space ^ 0 * P "{" * braces * P "}" ) )
+end
+%    \end{macrocode}
+% 
 % \bigskip
 %    \begin{macrocode}
 local Compute_LPEG_cleaner
@@ -6746,6 +6759,7 @@ do
 %
 %    \begin{macrocode}
   DetectedCommands = Compute_DetectedCommands ( 'python' , braces ) 
+       + Compute_RawDetectedCommands ( 'python' , braces ) 
 %    \end{macrocode}
 %
 % \bigskip
@@ -7041,7 +7055,9 @@ do
   if piton.beamer then
     Beamer = Compute_Beamer ( 'ocaml' , braces )
   end
-  DetectedCommands = Compute_DetectedCommands ( 'ocaml' , braces )
+  DetectedCommands = 
+    Compute_DetectedCommands ( 'ocaml' , braces )
+    + Compute_RawDetectedCommands ( 'ocaml' , braces )
   local Q
 %    \end{macrocode}
 % Usually, the following version of the function |Q| will be used without the
@@ -7774,7 +7790,9 @@ do
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-  DetectedCommands = Compute_DetectedCommands ( 'c' , braces ) 
+  DetectedCommands = 
+    Compute_DetectedCommands ( 'c' , braces ) 
+    + Compute_RawDetectedCommands ( 'c' , braces ) 
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -8021,7 +8039,9 @@ do
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
-  DetectedCommands = Compute_DetectedCommands ( 'sql' , braces ) 
+  DetectedCommands = 
+    Compute_DetectedCommands ( 'sql' , braces ) 
+    + Compute_RawDetectedCommands ( 'sql' , braces ) 
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -8196,7 +8216,9 @@ do
 
   if piton.beamer then Beamer = Compute_Beamer ( 'minimal' , braces ) end
 
-  DetectedCommands = Compute_DetectedCommands ( 'minimal' , braces ) 
+  DetectedCommands = 
+    Compute_DetectedCommands ( 'minimal' , braces ) 
+    + Compute_RawDetectedCommands ( 'minimal' , braces ) 
 
   LPEG_cleaner.minimal = Compute_LPEG_cleaner ( 'minimal' , braces ) 
 
@@ -8267,7 +8289,9 @@ do
 
   if piton.beamer then Beamer = Compute_Beamer ( 'verbatim' , braces ) end
 
-  DetectedCommands = Compute_DetectedCommands ( 'verbatim' , braces ) 
+  DetectedCommands = 
+    Compute_DetectedCommands ( 'verbatim' , braces ) 
+    + Compute_RawDetectedCommands ( 'verbatim' , braces ) 
 
   LPEG_cleaner.verbatim = Compute_LPEG_cleaner ( 'verbatim' , braces ) 
 %    \end{macrocode}
@@ -9294,7 +9318,9 @@ function piton.new_language ( lang , definition )
   local braces = Compute_braces ( long_string ) 
   if piton.beamer then Beamer = Compute_Beamer ( lang , braces ) end
 
-  DetectedCommands = Compute_DetectedCommands ( lang , braces ) 
+  DetectedCommands = 
+    Compute_DetectedCommands ( lang , braces ) 
+    + Compute_RawDetectedCommands ( lang , braces ) 
 
   LPEG_cleaner[lang] = Compute_LPEG_cleaner ( lang , braces ) 
 %    \end{macrocode}
