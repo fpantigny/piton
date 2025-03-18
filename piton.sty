@@ -19,7 +19,7 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.2c}
+\def\PitonFileVersion{4.2x}
 \def\PitonFileDate{2025/03/04}
 
 
@@ -909,7 +909,9 @@
     \int_gzero:N \g__piton_line_int
     \dim_zero:N \parindent
     \dim_zero:N \lineskip
+    \dim_zero:N \parskip % added 2025/03/18
     \cs_set_eq:NN \label \__piton_label:n
+    \l__piton_font_command_tl
   }
 \cs_generate_variant:Nn \__piton_compute_left_margin:nn { n o }
 \cs_new_protected:Npn \__piton_compute_left_margin:nn #1 #2
@@ -977,8 +979,6 @@
             \lua_now:e { piton.CountLines ( '\lua_escape:n{##1}' ) }
             \__piton_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
             \__piton_compute_width:
-            \l__piton_font_command_tl
-            \dim_zero:N \parskip
             \noindent
             \str_if_empty:NTF \l__piton_path_write_str
               { \lua_now:e { piton.write = "\l__piton_write_str" } }
@@ -1020,6 +1020,61 @@
       { #4 }
     \AddToHook { env / #1 / begin } { \char_set_catcode_other:N \^^M }
   }
+\IfFormatAtLeastTF { 2025-06-01 }
+  {
+    \tl_new:N \l__piton_body_tl
+    \cs_new_protected:Npn \__piton_store_body:n #1
+      {
+        \tl_set:Nn \l__piton_body_tl { #1 }
+        \tl_set_eq:NN \ProcessedArgument \l__piton_body_tl
+      }
+    \RenewDocumentCommand { \NewPitonEnvironment } { m m m m }
+      {
+        \NewDocumentEnvironment { #1 } { #2 > { \__piton_store_body:n } c }
+          {
+            \regex_replace_all:nnN { \c { obeyedline } } { \r } \l__piton_body_tl
+            \cs_set_eq:NN \PitonOptions \__piton_fake_PitonOptions
+            #3
+            \__piton_pre_env:
+            \int_compare:nNnT \l__piton_number_lines_start_int > \c_zero_int
+              { \int_gset:Nn \g__piton_visual_line_int
+                  { \l__piton_number_lines_start_int - 1 }
+              }
+            \mode_if_vertical:TF \noindent \newline
+            \lua_now:e { piton.CountLines ( '\lua_escape:n{\l__piton_body_tl}' ) }
+            \__piton_compute_left_margin:no { CountNonEmptyLines } \l__piton_body_tl
+            \__piton_compute_width:
+            \noindent
+            \str_if_empty:NTF \l__piton_path_write_str
+              { \lua_now:e { piton.write = "\l__piton_write_str" } }
+              {
+                \lua_now:e
+                  { piton.write = "\l__piton_path_write_str / \l__piton_write_str" }
+              }
+            \str_if_empty:NTF \l__piton_write_str
+              { \lua_now:n { piton.write = '' } }
+              {
+                \seq_if_in:NoTF \g__piton_write_seq \l__piton_write_str
+                  { \lua_now:n { piton.write_mode = "a" } }
+                  {
+                    \lua_now:n { piton.write_mode = "w" }
+                    \seq_gput_left:No \g__piton_write_seq \l__piton_write_str
+                  }
+              }
+            \bool_if:NTF \l__piton_split_on_empty_lines_bool
+              { \__piton_retrieve_gobble_split_parse:o }
+              { \__piton_retrieve_gobble_parse:o }
+              \l__piton_body_tl
+            \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
+            \__piton_write_aux:
+            #4
+          }
+          { }
+      }
+  }
+  { }
+
+\cs_generate_variant:Nn \__piton_retrieve_gobble_parse:n { o }
 \cs_new_protected:Npn \__piton_retrieve_gobble_parse:n
   {
     \lua_now:e
@@ -1035,6 +1090,7 @@
           )
       }
   }
+\cs_generate_variant:Nn \__piton_retrieve_gobble_split_parse:n { o }
 \cs_new_protected:Npn \__piton_retrieve_gobble_split_parse:n
   {
     \lua_now:e
@@ -1141,11 +1197,9 @@
       \int_compare:nNnT \g__piton_visual_line_int < \c_zero_int
         { \int_gzero:N \g__piton_visual_line_int }
       \mode_if_vertical:TF \mode_leave_vertical: \newline
-      \dim_zero:N \parskip % added 2025/03/03
       \lua_now:e { piton.CountLinesFile ( '\l__piton_file_name_str' ) }
       \__piton_compute_left_margin:no { CountNonEmptyLinesFile } \l__piton_file_name_str
       \__piton_compute_width:
-      \l__piton_font_command_tl
       \lua_now:e
         {
           piton.ParseFile(

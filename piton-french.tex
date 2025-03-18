@@ -792,7 +792,9 @@ Comme l'environnement |{Piton}| a besoin d'absorber son contenu d'une manière s
 peu près comme du texte verbatim), il n'est pas possible de définir de nouveaux
 environnements directement au-dessus de l'environnement |{Piton}| avec les commandes
 classiques |\newenvironment| (de LaTeX standard) et |\NewDocumentEnvironment| (de LaTeX3).
-Il n'est pas possible non plus d'utiliser |\NewEnvironmentCopy|.
+
+Avec un noyau LaTeX postérieur au 2025-06-01, il est possible d'utiliser
+|\NewEnvironmentCopy| sur l'environment |{Piton}| mais l'utilité est limitée.
 
 C'est pourquoi \pkg{piton} propose une commande \DefinitionCommand{NewPitonEnvironment}.
 Cette commande a la même syntaxe que la commande classique
@@ -1601,10 +1603,12 @@ def carré(x):
 \end{Piton}
 
 
-\subsubsection{La clé «detected-commands»}
+\subsubsection{Les clés «detected-commands» et «raw-detected-commands»}
 
 \index{detected-commands (key)}
+\index{raw-detected-commands (key)}
 \label{detected-commands}
+\label{raw-detected-commands}
 
 La clé \Definition{detected-commands} de |\PitonOptions| permet de spécifier une liste de
 noms de commandes LaTeX qui seront directement détectées par \pkg{piton}.
@@ -1618,6 +1622,12 @@ document.
 
 \item Ces commandes doivent être des commandes LaTeX à un seul argument obligatoire entre
 accolades (et ces accolades doivent apparaître explicitement dans le listing).
+
+\item Ces commandes doivent être \textbf{protégées}\footnote{On rappelle que, par défaut
+  |\NewDocumentCommand| crée des commandes protégées au contraire de la commande
+  historique |\newcommand| de LaTeX (et de |\def| de TeX).} contre le développement au
+sens de TeX (car la commande |\piton| développe son argument avant de le passer à Lua pour
+analyse syntaxique).
 \end{itemize}
 
 \medskip
@@ -1651,6 +1661,12 @@ def fact(n):
     else:
         \highLight{return n*fact(n-1)}
 \end{Piton}
+
+\bigskip
+La clé |raw-detected-commands| est similaire à la clé |detected-commands| mais \pkg{piton}
+ne fera pas d'analyse syntaxique des arguments des commandes LaTeX ainsi détectées.
+
+
 
 
 \subsubsection{Le mécanisme «escape»}
