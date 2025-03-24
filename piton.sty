@@ -20,7 +20,7 @@
 %% -------------------------------------------
 %% 
 \def\PitonFileVersion{4.2x}
-\def\PitonFileDate{2025/03/04}
+\def\PitonFileDate{2025/03/24}
 
 
 
@@ -1318,13 +1318,13 @@
   {
     String       .meta:n = { String.Long = #1 , String.Short = #1 } ,
     Comment.Math .tl_set:c = pitonStyle _ Comment.Math  ,
-    unknown         .code:n =
+    unknown      .code:n =
       \__piton_error:n { Unknown~key~for~SetPitonStyle }
   }
 \SetPitonStyle[OCaml]
   {
     TypeExpression =
-      \SetPitonStyle { Identifier = \PitonStyle { Name.Type } }
+      \SetPitonStyle [ OCaml ] { Identifier = \PitonStyle { Name.Type } }
       \__piton_piton:n ,
   }
 \clist_gput_left:Nn \g__piton_styles_clist { String }

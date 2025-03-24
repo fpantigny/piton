@@ -80,11 +80,11 @@
 %<*STY>
 % \fi
 \def\PitonFileVersion{4.2x}
-\def\PitonFileDate{2025/03/04}
+\def\PitonFileDate{2025/03/24}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.2x" -- 2025/03/16
+piton_version = "4.2x" -- 2025/03/24
 %</LUA>
 %\fi
 %
@@ -5302,7 +5302,7 @@ piton_version = "4.2x" -- 2025/03/16
   {
     String       .meta:n = { String.Long = #1 , String.Short = #1 } ,
     Comment.Math .tl_set:c = pitonStyle _ Comment.Math  ,
-    unknown         .code:n = 
+    unknown      .code:n = 
       \@@_error:n { Unknown~key~for~SetPitonStyle }
   }
 %    \end{macrocode}
@@ -5312,7 +5312,7 @@ piton_version = "4.2x" -- 2025/03/16
 \SetPitonStyle[OCaml]
   {
     TypeExpression = 
-      \SetPitonStyle { Identifier = \PitonStyle { Name.Type } } 
+      \SetPitonStyle [ OCaml ] { Identifier = \PitonStyle { Name.Type } } 
       \@@_piton:n ,
   }
 %    \end{macrocode}
