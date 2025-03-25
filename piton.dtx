@@ -79,12 +79,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.2x}
-\def\PitonFileDate{2025/03/24}
+\def\PitonFileVersion{4.3}
+\def\PitonFileDate{2025/03/25}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.2x" -- 2025/03/24
+piton_version = "4.3" -- 2025/03/25
 %</LUA>
 %\fi
 %
@@ -1378,9 +1378,9 @@ piton_version = "4.2x" -- 2025/03/24
 %
 % \bigskip
 % \textbf{Caution}: Since each chunk is treated independently of the others, the
-% commands specified by |detected-commands| and the commands and environments
-% of Beamer automatically detected by \pkg{piton} must not cross the enmpty
-% lines of the original listing.
+% commands specified by |detected-commands| or |raw-detected-commands| and the
+% commands and environments of Beamer automatically detected by \pkg{piton} must
+% not cross the empty lines of the original listing.
 %
 % \subsection{Highlighting some identifiers}
 %
@@ -1495,7 +1495,7 @@ piton_version = "4.2x" -- 2025/03/24
 % \item It's possible to have the elements between \texttt{\$} in the comments
 % composed in LateX mathematical mode.
 % \item It's possible to ask \pkg{piton} to detect automatically some LaTeX
-% commands, thanks to the key |detected-commands|.
+% commands, thanks to the keys |detected-commands| and |raw-detected-commands|.
 % \item It's also possible to insert LaTeX code almost everywhere in a Python listing.
 % \end{itemize}
 %
@@ -1643,6 +1643,9 @@ piton_version = "4.2x" -- 2025/03/24
 % \end{Piton}
 %
 % \bigskip
+% \colorbox{yellow!50}{\textbf{New 4.3}}\par\nobreak
+%
+% \smallskip
 % The key |raw-detected-commands| is similar to the key |detected-commands| but
 % \pkg{piton} won't do any syntactic analysis of the arguments of the LaTeX
 % commands which are detected.
@@ -4662,8 +4665,8 @@ piton_version = "4.2x" -- 2025/03/24
     \int_gzero:N \g_@@_line_int
     \dim_zero:N \parindent 
     \dim_zero:N \lineskip 
-    \dim_zero:N \parskip % added 2025/03/18
     \cs_set_eq:NN \label \@@_label:n
+    \dim_zero:N \parskip
     \l_@@_font_command_tl
   }
 %    \end{macrocode}
@@ -4867,7 +4870,10 @@ piton_version = "4.2x" -- 2025/03/24
           \char_set_catcode_other:N 
         \use:c { _@@_collect_ #1 :w }
       }
-      { #4 } 
+      { 
+        #4 
+        \ignorespacesafterend
+      } 
 %    \end{macrocode}
 %
 % \medskip
@@ -5957,6 +5963,10 @@ piton.comment_latex = "#" .. piton.comment_latex
 local sprintL3
 function sprintL3 ( s ) 
   tex.sprint ( luatexbase.catcodetables.expl , s ) 
+end 
+local printL3
+function printL3 ( s ) 
+  tex.print ( luatexbase.catcodetables.expl , s ) 
 end 
 %    \end{macrocode}
 % 
@@ -8746,7 +8756,10 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
             ( 
               P " " ^ 0 * "\r" 
               + 
-              C ( ( ( 1 - P "\r" ) ^ 1 * "\r" - ( P " " ^ 0 * "\r" ) ) ^ 1 ) 
+              C ( ( ( 1 - P "\r" ) ^ 1 * ( P "\r" + -1 )  
+                    - ( P " " ^ 0 * ( P "\r" + -1 ) ) 
+                  ) ^ 1 
+                ) 
             ) ^ 0 
           ) 
      ) : match ( gobble ( n , code ) )
@@ -8759,14 +8772,14 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
     )
   for k , v in pairs ( chunks ) do 
     if k > 1 then 
-      sprintL3 [[ \l_@@_split_separation_tl ]] 
+      sprintL3 ( [[ \l_@@_split_separation_tl ]] ) 
     end 
-    tex.sprint 
+    tex.print
       ( 
-        [[\begin{]] .. piton.env_used_by_split .. "}\r"
+        [[\begin{]] .. piton.env_used_by_split .. "}\r" 
         .. v 
-        .. [[\end{]] .. piton.env_used_by_split .. "}"
-      )
+        .. [[\end{]] .. piton.env_used_by_split .. "}%\r" 
+      )  
   end
   sprintL3 [[ \endgroup ]] 
 end 
@@ -9633,6 +9646,13 @@ end
 %
 % \verb|https://github.com/fpantigny/piton|
 %
+%
+% \subsection*{Changes between versions 4.2 and 4.3}
+%
+% New key |raw-detected-commands|
+%
+% The key |old-PitonInputFile| has been deleted.
+% 
 % \subsection*{Changes between versions 4.1 and 4.2}
 %
 % New key |break-numbers-anywhere|.

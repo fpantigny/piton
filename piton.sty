@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.2x}
-\def\PitonFileDate{2025/03/24}
+\def\PitonFileVersion{4.3}
+\def\PitonFileDate{2025/03/25}
 
 
 
@@ -909,8 +909,8 @@
     \int_gzero:N \g__piton_line_int
     \dim_zero:N \parindent
     \dim_zero:N \lineskip
-    \dim_zero:N \parskip % added 2025/03/18
     \cs_set_eq:NN \label \__piton_label:n
+    \dim_zero:N \parskip
     \l__piton_font_command_tl
   }
 \cs_generate_variant:Nn \__piton_compute_left_margin:nn { n o }
@@ -1017,7 +1017,10 @@
           \char_set_catcode_other:N
         \use:c { __piton_collect_ #1 :w }
       }
-      { #4 }
+      {
+        #4
+        \ignorespacesafterend
+      }
     \AddToHook { env / #1 / begin } { \char_set_catcode_other:N \^^M }
   }
 \IfFormatAtLeastTF { 2025-06-01 }

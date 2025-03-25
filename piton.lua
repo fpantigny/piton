@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.2x" -- 2025/03/24
+piton_version = "4.3" -- 2025/03/25
 
 
 
@@ -31,6 +31,10 @@ piton.comment_latex = "#" .. piton.comment_latex
 local sprintL3
 function sprintL3 ( s )
   tex.sprint ( luatexbase.catcodetables.expl , s )
+end
+local printL3
+function printL3 ( s )
+  tex.print ( luatexbase.catcodetables.expl , s )
 end
 local P, S, V, C, Ct, Cc = lpeg.P, lpeg.S, lpeg.V, lpeg.C, lpeg.Ct, lpeg.Cc
 local Cs , Cg , Cmt , Cb = lpeg.Cs, lpeg.Cg , lpeg.Cmt , lpeg.Cb
@@ -1508,7 +1512,10 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
             (
               P " " ^ 0 * "\r"
               +
-              C ( ( ( 1 - P "\r" ) ^ 1 * "\r" - ( P " " ^ 0 * "\r" ) ) ^ 1 )
+              C ( ( ( 1 - P "\r" ) ^ 1 * ( P "\r" + -1 )
+                    - ( P " " ^ 0 * ( P "\r" + -1 ) )
+                  ) ^ 1
+                )
             ) ^ 0
           )
      ) : match ( gobble ( n , code ) )
@@ -1521,13 +1528,13 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
     )
   for k , v in pairs ( chunks ) do
     if k > 1 then
-      sprintL3 [[ \l__piton_split_separation_tl ]]
+      sprintL3 ( [[ \l__piton_split_separation_tl ]] )
     end
-    tex.sprint
+    tex.print
       (
         [[\begin{]] .. piton.env_used_by_split .. "}\r"
         .. v
-        .. [[\end{]] .. piton.env_used_by_split .. "}"
+        .. [[\end{]] .. piton.env_used_by_split .. "}%\r"
       )
   end
   sprintL3 [[ \endgroup ]]

@@ -1334,7 +1334,7 @@ vides successives sont supprimées et remplacées par le contenu du paramètre c
 à la clé \Definition{split-separation}.
 \begin{itemize}
 \item Ce paramètre doit contenir du matériel à insérer en \emph{mode vertical} de TeX. On
-peut, par exemple, mettre la primmitive TeX |\hrule|.
+peut, par exemple, mettre la primitive TeX |\hrule|.
 
 \item La valeur initiale de ce paramètre est |\vspace{\baselineskip}\vspace{-1.25pt}|, ce qui,
 au final, correspond à une ligne vide dans le \textsc{pdf} produit (cet espace vertical
@@ -1387,9 +1387,9 @@ def cube(x):
 
 \bigskip
 \textbf{Attention} : Comme chaque morceau est traité de manière indépendante, les
-commandes spécifiées par |detected-commands| et les commandes et environnements de Beamer
-automatiquement détectés par \pkg{piton} ne doivent pas enjamber les lignes vides du
-listing de départ. 
+commandes spécifiées par |detected-commands| ou |raw-detected-commands| et les commandes
+et environnements de Beamer automatiquement détectés par \pkg{piton} ne doivent pas
+enjamber les lignes vides du listing de départ.
 
 
 \bigskip
@@ -1663,6 +1663,10 @@ def fact(n):
 \end{Piton}
 
 \bigskip
+
+\colorbox{yellow!50}{\textbf{Nouveau 4.3}}\par\nobreak
+
+\smallskip
 La clé |raw-detected-commands| est similaire à la clé |detected-commands| mais \pkg{piton}
 ne fera pas d'analyse syntaxique des arguments des commandes LaTeX ainsi détectées.
 
