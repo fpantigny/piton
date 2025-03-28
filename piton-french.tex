@@ -261,7 +261,7 @@ La commande |\piton| possède en fait une syntaxe double. Elle est peut être ut
 une commande standard de LaTeX prenant son argument entre accolades (|\piton{...}|), ou
 bien selon la syntaxe de la commande
 |\verb| où l'argument est délimité entre deux caractères 
-identiques (par ex. : \verb!\piton|...|!).
+identiques (par ex. : \verb!\piton|...|! ou \verb!\piton+...+!).
 On détaille maintenant ces deux syntaxes.
 
 \bigskip
@@ -373,8 +373,6 @@ p.~\pageref{NewPitonLanguage}).
 La valeur initiale est |Python|.
 
 \item \index{font-command}
-\colorbox{yellow!50}{\textbf{Nouveau 4.0}}\par\nobreak
-
 La clé \Definition{font-command} contient des instructions de fonte qui seront
 insérées au début de chaque élément formaté par \pkg{piton}, que ce soit avec la commande
 |\piton|, l'environnement |{Piton}| ou bien la commande |\PitonInputFile| (il n'y a que
@@ -1246,17 +1244,11 @@ def dict_of_liste(liste):
 
 
 \bigskip
-\colorbox{yellow!50}{\bfseries{Nouveau 4.1}}\par\nobreak
-
-\smallskip
 Avec la clé \Definition{break-strings-anywhere}, les chaînes de caractères pourront être
 coupées n'importe où (et pas seulement sur les espaces). 
 
 
 \bigskip
-\colorbox{yellow!50}{\bfseries{Nouveau 4.2}}\par\nobreak
-
-\smallskip
 Avec la clé \Definition{break-numbers-anywhere}, les nombres peuvent être coupés n'importe où.
 
 
@@ -1342,8 +1334,6 @@ est supprimé s'il tombe au niveau d'un saut de page).
 \end{itemize}
 
 
-\colorbox{yellow!50}{\textbf{Nouveau 4.0}}\par\nobreak
-
 Chaque morceau du code informatique est formaté (de manière autonome) dans un
 environnement dont le nom est donné par la clé \Definition{env-used-by-split}. La valeur
 initiale de ce paramètre est, sans surprise, |Piton| et les différents morceaux sont donc
@@ -1387,9 +1377,10 @@ def cube(x):
 
 \bigskip
 \textbf{Attention} : Comme chaque morceau est traité de manière indépendante, les
-commandes spécifiées par |detected-commands| ou |raw-detected-commands| et les commandes
-et environnements de Beamer automatiquement détectés par \pkg{piton} ne doivent pas
-enjamber les lignes vides du listing de départ.
+commandes spécifiées par |detected-commands| ou |raw-detected-commands|
+(cf.~p.~\pageref{detected-commands}) et les commandes et environnements de Beamer
+automatiquement détectés par \pkg{piton} ne doivent pas enjamber les lignes vides du
+listing de départ.
 
 
 \bigskip
@@ -1398,8 +1389,8 @@ enjamber les lignes vides du listing de départ.
 \indexcommand{SetPitonIdentifier}
 \label{SetPitonIdentifier}
 
-La commande \DefinitionCommand{SetPitonIdentifier} permet de changer le formatage de
-certains identificateurs.
+La commande \DefinitionCommand{SetPitonIdentifier} permet de changer automatiquement le
+formatage de certains identificateurs en se fondant sur son nom.
 
 \smallskip
 Cette commande prend trois arguments : un optionnel et deux obligatoires.
@@ -1623,7 +1614,7 @@ document.
 \item Ces commandes doivent être des commandes LaTeX à un seul argument obligatoire entre
 accolades (et ces accolades doivent apparaître explicitement dans le listing).
 
-\item Ces commandes doivent être \textbf{protégées}\footnote{On rappelle que, par défaut
+\item Ces commandes doivent être \textbf{protégées}\footnote{On rappelle que, par défaut,
   |\NewDocumentCommand| crée des commandes protégées au contraire de la commande
   historique |\newcommand| de LaTeX (et de |\def| de TeX).} contre le développement au
 sens de TeX (car la commande |\piton| développe son argument avant de le passer à Lua pour
@@ -1670,7 +1661,9 @@ def fact(n):
 La clé |raw-detected-commands| est similaire à la clé |detected-commands| mais \pkg{piton}
 ne fera pas d'analyse syntaxique des arguments des commandes LaTeX ainsi détectées.
 
-
+S'il y a un retour à la ligne dans un argument d'une commande faisant l'objet d'un
+|raw-detected-commands|, celui-ci sera remplacé par une espace comme le fait LaTeX par
+défaut. 
 
 
 \subsubsection{Le mécanisme «escape»}
@@ -2980,12 +2973,6 @@ pour pseudo-code.
 
 \label{verbatim}
 \index{verbatim (langage «verbatim»)}
-
-
-\colorbox{yellow!50}{\textbf{Nouveau 4.1}}
-
-
-\bigskip
 
 On peut basculer vers le langage «|verbatim|» avec la clé |language| : |language = verbatim|
 

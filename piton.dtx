@@ -26,6 +26,7 @@
 %<@@=piton>
 %<*driver>
 \documentclass{l3doc}
+\VerbatimFootnotes
 \usepackage{geometry}
 \geometry{left=2.8cm,right=2.8cm,top=2.5cm,bottom=2.5cm,papersize={21cm,29.7cm}}
 \usepackage{fontspec}
@@ -246,7 +247,7 @@ piton_version = "4.3" -- 2025/03/25
 % as a standard command of LaTeX taking its argument between curly braces
 % (|\piton{...}|) but it may also be used with a syntax similar to the syntax of
 % the command |\verb|, that is to say with the argument delimited by two identical
-% characters (e.g.: \verb!\piton|...|!). 
+% characters (e.g.: \verb!\piton|...|! or \verb!\piton+...+!). 
 % 
 % \begin{itemize}
 % \item {\color{blue} \textsf{Syntax} \verb|\piton{...}|}\par\nobreak
@@ -296,7 +297,7 @@ piton_version = "4.3" -- 2025/03/25
 % \bigskip
 % It's possible to use the command |\piton| in the arguments of a
 % LaTeX command.\footnote{For example, it's possible to use the command
-% \texttt{\textbackslash piton} in a footnote. Example :
+% |\piton| in a footnote. Example :
 % \piton{s = 123}.}
 %
 % However, since the argument is expanded (in the TeX sens), one should take
@@ -356,8 +357,6 @@ piton_version = "4.3" -- 2025/03/25
 % The initial value is |Python|.
 %
 % \item \index{font-command}
-% \colorbox{yellow!50}{\textbf{New 4.0}}\par\nobreak
-%
 % The key \Definition{font-command} contains instructions of font which will be
 % inserted at the beginning of all the elements composed by \pkg{piton} (without
 % surprise, these instructions are not used for the so-called ``LaTeX comments'').
@@ -1243,16 +1242,10 @@ piton_version = "4.3" -- 2025/03/25
 % \end{center}
 %
 % \bigskip
-% \colorbox{yellow!50}{\bfseries{New 4.1}}\par\nobreak
-%
-% \smallskip
 % With the key \Definition{break-strings-anywhere}, the strings may be broken
 % anywhere (and not only on the spaces). 
 %
 % \bigskip
-% \colorbox{yellow!50}{\bfseries{New 4.2}}\par\nobreak
-%
-% \smallskip
 % With the key \Definition{break-numbers-anywhere}, the numbers may be broken
 % anywhere.
 %
@@ -1335,7 +1328,6 @@ piton_version = "4.3" -- 2025/03/25
 % \end{itemize}
 %
 %
-% \colorbox{yellow!50}{\textbf{New 4.0}}\par\nobreak
 % Each chunk of the informatic listing is composed in an environment whose name
 % is given by the key \Definition{env-used-by-split}. The initial value of that
 % parameter is, not surprisingly, |Piton| and, hence, the different chunks are
@@ -1378,16 +1370,18 @@ piton_version = "4.3" -- 2025/03/25
 %
 % \bigskip
 % \textbf{Caution}: Since each chunk is treated independently of the others, the
-% commands specified by |detected-commands| or |raw-detected-commands| and the
-% commands and environments of Beamer automatically detected by \pkg{piton} must
-% not cross the empty lines of the original listing.
+% commands specified by |detected-commands| or |raw-detected-commands|
+% (cf.~p.~\pageref{detected-commands}) and the commands and environments of
+% Beamer automatically detected by \pkg{piton} must not cross the empty lines of
+% the original listing.
 %
 % \subsection{Highlighting some identifiers}
 %
 % \label{SetPitonIdentifier}
 %
-% The command \DefinitionCommand{SetPitonIdentifier} allows to change the
-% formatting of some identifiers.
+% The command \DefinitionCommand{SetPitonIdentifier} allows to automatically
+% change the formatting of some identifiers. That change is only based on the
+% name of those indentifiers.
 %
 % \smallskip
 % That command takes in three arguments: 
@@ -1649,6 +1643,10 @@ piton_version = "4.3" -- 2025/03/25
 % The key |raw-detected-commands| is similar to the key |detected-commands| but
 % \pkg{piton} won't do any syntactic analysis of the arguments of the LaTeX
 % commands which are detected.
+%
+% If there is a line break within the argument of a command detected by the mean
+% of |raw-detected-commands|, that line break is replaced by a space (as does
+% LaTeX by default).
 % 
 % \subsubsection{The mechanism ``escape''}
 %
@@ -1783,8 +1781,8 @@ piton_version = "4.3" -- 2025/03/25
 % necessary to use the environments |{Piton}| within environments |{frame}| of
 % Beamer protected by the key |fragile|, i.e. beginning with
 % |\begin{frame}[fragile]|.\footnote{Remind that for an environment
-% \texttt{\{frame\}} of Beamer using the key |fragile|, the instruction
-% \texttt{\textbackslash end\{frame\}} must be alone on a single line (except
+% |{frame}| of Beamer using the key |fragile|, the instruction
+% |\end{frame}| must be alone on a single line (except
 % for any leading whitespace).}
 %
 %
@@ -1793,8 +1791,8 @@ piton_version = "4.3" -- 2025/03/25
 % \cls{beamer}\footnote{The extension \pkg{piton} detects the class \cls{beamer}
 % and the package \pkg{beamerarticle} if it is loaded previously
 % but, if needed, it's also possible to activate that mechanism with the key
-% |beamer| provided by \pkg{piton} at load-time: |\textbackslash
-% usepackage[beamer]\{piton\}|}, the behaviour of \pkg{piton} is slightly
+% |beamer| provided by \pkg{piton} at load-time:
+% |\usepackage[beamer]\{piton\}|}, the behaviour of \pkg{piton} is slightly 
 % modified, as described now.
 %
 % \subsubsection{\{Piton\} et \textbackslash PitonInputFile are
@@ -1828,8 +1826,8 @@ piton_version = "4.3" -- 2025/03/25
 % |\PitonInputFile|):
 % \begin{itemize}
 % \item no mandatory argument : |\pause|\footnote{One should remark that it's
-% also  possible to use the command \texttt{\textbackslash pause} in a ``LaTeX
-% comment'', that is to say by writing \texttt{\#> \textbackslash pause}. By
+% also  possible to use the command |\pause| in a ``LaTeX
+% comment'', that is to say by writing |#> \pause|. By
 % this way, if the Python code is copied, it's still executable by Python}.  ;
 % \item one mandatory argument : |\action|, |\alert|, |\invisible|, |\only|,
 % |\uncover| and |\visible| ; \newline
@@ -1844,8 +1842,8 @@ piton_version = "4.3" -- 2025/03/25
 % These commands must be used preceded and following by a space. In the
 % mandatory arguments of these commands, the braces must be balanced. However,
 % the braces included in short strings\footnote{The short strings of Python are
-% the strings delimited by characters \texttt{'} or the characters \texttt{"}
-% and not \texttt{'''} nor \texttt{"""}. In Python, the short strings can't
+% the strings delimited by characters |'| or the characters |"|
+% and not |'''| nor |"""|. In Python, the short strings can't
 % extend on several lines.} of Python are not considered.
 %
 % \medskip
@@ -2426,9 +2424,8 @@ piton_version = "4.3" -- 2025/03/25
 % Pygments, as applied by Pygments to the language Python.\footnote{See:
 % \url{https://pygments.org/styles/}. Remark that, by default, Pygments provides
 % for its style \pkg{manni} a colored background whose color is the HTML color
-% \texttt{\#F0F3F3}. It's possible to have the same color in \texttt{\{Piton\}}
-% with the instruction \texttt{\textbackslash PitonOptions\{background-color =
-% [HTML]\{F0F3F3\}\}}.}
+% |#F0F3F3|. It's possible to have the same color in |{Piton}|
+% with the instruction |\PitonOptions{background-color = [HTML]{F0F3F3}}|.} 
 %
 % \vspace{1cm}
 %
@@ -2754,8 +2751,6 @@ piton_version = "4.3" -- 2025/03/25
 % \subsection{The language ``verbatim''}
 %
 % \label{verbatim}
-%
-% \colorbox{yellow!50}{\textbf{New 4.1}}
 %
 % It's possible to switch to the language ``|verbatim|'' with the key |language|:
 % |language = verbatim|.
@@ -4734,7 +4729,7 @@ piton_version = "4.3" -- 2025/03/25
 % And we subtract also for the left margin. If the key |left-margin| has been
 % used (with a numerical value or with the special value~|min|),
 % |\l_@@_left_margin_dim| has a non-zero value\footnote{If the key
-% \texttt{left-margin} has been used with the special value \texttt{min}, the
+% |left-margin| has been used with the special value |min|, the
 % actual value of \texttt{\textbackslash l_\@\@_left_margin_dim} has yet been
 % computed when we use the current command.} and we use that value. Elsewhere,
 % we use a value of 0.5~em.
@@ -4909,7 +4904,8 @@ piton_version = "4.3" -- 2025/03/25
             #3
             \@@_pre_env:
             \int_compare:nNnT \l_@@_number_lines_start_int > \c_zero_int
-              { \int_gset:Nn \g_@@_visual_line_int 
+              { 
+                \int_gset:Nn \g_@@_visual_line_int 
                   { \l_@@_number_lines_start_int - 1 } 
               }
             \mode_if_vertical:TF \noindent \newline 
@@ -5020,8 +5016,7 @@ piton_version = "4.3" -- 2025/03/25
 %
 % \bigskip
 % The code of the command |\PitonInputFile| is somewhat similar to the code of
-% the environment |{Piton}|. In fact, it's simpler because there isn't the
-% problem of catching the content of the environment in a verbatim mode.
+% the environment |{Piton}|.
 %    \begin{macrocode}
 \NewDocumentCommand { \PitonInputFileTF } { d < > O { } m m m }
   {
@@ -5978,7 +5973,7 @@ end
 % define first aliases for several functions of that library.
 %    \begin{macrocode}
 local P, S, V, C, Ct, Cc = lpeg.P, lpeg.S, lpeg.V, lpeg.C, lpeg.Ct, lpeg.Cc
-local Cs , Cg , Cmt , Cb = lpeg.Cs, lpeg.Cg , lpeg.Cmt , lpeg.Cb 
+local Cg , Cmt , Cb = lpeg.Cg , lpeg.Cmt , lpeg.Cb 
 local B , R = lpeg.B , lpeg.R
 %    \end{macrocode}
 %
@@ -8495,8 +8490,20 @@ function piton.Parse ( language , code )
 end
 %    \end{macrocode}
 %
-
-%    
+% \bigskip
+% There is the problem of the conventions of end of lines (|\n| in Unix and
+% Linux but |\r\n| in Windows). The function |cr_file_lines| will read a file
+% line by line after replacement of the |\r\n| by |\n|.
+%    \begin{macrocode}
+local cr_file_lines
+function cr_file_lines ( filename )
+    local f = io.open ( filename , 'rb' )
+    local s = f : read ( '*a' )
+    f : close ( )
+    return ( s .. '\n' ) : gsub( '\r\n?' , '\n') : gmatch ( '(.-)\n' ) 
+end
+%    \end{macrocode}
+% 
 %
 % \bigskip
 % The function |ParseFile| will be used by the LaTeX command |\PitonInputFile|.
@@ -8507,12 +8514,7 @@ function piton.ParseFile
   ( lang , name , first_line , last_line , splittable , split )
   local s = ''
   local i = 0 
-%    \end{macrocode}
-% At the date of septembre 2024, LuaLaTeX uses Lua 5.3 and not 5.4. In the
-% version 5.4, |io.lines| returns four values (and not just one) but the
-% following code should be correct.
-%    \begin{macrocode}
-  for line in io.lines ( name ) do 
+  for line in cr_file_lines ( name ) do 
     i = i + 1 
     if i >= first_line then 
       s = s .. '\r' .. line 
@@ -8520,6 +8522,7 @@ function piton.ParseFile
     if i >= last_line then break end 
   end
 %    \end{macrocode}
+%
 % We extract the BOM of utf-8, if present.
 %    \begin{macrocode}
   if string.byte ( s , 1 ) == 13 then 
@@ -8555,11 +8558,18 @@ end
 % For that command, we have to undo the duplication of the symbols |#|.
 %    \begin{macrocode}
 function piton.ParseBis ( lang , code )
-  local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( code )
-  return piton.Parse ( lang , s ) 
+  return piton.Parse ( lang , code : gsub ( '##' , '#' ) )
 end
 %    \end{macrocode}
+% For information, here the code when using a \textsc{lpeg} instead of |gsub| of
+% the standard library of Lua:
 %
+% \begin{Verbatim}
+%  local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( code )
+% \end{Verbatim}
+% 
+% The version with |gsub| is about twice faster.
+% 
 % \bigskip
 % The following command will be used when we have to parse some small chunks of
 % code that have yet been parsed. They are re-scanned by LaTeX because it has
@@ -8570,19 +8580,16 @@ end
 function piton.ParseTer ( lang , code )
 %    \end{macrocode}
 % Be careful: we have to write |[[\@@_breakable_space: ]]| with a space after
-% the name of the LaTeX command |\@@_breakable_space:|. 
+% the name of the LaTeX command |\@@_breakable_space:|. Remember that
+% |\@@_leading_space:| does not create a space, only an incrementation of the
+% counter |\g_@@_indentation_int|. That's why we don't replace it by a space...
 %    \begin{macrocode}
-  local s
-  s = ( Cs ( ( P [[\@@_breakable_space: ]] / ' ' + 1 ) ^ 0 ) ) 
-      : match ( code )
-%    \end{macrocode}
-% Remember that |\@@_leading_space:| does not create a space, only an
-% incrementation of the counter |\g_@@_indentation_int|. That's why we don't
-% replace it by a space...
-%    \begin{macrocode}
-  s = ( Cs ( ( P [[\@@_leading_space: ]] / '' + 1 ) ^ 0 ) ) 
-      : match ( s )
-  return piton.Parse ( lang , s )
+  return piton.Parse 
+          ( 
+            lang , 
+            code : gsub ( [[\@@_breakable_space: ]] , ' ' )
+                 : gsub ( [[\@@_leading_space: ]] , '' )
+          )
 end
 %    \end{macrocode}
 % 
@@ -8886,8 +8893,8 @@ end
 % corresponding to the strings |marker_beginning| and |marker_end|.
 %    \begin{macrocode}
 function piton.ComputeRange(marker_beginning,marker_end,file_name)
-  local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( marker_beginning )
-  local t = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( marker_end )
+  local s = marker_beginning : gsub ( '##' , '#' ) 
+  local t = marker_end : gsub ( '##' , '#' )  
   local first_line = -1
   local count = 0
   local last_found = false

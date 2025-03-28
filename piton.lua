@@ -37,7 +37,7 @@ function printL3 ( s )
   tex.print ( luatexbase.catcodetables.expl , s )
 end
 local P, S, V, C, Ct, Cc = lpeg.P, lpeg.S, lpeg.V, lpeg.C, lpeg.Ct, lpeg.Cc
-local Cs , Cg , Cmt , Cb = lpeg.Cs, lpeg.Cg , lpeg.Cmt , lpeg.Cb
+local Cg , Cmt , Cb = lpeg.Cg , lpeg.Cmt , lpeg.Cb
 local B , R = lpeg.B , lpeg.R
 local Q
 function Q ( pattern )
@@ -1378,12 +1378,18 @@ function piton.Parse ( language , code )
     end
   end
 end
-
+local cr_file_lines
+function cr_file_lines ( filename )
+    local f = io.open ( filename , 'rb' )
+    local s = f : read ( '*a' )
+    f : close ( )
+    return ( s .. '\n' ) : gsub( '\r\n?' , '\n') : gmatch ( '(.-)\n' )
+end
 function piton.ParseFile
   ( lang , name , first_line , last_line , splittable , split )
   local s = ''
   local i = 0
-  for line in io.lines ( name ) do
+  for line in cr_file_lines ( name ) do
     i = i + 1
     if i >= first_line then
       s = s .. '\r' .. line
@@ -1411,16 +1417,15 @@ function piton.RetrieveGobbleParse ( lang , n , splittable , code )
   piton.GobbleParse ( lang , n , splittable , s )
 end
 function piton.ParseBis ( lang , code )
-  local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( code )
-  return piton.Parse ( lang , s )
+  return piton.Parse ( lang , code : gsub ( '##' , '#' ) )
 end
 function piton.ParseTer ( lang , code )
-  local s
-  s = ( Cs ( ( P [[\__piton_breakable_space: ]] / ' ' + 1 ) ^ 0 ) )
-      : match ( code )
-  s = ( Cs ( ( P [[\__piton_leading_space: ]] / '' + 1 ) ^ 0 ) )
-      : match ( s )
-  return piton.Parse ( lang , s )
+  return piton.Parse
+          (
+            lang ,
+            code : gsub ( [[\__piton_breakable_space: ]] , ' ' )
+                 : gsub ( [[\__piton_leading_space: ]] , '' )
+          )
 end
 local AutoGobbleLPEG =
       (  (
@@ -1589,8 +1594,8 @@ function piton.CountNonEmptyLinesFile ( name )
    ( string.format ( [[ \int_set:Nn \l__piton_nb_non_empty_lines_int { % i } ]] , count ) )
 end
 function piton.ComputeRange(marker_beginning,marker_end,file_name)
-  local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( marker_beginning )
-  local t = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( marker_end )
+  local s = marker_beginning : gsub ( '##' , '#' )
+  local t = marker_end : gsub ( '##' , '#' )
   local first_line = -1
   local count = 0
   local last_found = false

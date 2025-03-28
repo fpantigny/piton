@@ -1040,7 +1040,8 @@
             #3
             \__piton_pre_env:
             \int_compare:nNnT \l__piton_number_lines_start_int > \c_zero_int
-              { \int_gset:Nn \g__piton_visual_line_int
+              {
+                \int_gset:Nn \g__piton_visual_line_int
                   { \l__piton_number_lines_start_int - 1 }
               }
             \mode_if_vertical:TF \noindent \newline
