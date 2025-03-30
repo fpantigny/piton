@@ -1025,6 +1025,9 @@
   }
 \IfFormatAtLeastTF { 2025-06-01 }
   {
+    \tl_new:N \l__piton_newline_tl
+    \tl_set:Nn \l__piton_newline_tl { \obeyedline }
+    \regex_replace_all:nnN { \c { obeyedline } } { \r } \l__piton_newline_tl
     \tl_new:N \l__piton_body_tl
     \cs_new_protected:Npn \__piton_store_body:n #1
       {
@@ -1035,7 +1038,7 @@
       {
         \NewDocumentEnvironment { #1 } { #2 > { \__piton_store_body:n } c }
           {
-            \regex_replace_all:nnN { \c { obeyedline } } { \r } \l__piton_body_tl
+            \tl_replace_all:NnV \l__piton_body_tl { \obeyedline } \l__piton_newline_tl
             \cs_set_eq:NN \PitonOptions \__piton_fake_PitonOptions
             #3
             \__piton_pre_env:

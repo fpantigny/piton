@@ -4884,11 +4884,25 @@ piton_version = "4.3" -- 2025/03/25
 %    \end{macrocode}
 % This is the end of the definition of the command |\NewPitonEnvironment|.
 %
-%
+% 
+% \bigskip
 % 
 %    \begin{macrocode}
 \IfFormatAtLeastTF { 2025-06-01 }
   {
+%    \end{macrocode}
+% First, we will have to replace all the occurrences of |\obeyedline| in
+% |\l_@@_body_tl| by a character of end of line (|\r| in the strings of Lua).
+% First, we want to construct a token list |\l_@@_newline_tl| which will contain
+% such character. That's not so easy and that's why we create that token list by
+% using |\regex_replace_all:nnN| (only once when \pkg{piton} is loaded).
+%    \begin{macrocode}
+    \tl_new:N \l_@@_newline_tl 
+    \tl_set:Nn \l_@@_newline_tl { \obeyedline }
+    \regex_replace_all:nnN { \c { obeyedline } } { \r } \l_@@_newline_tl
+%    \end{macrocode}
+% Now, your token list |\l_@@_newline_tl| is constructed.
+%    \begin{macrocode}
     \tl_new:N \l_@@_body_tl
     \cs_new_protected:Npn \@@_store_body:n #1 
       {
@@ -4899,7 +4913,18 @@ piton_version = "4.3" -- 2025/03/25
       {
         \NewDocumentEnvironment { #1 } { #2 > { \@@_store_body:n } c } 
           {
-            \regex_replace_all:nnN { \c { obeyedline } } { \r } \l_@@_body_tl 
+%    \end{macrocode}
+% Now, we have to replace all the occurrences of |\obeyedline| by a character of
+% end of line (|\r| in the strings of Lua).
+%
+% We could use: 
+% |\regex_replace_all:nnN { \c { obeyedline } } { \r } \l_@@_body_tl |
+%
+% However, it will be faster to use |\tl_replace_all:NnV| with the special token
+% list |\l_@@_newline_tl| that we have constructed before.
+% 
+%    \begin{macrocode}
+            \tl_replace_all:NnV \l_@@_body_tl { \obeyedline } \l_@@_newline_tl
             \cs_set_eq:NN \PitonOptions \@@_fake_PitonOptions
             #3
             \@@_pre_env:
@@ -8823,9 +8848,6 @@ function piton.get_last_code ( )
 end
 %    \end{macrocode}
 % 
-% 
-% \bigskip
-% 
 % \subsubsection{To count the number of lines}
 %
 %    \begin{macrocode}
@@ -8837,7 +8859,7 @@ function piton.CountLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  sprintL3 ( string.format ( [[ \int_set:Nn  \l_@@_nb_lines_int { %i } ]] , count ) ) 
+  sprintL3 ( string.format ( [[ \int_set:Nn \l_@@_nb_lines_int { %i } ]] , count ) ) 
 end 
 %    \end{macrocode}
 %

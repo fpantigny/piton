@@ -1563,7 +1563,7 @@ function piton.CountLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  sprintL3 ( string.format ( [[ \int_set:Nn  \l__piton_nb_lines_int { %i } ]] , count ) )
+  sprintL3 ( string.format ( [[ \int_set:Nn \l__piton_nb_lines_int { %i } ]] , count ) )
 end
 function piton.CountNonEmptyLines ( code )
   local count = 0
