@@ -4891,17 +4891,7 @@ piton_version = "4.3" -- 2025/03/25
 \IfFormatAtLeastTF { 2025-06-01 }
   {
 %    \end{macrocode}
-% First, we will have to replace all the occurrences of |\obeyedline| in
-% |\l_@@_body_tl| by a character of end of line (|\r| in the strings of Lua).
-% First, we want to construct a token list |\l_@@_newline_tl| which will contain
-% such character. That's not so easy and that's why we create that token list by
-% using |\regex_replace_all:nnN| (only once when \pkg{piton} is loaded).
-%    \begin{macrocode}
-    \tl_new:N \l_@@_newline_tl 
-    \tl_set:Nn \l_@@_newline_tl { \obeyedline }
-    \regex_replace_all:nnN { \c { obeyedline } } { \r } \l_@@_newline_tl
-%    \end{macrocode}
-% Now, your token list |\l_@@_newline_tl| is constructed.
+% We will retreive the body of the environment in |\l_@@_body_tl|.
 %    \begin{macrocode}
     \tl_new:N \l_@@_body_tl
     \cs_new_protected:Npn \@@_store_body:n #1 
@@ -4916,15 +4906,9 @@ piton_version = "4.3" -- 2025/03/25
 %    \end{macrocode}
 % Now, we have to replace all the occurrences of |\obeyedline| by a character of
 % end of line (|\r| in the strings of Lua).
-%
-% We could use: 
-% |\regex_replace_all:nnN { \c { obeyedline } } { \r } \l_@@_body_tl |
-%
-% However, it will be faster to use |\tl_replace_all:NnV| with the special token
-% list |\l_@@_newline_tl| that we have constructed before.
-% 
 %    \begin{macrocode}
-            \tl_replace_all:NnV \l_@@_body_tl { \obeyedline } \l_@@_newline_tl
+            \tl_set:Ne \obeyedline { \char_generate:nn { 13 } { 11 } }
+            \tl_set:Ne \l_@@_body_tl \l_@@_body_tl
             \cs_set_eq:NN \PitonOptions \@@_fake_PitonOptions
             #3
             \@@_pre_env:
@@ -8586,20 +8570,12 @@ function piton.ParseBis ( lang , code )
   return piton.Parse ( lang , code : gsub ( '##' , '#' ) )
 end
 %    \end{macrocode}
-% For information, here the code when using a \textsc{lpeg} instead of |gsub| of
-% the standard library of Lua:
-%
-% \begin{Verbatim}
-%  local s = ( Cs ( ( P '##' / '#' + 1 ) ^ 0 ) ) : match ( code )
-% \end{Verbatim}
-% 
-% The version with |gsub| is about twice faster.
 % 
 % \bigskip
 % The following command will be used when we have to parse some small chunks of
 % code that have yet been parsed. They are re-scanned by LaTeX because it has
 % been required by |\@@_piton:n| in the \pkg{piton} style of the syntaxic
-% element. In that case, you have to remove the potential |\@@_breakable_space:|
+% element. In that case, you have to remove the potential \verb|\@@_breakable_space:|
 % that have been inserted when the key |break-lines| is in force.
 %    \begin{macrocode}
 function piton.ParseTer ( lang , code )
