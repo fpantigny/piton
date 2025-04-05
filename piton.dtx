@@ -508,7 +508,8 @@ piton_version = "4.3" -- 2025/03/25
 % \item \index{show-spaces-in-strings} When the key
 % \Definition{show-spaces-in-strings} is activated, the spaces in the 
 % strings of characters\footnote{With the language Python that feature applies
-% only to the short strings (delimited by~\verb|'| or~\verb|"|). In OCaml, that
+% only to the short strings (delimited by~\verb|'| or~\verb|"|) and, in
+% particular, it does not apply for the \emph{doc strings}. In OCaml, that
 % feature does not apply to the \emph{quoted strings}.} are replaced by the
 % character~␣ (U+2423 : \textsc{open box}). Of course, that character~U+2423
 % must be present in the monospaced font which is used.\footnote{The initial
@@ -522,8 +523,9 @@ piton_version = "4.3" -- 2025/03/25
 % replaced by U+2423 (and no line break can occur on those ``visible spaces'',
 % even when the key |break-lines|\footnote{cf. \ref{line-breaks}
 % p.~\pageref{line-breaks}} is in force). By the way, one should remark that all
-% the trailing spaces (at the end of a line) are deleted by \pkg{piton}. The
-% tabulations at the beginning of the lines are represented by arrows.
+% the trailing spaces (at the end of a line) are deleted by \pkg{piton} --- and,
+% therefore, won't be represented by~␣. Moreover, when the key |show-spaces| is
+% in force, the tabulations at the beginning of the lines are represented by arrows.
 % \end{itemize}
 %
 % \bigskip
@@ -1639,10 +1641,10 @@ piton_version = "4.3" -- 2025/03/25
 % \bigskip
 % \colorbox{yellow!50}{\textbf{New 4.3}}\par\nobreak
 %
-% \smallskip
-% The key |raw-detected-commands| is similar to the key |detected-commands| but
-% \pkg{piton} won't do any syntactic analysis of the arguments of the LaTeX
-% commands which are detected.
+% \smallskip 
+% The key \Definition{raw-detected-commands} is similar to the key
+% |detected-commands| but \pkg{piton} won't do any syntactic analysis of the
+% arguments of the LaTeX commands which are detected.
 %
 % If there is a line break within the argument of a command detected by the mean
 % of |raw-detected-commands|, that line break is replaced by a space (as does
@@ -1728,7 +1730,7 @@ piton_version = "4.3" -- 2025/03/25
 % \begin{Verbatim}
 % \PitonOptions{~emphase#begin-escape-math=$,end-escape-math=$@}
 % \end{Verbatim}
-% Remark that the character \verb|$| must \emph{not} be protected by a backslash.
+% Note: the character \verb|$| must \emph{not} be protected by a backslash.
 %
 % \bigskip
 % However, it's probably more prudent to use |\(| et |\)|, which are delimiters
@@ -3008,10 +3010,8 @@ piton_version = "4.3" -- 2025/03/25
 \sys_if_engine_luatex:F { \msg_critical:nn { piton } { LuaLaTeX~mandatory } }
 %    \end{macrocode}
 % 
-% 
 % \bigskip
 %    \begin{macrocode}
-\RequirePackage { luatexbase } 
 \RequirePackage { luacode }
 %    \end{macrocode}
 % 
@@ -3186,12 +3186,6 @@ piton_version = "4.3" -- 2025/03/25
 %    \begin{macrocode}
 \lua_now:n 
   { 
-    piton.BeamerCommands = lpeg.P [[\uncover]] 
-       + [[\only]] + [[\visible]] + [[\invisible]] + [[\alert]] + [[\action]] 
-    piton.beamer_environments = { "uncoverenv" , "onlyenv" , "visibleenv" , 
-               "invisibleenv" ,  "alertenv" ,  "actionenv" }
-    piton.DetectedCommands = lpeg.P ( false ) 
-    piton.RawDetectedCommands = lpeg.P ( false ) 
     piton.last_code = ''
     piton.last_language = ''
   }
@@ -3393,12 +3387,6 @@ piton_version = "4.3" -- 2025/03/25
 %    \begin{macrocode}
 \bool_new:N \l_@@_break_lines_in_piton_bool
 %    \end{macrocode}
-% However, the key |break-lines_in_piton| raises that boolean but also executes the
-% following instruction:
-% 
-% \quad |\tl_set_eq:NN \l_@@_space_in_string_tl \space| 
-
-% The initial value of |\l_@@_space_in_string_tl| is |\nobreakspace|.
 % 
 % \bigskip
 % The following dimension will be the width of the listing constructed by
@@ -3612,7 +3600,68 @@ piton_version = "4.3" -- 2025/03/25
 % we will set |\@@_trailing_space:| equal to |\space|.
 % 
 % \bigskip
+% \subsubsection{Detected commands}
+%
+% There are four keys for ``detected commands and environments'':
+% |detected-commands|, |raw-detected-commands|, |beamer-commands| and
+% |beamer-environments|. 
+%
+% For each of those keys, we keep a clist of the names of such detected
+% commands and environments. For the commands, the corresponding |clist| will
+% contain the name of the commands \emph{wihtout} the backlash.
+%
+%    \begin{macrocode}
+\clist_new:N \l_@@_detected_commands_clist
+\clist_new:N \l_@@_raw_detected_commands_clist
+\clist_new:N \l_@@_beamer_commands_clist
+\clist_set:Nn \l_@@_beamer_commands_clist
+  {uncover, only, visible, invisible, alert, action}
+\clist_new:N \l_@@_beamer_environments_clist
+\clist_set:Nn \l_@@_beamer_environments_clist
+  {uncoverenv, onlyenv, visibleenv, invisibleenv, alertenv, actionenv}
+%    \end{macrocode}
+% Remark that, since we have used clists, these clists, as token lists are
+% ``purified'': there is no empty component and for each component, there is no
+% space on both sides.
+%
+% \bigskip
+% Of course, the value of those clists may be modified during the preamble of
+% the document by using the corresponding key ('detected-commands', etc.).
+%
+% However, after the |\begin{document}|, it's no longer possible to modify those
+% clists because their contents will be used in the construction of the main
+% \textsc{lpeg} for each informatic language.
+%
+% \bigskip
+% However, in a |\AtBeginDocument|, we will convert those clists into
+% ``toks registers'' of TeX.
+%    \begin{macrocode}
+\hook_gput_code:nnn { begindocument } { . }
+  { 
+    \newtoks \PitonDetectedCommands
+    \newtoks \PitonRawDetectedCommands
+    \newtoks \PitonBeamerCommands
+    \newtoks \PitonBeamerEnvironments
+%    \end{macrocode}
+% L3 does \emph{not} support those ``toks registers'' but it's still possible to
+% affect to the ``toks registers'' the content of the clists with a L3-like syntax.
+%    \begin{macrocode}
+    \exp_args:NV \PitonDetectedCommands \l_@@_detected_commands_clist 
+    \exp_args:NV \PitonRawDetectedCommands \l_@@_raw_detected_commands_clist
+    \exp_args:NV \PitonBeamerCommands \l_@@_beamer_commands_clist
+    \exp_args:NV \PitonBeamerEnvironments \l_@@_beamer_environments_clist
+  }
+%    \end{macrocode}
+%
+% Then at the beginning of the document, when we will load the Lua file
+% |piton.lua|, we will read those ``toks registers'' within Lua (with
+% |tex.toks|) and convert them into Lua tables (and, then, use those tables to
+% construct \textsc{lpeg}).
+%
+%
+% \bigskip
 % \subsubsection{Treatment of a line of code}
+% 
 % 
 %    \begin{macrocode}
 \cs_generate_variant:Nn \@@_replace_spaces:n { o }
@@ -3622,7 +3671,7 @@ piton_version = "4.3" -- 2025/03/25
     \bool_if:NTF \l_@@_show_spaces_bool
       { 
         \tl_set:Nn \l_@@_space_in_string_tl { ␣ } % U+2423
-        \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl 
+        \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl { ␣ } % U+2423
       } 
       {
 %    \end{macrocode}
@@ -3634,14 +3683,20 @@ piton_version = "4.3" -- 2025/03/25
 %    \begin{macrocode}
         \bool_if:NT \l_@@_break_lines_in_Piton_bool
           { 
+            \tl_set_eq:NN \l_@@_space_in_string_tl \@@_breakable_space:
+%    \end{macrocode}
+% We have tried to replace the following lines by 
+%
+% |\tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl \@@_breakable_space:|
+%
+% but we had problems because the spaces are not replaced within the long
+% strings.
+% 
+%    \begin{macrocode}
             \regex_replace_all:nnN 
               { \x20 } 
               { \c { @@_breakable_space: } }
-              \l_tmpa_tl 
-            \regex_replace_all:nnN 
-              { \c { l_@@_space_in_string_tl } } 
-              { \c { @@_breakable_space: } }
-              \l_tmpa_tl 
+              \l_tmpa_tl                      
           } 
       }
     \l_tmpa_tl 
@@ -4041,6 +4096,7 @@ piton_version = "4.3" -- 2025/03/25
     unknown .code:n = \@@_error:n { Unknown~key~for~line-numbers } 
   }
 %    \end{macrocode}
+%
 % 
 % \bigskip
 % Be careful! The name of the following set of keys must be considered as
@@ -4056,20 +4112,20 @@ piton_version = "4.3" -- 2025/03/25
 %    \end{macrocode}
 % First, we put keys that should be available only in the preamble.
 %    \begin{macrocode}
-    detected-commands .code:n =  
-      \lua_now:n { piton.addDetectedCommands('#1') } ,
+    detected-commands .code:n = 
+      \clist_put_right:Nn \l_@@_detected_commands_clist { #1 } ,
     detected-commands .value_required:n = true , 
     detected-commands .usage:n = preamble , 
-    raw-detected-commands .code:n =  
-      \lua_now:n { piton.addRawDetectedCommands('#1') } ,
+    raw-detected-commands .code:n = 
+      \clist_put_right:Nn \l_@@_raw_detected_commands_clist { #1 } ,
     raw-detected-commands .value_required:n = true , 
     raw-detected-commands .usage:n = preamble , 
-    detected-beamer-commands .code:n =  
-      \lua_now:n { piton.addBeamerCommands('#1') } ,
+    detected-beamer-commands .code:n = 
+      \clist_put_right:Nn \l_@@_beamer_commands_clist { #1 } ,
     detected-beamer-commands .value_required:n = true , 
     detected-beamer-commands .usage:n = preamble , 
-    detected-beamer-environments .code:n =  
-      \lua_now:n { piton.addBeamerEnvironments('#1') } ,
+    detected-beamer-environments .code:n = 
+      \clist_put_right:Nn \l_@@_beamer_environments_clist { #1 } ,
     detected-beamer-environments .value_required:n = true , 
     detected-beamer-environments .usage:n = preamble , 
 %    \end{macrocode}
@@ -4514,17 +4570,21 @@ piton_version = "4.3" -- 2025/03/25
 \NewDocumentCommand { \@@_piton_standard } { m }
   {
     \group_begin:
-    \bool_lazy_or:nnT 
-    \l_@@_break_lines_in_piton_bool
+    \tl_if_eq:NnF \l_@@_space_in_string_tl { ␣ }
+      {
 %    \end{macrocode}
-% We have to deal with the case of |break-strings-anywhere| because,
-% otherwise, the |\nobreakspace| would result in a sequence of TeX instructions
-% and we would have difficulities during the insertion of all the commands |\-|
-% (to allow breaks anywhere in the string).
+% Remind that, when |break-strings-anywhere| is in force, multiple commands |\-|
+% will be inserted between the characters of the string to allow the breaks. The
+% |\exp_not:N| before |\space| is mandatory.
 %    \begin{macrocode}
-    \l_@@_break_strings_anywhere_bool
-      { \tl_set_eq:NN \l_@@_space_in_string_tl \space }
+        \bool_lazy_or:nnT
+          \l_@@_break_lines_in_piton_bool
+          \l_@@_break_strings_anywhere_bool
+          { \tl_set:Nn \l_@@_space_in_string_tl { \exp_not:N \space } }
+      }
 %    \end{macrocode}
+%
+% \bigskip
 % The following tuning of LuaTeX in order to avoid all breaks of lines on the
 % hyphens. 
 %    \begin{macrocode}
@@ -4555,12 +4615,12 @@ piton_version = "4.3" -- 2025/03/25
           { #1 } 
       }
     \bool_if:NTF \l_@@_show_spaces_bool
-      { \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl } % U+2423
+      { \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl { ␣ } } % U+2423
 %    \end{macrocode}
 % The following code replaces the characters U+0020 (spaces) by characters
-% U+0020 of catcode~10: thus, they become breakable by an end of line. Maybe,
-% this programmation is not very efficient but the key |break-lines-in-piton|
-% will be rarely used.
+% U+0020 of catcode~10: thus, they become breakable by an end of line. 
+% 
+% We have tried to speed up that code by using a |\tl_set_rescan:NnV|, without success.
 %    \begin{macrocode}
       {
         \bool_if:NT \l_@@_break_lines_in_piton_bool
@@ -4579,6 +4639,7 @@ piton_version = "4.3" -- 2025/03/25
 %    \end{macrocode}
 %
 % 
+% \bigskip
 %    \begin{macrocode}
 \NewDocumentCommand { \@@_piton_verbatim } { v }
   {
@@ -4592,7 +4653,7 @@ piton_version = "4.3" -- 2025/03/25
           { #1 } 
       }
     \bool_if:NT \l_@@_show_spaces_bool
-      { \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl } % U+2423
+      { \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl { ␣ } } % U+2423
     \if_mode_math:
        \text { \l_@@_font_command_tl \l_tmpa_tl }
     \else:
@@ -4629,7 +4690,7 @@ piton_version = "4.3" -- 2025/03/25
           { #1 } 
       }
     \bool_if:NT \l_@@_show_spaces_bool
-      { \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl } % U+2423
+      { \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl { ␣ } } % U+2423
     \@@_replace_spaces:o \l_tmpa_tl 
     \group_end:
   }
@@ -4896,17 +4957,18 @@ piton_version = "4.3" -- 2025/03/25
     \tl_new:N \l_@@_body_tl
     \cs_new_protected:Npn \@@_store_body:n #1 
       {
-        \tl_set:Nn \l_@@_body_tl { #1 }
+%    \end{macrocode}
+% Now, we have to replace all the occurrences of |\obeyedline| by a character of
+% end of line (|\r| in the strings of Lua).
+%    \begin{macrocode}
+        \tl_set:Ne \obeyedline { \char_generate:nn { 13 } { 12 } }
+        \tl_set:Ne \l_@@_body_tl { #1 }
         \tl_set_eq:NN \ProcessedArgument \l_@@_body_tl
       }
     \RenewDocumentCommand { \NewPitonEnvironment } { m m m m }
       {
         \NewDocumentEnvironment { #1 } { #2 > { \@@_store_body:n } c } 
           {
-%    \end{macrocode}
-% Now, we have to replace all the occurrences of |\obeyedline| by a character of
-% end of line (|\r| in the strings of Lua).
-%    \begin{macrocode}
             \tl_set:Ne \obeyedline { \char_generate:nn { 13 } { 11 } }
             \tl_set:Ne \l_@@_body_tl \l_@@_body_tl
             \cs_set_eq:NN \PitonOptions \@@_fake_PitonOptions
@@ -5166,7 +5228,6 @@ piton_version = "4.3" -- 2025/03/25
     \@@_write_aux:
   }
 %    \end{macrocode}
-%
 % 
 % \bigskip
 % The following command computes the values of |\l_@@_first_line_int| and
@@ -5178,15 +5239,15 @@ piton_version = "4.3" -- 2025/03/25
 % We store the markers in L3 strings (|str|) in order to do safely the following
 % replacement of |\#|.
 %    \begin{macrocode}
-    \str_set:Ne \l_tmpa_str { \@@_marker_beginning:n \l_@@_begin_range_str }
-    \str_set:Ne \l_tmpb_str { \@@_marker_end:n \l_@@_end_range_str }
+    \str_set:Ne \l_tmpa_str { \@@_marker_beginning:n { \l_@@_begin_range_str } }
+    \str_set:Ne \l_tmpb_str { \@@_marker_end:n { \l_@@_end_range_str } }
 %    \end{macrocode}
-% We replace the sequences |\#| which may be present in the prefixes (and, more
-% unlikely, suffixes) added to the markers by the functions
-% |\@@_marker_beginning:n| and |\@@_marker_end:n|
+% We replace the sequences |\#| which may be present in the prefixes and
+% suffixes added to the markers by the functions |\@@_marker_beginning:n| and
+% |\@@_marker_end:n|. 
 %    \begin{macrocode}
-    \regex_replace_all:nVN { \\\# } \c_hash_str \l_tmpa_str 
-    \regex_replace_all:nVN { \\\# } \c_hash_str \l_tmpb_str
+    \tl_replace_all:Nee \l_tmpa_str { \c_backslash_str \c_hash_str } \c_hash_str 
+    \tl_replace_all:Nee \l_tmpb_str { \c_backslash_str \c_hash_str } \c_hash_str 
 %    \end{macrocode}
 % However, it seems that our programmation is not good programmation because
 % our |\l_tmpa_str| is not a valid |str| value (maybe we should correct that).
@@ -5360,10 +5421,10 @@ piton_version = "4.3" -- 2025/03/25
 % We have to begin by a substitution for the spaces. Otherwise, they would be
 % gobbled in the |\tl_map_inline:Nn|.
 %    \begin{macrocode}
-    \regex_replace_all:nnN { \x20 } { \c { space } } \l_tmpa_tl 
+    % \regex_replace_all:nnN { \x20 } { \c { space } } \l_tmpa_tl 
+    \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl \space 
     \seq_clear:N \l_tmpa_seq % added 2025/03/03
-    \tl_map_inline:Nn \l_tmpa_tl
-      { \seq_put_right:Nn \l_tmpa_seq { ##1 } }
+    \tl_map_inline:Nn \l_tmpa_tl { \seq_put_right:Nn \l_tmpa_seq { ##1 } } 
     \seq_use:Nn \l_tmpa_seq { \- }
   }
 %    \end{macrocode}
@@ -5855,7 +5916,7 @@ piton_version = "4.3" -- 2025/03/25
   }
 %    \end{macrocode}
 %
-%
+% 
 % \bigskip
 % \subsubsection{We load piton.lua}
 %
@@ -5876,72 +5937,13 @@ piton_version = "4.3" -- 2025/03/25
     \lua_now:n 
       { 
         require ( "piton" ) 
-        tex.sprint ( luatexbase.catcodetables.CatcodeTableExpl ,
-                     "\\@@_test_version:n {" .. piton_version ..  "}" ) 
+        tex.sprint ( luatexbase.catcodetables.expl ,
+                     [[\@@_test_version:n {]] .. piton_version ..  "}" ) 
       } 
   }
 %    \end{macrocode}
 % 
-% \bigskip
-% \subsubsection{Detected commands}
-%
-% 
-%    \begin{macrocode}
-\ExplSyntaxOff
-\begin{luacode*}
-    lpeg.locale(lpeg)
-    local P , alpha , C , space , S , V
-      = lpeg.P , lpeg.alpha , lpeg.C , lpeg.space , lpeg.S , lpeg.V
-    local add
-    function add(...)
-      local s = P ( false ) 
-      for _ , x in ipairs({...}) do s = s + x end  
-      return s 
-    end
-    local my_lpeg = 
-      P {  "E" ,
-           E = ( V "F" * ( "," * V "F" ) ^ 0 ) / add ,
-%    \end{macrocode}
-% Be careful: in Lua, \verb|/| has no priority over \verb|*|. Of course, we want
-% a behaviour for this comma-separated list equal to the behaviour of a |clist|
-% of L3.
-%    \begin{macrocode}
-           F = space ^ 0 * ( ( alpha ^ 1 ) / "\\%0" ) * space ^ 0 
-        }
-    function piton.addDetectedCommands ( key_value )
-      piton.DetectedCommands 
-        = piton.DetectedCommands + my_lpeg : match ( key_value ) 
-    end
-    function piton.addRawDetectedCommands ( key_value )
-      piton.RawDetectedCommands 
-        = piton.RawDetectedCommands + my_lpeg : match ( key_value ) 
-    end
-    function piton.addBeamerCommands( key_value )
-      piton.BeamerCommands 
-       = piton.BeamerCommands + my_lpeg : match ( key_value ) 
-    end
-    for _ , v in ipairs ( { 'uncover', 'only', 
-            'visible', 'invisible', 'alert', 'action' } ) do 
-      piton.addBeamerCommands(v)
-    end
-%    \end{macrocode}
-%
-%    \begin{macrocode}
-    local insert
-    function insert(x)
-      local s = piton.beamer_environments
-      table.insert(s,x)
-      return s
-    end
-    local my_lpeg_bis = 
-      P {  "E" ,
-           E = ( V "F" * ( "," * V "F" ) ^ 0 ) / insert ,
-           F = space ^ 0 * ( alpha ^ 1 ) * space ^ 0 
-        }
-    function piton.addBeamerEnvironments( key_value )
-      piton.beamer_environments = my_lpeg_bis : match ( key_value ) 
-    end
-\end{luacode*}
+%   
 %</STY>
 %    \end{macrocode}
 % 
@@ -5953,7 +5955,7 @@ piton_version = "4.3" -- 2025/03/25
 % The Lua code will be loaded via a |{luacode*}| environment. The environment
 % is by itself a Lua block and the local declarations will be local to that
 % block. All the global functions (used by the L3 parts of the implementation)
-% will be put in a Lua table |piton|.
+% will be put in a Lua table called |piton|.
 %
 % 
 %    \begin{macrocode}
@@ -5967,10 +5969,6 @@ piton.comment_latex = "#" .. piton.comment_latex
 local sprintL3
 function sprintL3 ( s ) 
   tex.sprint ( luatexbase.catcodetables.expl , s ) 
-end 
-local printL3
-function printL3 ( s ) 
-  tex.print ( luatexbase.catcodetables.expl , s ) 
 end 
 %    \end{macrocode}
 % 
@@ -5986,7 +5984,14 @@ local Cg , Cmt , Cb = lpeg.Cg , lpeg.Cmt , lpeg.Cb
 local B , R = lpeg.B , lpeg.R
 %    \end{macrocode}
 %
-% 
+% \vspace{1cm}
+% The following line is mandatory.
+%    \begin{macrocode}
+lpeg.locale(lpeg)
+%    \end{macrocode}
+%
+%
+% \subsubsection{The functions Q, K, WithStyle, etc.}
 %
 % \bigskip
 % The function |Q| takes in as argument a pattern and returns a \textsc{lpeg}
@@ -6098,11 +6103,6 @@ if piton.begin_escape_math then
 end
 %    \end{macrocode}
 % 
-% \vspace{1cm}
-% The following line is mandatory.
-%    \begin{macrocode}
-lpeg.locale(lpeg)
-%    \end{macrocode}
 %
 % \bigskip
 % \paragraph{The basic syntactic LPEG}
@@ -6208,13 +6208,94 @@ local Delim = Q ( S "[({})]" )
 % \bigskip 
 % The following \textsc{lpeg} catches a space (U+0020) and replace it by
 % |\l_@@_space_in_string_tl|. It will be used in the strings. Usually,
-% |\l_@@_space_in_string_tl| will contain a space and therefore there won't be
+% |\l_@@_space_in_string_tl| will contain a space and therefore there won't be any
 % difference. However, when the key |show-spaces-in-strings| is in force,
 % |\\l_@@_space_in_string_tl| will contain ␣ (U+2423) in order to visualize the
 % spaces.
 %    \begin{macrocode}
 local SpaceInString = space * Lc [[ \l_@@_space_in_string_tl ]]
 %    \end{macrocode}
+%
+%
+% \bigskip
+% \subsubsection{The option 'detected-commands' and al.}
+%
+% We create four Lua tables called |detected_commands|, |raw_detected_commands|,
+% |beamer_commands| and |beamer_environments|.
+%
+% On the TeX side, the corresponding data have first been stored as clists. Then, 
+% in a |\AtBeginDocument|, they have been converted in ``toks registers'' of TeX.
+%
+% Now, on the Lua side, we are able to access to those ``toks registers'' with
+% the special pseudo-table |tex.toks| of LuaTeX.
+%
+% Remark that we can safely use |explode(',')| to convert such ``toks
+% registers'' in Lua tables since, in a clist of L3, there is no empty
+% component and, for each component, there is no space on both sides (the
+% |explode| of the Lua of LuaTeX is unable to do itself such purification of the
+% components). 
+%    \begin{macrocode}
+local detected_commands = tex.toks.PitonDetectedCommands : explode ( ',' ) 
+local raw_detected_commands = tex.toks.PitonRawDetectedCommands : explode ( ',' )
+local beamer_commands = tex.toks.PitonBeamerCommands : explode ( ',' )  
+local beamer_environments = tex.toks.PitonBeamerEnvironments : explode ( ',' ) 
+%    \end{macrocode}
+%
+% We will also create some \textsc{lpeg}.
+%
+% According to our conventions, a \textsc{lpeg} with a name in camelCase is a
+% \textsc{lpeg} which doen't do any capture.
+%    \begin{macrocode}
+local detectedCommands = P ( false ) 
+for _ , x in ipairs ( detected_commands ) do
+  detectedCommands = detectedCommands + P ( "\\" .. x ) 
+end 
+%    \end{macrocode}
+% Further, we will have a \textsc{lpeg} called |DetectedCommands| (in
+% PascalCase) which will be a \texsc{lpeg} \emph{with} captures.
+%
+% \bigskip
+%    \begin{macrocode}
+local rawDetectedCommands = P ( false ) 
+for _ , x in ipairs ( raw_detected_commands ) do
+  rawDetectedCommands = rawDetectedCommands + P ( "\\" .. x ) 
+end 
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+local beamerCommands = P ( false ) 
+for _ , x in ipairs ( beamer_commands ) do
+  beamerCommands = beamerCommands + P ( "\\" .. x ) 
+end 
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+local beamerEnvironments = P ( false ) 
+for _ , x in ipairs ( beamer_environments ) do
+  beamerEnvironments = beamerEnvironments + P ( x ) 
+end 
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+local beamerBeginEnvironments = 
+    ( space ^ 0 * 
+      L 
+        ( 
+          P [[\begin{]] * beamerEnvironments * "}"
+          * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
+        )
+      * "\r" 
+    ) ^ 0 
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+local beamerEndEnvironments = 
+    ( space ^ 0 * 
+      L ( P [[\end{]] * beamerEnvironments * "}" ) 
+      * "\r"
+    ) ^ 0 
+%    \end{macrocode}
+% 
 %
 % \bigskip
 % \paragraph{Several tools for the construction of the main LPEG}
@@ -6260,7 +6341,7 @@ local Compute_DetectedCommands
 function Compute_DetectedCommands ( lang , braces ) return 
   Ct ( 
        Cc "Open" 
-        * C ( piton.DetectedCommands * space ^ 0 * P "{" ) 
+        * C ( detectedCommands * space ^ 0 * P "{" ) 
         * Cc "}" 
      ) 
    * ( braces 
@@ -6278,7 +6359,7 @@ end
 %    \begin{macrocode}
 local Compute_RawDetectedCommands
 function Compute_RawDetectedCommands ( lang , braces ) return 
-  Ct ( C ( piton.RawDetectedCommands * space ^ 0 * P "{" * braces * P "}" ) )
+  Ct ( C ( rawDetectedCommands * space ^ 0 * P "{" * braces * P "}" ) )
 end
 %    \end{macrocode}
 % 
@@ -6286,7 +6367,7 @@ end
 %    \begin{macrocode}
 local Compute_LPEG_cleaner
 function Compute_LPEG_cleaner ( lang , braces ) return 
-  Ct ( ( piton.DetectedCommands * "{" 
+  Ct ( ( DetectedCommands * "{" 
           * ( braces 
               / ( function ( s ) 
                     if s ~= '' then return 
@@ -6331,46 +6412,17 @@ end
 % \bigskip
 % If the class Beamer is used, some environments and commands of Beamer are
 % automatically detected in the listings of \pkg{piton}.
+%
 %    \begin{macrocode}
 local Beamer = P ( false ) 
-local BeamerBeginEnvironments = P ( true ) 
-local BeamerEndEnvironments = P ( true ) 
 %    \end{macrocode}
-%
-%    \begin{macrocode}
-piton.BeamerEnvironments = P ( false ) 
-for _ , x  in ipairs ( piton.beamer_environments )  do
-  piton.BeamerEnvironments = piton.BeamerEnvironments + x 
-end 
-%    \end{macrocode}
-% 
-% \bigskip
-%    \begin{macrocode}
-BeamerBeginEnvironments = 
-    ( space ^ 0 * 
-      L 
-        ( 
-          P [[\begin{]] * piton.BeamerEnvironments * "}"
-          * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
-        )
-      * "\r" 
-    ) ^ 0 
-%    \end{macrocode}
-%
-% \bigskip
-%    \begin{macrocode}
-BeamerEndEnvironments = 
-    ( space ^ 0 * 
-      L ( P [[\end{]] * piton.BeamerEnvironments * "}" ) 
-      * "\r"
-    ) ^ 0 
-%    \end{macrocode}
-%
-%
 % 
 % \bigskip
 % The following Lua function will be used to compute the \textsc{lpeg} |Beamer|
 % for each informatic language.
+%
+% According to our conventions, the \textsec{lpeg} |Beamer|, with its name in
+% PascalCase does captures.
 %    \begin{macrocode}
 local Compute_Beamer
 function Compute_Beamer ( lang , braces ) 
@@ -6382,7 +6434,7 @@ function Compute_Beamer ( lang , braces )
   local lpeg = L ( P [[\pause]] * ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ -1 ) 
   lpeg = lpeg + 
       Ct ( Cc "Open" 
-            * C ( piton.BeamerCommands
+            * C ( beamerCommands
                   * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1 
                   * P "{" 
                 ) 
@@ -6432,7 +6484,7 @@ function Compute_Beamer ( lang , braces )
 % \bigskip
 % Now, the environments of Beamer.
 %    \begin{macrocode}
-  for _ , x in ipairs ( piton.beamer_environments ) do
+  for _ , x in ipairs ( beamer_environments ) do
     lpeg = lpeg + 
           Ct ( Cc "Open" 
                * C ( 
@@ -6525,7 +6577,7 @@ local EOL =
          Cc "EOL"
          * 
          Ct ( Lc [[ \@@_end_line: ]]
-              * BeamerEndEnvironments 
+              * beamerEndEnvironments 
               *
                 (
 %    \end{macrocode}
@@ -6537,7 +6589,7 @@ local EOL =
 %    \begin{macrocode}
                     -1 
                   + 
-                    BeamerBeginEnvironments 
+                    beamerBeginEnvironments 
                   * PromptHastyDetection
                   * Lc [[ \@@_newline:\@@_begin_line: ]]
                   * Prompt
@@ -7103,7 +7155,7 @@ do
   LPEG2.python = 
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
-         * BeamerBeginEnvironments 
+         * beamerBeginEnvironments 
          * PromptHastyDetection
          * Lc [[ \@@_begin_line: ]]
          * Prompt 
@@ -7142,9 +7194,7 @@ do
 %
 % \bigskip
 %    \begin{macrocode}
-  if piton.beamer then
-    Beamer = Compute_Beamer ( 'ocaml' , braces )
-  end
+  if piton.beamer then Beamer = Compute_Beamer ( 'ocaml' , braces ) end
   DetectedCommands = 
     Compute_DetectedCommands ( 'ocaml' , braces )
     + Compute_RawDetectedCommands ( 'ocaml' , braces )
@@ -7755,7 +7805,7 @@ do
           * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 )
         +
         ( space ^ 0 * "\r" ) ^ -1
-        * BeamerBeginEnvironments
+        * beamerBeginEnvironments
         * Lc [[ \@@_begin_line: ]]
         * SpaceIndentation ^ 0
         * ( ( space * Lc [[ \@@_trailing_space: ]] ) ^ 1 * -1 
@@ -7969,7 +8019,7 @@ do
   LPEG2.c = 
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1 
-         * BeamerBeginEnvironments 
+         * beamerBeginEnvironments 
          * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
@@ -8255,7 +8305,7 @@ do
   LPEG2.sql =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
-         * BeamerBeginEnvironments 
+         * beamerBeginEnvironments 
          * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
@@ -8343,7 +8393,7 @@ do
   LPEG2.minimal = 
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
-         * BeamerBeginEnvironments 
+         * beamerBeginEnvironments 
          * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
@@ -8416,7 +8466,7 @@ do
   LPEG2.verbatim = 
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
-         * BeamerBeginEnvironments 
+         * beamerBeginEnvironments 
          * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
@@ -8482,7 +8532,7 @@ function piton.Parse ( language , code )
 % |\end{uncover}|. 
 %    \begin{macrocode}
       if one_item[1] == "Open" then
-        tex.sprint( one_item[2] ) 
+        tex.sprint ( one_item[2] ) 
         table.insert ( left_stack , one_item[2] )
         table.insert ( right_stack , one_item[3] )
       else 
@@ -8956,11 +9006,11 @@ function piton.ComputeLinesStatus ( code , splittable )
   if piton.beamer then
     lpeg_line_beamer = 
        space ^ 0 
-        * P [[\begin{]] * piton.BeamerEnvironments * "}"
+        * P [[\begin{]] * beamerEnvironments * "}"
         * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1 
        +
        space ^ 0 
-        * P [[\end{]] * piton.BeamerEnvironments * "}" 
+        * P [[\end{]] * beamerEnvironments * "}" 
   else 
     lpeg_line_beamer = P ( false ) 
   end 
@@ -9569,7 +9619,7 @@ function piton.new_language ( lang , definition )
   LPEG2[lang] = 
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1 
-         * BeamerBeginEnvironments 
+         * beamerBeginEnvironments 
          * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
@@ -9619,7 +9669,7 @@ function piton.new_language ( lang , definition )
     LPEG2[lang] = 
       Ct (
            ( space ^ 0 * P "\r" ) ^ -1 
-           * BeamerBeginEnvironments 
+           * beamerBeginEnvironments 
            * Lc [[ \@@_begin_line: ]]
            * SpaceIndentation ^ 0 
            * LPEG1[lang]
