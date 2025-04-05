@@ -4121,10 +4121,12 @@ piton_version = "4.3" -- 2025/03/25
     raw-detected-commands .value_required:n = true , 
     raw-detected-commands .usage:n = preamble , 
     detected-beamer-commands .code:n = 
+      \@@_error_if_not_in_beamer:
       \clist_put_right:Nn \l_@@_beamer_commands_clist { #1 } ,
     detected-beamer-commands .value_required:n = true , 
     detected-beamer-commands .usage:n = preamble , 
     detected-beamer-environments .code:n = 
+      \@@_error_if_not_in_beamer:
       \clist_put_right:Nn \l_@@_beamer_environments_clist { #1 } ,
     detected-beamer-environments .value_required:n = true , 
     detected-beamer-environments .usage:n = preamble , 
@@ -5839,6 +5841,24 @@ piton_version = "4.3" -- 2025/03/25
     Unknown~file. \\
     The~file~'#1'~is~unknown.\\
     Your~command~\token_to_str:N \PitonInputFile\ will~be~discarded.
+  }
+%    \end{macrocode}
+%
+%    \begin{macrocode} 
+\cs_new_protected:Npn \@@_error_if_not_in_beamer:
+  { 
+    \bool_if:NF \g_@@_beamer_bool
+      { \@@_error_or_warning:n { Without~beamer } }
+  }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\@@_msg_new:nn { Without~beamer }
+  {
+    Key~'\l_keys_key_str'~without~Beamer.\\
+    You~should~not~use~the~key~'\l_keys_key_str'~since~you~
+    are~not~in~Beamer.\\
+    However,~you~can~go~on.
   }
 %    \end{macrocode}
 % 
