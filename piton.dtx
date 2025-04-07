@@ -4618,18 +4618,17 @@ piton_version = "4.3" -- 2025/03/25
       }
     \bool_if:NTF \l_@@_show_spaces_bool
       { \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl { ␣ } } % U+2423
-%    \end{macrocode}
-% The following code replaces the characters U+0020 (spaces) by characters
-% U+0020 of catcode~10: thus, they become breakable by an end of line. 
-% 
-% We have tried to speed up that code by using a |\tl_set_rescan:NnV|, without success.
-%    \begin{macrocode}
       {
         \bool_if:NT \l_@@_break_lines_in_piton_bool
-          { \regex_replace_all:nnN { \x20 } { \x20 } \l_tmpa_tl }
+%    \end{macrocode}
+% With the following line, the spaces of catacode 12 (which were not breakable)
+% are replaced by |\space|, and, thus, become breakable.
+%    \begin{macrocode}
+          { \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl \space }
       }
 %    \end{macrocode}
-% The command |\text| is provided by the package \pkg{amstext} (loaded by \pkg{piton}).
+% The command |\text| is provided by the package \pkg{amstext} (loaded by
+% \pkg{piton}). 
 %    \begin{macrocode}
     \if_mode_math:
        \text { \l_@@_font_command_tl \l_tmpa_tl }
