@@ -113,9 +113,8 @@ piton_version = "4.3" -- 2025/03/25
 % listings and typesets them with syntactic highlighting. Since it uses the Lua
 % of LuaLaTeX, it works with |lualatex| only (and won't work with the other
 % engines: |latex|, |pdflatex| and |xelatex|). It does not use external program
-% and the compilation does not require |--shell-escape| (except when the key
-% |write| is used). The compilation is very fast since all the parsing is done
-% by the library LPEG, written in C. 
+% and the compilation does not require |--shell-escape|. The compilation is very
+% fast since all the parsing is done by the library LPEG, written in C. 
 % 
 % \bigskip
 % Here is an example of code typeset by \pkg{piton}, with the environment |{Piton}|.
@@ -390,10 +389,8 @@ piton_version = "4.3" -- 2025/03/25
 % exactly the body of the environment but the value of |piton.get_last_code()|
 % which is the body without the overwritten LaTeX formatting instructions (cf.
 % the part~\ref{API}, p.~\pageref{API}).} of the current environment in
-% that file. At the first use of a file by \pkg{piton}, it is erased.
-%
-% {\bfseries This key requires a compilation with {\ttfamily lualatex
-% -shell-escape}}.
+% that file. At the first use of a file by \pkg{piton} (during a given
+% compilation done by LaTeX), it is erased.
 %
 % \item \index{path-write} The key \Definition{path-write} specifies a path
 % where the files written by the key |write| will be written.
@@ -2927,7 +2924,7 @@ piton_version = "4.3" -- 2025/03/25
 \msg_new:nnn { piton } { latex-too-old }
   { 
     Your~LaTeX~release~is~too~old. \\
-    You~need~at~least~a~the~version~of~2023-11-01 
+    You~need~at~least~the~version~of~2023-11-01 
   }
 %    \end{macrocode}
 %
@@ -3051,17 +3048,10 @@ piton_version = "4.3" -- 2025/03/25
 \bool_new:N \g_@@_footnote_bool
 %    \end{macrocode}
 %
-% \medskip
-% The following boolean corresponds to the key |math-comments| (available only
-% in the preamble of the LaTeX document). 
-%    \begin{macrocode}
-\bool_new:N \g_@@_math_comments_bool
-%    \end{macrocode}
 %
 % \medskip
 %    \begin{macrocode}
 \bool_new:N \g_@@_beamer_bool
-\tl_new:N \g_@@_escape_inside_tl 
 %    \end{macrocode}
 %
 %
@@ -3106,11 +3096,25 @@ piton_version = "4.3" -- 2025/03/25
 % 
 % \bigskip
 %    \begin{macrocode}
-\IfClassLoadedTF { beamer } { \bool_gset_true:N \g_@@_beamer_bool } { }
-\IfPackageLoadedTF { beamerarticle } { \bool_gset_true:N \g_@@_beamer_bool } { }
-\lua_now:n { piton = piton~or~{ } }
-\bool_if:NT \g_@@_beamer_bool { \lua_now:n { piton.beamer = true } } 
+\IfClassLoadedTF { beamer } 
+  { \bool_gset_true:N \g_@@_beamer_bool } 
+  {
+    \IfPackageLoadedTF { beamerarticle } 
+    { \bool_gset_true:N \g_@@_beamer_bool } 
+    { }
+  }
 %    \end{macrocode}
+%
+%    \begin{macrocode}
+\lua_now:e
+  { 
+    piton = piton~or~{ } 
+    piton.last_code = ''
+    piton.last_language = ''
+    \bool_if:NT \g_@@_beamer_bool { piton.beamer = true } 
+  }
+%    \end{macrocode}
+%
 % 
 % \bigskip
 %    \begin{macrocode}
@@ -3182,14 +3186,6 @@ piton_version = "4.3" -- 2025/03/25
 % |\g_@@_footnote_bool| in order to know if we have to insert an environment
 % |{savenotes}|.
 %
-% \bigskip
-%    \begin{macrocode}
-\lua_now:n 
-  { 
-    piton.last_code = ''
-    piton.last_language = ''
-  }
-%    \end{macrocode}
 % 
 % \bigskip
 % \subsubsection{Parameters and technical definitions}
@@ -3317,11 +3313,23 @@ piton_version = "4.3" -- 2025/03/25
 %    \end{macrocode}
 %
 % \medskip
+%    \begin{macrocode}
+\tl_new:N \l_@@_space_in_string_tl
+%    \end{macrocode}
+% 
+% \medskip
 % The following parameters correspond to the keys |begin-range| and |end-range| of
 % the command |\PitonInputFile|.
 %    \begin{macrocode}
 \str_new:N \l_@@_begin_range_str
 \str_new:N \l_@@_end_range_str
+%    \end{macrocode}
+%
+% \medskip
+% The following boolean corresponds to the key |math-comments| (available only
+% in the preamble of the LaTeX document). 
+%    \begin{macrocode}
+\bool_new:N \g_@@_math_comments_bool
 %    \end{macrocode}
 %
 % \medskip
@@ -3584,7 +3592,7 @@ piton_version = "4.3" -- 2025/03/25
     \tl_gset:Nn \g_@@_begin_line_hook_tl
       { 
         \tl_if_empty:NF \l_@@_prompt_bg_color_tl 
-          { \clist_set:No \l_@@_bg_color_clist \l_@@_prompt_bg_color_tl }
+          { \clist_set:No \l_@@_bg_color_clist { \l_@@_prompt_bg_color_tl } }
       } 
   }
 %    \end{macrocode}
@@ -3664,7 +3672,6 @@ piton_version = "4.3" -- 2025/03/25
 % 
 % 
 %    \begin{macrocode}
-\cs_generate_variant:Nn \@@_replace_spaces:n { o }
 \cs_new_protected:Npn \@@_replace_spaces:n #1 
   {
     \tl_set:Nn \l_tmpa_tl { #1 } 
@@ -3683,24 +3690,36 @@ piton_version = "4.3" -- 2025/03/25
 %    \begin{macrocode}
         \bool_if:NT \l_@@_break_lines_in_Piton_bool
           { 
-            \tl_set_eq:NN \l_@@_space_in_string_tl \@@_breakable_space:
+            \tl_if_eq:NnF \l_@@_space_in_string_tl { ␣ }
+              { \tl_set_eq:NN \l_@@_space_in_string_tl \@@_breakable_space: }
 %    \end{macrocode}
-% We have tried to replace the following lines by 
-%
-% |\tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl \@@_breakable_space:|
-%
-% but we had problems because the spaces are not replaced within the long
-% strings.
 % 
+% In the following code, we have to replace all the spaces in the token list
+% |\l_tmpa_tl|. That means that this replacement must be ``recursive'': even the
+% spaces which are within brace groups (|{...}|) must be replaced. For instance,
+% the spaces in long strings of Python are within such groups since there are
+% within a command |\PitonStyle{String.Long}{...}|. That's why the
+% use of |\tl_replace_all:Nnn| is not enough. 
+%
+% The first implementation was using |\regex_replace_all:nnN|
+%
+% |\regex_replace_all:nnN { \x20 } { \c { @@_breakable_space: } } \l_tmpa_tl|
+%
+% but that programmation was certainly slow.
+%
+% Now, we use |\tl_replace_all:NVn| \emph{but}, in the styles
+% |String.Long.Internal| we replace the spaces with
+% |\@@_breakable_space:| by another use of the same technic with
+% |\tl_replace_all:NVn|. We do the same jog for the \emph{doc strings} of Python.
 %    \begin{macrocode}
-            \regex_replace_all:nnN 
-              { \x20 } 
-              { \c { @@_breakable_space: } }
-              \l_tmpa_tl                      
-          } 
+            \tl_replace_all:NVn \l_tmpa_tl 
+              \c_catcode_other_space_tl 
+              \@@_breakable_space:
+          }
       }
-    \l_tmpa_tl 
+   \l_tmpa_tl
   }
+\cs_generate_variant:Nn \@@_replace_spaces:n { o }
 %    \end{macrocode}
 % 
 % \bigskip
@@ -3737,7 +3756,7 @@ piton_version = "4.3" -- 2025/03/25
     \bool_if:NTF \l_@@_width_min_bool
       \@@_put_in_coffin_ii:n 
       \@@_put_in_coffin_i:n 
-      { 
+      {
         \language = -1
         \raggedright 
         \strut 
@@ -3754,7 +3773,7 @@ piton_version = "4.3" -- 2025/03/25
         \bool_if:NT \l_@@_line_numbers_bool
           {
 %    \end{macrocode}
-% |\l_tmpa_int| will be true equal to $1$ when the current line is not empty.
+% |\l_tmpa_int| will be equal to $1$ when the current line is not empty.
 %    \begin{macrocode}
             \int_set:Nn \l_tmpa_int 
               {
@@ -3897,7 +3916,6 @@ piton_version = "4.3" -- 2025/03/25
 % The following command |\@@_color:n| will accept both the instruction
 % |\@@_color:n { red!15 }| and the instruction |\@@_color:n { [rgb]{0.9,0.9,0} }|.
 %    \begin{macrocode}
-\cs_generate_variant:Nn \@@_color_i:n { o }
 \cs_set_protected:Npn \@@_color_i:n #1
   {
     \tl_if_head_eq_meaning:nNTF { #1 } [ 
@@ -3908,6 +3926,7 @@ piton_version = "4.3" -- 2025/03/25
       }
       { \color { #1 } }
   }
+\cs_generate_variant:Nn \@@_color_i:n { o }
 %    \end{macrocode}
 % 
 % \bigskip
@@ -3977,6 +3996,9 @@ piton_version = "4.3" -- 2025/03/25
 % After the command |\@@_newline:|, we will usually have a command |\@@_begin_line:|.
 %
 % \bigskip
+% The following command |\@@_breakable_space:| is for breakable spaces in the
+% environments |{Piton}| and the listings of |\PitonInputFile| and \emph{not} for the
+% commands |\piton|.
 %    \begin{macrocode}
 \cs_set_protected:Npn \@@_breakable_space:
   { 
@@ -4018,6 +4040,7 @@ piton_version = "4.3" -- 2025/03/25
 \bool_set_true:N \l_@@_skip_empty_lines_bool 
 \bool_new:N \l_@@_line_numbers_absolute_bool
 \tl_new:N \l_@@_line_numbers_format_bool
+\tl_new:N \l_@@_line_numbers_format_tl
 \tl_set:Nn \l_@@_line_numbers_format_tl { \footnotesize \color { gray } }
 \bool_new:N \l_@@_label_empty_lines_bool
 \bool_set_true:N \l_@@_label_empty_lines_bool 
@@ -4176,7 +4199,7 @@ piton_version = "4.3" -- 2025/03/25
       \clist_map_inline:nn { #1 }
         { 
           \str_set:Nn \l_tmpa_str { ##1 } 
-          \seq_put_right:No \l_@@_path_seq \l_tmpa_str 
+          \seq_put_right:No \l_@@_path_seq { \l_tmpa_str }
         } ,
     path             .value_required:n  = true , 
 %    \end{macrocode}
@@ -4512,12 +4535,12 @@ piton_version = "4.3" -- 2025/03/25
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
-\cs_generate_variant:Nn \@@_NewPitonLanguage:nn { o }
 \cs_new_protected:Npn \@@_NewPitonLanguage:nn #1 #2
   {
     \hook_gput_code:nnn { begindocument } { . }
       { \lua_now:e { piton.new_language("#1","\lua_escape:n{#2}") } }
   }
+\cs_generate_variant:Nn \@@_NewPitonLanguage:nn { o }
 %    \end{macrocode}
 %
 % \bigskip
@@ -4552,7 +4575,6 @@ piton_version = "4.3" -- 2025/03/25
 %
 %  \bigskip
 %    \begin{macrocode}
-\cs_generate_variant:Nn \@@_NewPitonLanguage:nnnn { n n n o }
 \cs_new_protected:Npn \@@_NewPitonLanguage:nnnn #1 #2 #3 #4
 %    \end{macrocode}
 % In the following line, we write |#4,#3| and not |#3,#4| because we want that the
@@ -4560,12 +4582,13 @@ piton_version = "4.3" -- 2025/03/25
 % in the language we define.
 %    \begin{macrocode}
   { \@@_NewPitonLanguage:nnn { #1 } { #2 } { #4 , #3 } }
+\cs_generate_variant:Nn \@@_NewPitonLanguage:nnnn { n n n o }
 %    \end{macrocode}
 % 
 % \bigskip
 %    \begin{macrocode}
 \NewDocumentCommand { \piton } { }
-  { \peek_meaning:NTF \bgroup \@@_piton_standard \@@_piton_verbatim }
+  { \peek_meaning:NTF \bgroup { \@@_piton_standard } { \@@_piton_verbatim } }
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -4736,7 +4759,6 @@ piton_version = "4.3" -- 2025/03/25
 % the following function is the name of the Lua function that will be applied to
 % the second argument in order to count the number of lines.
 %    \begin{macrocode}
-\cs_generate_variant:Nn \@@_compute_left_margin:nn { n o }
 \cs_new_protected:Npn \@@_compute_left_margin:nn #1 #2
   {
     \bool_lazy_and:nnT \l_@@_left_margin_auto_bool \l_@@_line_numbers_bool
@@ -4761,6 +4783,7 @@ piton_version = "4.3" -- 2025/03/25
            { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
        }
   }
+\cs_generate_variant:Nn \@@_compute_left_margin:nn { n o }
 %    \end{macrocode}
 % 
 %
@@ -4851,7 +4874,7 @@ piton_version = "4.3" -- 2025/03/25
 %
 % But we should be sure that there is no consequence in the LaTeX comments...
 %    \begin{macrocode}
-            \mode_if_vertical:TF \noindent \newline 
+            \mode_if_vertical:TF { \noindent } { \newline }
 %    \end{macrocode}
 % The following line is only to compute |\l_@@_lines_int| which will be used
 % only when both |left-margin=auto| and |skip-empty-lines = false| are in force.
@@ -4864,34 +4887,20 @@ piton_version = "4.3" -- 2025/03/25
 %    \begin{macrocode}
             \@@_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
             \@@_compute_width:
+            \lua_now:e
+              {
+                piton.write = "\l_@@_write_str"
+                piton.path_write = "\l_@@_path_write_str"
+              }
             \noindent
 %    \end{macrocode}
-% 
-% Now, the key |write|.
-%    \begin{macrocode}
-            \str_if_empty:NTF \l_@@_path_write_str
-              { \lua_now:e { piton.write = "\l_@@_write_str" } }
-              { 
-                \lua_now:e 
-                  { piton.write = "\l_@@_path_write_str / \l_@@_write_str" } 
-              } 
-            \str_if_empty:NTF \l_@@_write_str
-              { \lua_now:n { piton.write = '' } }
-              { 
-                \seq_if_in:NoTF \g_@@_write_seq \l_@@_write_str 
-                  { \lua_now:n { piton.write_mode = "a" } }
-                  { 
-                    \lua_now:n { piton.write_mode = "w" } 
-                    \seq_gput_left:No \g_@@_write_seq \l_@@_write_str
-                  }
-              }  
-%    \end{macrocode}
+%
 % \bigskip
 % Now, the main job.
 %    \begin{macrocode}
             \bool_if:NTF \l_@@_split_on_empty_lines_bool
-              \@@_retrieve_gobble_split_parse:n 
-              \@@_retrieve_gobble_parse:n 
+              { \@@_retrieve_gobble_split_parse:n }
+              { \@@_retrieve_gobble_parse:n }
               { ##1 }
 %    \end{macrocode}
 %
@@ -4899,7 +4908,7 @@ piton_version = "4.3" -- 2025/03/25
 % the |aux| file the value of |\l_@@_line_width_dim| (largest width of the lines
 % of code of the environment).
 %    \begin{macrocode}
-            \bool_if:NT \l_@@_width_min_bool \@@_width_to_aux:
+            \bool_if:NT \l_@@_width_min_bool { \@@_width_to_aux: }
 %    \end{macrocode}
 % The following |\end{#1}| is only for the stack of environments of LaTeX.
 %    \begin{macrocode}
@@ -4907,6 +4916,7 @@ piton_version = "4.3" -- 2025/03/25
             \@@_write_aux:
           }   
 %    \end{macrocode}
+% 
 % 
 % 
 % \bigskip
@@ -4919,7 +4929,7 @@ piton_version = "4.3" -- 2025/03/25
         \cs_set_eq:NN \PitonOptions \@@_fake_PitonOptions
         #3 
         \@@_pre_env:
-        \int_compare:nNnT \l_@@_number_lines_start_int > \c_zero_int
+        \int_compare:nNnT { \l_@@_number_lines_start_int } > { \c_zero_int }
           { \int_gset:Nn \g_@@_visual_line_int { \l_@@_number_lines_start_int - 1 } }
         \group_begin:
         \tl_map_function:nN 
@@ -4948,7 +4958,6 @@ piton_version = "4.3" -- 2025/03/25
 %
 % 
 % \bigskip
-% 
 %    \begin{macrocode}
 \IfFormatAtLeastTF { 2025-06-01 }
   {
@@ -4971,58 +4980,46 @@ piton_version = "4.3" -- 2025/03/25
         \NewDocumentEnvironment { #1 } { #2 > { \@@_store_body:n } c } 
           {
             \tl_set:Ne \obeyedline { \char_generate:nn { 13 } { 11 } }
-            \tl_set:Ne \l_@@_body_tl \l_@@_body_tl
+            \tl_set:Ne \l_@@_body_tl { \l_@@_body_tl }
             \cs_set_eq:NN \PitonOptions \@@_fake_PitonOptions
             #3
             \@@_pre_env:
-            \int_compare:nNnT \l_@@_number_lines_start_int > \c_zero_int
+            \int_compare:nNnT { \l_@@_number_lines_start_int } > { \c_zero_int }
               { 
                 \int_gset:Nn \g_@@_visual_line_int 
                   { \l_@@_number_lines_start_int - 1 } 
               }
-            \mode_if_vertical:TF \noindent \newline 
+            \mode_if_vertical:TF { \noindent } { \newline }
             \lua_now:e { piton.CountLines ( '\lua_escape:n{\l_@@_body_tl}' ) }
-            \@@_compute_left_margin:no { CountNonEmptyLines } \l_@@_body_tl
+            \@@_compute_left_margin:no { CountNonEmptyLines } { \l_@@_body_tl }
             \@@_compute_width:
+            \lua_now:e
+              {
+                piton.write = "\l_@@_write_str"
+                piton.path_write = "\l_@@_path_write_str"
+              }
             \noindent
-            \str_if_empty:NTF \l_@@_path_write_str
-              { \lua_now:e { piton.write = "\l_@@_write_str" } }
-              { 
-                \lua_now:e 
-                  { piton.write = "\l_@@_path_write_str / \l_@@_write_str" } 
-              } 
-            \str_if_empty:NTF \l_@@_write_str
-              { \lua_now:n { piton.write = '' } }
-              { 
-                \seq_if_in:NoTF \g_@@_write_seq \l_@@_write_str 
-                  { \lua_now:n { piton.write_mode = "a" } }
-                  { 
-                    \lua_now:n { piton.write_mode = "w" } 
-                    \seq_gput_left:No \g_@@_write_seq \l_@@_write_str
-                  }
-              }  
             \bool_if:NTF \l_@@_split_on_empty_lines_bool
               { \@@_retrieve_gobble_split_parse:o }
               { \@@_retrieve_gobble_parse:o }
               \l_@@_body_tl 
-            \bool_if:NT \l_@@_width_min_bool \@@_width_to_aux:
+            \bool_if:NT \l_@@_width_min_bool { \@@_width_to_aux: }
             \@@_write_aux:
             #4
           }
-          { }  
+          { \ignorespacesafterend }  
       }    
   }
   { } 
 %    \end{macrocode}
-
 %
+% 
 % \bigskip
 % The following function will be used when the key |split-on-empty-lines| is not
 % in force. It will retrieve the first empty line, gobble the spaces at the
 % beginning of the lines and parse the code. The argument is provided by
 % curryfication. 
 %    \begin{macrocode}
-\cs_generate_variant:Nn \@@_retrieve_gobble_parse:n { o }
 \cs_new_protected:Npn \@@_retrieve_gobble_parse:n 
   {
     \lua_now:e 
@@ -5038,6 +5035,7 @@ piton_version = "4.3" -- 2025/03/25
           ) 
       } 
   }
+\cs_generate_variant:Nn \@@_retrieve_gobble_parse:n { o }
 %    \end{macrocode}
 %
 % \bigskip
@@ -5046,7 +5044,6 @@ piton_version = "4.3" -- 2025/03/25
 % |gobble| is in force), then split the code at the empty lines and, eventually,
 % parse the code. The argument is provided by curryfication.
 %    \begin{macrocode}
-\cs_generate_variant:Nn \@@_retrieve_gobble_split_parse:n { o }
 \cs_new_protected:Npn \@@_retrieve_gobble_split_parse:n 
   {
     \lua_now:e 
@@ -5060,6 +5057,7 @@ piton_version = "4.3" -- 2025/03/25
           ) 
       } 
   }
+\cs_generate_variant:Nn \@@_retrieve_gobble_split_parse:n { o }
 %    \end{macrocode}
 % 
 % \bigskip
@@ -5143,7 +5141,7 @@ piton_version = "4.3" -- 2025/03/25
 % file (read by |\PitonInputFile|) is loaded during the compilation of the LaTeX
 % document. 
 %    \begin{macrocode}
-      \iow_log:e {(\l_@@_file_name_str)}
+      \iow_log:e { (\l_@@_file_name_str) }
       \int_zero_new:N \l_@@_first_line_int
       \int_zero_new:N \l_@@_last_line_int 
       \int_set_eq:NN \l_@@_last_line_int \c_max_int
@@ -5191,7 +5189,7 @@ piton_version = "4.3" -- 2025/03/25
 %    \begin{macrocode}
       \int_compare:nNnT \g_@@_visual_line_int < \c_zero_int 
         { \int_gzero:N \g_@@_visual_line_int }
-      \mode_if_vertical:TF \mode_leave_vertical: \newline 
+      \mode_if_vertical:TF { \mode_leave_vertical: } { \newline }
 %    \end{macrocode}
 % We count with Lua the number of lines of the argument. The result will be
 % stored by Lua in |\l_@@_nb_lines_int|. 
@@ -5201,7 +5199,9 @@ piton_version = "4.3" -- 2025/03/25
 % The first argument of the following function is the name of the Lua function
 % that will be applied to the second argument in order to count the number of lines.
 %    \begin{macrocode}
-      \@@_compute_left_margin:no { CountNonEmptyLinesFile } \l_@@_file_name_str
+      \@@_compute_left_margin:no 
+        { CountNonEmptyLinesFile } 
+        { \l_@@_file_name_str }
       \@@_compute_width:
       \lua_now:e
         { 
@@ -5215,7 +5215,7 @@ piton_version = "4.3" -- 2025/03/25
              { \int_use:N \l_@@_splittable_int } ,
            \bool_if:NTF \l_@@_split_on_empty_lines_bool { 1 } { 0 } ) 
         } 
-      \bool_if:NT \l_@@_width_min_bool \@@_width_to_aux:
+      \bool_if:NT \l_@@_width_min_bool { \@@_width_to_aux: }
     \group_end:
 %    \end{macrocode}
 %
@@ -5280,7 +5280,7 @@ piton_version = "4.3" -- 2025/03/25
   { 
     \str_clear_new:N \l_@@_SetPitonStyle_option_str
     \str_set:Ne \l_@@_SetPitonStyle_option_str { \str_lowercase:n { #1 } }
-    \str_if_eq:onT \l_@@_SetPitonStyle_option_str { current-language }
+    \str_if_eq:onT { \l_@@_SetPitonStyle_option_str } { current-language }
       { \str_set_eq:NN \l_@@_SetPitonStyle_option_str \l_piton_language_str }
     \keys_set:nn { piton / Styles } { #2 } 
   } 
@@ -5334,6 +5334,7 @@ piton_version = "4.3" -- 2025/03/25
     Preproc ,
     Prompt ,
     String.Doc ,
+    String.Doc.Internal ,
     String.Interpol ,
     String.Long ,
     String.Long.Internal ,
@@ -5384,8 +5385,10 @@ piton_version = "4.3" -- 2025/03/25
 \SetPitonStyle[OCaml]
   {
     TypeExpression = 
-      \SetPitonStyle [ OCaml ] { Identifier = \PitonStyle { Name.Type } } 
-      \@@_piton:n ,
+      { 
+        \SetPitonStyle [ OCaml ] { Identifier = \PitonStyle { Name.Type } } 
+        \@@_piton:n  
+      }
   }
 %    \end{macrocode}
 % 
@@ -5410,7 +5413,6 @@ piton_version = "4.3" -- 2025/03/25
 % 
 % \bigskip
 %    \begin{macrocode}
-% \bool_new:N \l_@@_break_strings_anywhere_bool
 \cs_set_eq:NN \@@_break_strings_anywhere:n \prg_do_nothing:
 
 \cs_set_eq:NN \@@_break_numbers_anywhere:n \prg_do_nothing:
@@ -5436,9 +5438,27 @@ piton_version = "4.3" -- 2025/03/25
   {
     \PitonStyle { String.Long } 
       { 
-        \bool_if:NT \l_@@_break_strings_anywhere_bool
-          { \@@_actually_break_anywhere:n }
-        { #1 } 
+        \bool_if:NTF \l_@@_break_strings_anywhere_bool
+          { \@@_actually_break_anywhere:n { #1 } }
+          { 
+%    \end{macrocode}
+% We have, when |break-lines-in-Piton| is in force, to replace the spaces by
+% |\@@_breakable_space:| because, when we have done a similar job in
+% |\@@_replace_spaces:n| used in |\@@_begin_line:|, that job was not able to do
+% the replacement in the brace group |{...}| of |\PitonStyle{String.Long}{...}|
+% because we used a |\tl_replace_all:NVn|. At that time, it would have been
+% possible to use a |\tl_regex_replace_all:Nnn| but it is notoriously slow.
+%    \begin{macrocode}
+            \bool_if:NTF \l_@@_break_lines_in_Piton_bool
+              {
+                \tl_set:Nn \l_tmpa_tl { #1 }
+                \tl_replace_all:NVn \l_tmpa_tl 
+                  \c_catcode_other_space_tl 
+                  \@@_breakable_space:
+                \l_tmpa_tl
+              }
+              { #1 }
+          } 
       }
   }
 \cs_new_protected:Npn \@@_string_short:n #1
@@ -5448,6 +5468,21 @@ piton_version = "4.3" -- 2025/03/25
         \bool_if:NT \l_@@_break_strings_anywhere_bool
           { \@@_actually_break_anywhere:n }
         { #1 } 
+      }
+  }
+\cs_new_protected:Npn \@@_string_doc:n #1
+  {
+    \PitonStyle { String.Doc } 
+      { 
+        \bool_if:NTF \l_@@_break_lines_in_Piton_bool
+          {
+            \tl_set:Nn \l_tmpa_tl { #1 }
+            \tl_replace_all:NVn \l_tmpa_tl 
+              \c_catcode_other_space_tl 
+              \@@_breakable_space:
+            \l_tmpa_tl
+          }
+          { #1 }
       }
   }
 \cs_new_protected:Npn \@@_number:n #1 
@@ -5470,35 +5505,36 @@ piton_version = "4.3" -- 2025/03/25
 %    \begin{macrocode}
 \SetPitonStyle
   {                                                       
-    Comment               = \color[HTML]{0099FF} \itshape , 
-    Exception             = \color[HTML]{CC0000} ,
-    Keyword               = \color[HTML]{006699} \bfseries , 
-    Keyword.Governing     = \color[HTML]{006699} \bfseries , 
-    Keyword.Constant      = \color[HTML]{006699} \bfseries ,               
-    Name.Builtin          = \color[HTML]{336666} ,
-    Name.Decorator        = \color[HTML]{9999FF}, 
-    Name.Class            = \color[HTML]{00AA88} \bfseries ,
-    Name.Function         = \color[HTML]{CC00FF} , 
-    Name.Namespace        = \color[HTML]{00CCFF} , 
-    Name.Constructor      = \color[HTML]{006000} \bfseries , 
-    Name.Field            = \color[HTML]{AA6600} , 
-    Name.Module           = \color[HTML]{0060A0} \bfseries ,
-    Name.Table            = \color[HTML]{309030} ,
-    Number                = \color[HTML]{FF6600} ,
+    Comment               = \color [ HTML ] { 0099FF } \itshape , 
+    Exception             = \color [ HTML ] { CC0000 } ,
+    Keyword               = \color [ HTML ] { 006699 } \bfseries , 
+    Keyword.Governing     = \color [ HTML ] { 006699 } \bfseries , 
+    Keyword.Constant      = \color [ HTML ] { 006699 } \bfseries ,               
+    Name.Builtin          = \color [ HTML ] { 336666 } ,
+    Name.Decorator        = \color [ HTML ] { 9999FF }, 
+    Name.Class            = \color [ HTML ] { 00AA88 } \bfseries ,
+    Name.Function         = \color [ HTML ] { CC00FF } , 
+    Name.Namespace        = \color [ HTML ] { 00CCFF } , 
+    Name.Constructor      = \color [ HTML ] { 006000 } \bfseries , 
+    Name.Field            = \color [ HTML ] { AA6600 } , 
+    Name.Module           = \color [ HTML ] { 0060A0 } \bfseries ,
+    Name.Table            = \color [ HTML ] { 309030 } ,
+    Number                = \color [ HTML ] { FF6600 } ,
     Number.Internal       = \@@_number:n ,
-    Operator              = \color[HTML]{555555} ,
+    Operator              = \color [ HTML ] { 555555 } ,
     Operator.Word         = \bfseries ,
-    String                = \color[HTML]{CC3300} ,
+    String                = \color [ HTML ] { CC3300 } ,
     String.Long.Internal  = \@@_string_long:n , 
     String.Short.Internal = \@@_string_short:n , 
-    String.Doc            = \color[HTML]{CC3300} \itshape , 
-    String.Interpol       = \color[HTML]{AA0000} ,
-    Comment.LaTeX         = \normalfont \color[rgb]{.468,.532,.6} , 
-    Name.Type             = \color[HTML]{336666} ,
+    String.Doc.Internal   = \@@_string_doc:n , 
+    String.Doc            = \color [ HTML ] { CC3300 } \itshape , 
+    String.Interpol       = \color [ HTML ] { AA0000 } ,
+    Comment.LaTeX         = \normalfont \color [ rgb ] { .468, .532, .6 } , 
+    Name.Type             = \color [ HTML ] { 336666 } ,
     InitialValues         = \@@_piton:n ,
-    Interpol.Inside       = \l_@@_font_command_tl \@@_piton:n ,
-    TypeParameter         = \color[HTML]{336666} \itshape ,
-    Preproc               = \color[HTML]{AA6600} \slshape ,
+    Interpol.Inside       = { \l_@@_font_command_tl \@@_piton:n } ,
+    TypeParameter         = \color [ HTML ] { 336666} \itshape ,
+    Preproc               = \color [ HTML ] { AA6600} \slshape ,
 %    \end{macrocode}
 % We need the command |\@@_identifier:n| because of the command
 % |\SetPitonIdentifier|. The command |\@@_identifier:n| will potentially call
@@ -5506,9 +5542,9 @@ piton_version = "4.3" -- 2025/03/25
 %    \begin{macrocode}
     Identifier.Internal   = \@@_identifier:n , 
     Identifier            = ,
-    Directive             = \color[HTML]{AA6600} ,
-    Tag                   = \colorbox{gray!10}, 
-    UserFunction          = \PitonStyle{Identifier} ,
+    Directive             = \color [ HTML ] { AA6600} ,
+    Tag                   = \colorbox { gray!10 } , 
+    UserFunction          = \PitonStyle { Identifier } ,
     Prompt                = , 
     Discard               = \use_none:n 
   }
@@ -5600,8 +5636,8 @@ piton_version = "4.3" -- 2025/03/25
 % We update |\g_@@_languages_seq| which is used only by the command
 % |\PitonClearUserFunctions| when it's used without its optional argument.
 %    \begin{macrocode}
-    \seq_if_in:NoF \g_@@_languages_seq \l_piton_language_str 
-      { \seq_gput_left:No \g_@@_languages_seq \l_piton_language_str }
+    \seq_if_in:NoF \g_@@_languages_seq { \l_piton_language_str }
+      { \seq_gput_left:No \g_@@_languages_seq { \l_piton_language_str } }
   }
 %    \end{macrocode}
 %
@@ -5639,7 +5675,6 @@ piton_version = "4.3" -- 2025/03/25
 % The following command clears the list of the user-defined functions for the
 % language provided in argument (mandatory in lower case). 
 %    \begin{macrocode}
-\cs_generate_variant:Nn \@@_clear_functions_ii:n { e }
 \cs_new_protected:Npn \@@_clear_functions_ii:n #1 
   {
     \seq_if_exist:cT { g_@@_functions _ #1 _ seq }
@@ -5649,6 +5684,7 @@ piton_version = "4.3" -- 2025/03/25
         \seq_gclear:c { g_@@_functions _ #1 _ seq }
       }
   }
+\cs_generate_variant:Nn \@@_clear_functions_ii:n { e }
 %    \end{macrocode}
 %  
 % \bigskip
@@ -5712,6 +5748,7 @@ piton_version = "4.3" -- 2025/03/25
     address~that~issue.
   }
 %    \end{macrocode}
+%
 %
 %    \begin{macrocode}
 \@@_msg_new:nn { Unknown~key~NewPitonLanguage } 
@@ -5805,9 +5842,21 @@ piton_version = "4.3" -- 2025/03/25
 \@@_msg_new:nn { FileError }
   {
     File~Error.\\
-    It's~not~possible~to~write~on~the~file~'\l_@@_write_str'.\\
-    \sys_if_shell_unrestricted:F { Be~sure~to~compile~with~'-shell-escape'.\\ } 
-    If~you~go~on,~nothing~will~be~written~on~the~file.
+    It's~not~possible~to~write~on~the~file~
+    '\l_@@_path_write_str/\l_@@_write_str'.\\
+    \sys_if_shell_unrestricted:F 
+      { (try~to~compile~with~'lualatex~-shell-escape').\\ } 
+    If~you~go~on,~nothing~will~be~written~on~that~file.
+  }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\@@_msg_new:nn { InexistentDirectory }
+  {
+    Inexistent~directory.\\
+    The~directory~'\l_@@_path_write_str'~
+    given~in~the~key~'path-write'~does~not~exist.\\
+    Nothing~will~be~written~on~'\l_@@_write_str'.
   }
 %    \end{macrocode}
 % 
@@ -5953,9 +6002,9 @@ piton_version = "4.3" -- 2025/03/25
 %    \begin{macrocode}
 \hook_gput_code:nnn { begindocument } { . }
   { 
+    \lua_load_module:n { piton }
     \lua_now:n 
       { 
-        require ( "piton" ) 
         tex.sprint ( luatexbase.catcodetables.expl ,
                      [[\@@_test_version:n {]] .. piton_version ..  "}" ) 
       } 
@@ -5964,7 +6013,6 @@ piton_version = "4.3" -- 2025/03/25
 % 
 %   
 %</STY>
-%    \end{macrocode}
 % 
 % 
 % \bigskip
@@ -6242,8 +6290,10 @@ local SpaceInString = space * Lc [[ \l_@@_space_in_string_tl ]]
 % We create four Lua tables called |detected_commands|, |raw_detected_commands|,
 % |beamer_commands| and |beamer_environments|.
 %
-% On the TeX side, the corresponding data have first been stored as clists. Then, 
-% in a |\AtBeginDocument|, they have been converted in ``toks registers'' of TeX.
+% On the TeX side, the corresponding data have first been stored as clists. 
+
+% Then, in a |\AtBeginDocument|, they have been converted in ``toks registers''
+% of TeX.
 %
 % Now, on the Lua side, we are able to access to those ``toks registers'' with
 % the special pseudo-table |tex.toks| of LuaTeX.
@@ -6271,7 +6321,7 @@ for _ , x in ipairs ( detected_commands ) do
 end 
 %    \end{macrocode}
 % Further, we will have a \textsc{lpeg} called |DetectedCommands| (in
-% PascalCase) which will be a \texsc{lpeg} \emph{with} captures.
+% PascalCase) which will be a \textsc{lpeg} \emph{with} captures.
 %
 % \bigskip
 %    \begin{macrocode}
@@ -6386,7 +6436,7 @@ end
 %    \begin{macrocode}
 local Compute_LPEG_cleaner
 function Compute_LPEG_cleaner ( lang , braces ) return 
-  Ct ( ( DetectedCommands * "{" 
+  Ct ( ( ( detectedCommands + rawDetectedCommands ) * "{" 
           * ( braces 
               / ( function ( s ) 
                     if s ~= '' then return 
@@ -6440,7 +6490,7 @@ local Beamer = P ( false )
 % The following Lua function will be used to compute the \textsc{lpeg} |Beamer|
 % for each informatic language.
 %
-% According to our conventions, the \textsec{lpeg} |Beamer|, with its name in
+% According to our conventions, the \textsc{lpeg} |Beamer|, with its name in
 % PascalCase does captures.
 %    \begin{macrocode}
 local Compute_Beamer
@@ -7005,11 +7055,11 @@ do
 % of a function definition (which begins with |def|).
 %    \begin{macrocode}
   local StringDoc = 
-      K ( 'String.Doc' , P "r" ^ -1 * "\"\"\"" )
-        * ( K ( 'String.Doc' , (1 - P "\"\"\"" - "\r" ) ^ 0  ) * EOL
+      K ( 'String.Doc.Internal' , P "r" ^ -1 * "\"\"\"" )
+        * ( K ( 'String.Doc.Internal' , (1 - P "\"\"\"" - "\r" ) ^ 0  ) * EOL
             * Tab ^ 0 
           ) ^ 0
-        * K ( 'String.Doc' , ( 1 - P "\"\"\"" - "\r" ) ^ 0 * "\"\"\"" )
+        * K ( 'String.Doc.Internal' , ( 1 - P "\"\"\"" - "\r" ) ^ 0 * "\"\"\"" )
 %    \end{macrocode}
 %
 % \bigskip
@@ -8787,13 +8837,13 @@ function piton.GobbleParse ( lang , n , splittable , code )
 % by Lua in |\l_@@_nb_lines_int|. 
 %    \begin{macrocode}
   piton.CountLines ( piton.last_code ) 
-  sprintL3 [[ \bool_if:NT \g_@@_footnote_bool \savenotes ]] 
+  sprintL3 [[ \bool_if:NT \g_@@_footnote_bool { \savenotes } ]] 
   piton.Parse ( lang , piton.last_code )
 %    \end{macrocode}
 %
 %    \begin{macrocode}
   sprintL3 [[ \vspace{2.5pt} ]]
-  sprintL3 [[ \bool_if:NT \g_@@_footnote_bool \endsavenotes ]]
+  sprintL3 [[ \bool_if:NT \g_@@_footnote_bool { \endsavenotes } ]]
 %    \end{macrocode}
 % We finish the paragraph (each line of the listing is composed in a TeX box
 % --- with potentially several lines when |break-lines-in-Piton| is in force ---
@@ -8802,17 +8852,75 @@ function piton.GobbleParse ( lang , n , splittable , code )
   sprintL3 [[ \par ]] 
 %    \end{macrocode}
 %
-% Now, if the final user has used the key |write| to write the code of the
-% environment on an external file.  
+% Now, if the final user has used the key |write| to write the listing of the
+% environment on an external file.
+%
+% We have written the values of the keys |write| and |path-write| in the Lua
+% variables |piton.write| and |piton.path-write|.
+%
+% If |piton.write| is not empty, that means that the key |write| has been used
+% for the current environment and, hence, we have to write the content of the
+% listing on the corresponding external file.
 %    \begin{macrocode}
-  if piton.write and piton.write ~= '' then 
-    local file = io.open ( piton.write , piton.write_mode ) 
-    if file then 
-      file : write ( piton.get_last_code ( ) ) 
-      file : close ( )
+  if piton.write ~= '' then 
+%    \end{macrocode}
+% We will write on |file_name| the full name (with the path) of the file in
+% which we will write.
+%    \begin{macrocode}
+    local file_name = ''
+    if piton.path_write == '' then
+      file_name = piton.write 
     else
-      sprintL3 [[ \@@_error_or_warning:n { FileError } ]] 
-    end  
+%    \end{macrocode}
+% If |piton.path-write| is not empty, that means that we will not write on a
+% file in the current directory in another directory. First, we verify that that
+% directory actually exists. 
+%    \begin{macrocode}
+      local attr = lfs.attributes ( piton.path_write )
+      if attr and attr.mode == "directory" then
+        file_name = piton.path_write .. "/" .. piton.write
+      else
+%    \end{macrocode}
+% If the directory does \emph{not} exist, you raise an (non-fatal) error since
+% TeX is not able to create a new directory.
+%    \begin{macrocode}
+        sprintL3 [[ \@@_error_or_warning:n { InexistentDirectory } ]] 
+      end
+    end
+    if file_name ~= '' then
+%    \end{macrocode}
+% Now, |file_name| contains the complete name of the file on which we will have
+% to write. Maybe the file does not exist but we are sure that the directory
+% exist.
+%    \begin{macrocode}
+      local write_mode 
+%    \end{macrocode}
+% We keep in mind in a special Lua table called |piton.opened_files| a list of
+% all the files on which \pkg{piton} has yet written something (in the current
+% LaTeX run, of course). Indeed, we want to be able to \emph{add} several
+% informatic listings in the same file. The name |opened_files| is a bit
+% confusing because \pkg{piton} does \emph{not} keep thoses files opened. They
+% are systematically closed after each environment (maybe we could change that).
+%    \begin{macrocode}
+      if piton.opened_files [ file_name ] then
+        write_mode = "a"
+      else
+        write_mode = "w"
+        piton.opened_files [ file_name ] = true 
+      end 
+%    \end{macrocode}
+% Now, we actually try to open the file with Lua (and, then, we will write on
+% that file).
+%    \begin{macrocode}
+      local file = io.open ( file_name , write_mode ) 
+      if file then 
+        if write_mode == "a" then file : write ( '\n' ) end 
+        file : write ( piton.get_last_code ( ) ) 
+        file : close ( )
+      else
+        sprintL3 [[ \@@_error_or_warning:n { FileError } ]] 
+      end  
+    end
   end
 end 
 %    \end{macrocode}
@@ -8855,7 +8963,7 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
       ( 
         [[\begin{]] .. piton.env_used_by_split .. "}\r" 
         .. v 
-        .. [[\end{]] .. piton.env_used_by_split .. "}%\r" 
+        .. [[\end{]] .. piton.env_used_by_split .. "}\r" -- previously: }%\r
       )  
   end
   sprintL3 [[ \endgroup ]] 
@@ -8874,7 +8982,7 @@ end
 % \bigskip
 % The following Lua string will be inserted between the chunks of code created
 % when the key |split-on-empty-lines| is in force. It's used only once: you have
-% given a name to that Lua string only for legibily. The token list
+% given a name to that Lua string only for legibility. The token list
 % |\l_@@_split_separation_tl| corresponds to the key |split-separation|. That
 % token list must contain elements inserted in \emph{vertical mode} of TeX.
 %    \begin{macrocode}
@@ -9127,6 +9235,19 @@ function piton.ComputeLinesStatus ( code , splittable )
   piton.lines_status = lines_status
 end 
 %    \end{macrocode}
+% 
+% \bigskip
+%
+% \subsubsection{The key 'write-path'}
+%
+% We keep in memory a table of the files which has been opend by \pkg{piton} in
+% order to write chunks of informatic listings (with the key |write|). Indeed,
+% once we have begun to write in that file, we must go on writing without
+% erasing once again the content of that file.
+%    \begin{macrocode}
+piton.opened_files = { }
+%    \end{macrocode}
+
 % 
 % \bigskip
 % \subsubsection{To create new languages with the syntax of listings}
@@ -9837,9 +9958,4 @@ end
 % flyspell-mode: nil
 % fill-column: 80
 % End:
-
-
-
-
-
 
