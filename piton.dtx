@@ -68,6 +68,8 @@
         \vphantom{gl}\textbackslash #1}}}
 
 
+
+  
 \PitonOptions{gobble=2} 
 
 \EnableCrossrefs
@@ -178,8 +180,7 @@ piton_version = "4.3" -- 2025/03/25
 % The package \pkg{piton} supports two kinds of languages:
 % \begin{itemize}
 % \item the languages natively supported by \pkg{piton}, which are Python, OCaml,
-% C~(in fact \CC), SQL and a language called |minimal|\footnote{That language
-% |minimal| may be used to format pseudo-codes: cf. p.~\pageref{minimal}};
+% C~(in fact \CC), SQL and two special languages called |minimal| and |verbatim|;
 % \item the languages defined by the final user by using the built-in command
 % |\NewPitonLanguage| described p.~\pageref{NewPitonLanguage} (the parsers of
 % those languages can't be as precise as those of the languages supported
@@ -187,6 +188,7 @@ piton_version = "4.3" -- 2025/03/25
 % \end{itemize}
 % 
 %
+% 
 % \smallskip
 % By default, the language used is Python.
 %
@@ -215,7 +217,7 @@ piton_version = "4.3" -- 2025/03/25
 % The package \pkg{piton} provides several tools to typeset informatic codes: the
 % command |\piton|, the environment |{Piton}| and the command |\PitonInputFile|.
 %
-% \begin{itemize}\setlength{\fboxsep}{1pt}
+% \begin{itemize}
 % \item The command \DefinitionCommand{piton} should be used to typeset small
 % pieces of code inside a paragraph. For example:
 % 
@@ -224,7 +226,7 @@ piton_version = "4.3" -- 2025/03/25
 %
 % The syntax and particularities of the command |\piton| are detailed below.
 %
-% \item The environment \colorbox{gray!20}{\ttfamily\{Piton\}} should be used to
+% \item The environment \Definition{\{Piton\}} should be used to
 % typeset multi-lines code. Since it takes its argument in a verbatim mode, it
 % can't be used within the argument of a LaTeX command. For sake of
 % customization, it's possible to define new environments similar to the
@@ -367,6 +369,9 @@ piton_version = "4.3" -- 2025/03/25
 % value a positive integer~$n$: the first $n$ characters are discarded (before
 % the process of highlighting of the code) for each line of the environment
 % |{Piton}|. These characters are not necessarily spaces.
+%
+% When the key |gobble| is used without value, it is equivalent to the key
+% |auto-gobble|, that we describe now.
 %
 % \item \index{auto-gobble}\index{gobble!auto-gobble} When the key
 % \Definition{auto-gobble} is in force, the extension \pkg{piton} computes the
@@ -4212,7 +4217,7 @@ piton_version = "4.3" -- 2025/03/25
     font-command     .tl_set:N          = \l_@@_font_command_tl ,
     font-command     .value_required:n  = true ,
     gobble           .int_set:N         = \l_@@_gobble_int , 
-    gobble           .value_required:n  = true ,
+    gobble           .default:n         = -1 ,
     auto-gobble      .code:n            = \int_set:Nn \l_@@_gobble_int { -1 } , 
     auto-gobble      .value_forbidden:n = true ,
     env-gobble       .code:n            = \int_set:Nn \l_@@_gobble_int { -2 } , 
@@ -9951,11 +9956,7 @@ end
 %
 % \end{document}
 % 
-%
 % Local Variables:
-% TeX-fold-mode: t
-% TeX-fold-preserve-comments: nil
-% flyspell-mode: nil
 % fill-column: 80
 % End:
 
