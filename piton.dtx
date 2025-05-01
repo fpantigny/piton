@@ -251,7 +251,9 @@ piton_version = "4.3" -- 2025/03/25
 % characters (e.g.: \verb!\piton|...|! or \verb!\piton+...+!). 
 % 
 % \begin{itemize}
-% \item {\color{blue} \textsf{Syntax} \verb|\piton{...}|}\par\nobreak
+% \item {\color{blue} \textsf{Syntax} \verb|\piton{...}|}
+%
+% \nobreak
 % When its argument is given between curly braces, the command |\piton| does not
 % take its argument in verbatim mode. In particular:
 % \begin{itemize}
@@ -306,8 +308,9 @@ piton_version = "4.3" -- 2025/03/25
 % commands which are neither \emph{protected} nor \emph{fully expandable}).
 %
 % \bigskip
-% \item {\color{blue} \textsf{Syntax} \verb!\piton|...|!}\par\nobreak
+% \item {\color{blue} \textsf{Syntax} \verb!\piton|...|!}
 %
+% \nobreak
 % When the argument of the command |\piton| is provided between two identical
 % characters (all the characters are allowed except |%|, |\|, |#|, |{|, |}| and
 % the space), that argument is taken in a \emph{verbatim mode}. Therefore, with
@@ -516,7 +519,9 @@ piton_version = "4.3" -- 2025/03/25
 % character~␣ (U+2423 : \textsc{open box}). Of course, that character~U+2423
 % must be present in the monospaced font which is used.\footnote{The initial
 % value of |font-command| is |\ttfamily| and, thus,  by default, \pkg{piton}
-% merely uses the current monospaced font.}\par\nobreak 
+% merely uses the current monospaced font.}
+%
+% \nobreak
 % \begingroup
 % \PitonOptions{show-spaces-in-strings} Example : 
 % \piton|my_string = 'Very good answer'| \endgroup
@@ -534,7 +539,7 @@ piton_version = "4.3" -- 2025/03/25
 % \begingroup
 % \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 % \begin{Verbatim}
-% ~emphase&\begin{Piton}[language=C,line-numbers,auto-gobble,background-color = gray!15]@
+% ~emphase&\begin{Piton}[language=C,line-numbers,gobble,background-color = gray!15]@
 %     void bubbleSort(int arr[], int n) {
 %         int temp;
 %         int swapped;
@@ -551,7 +556,7 @@ piton_version = "4.3" -- 2025/03/25
 %             if (!swapped) break;
 %         }
 %     }   
-% \end{Piton}
+% ~emphase&~textbackslash&@end{Piton}@
 % \end{Verbatim}
 % \endgroup
 %
@@ -640,7 +645,7 @@ piton_version = "4.3" -- 2025/03/25
 % \indexcommand{PitonStyle}
 % The command \DefinitionCommand{PitonStyle} takes in as argument the name of a
 % style and allows to retrieve the value (as a list of LaTeX instructions) of
-% that style.
+% that style. That command is \emph{fully expandable} (in the TeX sens).
 %
 % \smallskip
 % For example, it's possible to write |{\PitonStyle{Keyword}{function}}| and we
@@ -1041,8 +1046,9 @@ piton_version = "4.3" -- 2025/03/25
 % lines in the file, we have to use the key |line-numbers/absolute|.
 %
 % \bigskip
-% \textbf{With line numbers}\par\nobreak
+% \textbf{With line numbers}
 %
+% \nobreak
 % The command |\PitonInputFile| supports the keys \Definition{first-line} and
 % \Definition{last-line} in order to insert only the part of file between the
 % corresponding lines. Not to be confused with the key |line-numbers/start|
@@ -1051,8 +1057,9 @@ piton_version = "4.3" -- 2025/03/25
 % |last-line| deal with the input.
 %
 % \bigskip
-% \textbf{With textual markers}\par\nobreak
+% \textbf{With textual markers}
 %
+% \nobreak
 % \index{marker/beginning}
 % \index{marker/end}
 %
@@ -1641,8 +1648,9 @@ piton_version = "4.3" -- 2025/03/25
 % \end{Piton}
 %
 % \bigskip
-% \colorbox{yellow!50}{\textbf{New 4.3}}\par\nobreak
+% \colorbox{yellow!50}{\textbf{New 4.3}}
 %
+% \nobreak
 % \smallskip 
 % The key \Definition{raw-detected-commands} is similar to the key
 % |detected-commands| but \pkg{piton} won't do any syntactic analysis of the
@@ -1651,6 +1659,42 @@ piton_version = "4.3" -- 2025/03/25
 % If there is a line break within the argument of a command detected by the mean
 % of |raw-detected-commands|, that line break is replaced by a space (as does
 % LaTeX by default).
+%
+% \medskip
+% Imagine, for example, that we wisth, in the main text of a document, introduce
+% some specifications of tables of the language \textsc{sql} by the the name of the table,
+% followed, between brackets, by the names of its fields (ex. : |client(name,town)|).
+%
+% If we insert that element in a command |\piton|, the word \emph{client} won't be
+% recognized as a name of table but as a name of field. It's possible to define
+% a personal command |\NomTable|
+% which we will apply by hand to the names of the tables. In that aim, we declare that
+% command with |raw-detected-commands| and, thus, its argument won't be re-analyzed
+% by \pkg{piton} (that second analysis would format it as a name of field).
+%
+% \medskip
+% In the preamble of the LaTeX document, we insert the following lines:
+%
+% \begin{Verbatim}
+% \NewDocumentCommand{\NomTable}{m}{{\PitonStyle{Name.Table}{~#1}}}
+% \PitonOptions{language=SQL, ~emphase#raw-detected-commands = NomTable@}
+% \end{Verbatim}
+% 
+% In the main, the instruction:
+%
+% \begin{Verbatim}
+% Exemple : \piton{\NomTable{client} (name, town)}
+% \end{Verbatim}
+%
+% \NewDocumentCommand{\NomTable}{m}{{\PitonStyle{Name.Table}{#1}}}
+%
+% produces the following output :
+%
+% \smallskip
+% \begingroup
+% \PitonOptions{language=SQL}%
+% Exemple : \piton{\NomTable{client} (nom, prénom)}
+% \endgroup
 % 
 % \subsubsection{The mechanism ``escape''}
 %
@@ -1780,7 +1824,9 @@ piton_version = "4.3" -- 2025/03/25
 % \label{beamer}
 % \index{Beamer@\cls{Beamer} (class)}
 %
-% \emph{First remark}\par\nobreak
+% \emph{First remark}
+%
+% \nobreak
 % Since the environment |{Piton}| catches its body with a verbatim mode, it's
 % necessary to use the environments |{Piton}| within environments |{frame}| of
 % Beamer protected by the key |fragile|, i.e. beginning with
@@ -1921,8 +1967,9 @@ piton_version = "4.3" -- 2025/03/25
 %
 % \vspace{1cm}
 % \textbf{Remark concerning the command \textbackslash alert and the environment
-% \{alertenv\} of Beamer}\par\nobreak
+% \{alertenv\} of Beamer}
 %
+% \nobreak
 % \smallskip
 % Beamer provides an easy way to change the color used by the environment
 % |{alertenv}| (and by the command |\alert| which relies upon it) to highlight
@@ -4854,6 +4901,15 @@ piton_version = "4.3" -- 2025/03/25
 % \bigskip 
 %    \begin{macrocode}
 \NewDocumentCommand { \NewPitonEnvironment } { m m m m }
+  {
+    \cs_if_exist:cTF { #1 }
+      { \@@_error:nn { Environment~yet~defined } { #1 } }
+      { \@@_NewPitonEnvironment:nnnn { #1 } { #2 } { #3 } { #4 } }
+  }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_NewPitonEnvironment:nnnn #1 #2 #3 #4 
   { 
 %    \end{macrocode}
 % We construct a TeX macro which will catch as argument all the tokens until
@@ -4980,7 +5036,7 @@ piton_version = "4.3" -- 2025/03/25
         \tl_set:Ne \l_@@_body_tl { #1 }
         \tl_set_eq:NN \ProcessedArgument \l_@@_body_tl
       }
-    \RenewDocumentCommand { \NewPitonEnvironment } { m m m m }
+    \cs_set_protected:Npn \@@_NewPitonEnvironment:nnnn #1 #2 #3 #4 
       {
         \NewDocumentEnvironment { #1 } { #2 > { \@@_store_body:n } c } 
           {
@@ -5733,6 +5789,17 @@ piton_version = "4.3" -- 2025/03/25
 % \subsubsection{The error messages of the package}
 % 
 %
+%   \begin{macrocode}
+\@@_msg_new:nn { Environment~yet~defined }
+  {
+    Environment~yet~defined. \\
+    You~can't~create~a~environment~called~\{#1\}~because~
+    a~command~or~an~environment~with~that~name~has~yet~been~
+    defined.
+  }
+%    \end{macrocode}
+% 
+% 
 %    \begin{macrocode}
 \@@_msg_new:nn { Language~not~defined }
   { 
@@ -9832,8 +9899,9 @@ end
 % \section{History}
 %
 % The successive versions of the file |piton.sty| provided by TeXLive are available on the
-% \textsc{svn} server of TeXLive:\par\nobreak
+% \textsc{svn} server of TeXLive:
 %
+% \nobreak
 % \smallskip
 % {
 % \small
