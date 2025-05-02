@@ -5767,7 +5767,14 @@ piton_version = "4.3" -- 2025/03/25
     \seq_gclear:N \g_@@_languages_seq
   }
 %    \end{macrocode}
-% 
+%
+%
+% \bigksip
+%    \begin{macrocode}
+\AtEndDocument
+  { \lua_now:n { piton.write_files() } }
+%    \end{macrocode}
+%
 % \bigskip
 % \subsubsection{Security}
 %
@@ -8945,7 +8952,7 @@ function piton.GobbleParse ( lang , n , splittable , code )
     else
 %    \end{macrocode}
 % If |piton.path-write| is not empty, that means that we will not write on a
-% file in the current directory in another directory. First, we verify that that
+% file in the current directory but in another directory. First, we verify that that
 % directory actually exists. 
 %    \begin{macrocode}
       local attr = lfs.attributes ( piton.path_write )
@@ -8965,7 +8972,7 @@ function piton.GobbleParse ( lang , n , splittable , code )
 % to write. Maybe the file does not exist but we are sure that the directory
 % exist.
 %    \begin{macrocode}
-      local write_mode 
+      -- local write_mode 
 %    \end{macrocode}
 % We keep in mind in a special Lua table called |piton.opened_files| a list of
 % all the files on which \pkg{piton} has yet written something (in the current
@@ -8974,24 +8981,30 @@ function piton.GobbleParse ( lang , n , splittable , code )
 % confusing because \pkg{piton} does \emph{not} keep thoses files opened. They
 % are systematically closed after each environment (maybe we could change that).
 %    \begin{macrocode}
-      if piton.opened_files [ file_name ] then
-        write_mode = "a"
+      -- if piton.opened_files [ file_name ] then
+      --  write_mode = "a"
+      -- else
+      --  write_mode = "w"
+      --  piton.opened_files [ file_name ] = true 
+      -- end
+      if piton.files [ file_name ] ~= nil then
+        piton.files [ file_name ] =
+        piton.files [ file_name ] .. "\n" .. piton.get_last_code ( ) 
       else
-        write_mode = "w"
-        piton.opened_files [ file_name ] = true 
+        piton.files [ file_name ] = piton.get_last_code ( )
       end 
 %    \end{macrocode}
 % Now, we actually try to open the file with Lua (and, then, we will write on
 % that file).
 %    \begin{macrocode}
-      local file = io.open ( file_name , write_mode ) 
-      if file then 
-        if write_mode == "a" then file : write ( '\n' ) end 
-        file : write ( piton.get_last_code ( ) ) 
-        file : close ( )
-      else
-        sprintL3 [[ \@@_error_or_warning:n { FileError } ]] 
-      end  
+      -- local file = io.open ( file_name , write_mode ) 
+      -- if file then 
+      --   if write_mode == "a" then file : write ( '\n' ) end 
+      --  file : write ( piton.get_last_code ( ) ) 
+      --  file : close ( )
+      -- else
+      --  sprintL3 [[ \@@_error_or_warning:n { FileError } ]] 
+      --end  
     end
   end
 end 
@@ -9318,6 +9331,7 @@ end
 % erasing once again the content of that file.
 %    \begin{macrocode}
 piton.opened_files = { }
+piton.files = { }
 %    \end{macrocode}
 
 % 
@@ -9889,6 +9903,21 @@ function piton.new_language ( lang , definition )
            * Lc [[ \@@_end_line: ]]
          )
   end
+end
+%    \end{macrocode}
+%
+%
+%    \begin{macrocode}
+function piton.write_files ( )
+  for file_name , file_content in pairs ( piton.files ) do
+    local file = io.open ( file_name , "w" ) 
+    if file then
+      file : write ( file_content )
+      file : close ( ) 
+    else
+      sprintL3 [[ \@@_error_or_warning:n { FileError } ]]
+    end 
+  end 
 end
 %</LUA>
 %    \end{macrocode}
