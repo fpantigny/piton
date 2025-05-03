@@ -398,7 +398,8 @@ piton_version = "4.3" -- 2025/03/25
 % which is the body without the overwritten LaTeX formatting instructions (cf.
 % the part~\ref{API}, p.~\pageref{API}).} of the current environment in
 % that file. At the first use of a file by \pkg{piton} (during a given
-% compilation done by LaTeX), it is erased.
+% compilation done by LaTeX), it is erased. In fact, the file is written once at
+% the end of the compilation of the file by LuaLaTeX.
 %
 % \item \index{path-write} The key \Definition{path-write} specifies a path
 % where the files written by the key |write| will be written.
@@ -2998,6 +2999,7 @@ piton_version = "4.3" -- 2025/03/25
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_error:n { \msg_error:nn { piton } }
 \cs_new_protected:Npn \@@_warning:n { \msg_warning:nn { piton } }
+\cs_new_protected:Npn \@@_warning:nn { \msg_warning:nnn { piton } }
 \cs_new_protected:Npn \@@_error:nn { \msg_error:nnn { piton } }
 \cs_new_protected:Npn \@@_error:nnn { \msg_error:nnnn { piton } }
 \cs_new_protected:Npn \@@_fatal:n { \msg_fatal:nn { piton } }
@@ -3027,11 +3029,13 @@ piton_version = "4.3" -- 2025/03/25
 %    \end{macrocode}
 % 
 % \bigskip
-% We also create a command which will generate usually an error but only a
+% We also create commands which will generate usually an error but only a
 % warning on Overleaf. The argument is given by curryfication.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_error_or_warning:n 
   { \bool_if:NTF \g_@@_messages_for_Overleaf_bool \@@_warning:n \@@_error:n }
+\cs_new_protected:Npn \@@_error_or_warning:nn 
+  { \bool_if:NTF \g_@@_messages_for_Overleaf_bool \@@_warning:nn \@@_error:nn }
 %    \end{macrocode}
 % 
 % We try to detect whether the compilation is done on Overleaf. We use
@@ -3398,12 +3402,15 @@ piton_version = "4.3" -- 2025/03/25
 %    \end{macrocode}
 %
 % \medskip
-% The parameter |\l_@@_writer_str| corresponds to the key |write|. We will store
-% the list of the files already used in |\g_@@_write_seq| (we must not erase a
-% file which has been still been used).
+% The parameter |\l_@@_write_str| corresponds to the key |write|. 
 %    \begin{macrocode}
 \str_new:N \l_@@_write_str
-\seq_new:N \g_@@_write_seq
+%    \end{macrocode}
+%
+% \medskip
+% The parameter |\l_@@_join_str| corresponds to the key |join|.
+%    \begin{macrocode}
+\str_new:N \l_@@_join_str
 %    \end{macrocode}
 %
 % \medskip
@@ -4315,6 +4322,9 @@ piton_version = "4.3" -- 2025/03/25
     write .str_set:N = \l_@@_write_str ,
     write .value_required:n = true ,
 
+    join .str_set:N = \l_@@_join_str ,
+    join .value_required:n = true ,
+
     left-margin      .code:n =
       \str_if_eq:nnTF { #1 } { auto }
         { 
@@ -4384,7 +4394,6 @@ piton_version = "4.3" -- 2025/03/25
     all-line-numbers .code:n = 
       \bool_set_true:N \l_@@_line_numbers_bool 
       \bool_set_false:N \l_@@_skip_empty_lines_bool ,
-    all-line-numbers .value_forbidden:n = true 
   }
 %    \end{macrocode}
 %
@@ -4950,6 +4959,7 @@ piton_version = "4.3" -- 2025/03/25
             \@@_compute_width:
             \lua_now:e
               {
+                piton.join = "\l_@@_join_str"
                 piton.write = "\l_@@_write_str"
                 piton.path_write = "\l_@@_path_write_str"
               }
@@ -5056,6 +5066,7 @@ piton_version = "4.3" -- 2025/03/25
             \@@_compute_width:
             \lua_now:e
               {
+                piton.join = "\l_@@_join_str"
                 piton.write = "\l_@@_write_str"
                 piton.path_write = "\l_@@_path_write_str"
               }
@@ -5769,10 +5780,10 @@ piton_version = "4.3" -- 2025/03/25
 %    \end{macrocode}
 %
 %
-% \bigksip
+% \bigskip
 %    \begin{macrocode}
 \AtEndDocument
-  { \lua_now:n { piton.write_files() } }
+  { \lua_now:n { piton.write_and_join_files() } }
 %    \end{macrocode}
 %
 % \bigskip
@@ -5921,8 +5932,7 @@ piton_version = "4.3" -- 2025/03/25
 \@@_msg_new:nn { FileError }
   {
     File~Error.\\
-    It's~not~possible~to~write~on~the~file~
-    '\l_@@_path_write_str/\l_@@_write_str'.\\
+    It's~not~possible~to~write~on~the~file~'#1' \\
     \sys_if_shell_unrestricted:F 
       { (try~to~compile~with~'lualatex~-shell-escape').\\ } 
     If~you~go~on,~nothing~will~be~written~on~that~file.
@@ -6019,6 +6029,7 @@ piton_version = "4.3" -- 2025/03/25
     font-command,~
     gobble,~
     indent-broken-lines,~
+    join,~
     language,~
     left-margin,~
     line-numbers/,~
@@ -6110,7 +6121,16 @@ piton.comment_latex = piton.comment_latex or ">"
 piton.comment_latex = "#" .. piton.comment_latex 
 %    \end{macrocode}
 %
+% \bigskip
+% The table |piton.write_files| will contain the contents of all the files that we
+% will write on the disk in the |\AtEndDocument| (if the user has used the key
+% |write-file|). The table |piton.join_files| is similar for the key |join|.
+%    \begin{macrocode}
+piton.write_files = { }
+piton.join_files = { }
+%    \end{macrocode}
 %
+% \bigskip
 %    \begin{macrocode}
 local sprintL3
 function sprintL3 ( s ) 
@@ -7336,9 +7356,9 @@ do
 %    \end{macrocode}
 %
 % \bigskip
-%    \begin{macrocode}
+%     \begin{macrocode}
   local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
-%    \end{macrocode}
+%     \end{macrocode}
 %
 % \bigskip
 %    \begin{macrocode}
@@ -8490,7 +8510,7 @@ do
     WithStyle ( 'String.Short.Internal' ,
                 Q "\"" 
                 * ( SpaceInString 
-                    + Q ( ( P "\\\"" + 1 - S " \"" ) ^ 1 ) 
+                    + Q ( ( P [[\"]] + 1 - S " \"" ) ^ 1 ) 
                   ) ^ 0 
                 * Q "\""
               )
@@ -8931,8 +8951,22 @@ function piton.GobbleParse ( lang , n , splittable , code )
   sprintL3 [[ \par ]] 
 %    \end{macrocode}
 %
+% \bigskip
+% If the final user has used the key |join|. The value of the key |join| has
+% been written in the Lua variable |piton.join|.
+%    \begin{macrocode}
+  if piton.join ~= '' then
+    if piton.join_files [ piton.join ] == nil then
+      piton.join_files [ piton.join ] = piton.get_last_code ( )
+    else
+      piton.join_files [ piton.join ] =
+      piton.join_files [ piton.join ] .. "\r\n" .. piton.get_last_code ( )
+    end
+  end 
+%     \end{macrocode}
+%
 % Now, if the final user has used the key |write| to write the listing of the
-% environment on an external file.
+% environment on an external file (on the disk).
 %
 % We have written the values of the keys |write| and |path-write| in the Lua
 % variables |piton.write| and |piton.path-write|.
@@ -8970,41 +9004,18 @@ function piton.GobbleParse ( lang , n , splittable , code )
 %    \end{macrocode}
 % Now, |file_name| contains the complete name of the file on which we will have
 % to write. Maybe the file does not exist but we are sure that the directory
-% exist.
+% exist. 
+%
+% The Lua table |piton.write_files| is a table of Lua strings corresponding to all the
+%   files that we will write on the disk in the |\AtEndDocument|. They
+%   correspond to the use of the key |write| (and |path-write|).
 %    \begin{macrocode}
-      -- local write_mode 
-%    \end{macrocode}
-% We keep in mind in a special Lua table called |piton.opened_files| a list of
-% all the files on which \pkg{piton} has yet written something (in the current
-% LaTeX run, of course). Indeed, we want to be able to \emph{add} several
-% informatic listings in the same file. The name |opened_files| is a bit
-% confusing because \pkg{piton} does \emph{not} keep thoses files opened. They
-% are systematically closed after each environment (maybe we could change that).
-%    \begin{macrocode}
-      -- if piton.opened_files [ file_name ] then
-      --  write_mode = "a"
-      -- else
-      --  write_mode = "w"
-      --  piton.opened_files [ file_name ] = true 
-      -- end
-      if piton.files [ file_name ] ~= nil then
-        piton.files [ file_name ] =
-        piton.files [ file_name ] .. "\n" .. piton.get_last_code ( ) 
+      if piton.write_files [ file_name ] == nil then
+        piton.write_files [ file_name ] = piton.get_last_code ( )
       else
-        piton.files [ file_name ] = piton.get_last_code ( )
+        piton.write_files [ file_name ] =
+        piton.write_files [ file_name ] .. "\n" .. piton.get_last_code ( ) 
       end 
-%    \end{macrocode}
-% Now, we actually try to open the file with Lua (and, then, we will write on
-% that file).
-%    \begin{macrocode}
-      -- local file = io.open ( file_name , write_mode ) 
-      -- if file then 
-      --   if write_mode == "a" then file : write ( '\n' ) end 
-      --  file : write ( piton.get_last_code ( ) ) 
-      --  file : close ( )
-      -- else
-      --  sprintL3 [[ \@@_error_or_warning:n { FileError } ]] 
-      --end  
     end
   end
 end 
@@ -9082,7 +9093,8 @@ piton.string_between_chunks =
 % The following public Lua function is provided to the developer. 
 %    \begin{macrocode}
 function piton.get_last_code ( ) 
-  return LPEG_cleaner[piton.last_language] : match ( piton.last_code ) 
+  return LPEG_cleaner[piton.last_language] : match ( piton.last_code )
+         : gsub('\r\n','\n') : gsub('\r','\n')
 end
 %    \end{macrocode}
 % 
@@ -9321,18 +9333,6 @@ function piton.ComputeLinesStatus ( code , splittable )
 end 
 %    \end{macrocode}
 % 
-% \bigskip
-%
-% \subsubsection{The key 'write-path'}
-%
-% We keep in memory a table of the files which has been opend by \pkg{piton} in
-% order to write chunks of informatic listings (with the key |write|). Indeed,
-% once we have begun to write in that file, we must go on writing without
-% erasing once again the content of that file.
-%    \begin{macrocode}
-piton.opened_files = { }
-piton.files = { }
-%    \end{macrocode}
 
 % 
 % \bigskip
@@ -9906,18 +9906,40 @@ function piton.new_language ( lang , definition )
 end
 %    \end{macrocode}
 %
+% \subsubsection{We write the files (key 'write') and join the files in the PDF (key 'join')}
 %
 %    \begin{macrocode}
-function piton.write_files ( )
-  for file_name , file_content in pairs ( piton.files ) do
+function piton.write_and_join_files ( )
+  for file_name , file_content in pairs ( piton.write_files ) do
     local file = io.open ( file_name , "w" ) 
     if file then
       file : write ( file_content )
       file : close ( ) 
     else
-      sprintL3 [[ \@@_error_or_warning:n { FileError } ]]
+      sprintL3
+        ( [[ \@@_error_or_warning:nn { FileError } { ]] .. file_name .. [[ } ]] )
     end 
-  end 
+  end
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+  for file_name , file_content in pairs ( piton.join_files ) do
+    pdf.immediateobj("stream", file_content)
+    tex.print
+      (
+        [[ \pdfextension annot width 10pt height 10pt depth 0pt ]]
+        ..
+%    \end{macrocode}
+% The entry |/F| in the \textsc{pdf} dictionnary of the annotation is an
+% unsigned 32-bit integer containing flags specifying various characteristics
+% of the annotation. The bit in position 2 means \emph{Hidden}.
+%    \begin{macrocode}
+        [[ { /Subtype /FileAttachment /F 2 ]]
+        ..
+        [[ /FS << /Type /Filespec /F (]]
+        .. file_name .. [[) /EF << /F \pdffeedback lastobj 0 R >> >> }  ]]
+      )
+  end
 end
 %</LUA>
 %    \end{macrocode}
