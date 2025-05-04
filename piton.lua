@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.3" -- 2025/03/25
+piton_version = "4.4" -- 2025/05/04
 
 
 
@@ -28,17 +28,16 @@ piton_version = "4.3" -- 2025/03/25
 
 piton.comment_latex = piton.comment_latex or ">"
 piton.comment_latex = "#" .. piton.comment_latex
+piton.write_files = { }
+piton.join_files = { }
 local sprintL3
 function sprintL3 ( s )
   tex.sprint ( luatexbase.catcodetables.expl , s )
 end
-local printL3
-function printL3 ( s )
-  tex.print ( luatexbase.catcodetables.expl , s )
-end
 local P, S, V, C, Ct, Cc = lpeg.P, lpeg.S, lpeg.V, lpeg.C, lpeg.Ct, lpeg.Cc
 local Cg , Cmt , Cb = lpeg.Cg , lpeg.Cmt , lpeg.Cb
 local B , R = lpeg.B , lpeg.R
+lpeg.locale(lpeg)
 local Q
 function Q ( pattern )
   return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
@@ -84,7 +83,6 @@ if piton.begin_escape_math then
     * Lc "$"
     * P ( piton.end_escape_math )
 end
-lpeg.locale(lpeg)
 local alpha , digit = lpeg.alpha , lpeg.digit
 local space = P " "
 local letter = alpha + "_" + "â" + "à" + "ç" + "é" + "è" + "ê" + "ë" + "ï" + "î"
@@ -120,6 +118,41 @@ local Tab = "\t" * Lc [[ \__piton_tab: ]]
 local SpaceIndentation = Lc [[ \__piton_leading_space: ]] * Q " "
 local Delim = Q ( S "[({})]" )
 local SpaceInString = space * Lc [[ \l__piton_space_in_string_tl ]]
+
+local detected_commands = tex.toks.PitonDetectedCommands : explode ( ',' )
+local raw_detected_commands = tex.toks.PitonRawDetectedCommands : explode ( ',' )
+local beamer_commands = tex.toks.PitonBeamerCommands : explode ( ',' )
+local beamer_environments = tex.toks.PitonBeamerEnvironments : explode ( ',' )
+local detectedCommands = P ( false )
+for _ , x in ipairs ( detected_commands ) do
+  detectedCommands = detectedCommands + P ( "\\" .. x )
+end
+local rawDetectedCommands = P ( false )
+for _ , x in ipairs ( raw_detected_commands ) do
+  rawDetectedCommands = rawDetectedCommands + P ( "\\" .. x )
+end
+local beamerCommands = P ( false )
+for _ , x in ipairs ( beamer_commands ) do
+  beamerCommands = beamerCommands + P ( "\\" .. x )
+end
+local beamerEnvironments = P ( false )
+for _ , x in ipairs ( beamer_environments ) do
+  beamerEnvironments = beamerEnvironments + P ( x )
+end
+local beamerBeginEnvironments =
+    ( space ^ 0 *
+      L
+        (
+          P [[\begin{]] * beamerEnvironments * "}"
+          * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
+        )
+      * "\r"
+    ) ^ 0
+local beamerEndEnvironments =
+    ( space ^ 0 *
+      L ( P [[\end{]] * beamerEnvironments * "}" )
+      * "\r"
+    ) ^ 0
 local LPEG0 = { }
 local LPEG1 = { }
 local LPEG2 = { }
@@ -141,7 +174,7 @@ local Compute_DetectedCommands
 function Compute_DetectedCommands ( lang , braces ) return
   Ct (
        Cc "Open"
-        * C ( piton.DetectedCommands * space ^ 0 * P "{" )
+        * C ( detectedCommands * space ^ 0 * P "{" )
         * Cc "}"
      )
    * ( braces
@@ -156,11 +189,11 @@ function Compute_DetectedCommands ( lang , braces ) return
 end
 local Compute_RawDetectedCommands
 function Compute_RawDetectedCommands ( lang , braces ) return
-  Ct ( C ( piton.RawDetectedCommands * space ^ 0 * P "{" * braces * P "}" ) )
+  Ct ( C ( rawDetectedCommands * space ^ 0 * P "{" * braces * P "}" ) )
 end
 local Compute_LPEG_cleaner
 function Compute_LPEG_cleaner ( lang , braces ) return
-  Ct ( ( piton.DetectedCommands * "{"
+  Ct ( ( ( detectedCommands + rawDetectedCommands ) * "{"
           * ( braces
               / ( function ( s )
                     if s ~= '' then return
@@ -180,32 +213,12 @@ function ParseAgain ( code )
   end
 end
 local Beamer = P ( false )
-local BeamerBeginEnvironments = P ( true )
-local BeamerEndEnvironments = P ( true )
-piton.BeamerEnvironments = P ( false )
-for _ , x  in ipairs ( piton.beamer_environments )  do
-  piton.BeamerEnvironments = piton.BeamerEnvironments + x
-end
-BeamerBeginEnvironments =
-    ( space ^ 0 *
-      L
-        (
-          P [[\begin{]] * piton.BeamerEnvironments * "}"
-          * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
-        )
-      * "\r"
-    ) ^ 0
-BeamerEndEnvironments =
-    ( space ^ 0 *
-      L ( P [[\end{]] * piton.BeamerEnvironments * "}" )
-      * "\r"
-    ) ^ 0
 local Compute_Beamer
 function Compute_Beamer ( lang , braces )
   local lpeg = L ( P [[\pause]] * ( "[" * ( 1 - P "]" ) ^ 0 * "]" ) ^ -1 )
   lpeg = lpeg +
       Ct ( Cc "Open"
-            * C ( piton.BeamerCommands
+            * C ( beamerCommands
                   * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
                   * P "{"
                 )
@@ -237,7 +250,7 @@ function Compute_Beamer ( lang , braces )
           / ( function ( s )
               if s ~= '' then return LPEG1[lang] : match ( s ) end end ) )
       * L ( P "}" )
-  for _ , x in ipairs ( piton.beamer_environments ) do
+  for _ , x in ipairs ( beamer_environments ) do
     lpeg = lpeg +
           Ct ( Cc "Open"
                * C (
@@ -275,12 +288,12 @@ local EOL =
          Cc "EOL"
          *
          Ct ( Lc [[ \__piton_end_line: ]]
-              * BeamerEndEnvironments
+              * beamerEndEnvironments
               *
                 (
                     -1
                   +
-                    BeamerBeginEnvironments
+                    beamerBeginEnvironments
                   * PromptHastyDetection
                   * Lc [[ \__piton_newline:\__piton_begin_line: ]]
                   * Prompt
@@ -497,11 +510,11 @@ do
     )
   local LongString = SingleLongString + DoubleLongString
   local StringDoc =
-      K ( 'String.Doc' , P "r" ^ -1 * "\"\"\"" )
-        * ( K ( 'String.Doc' , (1 - P "\"\"\"" - "\r" ) ^ 0  ) * EOL
+      K ( 'String.Doc.Internal' , P "r" ^ -1 * "\"\"\"" )
+        * ( K ( 'String.Doc.Internal' , (1 - P "\"\"\"" - "\r" ) ^ 0  ) * EOL
             * Tab ^ 0
           ) ^ 0
-        * K ( 'String.Doc' , ( 1 - P "\"\"\"" - "\r" ) ^ 0 * "\"\"\"" )
+        * K ( 'String.Doc.Internal' , ( 1 - P "\"\"\"" - "\r" ) ^ 0 * "\"\"\"" )
   local Comment =
     WithStyle
      ( 'Comment' ,
@@ -581,7 +594,7 @@ do
   LPEG2.python =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
-         * BeamerBeginEnvironments
+         * beamerBeginEnvironments
          * PromptHastyDetection
          * Lc [[ \__piton_begin_line: ]]
          * Prompt
@@ -595,9 +608,7 @@ do
   local SkipSpace = ( Q " " + EOL ) ^ 0
   local Space = ( Q " " + EOL ) ^ 1
   local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
-  if piton.beamer then
-    Beamer = Compute_Beamer ( 'ocaml' , braces )
-  end
+  if piton.beamer then Beamer = Compute_Beamer ( 'ocaml' , braces ) end
   DetectedCommands =
     Compute_DetectedCommands ( 'ocaml' , braces )
     + Compute_RawDetectedCommands ( 'ocaml' , braces )
@@ -953,7 +964,7 @@ do
           * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 )
         +
         ( space ^ 0 * "\r" ) ^ -1
-        * BeamerBeginEnvironments
+        * beamerBeginEnvironments
         * Lc [[ \__piton_begin_line: ]]
         * SpaceIndentation ^ 0
         * ( ( space * Lc [[ \__piton_trailing_space: ]] ) ^ 1 * -1
@@ -1062,7 +1073,7 @@ do
   LPEG2.c =
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
-         * BeamerBeginEnvironments
+         * beamerBeginEnvironments
          * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
@@ -1226,7 +1237,7 @@ do
   LPEG2.sql =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
-         * BeamerBeginEnvironments
+         * beamerBeginEnvironments
          * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
@@ -1248,7 +1259,7 @@ do
     WithStyle ( 'String.Short.Internal' ,
                 Q "\""
                 * ( SpaceInString
-                    + Q ( ( P "\\\"" + 1 - S " \"" ) ^ 1 )
+                    + Q ( ( P [[\"]] + 1 - S " \"" ) ^ 1 )
                   ) ^ 0
                 * Q "\""
               )
@@ -1288,7 +1299,7 @@ do
   LPEG2.minimal =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
-         * BeamerBeginEnvironments
+         * beamerBeginEnvironments
          * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
@@ -1333,7 +1344,7 @@ do
   LPEG2.verbatim =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
-         * BeamerBeginEnvironments
+         * beamerBeginEnvironments
          * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
@@ -1363,7 +1374,7 @@ function piton.Parse ( language , code )
       end
     else
       if one_item[1] == "Open" then
-        tex.sprint( one_item[2] )
+        tex.sprint ( one_item[2] )
         table.insert ( left_stack , one_item[2] )
         table.insert ( right_stack , one_item[3] )
       else
@@ -1494,18 +1505,38 @@ function piton.GobbleParse ( lang , n , splittable , code )
   piton.last_code = gobble ( n , code )
   piton.last_language = lang
   piton.CountLines ( piton.last_code )
-  sprintL3 [[ \bool_if:NT \g__piton_footnote_bool \savenotes ]]
+  sprintL3 [[ \bool_if:NT \g__piton_footnote_bool { \savenotes } ]]
   piton.Parse ( lang , piton.last_code )
   sprintL3 [[ \vspace{2.5pt} ]]
-  sprintL3 [[ \bool_if:NT \g__piton_footnote_bool \endsavenotes ]]
+  sprintL3 [[ \bool_if:NT \g__piton_footnote_bool { \endsavenotes } ]]
   sprintL3 [[ \par ]]
-  if piton.write and piton.write ~= '' then
-    local file = io.open ( piton.write , piton.write_mode )
-    if file then
-      file : write ( piton.get_last_code ( ) )
-      file : close ( )
+  if piton.join ~= '' then
+    if piton.join_files [ piton.join ] == nil then
+      piton.join_files [ piton.join ] = piton.get_last_code ( )
     else
-      sprintL3 [[ \__piton_error_or_warning:n { FileError } ]]
+      piton.join_files [ piton.join ] =
+      piton.join_files [ piton.join ] .. "\r\n" .. piton.get_last_code ( )
+    end
+  end
+  if piton.write ~= '' then
+    local file_name = ''
+    if piton.path_write == '' then
+      file_name = piton.write
+    else
+      local attr = lfs.attributes ( piton.path_write )
+      if attr and attr.mode == "directory" then
+        file_name = piton.path_write .. "/" .. piton.write
+      else
+        sprintL3 [[ \__piton_error_or_warning:n { InexistentDirectory } ]]
+      end
+    end
+    if file_name ~= '' then
+      if piton.write_files [ file_name ] == nil then
+        piton.write_files [ file_name ] = piton.get_last_code ( )
+      else
+        piton.write_files [ file_name ] =
+        piton.write_files [ file_name ] .. "\n" .. piton.get_last_code ( )
+      end
     end
   end
 end
@@ -1539,7 +1570,7 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
       (
         [[\begin{]] .. piton.env_used_by_split .. "}\r"
         .. v
-        .. [[\end{]] .. piton.env_used_by_split .. "}%\r"
+        .. [[\end{]] .. piton.env_used_by_split .. "}\r" -- previously: }%\r
       )
   end
   sprintL3 [[ \endgroup ]]
@@ -1554,6 +1585,7 @@ piton.string_between_chunks =
  .. [[ \int_gzero:N \g__piton_line_int ]]
 function piton.get_last_code ( )
   return LPEG_cleaner[piton.last_language] : match ( piton.last_code )
+         : gsub('\r\n','\n') : gsub('\r','\n')
 end
 function piton.CountLines ( code )
   local count = 0
@@ -1628,11 +1660,11 @@ function piton.ComputeLinesStatus ( code , splittable )
   if piton.beamer then
     lpeg_line_beamer =
        space ^ 0
-        * P [[\begin{]] * piton.BeamerEnvironments * "}"
+        * P [[\begin{]] * beamerEnvironments * "}"
         * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
        +
        space ^ 0
-        * P [[\end{]] * piton.BeamerEnvironments * "}"
+        * P [[\end{]] * beamerEnvironments * "}"
   else
     lpeg_line_beamer = P ( false )
   end
@@ -1693,6 +1725,7 @@ function piton.ComputeLinesStatus ( code , splittable )
   end
   piton.lines_status = lines_status
 end
+
 function piton.new_language ( lang , definition )
   lang = string.lower ( lang )
   local alpha , digit = lpeg.alpha , lpeg.digit
@@ -2012,7 +2045,7 @@ function piton.new_language ( lang , definition )
   LPEG2[lang] =
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
-         * BeamerBeginEnvironments
+         * beamerBeginEnvironments
          * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
@@ -2057,7 +2090,7 @@ function piton.new_language ( lang , definition )
     LPEG2[lang] =
       Ct (
            ( space ^ 0 * P "\r" ) ^ -1
-           * BeamerBeginEnvironments
+           * beamerBeginEnvironments
            * Lc [[ \__piton_begin_line: ]]
            * SpaceIndentation ^ 0
            * LPEG1[lang]
@@ -2066,4 +2099,32 @@ function piton.new_language ( lang , definition )
          )
   end
 end
+function piton.write_and_join_files ( )
+  for file_name , file_content in pairs ( piton.write_files ) do
+    local file = io.open ( file_name , "w" )
+    if file then
+      file : write ( file_content )
+      file : close ( )
+    else
+      sprintL3
+        ( [[ \__piton_error_or_warning:nn { FileError } { ]] .. file_name .. [[ } ]] )
+    end
+  end
+  for file_name , file_content in pairs ( piton.join_files ) do
+    pdf.immediateobj("stream", file_content)
+    tex.print
+      (
+        [[ \pdfextension annot width 0pt height 0pt depth 0pt ]]
+        ..
+        [[ { /Subtype /FileAttachment /F 2 /Name /Paperclip]]
+        ..
+        [[ /Contents (File included by the key 'join' of piton) ]]
+        ..
+        [[ /FS << /Type /Filespec /UF <]] .. file_name .. [[>]]
+        ..
+        [[ /EF << /F \pdffeedback lastobj 0 R >> >> }  ]]
+      )
+  end
+end
+
 

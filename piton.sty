@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.3}
-\def\PitonFileDate{2025/03/25}
+\def\PitonFileVersion{4.4}
+\def\PitonFileDate{2025/05/04}
 
 
 
@@ -35,7 +35,7 @@
 \msg_new:nnn { piton } { latex-too-old }
   {
     Your~LaTeX~release~is~too~old. \\
-    You~need~at~least~a~the~version~of~2023-11-01
+    You~need~at~least~the~version~of~2023-11-01
   }
 \IfFormatAtLeastTF
   { 2023-11-01 }
@@ -44,6 +44,7 @@
 \RequirePackage { amstext }
 \cs_new_protected:Npn \__piton_error:n { \msg_error:nn { piton } }
 \cs_new_protected:Npn \__piton_warning:n { \msg_warning:nn { piton } }
+\cs_new_protected:Npn \__piton_warning:nn { \msg_warning:nnn { piton } }
 \cs_new_protected:Npn \__piton_error:nn { \msg_error:nnn { piton } }
 \cs_new_protected:Npn \__piton_error:nnn { \msg_error:nnnn { piton } }
 \cs_new_protected:Npn \__piton_fatal:n { \msg_fatal:nn { piton } }
@@ -64,6 +65,8 @@
   }
 \cs_new_protected:Npn \__piton_error_or_warning:n
   { \bool_if:NTF \g__piton_messages_for_Overleaf_bool \__piton_warning:n \__piton_error:n }
+\cs_new_protected:Npn \__piton_error_or_warning:nn
+  { \bool_if:NTF \g__piton_messages_for_Overleaf_bool \__piton_warning:nn \__piton_error:nn }
 \bool_new:N \g__piton_messages_for_Overleaf_bool
 \bool_gset:Nn \g__piton_messages_for_Overleaf_bool
   {
@@ -79,7 +82,6 @@
     If~you~go~on,~the~package~'piton'~won't~be~loaded.
   }
 \sys_if_engine_luatex:F { \msg_critical:nn { piton } { LuaLaTeX~mandatory } }
-\RequirePackage { luatexbase }
 \RequirePackage { luacode }
 \__piton_msg_new:nnn { piton.lua~not~found }
   {
@@ -95,9 +97,7 @@
 \file_if_exist:nF { piton.lua } { \__piton_fatal:n { piton.lua~not~found } }
 \bool_new:N \g__piton_footnotehyper_bool
 \bool_new:N \g__piton_footnote_bool
-\bool_new:N \g__piton_math_comments_bool
 \bool_new:N \g__piton_beamer_bool
-\tl_new:N \g__piton_escape_inside_tl
 \keys_define:nn { piton }
   {
     footnote .bool_gset:N = \g__piton_footnote_bool ,
@@ -121,10 +121,20 @@
     That~key~will~be~ignored.
   }
 \ProcessKeyOptions
-\IfClassLoadedTF { beamer } { \bool_gset_true:N \g__piton_beamer_bool } { }
-\IfPackageLoadedTF { beamerarticle } { \bool_gset_true:N \g__piton_beamer_bool } { }
-\lua_now:n { piton = piton~or~{ } }
-\bool_if:NT \g__piton_beamer_bool { \lua_now:n { piton.beamer = true } }
+\IfClassLoadedTF { beamer }
+  { \bool_gset_true:N \g__piton_beamer_bool }
+  {
+    \IfPackageLoadedTF { beamerarticle }
+    { \bool_gset_true:N \g__piton_beamer_bool }
+    { }
+  }
+\lua_now:e
+  {
+    piton = piton~or~{ }
+    piton.last_code = ''
+    piton.last_language = ''
+    \bool_if:NT \g__piton_beamer_bool { piton.beamer = true }
+  }
 \RequirePackage { xcolor }
 \__piton_msg_new:nn { footnote~with~footnotehyper~package }
   {
@@ -166,17 +176,6 @@
         \bool_gset_true:N \g__piton_footnote_bool
       }
   }
-\lua_now:n
-  {
-    piton.BeamerCommands = lpeg.P [[\uncover]]
-       + [[\only]] + [[\visible]] + [[\invisible]] + [[\alert]] + [[\action]]
-    piton.beamer_environments = { "uncoverenv" , "onlyenv" , "visibleenv" ,
-               "invisibleenv" ,  "alertenv" ,  "actionenv" }
-    piton.DetectedCommands = lpeg.P ( false )
-    piton.RawDetectedCommands = lpeg.P ( false )
-    piton.last_code = ''
-    piton.last_language = ''
-  }
 \str_new:N \l_piton_language_str
 \str_set:Nn \l_piton_language_str { python }
 \tl_new:N \g_piton_last_code_tl
@@ -197,12 +196,14 @@
   { \vspace { \baselineskip } \vspace { -1.25pt } }
 \clist_new:N \l__piton_bg_color_clist
 \tl_new:N \l__piton_prompt_bg_color_tl
+\tl_new:N \l__piton_space_in_string_tl
 \str_new:N \l__piton_begin_range_str
 \str_new:N \l__piton_end_range_str
+\bool_new:N \g__piton_math_comments_bool
 \str_new:N \l__piton_file_name_str
 \int_new:N \g__piton_env_int
 \str_new:N \l__piton_write_str
-\seq_new:N \g__piton_write_seq
+\str_new:N \l__piton_join_str
 \bool_new:N \l__piton_show_spaces_bool
 \bool_new:N \l__piton_break_lines_in_Piton_bool
 \bool_new:N \l__piton_indent_broken_lines_bool
@@ -213,7 +214,6 @@
 \tl_new:N \l__piton_end_of_broken_line_tl
 \tl_set:Nn \l__piton_end_of_broken_line_tl { \hspace*{0.5em} \textbackslash }
 \bool_new:N \l__piton_break_lines_in_piton_bool
-
 \dim_new:N \l__piton_width_dim
 \dim_new:N \l__piton_line_width_dim
 \bool_new:N \l__piton_width_min_bool
@@ -268,34 +268,50 @@
     \tl_gset:Nn \g__piton_begin_line_hook_tl
       {
         \tl_if_empty:NF \l__piton_prompt_bg_color_tl
-          { \clist_set:No \l__piton_bg_color_clist \l__piton_prompt_bg_color_tl }
+          { \clist_set:No \l__piton_bg_color_clist { \l__piton_prompt_bg_color_tl } }
       }
   }
 \cs_new_protected:Npn \__piton_trailing_space: { }
-\cs_generate_variant:Nn \__piton_replace_spaces:n { o }
+\clist_new:N \l__piton_detected_commands_clist
+\clist_new:N \l__piton_raw_detected_commands_clist
+\clist_new:N \l__piton_beamer_commands_clist
+\clist_set:Nn \l__piton_beamer_commands_clist
+  {uncover, only, visible, invisible, alert, action}
+\clist_new:N \l__piton_beamer_environments_clist
+\clist_set:Nn \l__piton_beamer_environments_clist
+  {uncoverenv, onlyenv, visibleenv, invisibleenv, alertenv, actionenv}
+\hook_gput_code:nnn { begindocument } { . }
+  {
+    \newtoks \PitonDetectedCommands
+    \newtoks \PitonRawDetectedCommands
+    \newtoks \PitonBeamerCommands
+    \newtoks \PitonBeamerEnvironments
+    \exp_args:NV \PitonDetectedCommands \l__piton_detected_commands_clist
+    \exp_args:NV \PitonRawDetectedCommands \l__piton_raw_detected_commands_clist
+    \exp_args:NV \PitonBeamerCommands \l__piton_beamer_commands_clist
+    \exp_args:NV \PitonBeamerEnvironments \l__piton_beamer_environments_clist
+  }
 \cs_new_protected:Npn \__piton_replace_spaces:n #1
   {
     \tl_set:Nn \l_tmpa_tl { #1 }
     \bool_if:NTF \l__piton_show_spaces_bool
       {
         \tl_set:Nn \l__piton_space_in_string_tl { ␣ } % U+2423
-        \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl
+        \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl { ␣ } % U+2423
       }
       {
         \bool_if:NT \l__piton_break_lines_in_Piton_bool
           {
-            \regex_replace_all:nnN
-              { \x20 }
-              { \c { __piton_breakable_space: } }
-              \l_tmpa_tl
-            \regex_replace_all:nnN
-              { \c { l__piton_space_in_string_tl } }
-              { \c { __piton_breakable_space: } }
-              \l_tmpa_tl
+            \tl_if_eq:NnF \l__piton_space_in_string_tl { ␣ }
+              { \tl_set_eq:NN \l__piton_space_in_string_tl \__piton_breakable_space: }
+            \tl_replace_all:NVn \l_tmpa_tl
+              \c_catcode_other_space_tl
+              \__piton_breakable_space:
           }
       }
-    \l_tmpa_tl
+   \l_tmpa_tl
   }
+\cs_generate_variant:Nn \__piton_replace_spaces:n { o }
 
 \cs_set_protected:Npn \__piton_end_line: { }
 \cs_set_protected:Npn \__piton_begin_line: #1 \__piton_end_line:
@@ -392,7 +408,6 @@
       { \dim_zero:N \l__piton_width_dim }
       { \__piton_color_i:o \l_tmpa_tl }
   }
-\cs_generate_variant:Nn \__piton_color_i:n { o }
 \cs_set_protected:Npn \__piton_color_i:n #1
   {
     \tl_if_head_eq_meaning:nNTF { #1 } [
@@ -403,6 +418,7 @@
       }
       { \color { #1 } }
   }
+\cs_generate_variant:Nn \__piton_color_i:n { o }
 \cs_new_protected:Npn \__piton_newline:
   {
     \bool_if:NT \g__piton_footnote_bool \endsavenotes
@@ -454,6 +470,7 @@
 \bool_set_true:N \l__piton_skip_empty_lines_bool
 \bool_new:N \l__piton_line_numbers_absolute_bool
 \tl_new:N \l__piton_line_numbers_format_bool
+\tl_new:N \l__piton_line_numbers_format_tl
 \tl_set:Nn \l__piton_line_numbers_format_tl { \footnotesize \color { gray } }
 \bool_new:N \l__piton_label_empty_lines_bool
 \bool_set_true:N \l__piton_label_empty_lines_bool
@@ -529,19 +546,21 @@
     break-numbers-anywhere .bool_set:N = \l__piton_break_numbers_anywhere_bool ,
     break-numbers-anywhere .default:n = true  ,
     detected-commands .code:n =
-      \lua_now:n { piton.addDetectedCommands('#1') } ,
+      \clist_put_right:Nn \l__piton_detected_commands_clist { #1 } ,
     detected-commands .value_required:n = true ,
     detected-commands .usage:n = preamble ,
     raw-detected-commands .code:n =
-      \lua_now:n { piton.addRawDetectedCommands('#1') } ,
+      \clist_put_right:Nn \l__piton_raw_detected_commands_clist { #1 } ,
     raw-detected-commands .value_required:n = true ,
     raw-detected-commands .usage:n = preamble ,
     detected-beamer-commands .code:n =
-      \lua_now:n { piton.addBeamerCommands('#1') } ,
+      \__piton_error_if_not_in_beamer:
+      \clist_put_right:Nn \l__piton_beamer_commands_clist { #1 } ,
     detected-beamer-commands .value_required:n = true ,
     detected-beamer-commands .usage:n = preamble ,
     detected-beamer-environments .code:n =
-      \lua_now:n { piton.addBeamerEnvironments('#1') } ,
+      \__piton_error_if_not_in_beamer:
+      \clist_put_right:Nn \l__piton_beamer_environments_clist { #1 } ,
     detected-beamer-environments .value_required:n = true ,
     detected-beamer-environments .usage:n = preamble ,
     begin-escape .code:n =
@@ -579,7 +598,7 @@
       \clist_map_inline:nn { #1 }
         {
           \str_set:Nn \l_tmpa_str { ##1 }
-          \seq_put_right:No \l__piton_path_seq \l_tmpa_str
+          \seq_put_right:No \l__piton_path_seq { \l_tmpa_str }
         } ,
     path             .value_required:n  = true ,
     path             .initial:n         = . ,
@@ -588,7 +607,7 @@
     font-command     .tl_set:N          = \l__piton_font_command_tl ,
     font-command     .value_required:n  = true ,
     gobble           .int_set:N         = \l__piton_gobble_int ,
-    gobble           .value_required:n  = true ,
+    gobble           .default:n         = -1 ,
     auto-gobble      .code:n            = \int_set:Nn \l__piton_gobble_int { -1 } ,
     auto-gobble      .value_forbidden:n = true ,
     env-gobble       .code:n            = \int_set:Nn \l__piton_gobble_int { -2 } ,
@@ -638,6 +657,9 @@
 
     write .str_set:N = \l__piton_write_str ,
     write .value_required:n = true ,
+    join .code:n
+      = \str_set_convert:Nnnn \l__piton_join_str { #1 } { } { utf16/hex } ,
+    join .value_required:n = true ,
 
     left-margin      .code:n =
       \str_if_eq:nnTF { #1 } { auto }
@@ -708,7 +730,6 @@
     all-line-numbers .code:n =
       \bool_set_true:N \l__piton_line_numbers_bool
       \bool_set_false:N \l__piton_skip_empty_lines_bool ,
-    all-line-numbers .value_forbidden:n = true
   }
 \cs_new_protected:Npn \__piton_in_PitonInputFile:n #1
   {
@@ -798,12 +819,12 @@
     \prop_gput:Non \g__piton_languages_prop \l_tmpa_tl { #3 }
     \__piton_NewPitonLanguage:on \l_tmpa_tl { #3 }
   }
-\cs_generate_variant:Nn \__piton_NewPitonLanguage:nn { o }
 \cs_new_protected:Npn \__piton_NewPitonLanguage:nn #1 #2
   {
     \hook_gput_code:nnn { begindocument } { . }
       { \lua_now:e { piton.new_language("#1","\lua_escape:n{#2}") } }
   }
+\cs_generate_variant:Nn \__piton_NewPitonLanguage:nn { o }
 \cs_new_protected:Npn \__piton_NewPitonLanguage:nnnnn #1 #2 #3 #4 #5
   {
     \tl_set:Ne \l_tmpa_tl
@@ -815,18 +836,21 @@
       { \__piton_NewPitonLanguage:nnno { #1 } { #2 } { #5 } \l_tmpb_tl }
       { \__piton_error:n { Language~not~defined } }
   }
-\cs_generate_variant:Nn \__piton_NewPitonLanguage:nnnn { n n n o }
 \cs_new_protected:Npn \__piton_NewPitonLanguage:nnnn #1 #2 #3 #4
   { \__piton_NewPitonLanguage:nnn { #1 } { #2 } { #4 , #3 } }
+\cs_generate_variant:Nn \__piton_NewPitonLanguage:nnnn { n n n o }
 \NewDocumentCommand { \piton } { }
-  { \peek_meaning:NTF \bgroup \__piton_piton_standard \__piton_piton_verbatim }
+  { \peek_meaning:NTF \bgroup { \__piton_piton_standard } { \__piton_piton_verbatim } }
 \NewDocumentCommand { \__piton_piton_standard } { m }
   {
     \group_begin:
-    \bool_lazy_or:nnT
-    \l__piton_break_lines_in_piton_bool
-    \l__piton_break_strings_anywhere_bool
-      { \tl_set_eq:NN \l__piton_space_in_string_tl \space }
+    \tl_if_eq:NnF \l__piton_space_in_string_tl { ␣ }
+      {
+        \bool_lazy_or:nnT
+          \l__piton_break_lines_in_piton_bool
+          \l__piton_break_strings_anywhere_bool
+          { \tl_set:Nn \l__piton_space_in_string_tl { \exp_not:N \space } }
+      }
     \automatichyphenmode = 1
     \cs_set_eq:NN \\ \c_backslash_str
     \cs_set_eq:NN \% \c_percent_str
@@ -842,10 +866,10 @@
           { #1 }
       }
     \bool_if:NTF \l__piton_show_spaces_bool
-      { \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl } % U+2423
+      { \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl { ␣ } } % U+2423
       {
         \bool_if:NT \l__piton_break_lines_in_piton_bool
-          { \regex_replace_all:nnN { \x20 } { \x20 } \l_tmpa_tl }
+          { \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl \space }
       }
     \if_mode_math:
        \text { \l__piton_font_command_tl \l_tmpa_tl }
@@ -866,7 +890,7 @@
           { #1 }
       }
     \bool_if:NT \l__piton_show_spaces_bool
-      { \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl } % U+2423
+      { \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl { ␣ } } % U+2423
     \if_mode_math:
        \text { \l__piton_font_command_tl \l_tmpa_tl }
     \else:
@@ -892,7 +916,7 @@
           { #1 }
       }
     \bool_if:NT \l__piton_show_spaces_bool
-      { \regex_replace_all:nnN { \x20 } { ␣ } \l_tmpa_tl } % U+2423
+      { \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl { ␣ } } % U+2423
     \__piton_replace_spaces:o \l_tmpa_tl
     \group_end:
   }
@@ -913,7 +937,6 @@
     \dim_zero:N \parskip
     \l__piton_font_command_tl
   }
-\cs_generate_variant:Nn \__piton_compute_left_margin:nn { n o }
 \cs_new_protected:Npn \__piton_compute_left_margin:nn #1 #2
   {
     \bool_lazy_and:nnT \l__piton_left_margin_auto_bool \l__piton_line_numbers_bool
@@ -938,6 +961,7 @@
            { \box_wd:N \l_tmpa_box + \l__piton_numbers_sep_dim + 0.1 em }
        }
   }
+\cs_generate_variant:Nn \__piton_compute_left_margin:nn { n o }
 \cs_new_protected:Npn \__piton_compute_width:
   {
     \dim_compare:nNnTF \l__piton_line_width_dim = \c_zero_dim
@@ -966,6 +990,12 @@
   }
 \NewDocumentCommand { \NewPitonEnvironment } { m m m m }
   {
+    \cs_if_exist:cTF { #1 }
+      { \__piton_error:nn { Environment~yet~defined } { #1 } }
+      { \__piton_NewPitonEnvironment:nnnn { #1 } { #2 } { #3 } { #4 } }
+  }
+\cs_new_protected:Npn \__piton_NewPitonEnvironment:nnnn #1 #2 #3 #4
+  {
     \use:x
       {
         \cs_set_protected:Npn
@@ -975,32 +1005,22 @@
       }
           {
             \group_end:
-            \mode_if_vertical:TF \noindent \newline
+            \mode_if_vertical:TF { \noindent } { \newline }
             \lua_now:e { piton.CountLines ( '\lua_escape:n{##1}' ) }
             \__piton_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
             \__piton_compute_width:
+            \lua_now:e
+              {
+                piton.join = "\l__piton_join_str"
+                piton.write = "\l__piton_write_str"
+                piton.path_write = "\l__piton_path_write_str"
+              }
             \noindent
-            \str_if_empty:NTF \l__piton_path_write_str
-              { \lua_now:e { piton.write = "\l__piton_write_str" } }
-              {
-                \lua_now:e
-                  { piton.write = "\l__piton_path_write_str / \l__piton_write_str" }
-              }
-            \str_if_empty:NTF \l__piton_write_str
-              { \lua_now:n { piton.write = '' } }
-              {
-                \seq_if_in:NoTF \g__piton_write_seq \l__piton_write_str
-                  { \lua_now:n { piton.write_mode = "a" } }
-                  {
-                    \lua_now:n { piton.write_mode = "w" }
-                    \seq_gput_left:No \g__piton_write_seq \l__piton_write_str
-                  }
-              }
             \bool_if:NTF \l__piton_split_on_empty_lines_bool
-              \__piton_retrieve_gobble_split_parse:n
-              \__piton_retrieve_gobble_parse:n
+              { \__piton_retrieve_gobble_split_parse:n }
+              { \__piton_retrieve_gobble_parse:n }
               { ##1 }
-            \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
+            \bool_if:NT \l__piton_width_min_bool { \__piton_width_to_aux: }
             \end { #1 }
             \__piton_write_aux:
           }
@@ -1009,7 +1029,7 @@
         \cs_set_eq:NN \PitonOptions \__piton_fake_PitonOptions
         #3
         \__piton_pre_env:
-        \int_compare:nNnT \l__piton_number_lines_start_int > \c_zero_int
+        \int_compare:nNnT { \l__piton_number_lines_start_int } > { \c_zero_int }
           { \int_gset:Nn \g__piton_visual_line_int { \l__piton_number_lines_start_int - 1 } }
         \group_begin:
         \tl_map_function:nN
@@ -1025,63 +1045,50 @@
   }
 \IfFormatAtLeastTF { 2025-06-01 }
   {
-    \tl_new:N \l__piton_newline_tl
-    \tl_set:Nn \l__piton_newline_tl { \obeyedline }
-    \regex_replace_all:nnN { \c { obeyedline } } { \r } \l__piton_newline_tl
     \tl_new:N \l__piton_body_tl
     \cs_new_protected:Npn \__piton_store_body:n #1
       {
-        \tl_set:Nn \l__piton_body_tl { #1 }
+        \tl_set:Ne \obeyedline { \char_generate:nn { 13 } { 12 } }
+        \tl_set:Ne \l__piton_body_tl { #1 }
         \tl_set_eq:NN \ProcessedArgument \l__piton_body_tl
       }
-    \RenewDocumentCommand { \NewPitonEnvironment } { m m m m }
+    \cs_set_protected:Npn \__piton_NewPitonEnvironment:nnnn #1 #2 #3 #4
       {
         \NewDocumentEnvironment { #1 } { #2 > { \__piton_store_body:n } c }
           {
-            \tl_replace_all:NnV \l__piton_body_tl { \obeyedline } \l__piton_newline_tl
+            \tl_set:Ne \obeyedline { \char_generate:nn { 13 } { 11 } }
+            \tl_set:Ne \l__piton_body_tl { \l__piton_body_tl }
             \cs_set_eq:NN \PitonOptions \__piton_fake_PitonOptions
             #3
             \__piton_pre_env:
-            \int_compare:nNnT \l__piton_number_lines_start_int > \c_zero_int
+            \int_compare:nNnT { \l__piton_number_lines_start_int } > { \c_zero_int }
               {
                 \int_gset:Nn \g__piton_visual_line_int
                   { \l__piton_number_lines_start_int - 1 }
               }
-            \mode_if_vertical:TF \noindent \newline
+            \mode_if_vertical:TF { \noindent } { \newline }
             \lua_now:e { piton.CountLines ( '\lua_escape:n{\l__piton_body_tl}' ) }
-            \__piton_compute_left_margin:no { CountNonEmptyLines } \l__piton_body_tl
+            \__piton_compute_left_margin:no { CountNonEmptyLines } { \l__piton_body_tl }
             \__piton_compute_width:
+            \lua_now:e
+              {
+                piton.join = "\l__piton_join_str"
+                piton.write = "\l__piton_write_str"
+                piton.path_write = "\l__piton_path_write_str"
+              }
             \noindent
-            \str_if_empty:NTF \l__piton_path_write_str
-              { \lua_now:e { piton.write = "\l__piton_write_str" } }
-              {
-                \lua_now:e
-                  { piton.write = "\l__piton_path_write_str / \l__piton_write_str" }
-              }
-            \str_if_empty:NTF \l__piton_write_str
-              { \lua_now:n { piton.write = '' } }
-              {
-                \seq_if_in:NoTF \g__piton_write_seq \l__piton_write_str
-                  { \lua_now:n { piton.write_mode = "a" } }
-                  {
-                    \lua_now:n { piton.write_mode = "w" }
-                    \seq_gput_left:No \g__piton_write_seq \l__piton_write_str
-                  }
-              }
             \bool_if:NTF \l__piton_split_on_empty_lines_bool
               { \__piton_retrieve_gobble_split_parse:o }
               { \__piton_retrieve_gobble_parse:o }
               \l__piton_body_tl
-            \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
+            \bool_if:NT \l__piton_width_min_bool { \__piton_width_to_aux: }
             \__piton_write_aux:
             #4
           }
-          { }
+          { \ignorespacesafterend }
       }
   }
   { }
-
-\cs_generate_variant:Nn \__piton_retrieve_gobble_parse:n { o }
 \cs_new_protected:Npn \__piton_retrieve_gobble_parse:n
   {
     \lua_now:e
@@ -1097,7 +1104,7 @@
           )
       }
   }
-\cs_generate_variant:Nn \__piton_retrieve_gobble_split_parse:n { o }
+\cs_generate_variant:Nn \__piton_retrieve_gobble_parse:n { o }
 \cs_new_protected:Npn \__piton_retrieve_gobble_split_parse:n
   {
     \lua_now:e
@@ -1111,6 +1118,7 @@
           )
       }
   }
+\cs_generate_variant:Nn \__piton_retrieve_gobble_split_parse:n { o }
 \bool_if:NTF \g__piton_beamer_bool
   {
     \NewPitonEnvironment { Piton } { d < > O { } }
@@ -1159,7 +1167,7 @@
           { \__piton_error_or_warning:n { overlay~without~beamer } }
       }
     \group_begin:
-      \iow_log:e {(\l__piton_file_name_str)}
+      \iow_log:e { (\l__piton_file_name_str) }
       \int_zero_new:N \l__piton_first_line_int
       \int_zero_new:N \l__piton_last_line_int
       \int_set_eq:NN \l__piton_last_line_int \c_max_int
@@ -1203,9 +1211,11 @@
         }
       \int_compare:nNnT \g__piton_visual_line_int < \c_zero_int
         { \int_gzero:N \g__piton_visual_line_int }
-      \mode_if_vertical:TF \mode_leave_vertical: \newline
+      \mode_if_vertical:TF { \mode_leave_vertical: } { \newline }
       \lua_now:e { piton.CountLinesFile ( '\l__piton_file_name_str' ) }
-      \__piton_compute_left_margin:no { CountNonEmptyLinesFile } \l__piton_file_name_str
+      \__piton_compute_left_margin:no
+        { CountNonEmptyLinesFile }
+        { \l__piton_file_name_str }
       \__piton_compute_width:
       \lua_now:e
         {
@@ -1219,7 +1229,7 @@
              { \int_use:N \l__piton_splittable_int } ,
            \bool_if:NTF \l__piton_split_on_empty_lines_bool { 1 } { 0 } )
         }
-      \bool_if:NT \l__piton_width_min_bool \__piton_width_to_aux:
+      \bool_if:NT \l__piton_width_min_bool { \__piton_width_to_aux: }
     \group_end:
     \tl_if_novalue:nF { #1 }
       { \bool_if:NT \g__piton_beamer_bool { \end { uncoverenv } } }
@@ -1227,10 +1237,10 @@
   }
 \cs_new_protected:Npn \__piton_compute_range:
   {
-    \str_set:Ne \l_tmpa_str { \__piton_marker_beginning:n \l__piton_begin_range_str }
-    \str_set:Ne \l_tmpb_str { \__piton_marker_end:n \l__piton_end_range_str }
-    \regex_replace_all:nVN { \\\# } \c_hash_str \l_tmpa_str
-    \regex_replace_all:nVN { \\\# } \c_hash_str \l_tmpb_str
+    \str_set:Ne \l_tmpa_str { \__piton_marker_beginning:n { \l__piton_begin_range_str } }
+    \str_set:Ne \l_tmpb_str { \__piton_marker_end:n { \l__piton_end_range_str } }
+    \tl_replace_all:Nee \l_tmpa_str { \c_backslash_str \c_hash_str } \c_hash_str
+    \tl_replace_all:Nee \l_tmpb_str { \c_backslash_str \c_hash_str } \c_hash_str
     \lua_now:e
       {
         piton.ComputeRange
@@ -1246,7 +1256,7 @@
   {
     \str_clear_new:N \l__piton_SetPitonStyle_option_str
     \str_set:Ne \l__piton_SetPitonStyle_option_str { \str_lowercase:n { #1 } }
-    \str_if_eq:onT \l__piton_SetPitonStyle_option_str { current-language }
+    \str_if_eq:onT { \l__piton_SetPitonStyle_option_str } { current-language }
       { \str_set_eq:NN \l__piton_SetPitonStyle_option_str \l_piton_language_str }
     \keys_set:nn { piton / Styles } { #2 }
   }
@@ -1292,6 +1302,7 @@
     Preproc ,
     Prompt ,
     String.Doc ,
+    String.Doc.Internal ,
     String.Interpol ,
     String.Long ,
     String.Long.Internal ,
@@ -1331,8 +1342,10 @@
 \SetPitonStyle[OCaml]
   {
     TypeExpression =
-      \SetPitonStyle [ OCaml ] { Identifier = \PitonStyle { Name.Type } }
-      \__piton_piton:n ,
+      {
+        \SetPitonStyle [ OCaml ] { Identifier = \PitonStyle { Name.Type } }
+        \__piton_piton:n
+      }
   }
 \clist_gput_left:Nn \g__piton_styles_clist { String }
 \clist_gsort:Nn \g__piton_styles_clist
@@ -1348,19 +1361,29 @@
 \cs_new_protected:Npn \__piton_actually_break_anywhere:n #1
   {
     \tl_set:Nn \l_tmpa_tl { #1 }
-    \regex_replace_all:nnN { \x20 } { \c { space } } \l_tmpa_tl
+    % \regex_replace_all:nnN { \x20 } { \c { space } } \l_tmpa_tl
+    \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl \space
     \seq_clear:N \l_tmpa_seq % added 2025/03/03
-    \tl_map_inline:Nn \l_tmpa_tl
-      { \seq_put_right:Nn \l_tmpa_seq { ##1 } }
+    \tl_map_inline:Nn \l_tmpa_tl { \seq_put_right:Nn \l_tmpa_seq { ##1 } }
     \seq_use:Nn \l_tmpa_seq { \- }
   }
 \cs_new_protected:Npn \__piton_string_long:n #1
   {
     \PitonStyle { String.Long }
       {
-        \bool_if:NT \l__piton_break_strings_anywhere_bool
-          { \__piton_actually_break_anywhere:n }
-        { #1 }
+        \bool_if:NTF \l__piton_break_strings_anywhere_bool
+          { \__piton_actually_break_anywhere:n { #1 } }
+          {
+            \bool_if:NTF \l__piton_break_lines_in_Piton_bool
+              {
+                \tl_set:Nn \l_tmpa_tl { #1 }
+                \tl_replace_all:NVn \l_tmpa_tl
+                  \c_catcode_other_space_tl
+                  \__piton_breakable_space:
+                \l_tmpa_tl
+              }
+              { #1 }
+          }
       }
   }
 \cs_new_protected:Npn \__piton_string_short:n #1
@@ -1370,6 +1393,21 @@
         \bool_if:NT \l__piton_break_strings_anywhere_bool
           { \__piton_actually_break_anywhere:n }
         { #1 }
+      }
+  }
+\cs_new_protected:Npn \__piton_string_doc:n #1
+  {
+    \PitonStyle { String.Doc }
+      {
+        \bool_if:NTF \l__piton_break_lines_in_Piton_bool
+          {
+            \tl_set:Nn \l_tmpa_tl { #1 }
+            \tl_replace_all:NVn \l_tmpa_tl
+              \c_catcode_other_space_tl
+              \__piton_breakable_space:
+            \l_tmpa_tl
+          }
+          { #1 }
       }
   }
 \cs_new_protected:Npn \__piton_number:n #1
@@ -1383,40 +1421,41 @@
   }
 \SetPitonStyle
   {
-    Comment               = \color[HTML]{0099FF} \itshape ,
-    Exception             = \color[HTML]{CC0000} ,
-    Keyword               = \color[HTML]{006699} \bfseries ,
-    Keyword.Governing     = \color[HTML]{006699} \bfseries ,
-    Keyword.Constant      = \color[HTML]{006699} \bfseries ,
-    Name.Builtin          = \color[HTML]{336666} ,
-    Name.Decorator        = \color[HTML]{9999FF},
-    Name.Class            = \color[HTML]{00AA88} \bfseries ,
-    Name.Function         = \color[HTML]{CC00FF} ,
-    Name.Namespace        = \color[HTML]{00CCFF} ,
-    Name.Constructor      = \color[HTML]{006000} \bfseries ,
-    Name.Field            = \color[HTML]{AA6600} ,
-    Name.Module           = \color[HTML]{0060A0} \bfseries ,
-    Name.Table            = \color[HTML]{309030} ,
-    Number                = \color[HTML]{FF6600} ,
+    Comment               = \color [ HTML ] { 0099FF } \itshape ,
+    Exception             = \color [ HTML ] { CC0000 } ,
+    Keyword               = \color [ HTML ] { 006699 } \bfseries ,
+    Keyword.Governing     = \color [ HTML ] { 006699 } \bfseries ,
+    Keyword.Constant      = \color [ HTML ] { 006699 } \bfseries ,
+    Name.Builtin          = \color [ HTML ] { 336666 } ,
+    Name.Decorator        = \color [ HTML ] { 9999FF },
+    Name.Class            = \color [ HTML ] { 00AA88 } \bfseries ,
+    Name.Function         = \color [ HTML ] { CC00FF } ,
+    Name.Namespace        = \color [ HTML ] { 00CCFF } ,
+    Name.Constructor      = \color [ HTML ] { 006000 } \bfseries ,
+    Name.Field            = \color [ HTML ] { AA6600 } ,
+    Name.Module           = \color [ HTML ] { 0060A0 } \bfseries ,
+    Name.Table            = \color [ HTML ] { 309030 } ,
+    Number                = \color [ HTML ] { FF6600 } ,
     Number.Internal       = \__piton_number:n ,
-    Operator              = \color[HTML]{555555} ,
+    Operator              = \color [ HTML ] { 555555 } ,
     Operator.Word         = \bfseries ,
-    String                = \color[HTML]{CC3300} ,
+    String                = \color [ HTML ] { CC3300 } ,
     String.Long.Internal  = \__piton_string_long:n ,
     String.Short.Internal = \__piton_string_short:n ,
-    String.Doc            = \color[HTML]{CC3300} \itshape ,
-    String.Interpol       = \color[HTML]{AA0000} ,
-    Comment.LaTeX         = \normalfont \color[rgb]{.468,.532,.6} ,
-    Name.Type             = \color[HTML]{336666} ,
+    String.Doc.Internal   = \__piton_string_doc:n ,
+    String.Doc            = \color [ HTML ] { CC3300 } \itshape ,
+    String.Interpol       = \color [ HTML ] { AA0000 } ,
+    Comment.LaTeX         = \normalfont \color [ rgb ] { .468, .532, .6 } ,
+    Name.Type             = \color [ HTML ] { 336666 } ,
     InitialValues         = \__piton_piton:n ,
-    Interpol.Inside       = \l__piton_font_command_tl \__piton_piton:n ,
-    TypeParameter         = \color[HTML]{336666} \itshape ,
-    Preproc               = \color[HTML]{AA6600} \slshape ,
+    Interpol.Inside       = { \l__piton_font_command_tl \__piton_piton:n } ,
+    TypeParameter         = \color [ HTML ] { 336666} \itshape ,
+    Preproc               = \color [ HTML ] { AA6600} \slshape ,
     Identifier.Internal   = \__piton_identifier:n ,
     Identifier            = ,
-    Directive             = \color[HTML]{AA6600} ,
-    Tag                   = \colorbox{gray!10},
-    UserFunction          = \PitonStyle{Identifier} ,
+    Directive             = \color [ HTML ] { AA6600} ,
+    Tag                   = \colorbox { gray!10 } ,
+    UserFunction          = \PitonStyle { Identifier } ,
     Prompt                = ,
     Discard               = \use_none:n
   }
@@ -1458,8 +1497,8 @@
     \seq_if_exist:cF { g__piton_functions _ \l_piton_language_str _ seq }
       { \seq_new:c { g__piton_functions _ \l_piton_language_str _ seq } }
     \seq_gput_right:cn { g__piton_functions _ \l_piton_language_str _ seq } { #1 }
-    \seq_if_in:NoF \g__piton_languages_seq \l_piton_language_str
-      { \seq_gput_left:No \g__piton_languages_seq \l_piton_language_str }
+    \seq_if_in:NoF \g__piton_languages_seq { \l_piton_language_str }
+      { \seq_gput_left:No \g__piton_languages_seq { \l_piton_language_str } }
   }
 \NewDocumentCommand \PitonClearUserFunctions { ! o }
   {
@@ -1476,7 +1515,6 @@
   }
 \cs_new_protected:Npn \__piton_clear_functions_i:n #1
   { \__piton_clear_functions_ii:n { \str_lowercase:n { #1 } } }
-\cs_generate_variant:Nn \__piton_clear_functions_ii:n { e }
 \cs_new_protected:Npn \__piton_clear_functions_ii:n #1
   {
     \seq_if_exist:cT { g__piton_functions _ #1 _ seq }
@@ -1486,6 +1524,7 @@
         \seq_gclear:c { g__piton_functions _ #1 _ seq }
       }
   }
+\cs_generate_variant:Nn \__piton_clear_functions_ii:n { e }
 \cs_new_protected:Npn \__piton_clear_functions:n #1
   {
     \__piton_clear_functions_i:n { #1 }
@@ -1496,6 +1535,8 @@
     \seq_map_function:NN \g__piton_languages_seq \__piton_clear_functions_i:n
     \seq_gclear:N \g__piton_languages_seq
   }
+\AtEndDocument
+  { \lua_now:n { piton.write_and_join_files() } }
 \AddToHook { env / piton / begin }
   { \__piton_fatal:n { No~environment~piton } }
 
@@ -1505,6 +1546,13 @@
     There~is~an~environment~{Piton}~and~a~command~
     \token_to_str:N \piton\ but~there~is~no~environment~
     {piton}.~This~error~is~fatal.
+  }
+\__piton_msg_new:nn { Environment~yet~defined }
+  {
+    Environment~yet~defined. \\
+    You~can't~create~a~environment~called~\{#1\}~because~
+    a~command~or~an~environment~with~that~name~has~yet~been~
+    defined.
   }
 \__piton_msg_new:nn { Language~not~defined }
   {
@@ -1584,9 +1632,17 @@
 \__piton_msg_new:nn { FileError }
   {
     File~Error.\\
-    It's~not~possible~to~write~on~the~file~'\l__piton_write_str'.\\
-    \sys_if_shell_unrestricted:F { Be~sure~to~compile~with~'-shell-escape'.\\ }
-    If~you~go~on,~nothing~will~be~written~on~the~file.
+    It's~not~possible~to~write~on~the~file~'#1' \\
+    \sys_if_shell_unrestricted:F
+      { (try~to~compile~with~'lualatex~-shell-escape').\\ }
+    If~you~go~on,~nothing~will~be~written~on~that~file.
+  }
+\__piton_msg_new:nn { InexistentDirectory }
+  {
+    Inexistent~directory.\\
+    The~directory~'\l__piton_path_write_str'~
+    given~in~the~key~'path-write'~does~not~exist.\\
+    Nothing~will~be~written~on~'\l__piton_write_str'.
   }
 \__piton_msg_new:nn { begin~marker~not~found }
   {
@@ -1608,6 +1664,18 @@
     Unknown~file. \\
     The~file~'#1'~is~unknown.\\
     Your~command~\token_to_str:N \PitonInputFile\ will~be~discarded.
+  }
+\cs_new_protected:Npn \__piton_error_if_not_in_beamer:
+  {
+    \bool_if:NF \g__piton_beamer_bool
+      { \__piton_error_or_warning:n { Without~beamer } }
+  }
+\__piton_msg_new:nn { Without~beamer }
+  {
+    Key~'\l_keys_key_str'~without~Beamer.\\
+    You~should~not~use~the~key~'\l_keys_key_str'~since~you~
+    are~not~in~Beamer.\\
+    However,~you~can~go~on.
   }
 \__piton_msg_new:nnn { Unknown~key~for~PitonOptions }
   {
@@ -1638,6 +1706,7 @@
     font-command,~
     gobble,~
     indent-broken-lines,~
+    join,~
     language,~
     left-margin,~
     line-numbers/,~
@@ -1678,60 +1747,13 @@
   }
 \hook_gput_code:nnn { begindocument } { . }
   {
+    \lua_load_module:n { piton }
     \lua_now:n
       {
-        require ( "piton" )
-        tex.sprint ( luatexbase.catcodetables.CatcodeTableExpl ,
-                     "\\__piton_test_version:n {" .. piton_version ..  "}" )
+        tex.sprint ( luatexbase.catcodetables.expl ,
+                     [[\__piton_test_version:n {]] .. piton_version ..  "}" )
       }
   }
-\ExplSyntaxOff
-\begin{luacode*}
-    lpeg.locale(lpeg)
-    local P , alpha , C , space , S , V
-      = lpeg.P , lpeg.alpha , lpeg.C , lpeg.space , lpeg.S , lpeg.V
-    local add
-    function add(...)
-      local s = P ( false )
-      for _ , x in ipairs({...}) do s = s + x end
-      return s
-    end
-    local my_lpeg =
-      P {  "E" ,
-           E = ( V "F" * ( "," * V "F" ) ^ 0 ) / add ,
-           F = space ^ 0 * ( ( alpha ^ 1 ) / "\\%0" ) * space ^ 0
-        }
-    function piton.addDetectedCommands ( key_value )
-      piton.DetectedCommands
-        = piton.DetectedCommands + my_lpeg : match ( key_value )
-    end
-    function piton.addRawDetectedCommands ( key_value )
-      piton.RawDetectedCommands
-        = piton.RawDetectedCommands + my_lpeg : match ( key_value )
-    end
-    function piton.addBeamerCommands( key_value )
-      piton.BeamerCommands
-       = piton.BeamerCommands + my_lpeg : match ( key_value )
-    end
-    for _ , v in ipairs ( { 'uncover', 'only',
-            'visible', 'invisible', 'alert', 'action' } ) do
-      piton.addBeamerCommands(v)
-    end
-    local insert
-    function insert(x)
-      local s = piton.beamer_environments
-      table.insert(s,x)
-      return s
-    end
-    local my_lpeg_bis =
-      P {  "E" ,
-           E = ( V "F" * ( "," * V "F" ) ^ 0 ) / insert ,
-           F = space ^ 0 * ( alpha ^ 1 ) * space ^ 0
-        }
-    function piton.addBeamerEnvironments( key_value )
-      piton.beamer_environments = my_lpeg_bis : match ( key_value )
-    end
-\end{luacode*}
 
 \endinput
 %%

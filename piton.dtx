@@ -82,12 +82,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.3}
-\def\PitonFileDate{2025/03/25}
+\def\PitonFileVersion{4.4}
+\def\PitonFileDate{2025/05/04}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.3" -- 2025/03/25
+piton_version = "4.4" -- 2025/05/04
 %</LUA>
 %\fi
 %
@@ -403,6 +403,15 @@ piton_version = "4.3" -- 2025/03/25
 %
 % \item \index{path-write} The key \Definition{path-write} specifies a path
 % where the files written by the key |write| will be written.
+%
+% \item \index{join} \colorbox{yellow!50}{4.4}
+%
+% \nobreak
+% The key \Definition{join} is similar to the key |write| but the files which
+% are created are joined (as \emph{joined files}) in the \textsc{pdf}. Be careful:
+% Some \textsc{pdf} readers don't provide any tool to access to those joined files.
+% Among the applications wich provide an access to those joined files, we will mention
+% the free application Foxit~PDF~Reader, which is available on all the platforms.
 %
 % \item \index{line-numbers} The key \Definition{line-numbers} activates the
 % line numbering in the environments |{Piton}| and in the listings resulting
@@ -4321,8 +4330,16 @@ piton_version = "4.3" -- 2025/03/25
 
     write .str_set:N = \l_@@_write_str ,
     write .value_required:n = true ,
-
-    join .str_set:N = \l_@@_join_str ,
+%     \end{macrocode}
+% For the key |join|, we convert immediatly the value of the key in utf16
+% (with the \text{bom} big endian that will be automatically inserted)
+% written in hexadecimal (what L3 calls the \emph{escaping}). Indeed, we will
+% have to write that value in the key |/UF| of a |/Filespec| (between angular
+% brackets |<| and |>| since it is in hexadecimal). It's prudent to do that
+% conversion right now since that value will transit by the Lua of LuaTeX.
+%     \begin{macrocode}
+    join .code:n
+      = \str_set_convert:Nnnn \l_@@_join_str { #1 } { } { utf16/hex } ,
     join .value_required:n = true ,
 
     left-margin      .code:n =
@@ -9927,20 +9944,34 @@ function piton.write_and_join_files ( )
     pdf.immediateobj("stream", file_content)
     tex.print
       (
-        [[ \pdfextension annot width 10pt height 10pt depth 0pt ]]
+        [[ \pdfextension annot width 0pt height 0pt depth 0pt ]]
         ..
 %    \end{macrocode}
 % The entry |/F| in the \textsc{pdf} dictionnary of the annotation is an
-% unsigned 32-bit integer containing flags specifying various characteristics
-% of the annotation. The bit in position 2 means \emph{Hidden}.
+% unsigned 32-bit integer containing flags specifying various characteristics of
+% the annotation. The bit in position 2 means \emph{Hidden}.
+% However, despite that bit which means \emph{Hidden}, some \textsc{pdf} readers
+% show the annotation. That's why we have used |width 0pt height 0pt depth 0pt|.
 %    \begin{macrocode}
-        [[ { /Subtype /FileAttachment /F 2 ]]
+        [[ { /Subtype /FileAttachment /F 2 /Name /Paperclip]]
         ..
-        [[ /FS << /Type /Filespec /F (]]
-        .. file_name .. [[) /EF << /F \pdffeedback lastobj 0 R >> >> }  ]]
+        [[ /Contents (File included by the key 'join' of piton) ]]
+        ..
+%    \end{macrocode}
+% We recall that the value of |file_name| comes from the key |join|,
+% and that we have converted immediatly the value of the key in utf16
+% (with the \text{bom} big endian) written in hexadecimal.
+% It's the suitable form for insertion as value of the key |/UF| between angular
+% brackets |<| and |>|.
+%    \begin{macrocode} 
+        [[ /FS << /Type /Filespec /UF <]] .. file_name .. [[>]]
+        ..
+        [[ /EF << /F \pdffeedback lastobj 0 R >> >> }  ]]
       )
   end
 end
+
+
 %</LUA>
 %    \end{macrocode}
 %
@@ -9965,6 +9996,9 @@ end
 %
 % \verb|https://github.com/fpantigny/piton|
 %
+% \subsection*{Changes between version 4.3 and 4.4}
+%
+% New key |join| which generates files embedded in the \textsc{pdf} as \emph{joined files}.
 %
 % \subsection*{Changes between versions 4.2 and 4.3}
 %
