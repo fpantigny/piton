@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.4}
-\def\PitonFileDate{2025/05/04}
+\def\PitonFileVersion{4.4x}
+\def\PitonFileDate{2025/05/07}
 
 
 
@@ -50,13 +50,6 @@
 \cs_new_protected:Npn \__piton_fatal:n { \msg_fatal:nn { piton } }
 \cs_new_protected:Npn \__piton_fatal:nn { \msg_fatal:nnn { piton } }
 \cs_new_protected:Npn \__piton_msg_new:nn { \msg_new:nnn { piton } }
-\cs_new_protected:Npn \__piton_gredirect_none:n #1
-  {
-    \group_begin:
-    \globaldefs = 1
-    \msg_redirect_name:nnn { piton } { #1 } { none }
-    \group_end:
-  }
 \cs_new_protected:Npn \__piton_msg_new:nnn #1 #2 #3
   {
     \bool_if:NTF \g__piton_messages_for_Overleaf_bool
@@ -202,6 +195,8 @@
 \bool_new:N \g__piton_math_comments_bool
 \str_new:N \l__piton_file_name_str
 \int_new:N \g__piton_env_int
+\bool_new:N \l__piton_print_bool
+\bool_set_true:N \l__piton_print_bool
 \str_new:N \l__piton_write_str
 \str_new:N \l__piton_join_str
 \bool_new:N \l__piton_show_spaces_bool
@@ -212,7 +207,7 @@
 \tl_new:N \l__piton_csoi_tl
 \tl_set:Nn \l__piton_csoi_tl { $ \hookrightarrow \; $  }
 \tl_new:N \l__piton_end_of_broken_line_tl
-\tl_set:Nn \l__piton_end_of_broken_line_tl { \hspace*{0.5em} \textbackslash }
+\tl_set:Nn \l__piton_end_of_broken_line_tl { \hspace* { 0.5em } \textbackslash }
 \bool_new:N \l__piton_break_lines_in_piton_bool
 \dim_new:N \l__piton_width_dim
 \dim_new:N \l__piton_line_width_dim
@@ -276,10 +271,10 @@
 \clist_new:N \l__piton_raw_detected_commands_clist
 \clist_new:N \l__piton_beamer_commands_clist
 \clist_set:Nn \l__piton_beamer_commands_clist
-  {uncover, only, visible, invisible, alert, action}
+  { uncover, only , visible , invisible , alert , action}
 \clist_new:N \l__piton_beamer_environments_clist
 \clist_set:Nn \l__piton_beamer_environments_clist
-  {uncoverenv, onlyenv, visibleenv, invisibleenv, alertenv, actionenv}
+  { uncoverenv , onlyenv , visibleenv , invisibleenv , alertenv , actionenv }
 \hook_gput_code:nnn { begindocument } { . }
   {
     \newtoks \PitonDetectedCommands
@@ -320,7 +315,11 @@
     \g__piton_begin_line_hook_tl
     \int_gzero:N \g__piton_indentation_int
     \bool_if:NTF \l__piton_width_min_bool
-      \__piton_put_in_coffin_ii:n
+      {
+        \clist_if_empty:NTF \l__piton_bg_color_clist
+          \__piton_put_in_coffin_iii:n
+          \__piton_put_in_coffin_ii:n
+      }
       \__piton_put_in_coffin_i:n
       {
         \language = -1
@@ -399,6 +398,8 @@
           { \hbox_unpack:N \l_tmpa_box \hfil }
       }
   }
+\cs_set_protected:Npn \__piton_put_in_coffin_iii:n #1
+  { \hcoffin_set:Nn \l_tmpa_coffin { \hbox:n { #1 } } }
 \cs_set_protected:Npn \__piton_color:N #1
   {
     \int_set:Nn \l_tmpa_int { \clist_count:N #1 }
@@ -642,6 +643,8 @@
     background-color .value_required:n  = true ,
     prompt-background-color .tl_set:N         = \l__piton_prompt_bg_color_tl ,
     prompt-background-color .value_required:n = true ,
+    print .bool_set:N = \l__piton_print_bool ,
+    print .value_required:n = true ,
 
     width .code:n =
       \str_if_eq:nnTF  { #1 } { min }
@@ -1016,9 +1019,13 @@
                 piton.path_write = "\l__piton_path_write_str"
               }
             \noindent
-            \bool_if:NTF \l__piton_split_on_empty_lines_bool
-              { \__piton_retrieve_gobble_split_parse:n }
-              { \__piton_retrieve_gobble_parse:n }
+            \bool_if:NTF \l__piton_print_bool
+              {
+                \bool_if:NTF \l__piton_split_on_empty_lines_bool
+                  { \__piton_retrieve_gobble_split_parse:n }
+                  { \__piton_retrieve_gobble_parse:n }
+              }
+              { \__piton_gobble_parse_no_print:n }
               { ##1 }
             \bool_if:NT \l__piton_width_min_bool { \__piton_width_to_aux: }
             \end { #1 }
@@ -1077,10 +1084,14 @@
                 piton.path_write = "\l__piton_path_write_str"
               }
             \noindent
-            \bool_if:NTF \l__piton_split_on_empty_lines_bool
-              { \__piton_retrieve_gobble_split_parse:o }
-              { \__piton_retrieve_gobble_parse:o }
-              \l__piton_body_tl
+            \bool_if:NTF \l__piton_print_bool
+              {
+                \bool_if:NTF \l__piton_split_on_empty_lines_bool
+                  { \__piton_retrieve_gobble_split_parse:o }
+                  { \__piton_retrieve_gobble_parse:o }
+                  \l__piton_body_tl
+              }
+              { \__piton_gobble_parse_no_print:o \l__piton_body_tl }
             \bool_if:NT \l__piton_width_min_bool { \__piton_width_to_aux: }
             \__piton_write_aux:
             #4
@@ -1089,6 +1100,19 @@
       }
   }
   { }
+\cs_new_protected:Npn \__piton_gobble_parse_no_print:n
+  {
+    \lua_now:e
+      {
+        piton.GobbleParseNoPrint
+         (
+           '\l_piton_language_str' ,
+           \int_use:N \l__piton_gobble_int ,
+           token.scan_argument ( )
+         )
+      }
+  }
+\cs_generate_variant:Nn \__piton_gobble_parse_no_print:n { o }
 \cs_new_protected:Npn \__piton_retrieve_gobble_parse:n
   {
     \lua_now:e
@@ -1714,6 +1738,7 @@
     math-comments,~
     path,~
     path-write,~
+    print,~
     prompt-background-color,~
     raw-detected-commands,~
     resume,~
