@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.4" -- 2025/05/04
+piton_version = "4.4x" -- 2025/05/07
 
 
 
@@ -1471,8 +1471,7 @@ function remove_before_cr ( input_string )
     input_string
   end
 end
-local gobble
-function gobble ( n , code )
+function piton.Gobble ( n , code )
   code = remove_before_cr ( code )
   if n == 0 then return
     code
@@ -1502,7 +1501,7 @@ function gobble ( n , code )
 end
 function piton.GobbleParse ( lang , n , splittable , code )
   piton.ComputeLinesStatus ( code , splittable )
-  piton.last_code = gobble ( n , code )
+  piton.last_code = piton.Gobble ( n , code )
   piton.last_language = lang
   piton.CountLines ( piton.last_code )
   sprintL3 [[ \bool_if:NT \g__piton_footnote_bool { \savenotes } ]]
@@ -1510,6 +1509,9 @@ function piton.GobbleParse ( lang , n , splittable , code )
   sprintL3 [[ \vspace{2.5pt} ]]
   sprintL3 [[ \bool_if:NT \g__piton_footnote_bool { \endsavenotes } ]]
   sprintL3 [[ \par ]]
+  piton.join_and_write ( )
+end
+function piton.join_and_write ( )
   if piton.join ~= '' then
     if piton.join_files [ piton.join ] == nil then
       piton.join_files [ piton.join ] = piton.get_last_code ( )
@@ -1540,6 +1542,11 @@ function piton.GobbleParse ( lang , n , splittable , code )
     end
   end
 end
+function piton.GobbleParseNoPrint ( lang , n , code )
+  piton.last_code = piton.Gobble ( n , code )
+  piton.last_language = lang
+  piton.join_and_write ( )
+end
 function piton.GobbleSplitParse ( lang , n , splittable , code )
   local chunks
   chunks =
@@ -1554,7 +1561,7 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
                 )
             ) ^ 0
           )
-     ) : match ( gobble ( n , code ) )
+     ) : match ( piton.Gobble ( n , code ) )
   sprintL3 [[ \begingroup ]]
   sprintL3
     (

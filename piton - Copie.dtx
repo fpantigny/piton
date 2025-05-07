@@ -510,12 +510,11 @@ piton_version = "4.4x" -- 2025/05/07
 %
 % That key may take in as value a numeric value but also the special
 % value~|min|. With that value, the width will be computed from the maximal
-% width of the lines of code. Caution: when colored backgrounds are used, the
-% special value~|min| requires two compilations with LuaLaTeX\footnote{The
-% maximal width is computed during the first compilation, written on the |aux|
-% file and re-used during the second compilation. Several tools such as
-% |latexmk| (used by Overleaf) do automatically a sufficient number of
-% compilations.}.
+% width of the lines of code. Caution: the special value~|min| requires two
+% compilations with LuaLaTeX\footnote{The maximal width is computed during the
+% first compilation, written on the |aux| file and re-used during the second
+% compilation. Several tools such as |latexmk| (used by Overleaf) do
+% automatically a sufficient number of compilations.}.
 %
 % For an example of use of |width=min|, see the section~\ref{example-comments},
 % p.~\pageref{example-comments}. 
@@ -3015,6 +3014,13 @@ piton_version = "4.4x" -- 2025/05/07
 \cs_new_protected:Npn \@@_fatal:n { \msg_fatal:nn { piton } }
 \cs_new_protected:Npn \@@_fatal:nn { \msg_fatal:nnn { piton } }
 \cs_new_protected:Npn \@@_msg_new:nn { \msg_new:nnn { piton } }
+\cs_new_protected:Npn \@@_gredirect_none:n #1 
+  {
+    \group_begin:
+    \globaldefs = 1
+    \msg_redirect_name:nnn { piton } { #1 } { none }
+    \group_end:
+  }
 %    \end{macrocode}
 %
 % With Overleaf, by default, a document is compiled in non-stop mode. When there
@@ -3459,7 +3465,7 @@ piton_version = "4.4x" -- 2025/05/07
 % The following token list corresponds to the key |end-of-broken-line|.
 %    \begin{macrocode}
 \tl_new:N \l_@@_end_of_broken_line_tl 
-\tl_set:Nn \l_@@_end_of_broken_line_tl { \hspace* { 0.5em } \textbackslash }
+\tl_set:Nn \l_@@_end_of_broken_line_tl { \hspace*{0.5em} \textbackslash }
 %    \end{macrocode}
 %
 % \medskip
@@ -3695,10 +3701,10 @@ piton_version = "4.4x" -- 2025/05/07
 \clist_new:N \l_@@_raw_detected_commands_clist
 \clist_new:N \l_@@_beamer_commands_clist
 \clist_set:Nn \l_@@_beamer_commands_clist
-  { uncover, only , visible , invisible , alert , action}
+  {uncover, only, visible, invisible, alert, action}
 \clist_new:N \l_@@_beamer_environments_clist
 \clist_set:Nn \l_@@_beamer_environments_clist
-  { uncoverenv , onlyenv , visibleenv , invisibleenv , alertenv , actionenv }
+  {uncoverenv, onlyenv, visibleenv, invisibleenv, alertenv, actionenv}
 %    \end{macrocode}
 % Remark that, since we have used clists, these clists, as token lists are
 % ``purified'': there is no empty component and for each component, there is no
@@ -3826,16 +3832,7 @@ piton_version = "4.4x" -- 2025/05/07
 % Be careful: There is curryfication in the following code.
 %    \begin{macrocode}
     \bool_if:NTF \l_@@_width_min_bool
-      {
-%    \end{macrocode}
-% The case with |\@@_put_in_coffin_iii:n| is not mandatory: we have written that special
-% case only to avoid to write the width of the environment on the |aux| file in a special case
-% (therefore, we avoid a further compilation).
-%    \begin{macrocode}
-        \clist_if_empty:NTF \l_@@_bg_color_clist 
-          \@@_put_in_coffin_iii:n
-          \@@_put_in_coffin_ii:n
-      }
+      \@@_put_in_coffin_ii:n 
       \@@_put_in_coffin_i:n 
       {
         \language = -1
@@ -3973,19 +3970,6 @@ piton_version = "4.4x" -- 2025/05/07
   }
 %    \end{macrocode}
 %
-% \bigskip
-% For a very special case where both conditions are met:
-% \begin{itemize}
-% \item the key |width| is used with the value |min|;
-% \item there is no colored background (at least, provided by \pkg{piton}: of course,
-% the final user may put the listing in a colored box provided by another tool.
-% \end{itemize}
-% We have a special treatment for that case only to avoid to have to written
-%  something on the |aux| file (and therefore, we avoid a further compilation).
-%    \begin{macrocode}
-\cs_set_protected:Npn \@@_put_in_coffin_iii:n #1
-  { \hcoffin_set:Nn \l_tmpa_coffin { \hbox:n { #1 } } }
-%    \end{macrocode}
 % 
 % \bigskip
 % The command |\@@_color:N| will take in as argument a reference to a
@@ -4341,12 +4325,7 @@ piton_version = "4.4x" -- 2025/05/07
     background-color .value_required:n  = true ,
     prompt-background-color .tl_set:N         = \l_@@_prompt_bg_color_tl ,
     prompt-background-color .value_required:n = true ,
-% \end{macrocode}
-% With the tuning |write=false|, the content of the environment won't be parsed
-% and won't be printed on the \textsc{pdf}. However, the Lua variables |piton.last_code|
-% and |piton.last_language| will be set (and, hence, |piton.get_last_code| will be
-% operationnal). The keys |join| and |write| will be honoured.
-% \begin{macrocode}
+
     print .bool_set:N = \l_@@_print_bool ,
     print .value_required:n = true ,
 
@@ -5145,7 +5124,6 @@ piton_version = "4.4x" -- 2025/05/07
 %    \end{macrocode}
 %
 % \bigskip
-% The following will be used when the final user has user |print=false|.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_gobble_parse_no_print:n
   {
@@ -9027,9 +9005,8 @@ end
 %    \end{macrocode}
 %
 % \bigskip
-% The following function will be used when the final user has used the key |join|
-% or the key |write|.
-% The value of the key |join| has been written in the Lua variable |piton.join|.
+% If the final user has used the key |join|. The value of the key |join| has
+% been written in the Lua variable |piton.join|.
 %    \begin{macrocode}
 function piton.join_and_write ( )
   if piton.join ~= '' then
@@ -9099,7 +9076,6 @@ end
 %    \end{macrocode}
 %
 % \bigskip
-% The following command will be used when the final user has set |print=false|.
 %    \begin{macrocode}
 function piton.GobbleParseNoPrint ( lang , n , code )
   piton.last_code = piton.Gobble ( n , code )

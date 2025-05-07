@@ -173,9 +173,9 @@ d'installer \pkg{piton} avec une distribution TeX comme MiKTeX, TeX~Live ou MacT
 
 \section{Utilisation de l'extension}
 
-L'extension \pkg{piton} n'est utilisable qu'avec LuaLaTeX : si un autre moteur de
-compilation (comme |latex|, |pdflatex| ou |xelatex|) est utilisé, une erreur fatale sera
-levée.
+L'extension \pkg{piton} doit être utilisée avec \textbf{LuaLaTeX exclusivement}
+: si un autre moteur de compilation (comme |latex|, |pdflatex| ou |xelatex|) est
+utilisé, une erreur fatale sera levée.
 
 
 \subsection{Choix du langage}
@@ -256,7 +256,7 @@ p.~\pageref{PitonInputFile}.
 \end{itemize}
 
 
-\subsection{La syntaxe de la commande \textbackslash piton}
+\subsection{La double syntaxe de la commande \textbackslash piton}
 
 \indexcommand{piton}
 
@@ -269,8 +269,9 @@ On détaille maintenant ces deux syntaxes.
 
 \bigskip
 \begin{itemize}
-\item {\color{blue} \textsf{Syntaxe} \verb|\piton{...}|}\par\nobreak
+\item {\color{blue} \textsf{Syntaxe} \verb|\piton{...}|}
 
+\nobreak
 Quand son argument est donné entre accolades, la commande |\piton| ne prend \emph{pas} son
 argument en mode verbatim. Les points suivants doivent être remarqués :
 
@@ -289,9 +290,8 @@ retours à la ligne
 {\color{cyan} mais les commandes |\{| et |\}| sont aussi fournies pour insérer des
   accolades individuelles} ;
 
-\item les commandes LaTeX\footnote{Cela s'applique aux commandes commençant par une
-  contre-oblique |\| mais également aux caractères actifs, c'est-à-dire ceux de
-  catcode~13.} sont complètement développées sans être exécutées
+\item les commandes LaTeX\footnote{Cela s'applique aux commandes commençant par une contre-oblique |\| mais également aux caractères actifs, c'est-à-dire ceux de catcode~13.} de l'argument de |\piton| sont complètement développées
+sans être exécutées
 
 {\color{cyan} et on peut donc utiliser |\\| pour insérer une contre-oblique}.
 \end{itemize}
@@ -428,7 +428,7 @@ La clé \Definition{join} est similaire à la clé |write| mais les fichiers cr�
 \emph{joints} (comme «pièces jointes») dans le \textsc{pdf}. Attention :
 certains lecteurs de \textsc{pdf} ne proposent pas d'outil permettant d'accéder à
 ces fichiers joints. Parmi les lecteurs qui le proposent, on peut citer le
-logiciel gratuit Foxit PDF Reader, disponible sur toutes les plate-formes.
+logiciel gratuit Foxit PDF Reader, disponible sur toutes les plateformes.
 
 \item \index{line-numbers} La clé \Definition{line-numbers} active la
 numérotation des lignes (en débordement à gauche) dans les environnements
@@ -533,12 +533,12 @@ p.~\pageref{line-breaks}).
 
 Cette clé peut prendre comme valeur une longueur explicite mais aussi la valeur
 spéciale~|min|. Avec cette valeur, la largeur sera calculée à partir de la
-largeur maximale des lignes de code. Attention : l'usage de cette valeur
-spéciale~|min| requiert deux compilations LuaLaTeX\footnote{La largeur maximale
-  est calculée lors de la première compilation, écrite sur le fichier~|aux|,
-  puis réutilisée lors de la compilation suivante. Certains outils comme
-  |latexmk| (utilisé par Overleaf) effectuent automatiquement un nombre
-  suffisant de compilations.}.
+largeur maximale des lignes de code. Attention : dans le cas où des fonds
+colorés sont utilisés, l'usage de cette valeur spéciale~|min| requiert deux
+compilations LuaLaTeX\footnote{La largeur maximale est calculée lors de la
+  première compilation, écrite sur le fichier~|aux|, puis réutilisée lors de la
+  compilation suivante. Certains outils comme |latexmk| (utilisé par Overleaf)
+  effectuent automatiquement un nombre suffisant de compilations.}.
 
 Pour un exemple d'utilisation de |width=min|, voir la
 partie~\ref{example-comments} sur les exemples, p.~\pageref{example-comments}.
