@@ -82,12 +82,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.4}
-\def\PitonFileDate{2025/05/04}
+\def\PitonFileVersion{4.4x}
+\def\PitonFileDate{2025/05/07}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.4" -- 2025/05/04
+piton_version = "4.4x" -- 2025/05/07
 %</LUA>
 %\fi
 %
@@ -163,9 +163,9 @@ piton_version = "4.4" -- 2025/05/04
 % 
 % \section{Use of the package}
 %
-% The package \pkg{piton} must be used with LuaLaTeX exclusively: if another
-% LaTeX engine (|latex|, |pdflatex|, |xelatex|,\dots ) is used, a fatal error
-% will be raised.
+% The package \pkg{piton} must be used with \textbf{LuaLaTeX exclusively}: if
+% another LaTeX engine (|latex|, |pdflatex|, |xelatex|,\dots ) is used, a fatal
+% error will be raised.
 %
 % \subsection{Loading the package}
 % 
@@ -240,7 +240,7 @@ piton_version = "4.4" -- 2025/05/04
 %
 % \end{itemize}
 %
-% \subsection{The syntax of the command \textbackslash piton}
+% \subsection{The double syntax of the command \textbackslash piton}
 % 
 % \indexcommand{piton}
 % 
@@ -257,8 +257,8 @@ piton_version = "4.4" -- 2025/05/04
 % When its argument is given between curly braces, the command |\piton| does not
 % take its argument in verbatim mode. In particular:
 % \begin{itemize}
-% \item several consecutive spaces will be replaced by only one space (and the
-% also the character of end on line),
+% \item several consecutive spaces will be replaced by only one space (and also
+% the character of end on line),
 % 
 % {\color{cyan} but the command |\|␣ is provided to force the insertion of a space};
 %
@@ -268,13 +268,13 @@ piton_version = "4.4" -- 2025/05/04
 %
 % \item the braces must be appear by pairs correctly nested
 %
-% {\color{cyan} but the commands |\{| and |\}| are also provided for individual braces};
+% {\color{cyan} but the commands |\{| and |\}| are provided for individual braces};
 %
 % \item the LaTeX commands\footnote{That concerns the commands beginning with a
-% backslash but also the active characters (with catcode equal to 13). } are
-% fully expanded and not executed,
+% backslash but also the active characters (with catcode equal to 13). } of the
+% argument are fully expanded and not executed,
 %
-% {\color{cyan} so it's possible to use |\\| to insert a backslash}.
+% {\color{cyan} so, it's possible to use |\\| to insert a backslash}.
 % \end{itemize}
 %
 %
@@ -298,10 +298,9 @@ piton_version = "4.4" -- 2025/05/04
 % \end{tabular}
 %
 % \bigskip
-% It's possible to use the command |\piton| in the arguments of a
-% LaTeX command.\footnote{For example, it's possible to use the command
-% |\piton| in a footnote. Example :
-% \piton{s = 123}.}
+% It's possible to use the command |\piton| with that syntax in the arguments of
+% a LaTeX command.\footnote{For example, it's possible to use the command
+% |\piton| in a footnote. Example : \piton{s = 123}.}
 %
 % However, since the argument is expanded (in the TeX sens), one should take
 % care not using in its argument \emph{fragile} commands (that is to say
@@ -404,14 +403,15 @@ piton_version = "4.4" -- 2025/05/04
 % \item \index{path-write} The key \Definition{path-write} specifies a path
 % where the files written by the key |write| will be written.
 %
-% \item \index{join} \colorbox{yellow!50}{4.4}
+% \item \index{join} \colorbox{yellow!50}{\textbf{New 4.4}}
 %
 % \nobreak
 % The key \Definition{join} is similar to the key |write| but the files which
-% are created are joined (as \emph{joined files}) in the \textsc{pdf}. Be careful:
-% Some \textsc{pdf} readers don't provide any tool to access to those joined files.
-% Among the applications wich provide an access to those joined files, we will mention
-% the free application Foxit~PDF~Reader, which is available on all the platforms.
+% are created are joined (as \emph{joined files}) in the \textsc{pdf}. Be
+% careful: Some \textsc{pdf} readers don't provide any tool to access to these
+% joined files. Among the applications wich provide an access to those joined
+% files, we will mention the free application Foxit~PDF~Reader, which is
+% available on all the platforms.
 %
 % \item \index{line-numbers} The key \Definition{line-numbers} activates the
 % line numbering in the environments |{Piton}| and in the listings resulting
@@ -3411,13 +3411,23 @@ piton_version = "4.4" -- 2025/05/04
 %    \end{macrocode}
 %
 % \medskip
+% The following flag corresponds to the key |print|. The initial value of that
+% parameter will be |true| (and not |false|) since, of course, by default, we
+% want to print the content of the environment |{Piton}|
+%    \begin{macrocode}
+\bool_new:N \l_@@_print_bool
+\bool_set_true:N \l_@@_print_bool
+%    \end{macrocode}
+%
+% \medskip
 % The parameter |\l_@@_write_str| corresponds to the key |write|. 
 %    \begin{macrocode}
 \str_new:N \l_@@_write_str
 %    \end{macrocode}
 %
 % \medskip
-% The parameter |\l_@@_join_str| corresponds to the key |join|.
+% The parameter |\l_@@_join_str| corresponds to the key |join|. In fact, |\l_@@_join_str|
+% won't contain the exact value used the final user but its conversion in ``|utf16/hex|''.
 %    \begin{macrocode}
 \str_new:N \l_@@_join_str
 %    \end{macrocode}
@@ -4316,6 +4326,9 @@ piton_version = "4.4" -- 2025/05/04
     prompt-background-color .tl_set:N         = \l_@@_prompt_bg_color_tl ,
     prompt-background-color .value_required:n = true ,
 
+    print .bool_set:N = \l_@@_print_bool ,
+    print .value_required:n = true ,
+
     width .code:n = 
       \str_if_eq:nnTF  { #1 } { min } 
         { 
@@ -4984,11 +4997,15 @@ piton_version = "4.4" -- 2025/05/04
 %    \end{macrocode}
 %
 % \bigskip
-% Now, the main job.
+% Now, the main job. The main argument is provided by curryfication.
 %    \begin{macrocode}
-            \bool_if:NTF \l_@@_split_on_empty_lines_bool
-              { \@@_retrieve_gobble_split_parse:n }
-              { \@@_retrieve_gobble_parse:n }
+            \bool_if:NTF \l_@@_print_bool
+              {
+                \bool_if:NTF \l_@@_split_on_empty_lines_bool
+                  { \@@_retrieve_gobble_split_parse:n }
+                  { \@@_retrieve_gobble_parse:n }
+              }
+              { \@@_gobble_parse_no_print:n }
               { ##1 }
 %    \end{macrocode}
 %
@@ -5088,10 +5105,14 @@ piton_version = "4.4" -- 2025/05/04
                 piton.path_write = "\l_@@_path_write_str"
               }
             \noindent
-            \bool_if:NTF \l_@@_split_on_empty_lines_bool
-              { \@@_retrieve_gobble_split_parse:o }
-              { \@@_retrieve_gobble_parse:o }
-              \l_@@_body_tl 
+            \bool_if:NTF \l_@@_print_bool
+              {
+                \bool_if:NTF \l_@@_split_on_empty_lines_bool
+                  { \@@_retrieve_gobble_split_parse:o }
+                  { \@@_retrieve_gobble_parse:o }
+                  \l_@@_body_tl
+              }
+              { \@@_gobble_parse_no_print:o \l_@@_body_tl }
             \bool_if:NT \l_@@_width_min_bool { \@@_width_to_aux: }
             \@@_write_aux:
             #4
@@ -5102,6 +5123,22 @@ piton_version = "4.4" -- 2025/05/04
   { } 
 %    \end{macrocode}
 %
+% \bigskip
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_gobble_parse_no_print:n
+  {
+    \lua_now:e
+      {
+        piton.GobbleParseNoPrint
+         (
+           '\l_piton_language_str' ,
+           \int_use:N \l_@@_gobble_int ,
+           token.scan_argument ( )
+         )
+      }
+  }
+\cs_generate_variant:Nn \@@_gobble_parse_no_print:n { o }
+%    \end{macrocode}
 % 
 % \bigskip
 % The following function will be used when the key |split-on-empty-lines| is not
@@ -6054,6 +6091,7 @@ piton_version = "4.4" -- 2025/05/04
     math-comments,~
     path,~
     path-write,~
+    print,~
     prompt-background-color,~
     raw-detected-commands,~
     resume,~
@@ -8896,8 +8934,7 @@ end
 % The function |gobble| gobbles $n$ characters on the left of the code. The
 % negative values of $n$ have special significations.
 %    \begin{macrocode}
-local gobble
-function gobble ( n , code )
+function piton.Gobble ( n , code )
   code = remove_before_cr ( code ) 
   if n == 0 then return 
     code
@@ -8914,7 +8951,7 @@ function gobble ( n , code )
       end
     end
 %    \end{macrocode}
-% We have a second test |if n == 0| because the, even if the key like
+% We have a second test |if n == 0| because, even if the key like
 % |auto-gobble| is in force, it's possible that, in fact, there is no space to
 % gobble... 
 %    \begin{macrocode}
@@ -8946,7 +8983,7 @@ end
 %    \begin{macrocode}
 function piton.GobbleParse ( lang , n , splittable , code )
   piton.ComputeLinesStatus ( code , splittable ) 
-  piton.last_code = gobble ( n , code )
+  piton.last_code = piton.Gobble ( n , code )
   piton.last_language = lang
 %    \end{macrocode}
 % We count the number of lines of the informatic code. The result will be stored
@@ -8955,9 +8992,6 @@ function piton.GobbleParse ( lang , n , splittable , code )
   piton.CountLines ( piton.last_code ) 
   sprintL3 [[ \bool_if:NT \g_@@_footnote_bool { \savenotes } ]] 
   piton.Parse ( lang , piton.last_code )
-%    \end{macrocode}
-%
-%    \begin{macrocode}
   sprintL3 [[ \vspace{2.5pt} ]]
   sprintL3 [[ \bool_if:NT \g_@@_footnote_bool { \endsavenotes } ]]
 %    \end{macrocode}
@@ -8965,13 +8999,16 @@ function piton.GobbleParse ( lang , n , splittable , code )
 % --- with potentially several lines when |break-lines-in-Piton| is in force ---
 % put alone in a paragraph.
 %    \begin{macrocode}
-  sprintL3 [[ \par ]] 
+  sprintL3 [[ \par ]]
+  piton.join_and_write ( ) 
+end
 %    \end{macrocode}
 %
 % \bigskip
 % If the final user has used the key |join|. The value of the key |join| has
 % been written in the Lua variable |piton.join|.
 %    \begin{macrocode}
+function piton.join_and_write ( )
   if piton.join ~= '' then
     if piton.join_files [ piton.join ] == nil then
       piton.join_files [ piton.join ] = piton.get_last_code ( )
@@ -9039,6 +9076,15 @@ end
 %    \end{macrocode}
 %
 % \bigskip
+%    \begin{macrocode}
+function piton.GobbleParseNoPrint ( lang , n , code )
+  piton.last_code = piton.Gobble ( n , code )
+  piton.last_language = lang
+  piton.join_and_write ( )
+end
+%    \end{macrocode}
+%
+% \bigskip
 % The following function will be used when the key |split-on-empty-lines| is in
 % force. With that key, the informatic code is split in chunks at the empty
 % lines (usually between the informatic functions defined in the informatic
@@ -9060,7 +9106,7 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
                 ) 
             ) ^ 0 
           ) 
-     ) : match ( gobble ( n , code ) )
+     ) : match ( piton.Gobble ( n , code ) )
   sprintL3 [[ \begingroup ]] 
   sprintL3 
     ( 
