@@ -34,6 +34,8 @@
 \usepackage{tabularx}
 \usepackage{booktabs}
 \usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+
 \usepackage{luacolor,lua-ul}
 \usepackage{caption}
 
@@ -117,19 +119,21 @@ fait en utilisant la bibliothèque Lua LPEG.
 
 \section{Présentation}
 
-L'extension \pkg{piton} utilise la librairie Lua nommée LPEG\footnote{LPEG est une
-  librairie de capture de motifs (\emph{pattern-matching} en anglais) pour Lua, écrite en
-  C, fondée sur les PEG (\emph{parsing expression grammars}):
-  \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} pour «parser» des listings informatiques
-avec coloriage syntaxique. Comme elle utilise le Lua de LuaLaTeX, elle fonctionne
-uniquement avec |lualatex| (et ne va pas fonctionner avec les autres moteurs de
-compilation LaTeX, que ce soit |latex|, |pdflatex| ou |xelatex|). Elle n'utilise aucun
-programme extérieur et la compilation ne requiert donc pas |--shell-escape|. La
-compilation est très rapide puisque tout le travail du parseur est fait par la librairie
-LPEG, écrite en C.
+L'extension \pkg{piton} utilise la librairie Lua nommée LPEG\footnote{LPEG est
+  une librairie de capture de motifs (\emph{pattern-matching} en anglais) pour
+  Lua, écrite en C, fondée sur les PEG (\emph{parsing expression grammars}):
+  \url{http://www.inf.puc-rio.br/~roberto/lpeg/}} pour «parser» des listings
+informatiques avec coloriage syntaxique. Comme elle utilise le Lua de LuaLaTeX,
+elle fonctionne uniquement avec |lualatex| (et ne va pas fonctionner avec les
+autres moteurs de compilation LaTeX, que ce soit |latex|, |pdflatex| ou
+|xelatex|). Elle n'utilise aucun programme extérieur et donc, a fortiori, elle
+ne requiert l'utilisation de |--shell-escape| lors de la compilation. La
+compilation est très rapide puisque tout le travail du parseur est fait par la
+librairie LPEG, écrite en C.
 
 \medskip
-Voici un exemple de code Python composé avec l'environnement |{Piton}| proposé par \pkg{piton}.
+Voici un exemple de code Python composé avec l'environnement |{Piton}|
+proposé par \pkg{piton}.
 
 
 \medskip
@@ -430,6 +434,15 @@ certains lecteurs de \textsc{pdf} ne proposent pas d'outil permettant d'accéder
 ces fichiers joints. Parmi les lecteurs qui le proposent, on peut citer le
 logiciel gratuit Foxit PDF Reader, disponible sur toutes les plateformes.
 
+\item \index{print} \colorbox{yellow!50}{\textbf{Nouveau 4.5}}
+
+\nobreak
+La clé \Definition{print} contrôle l'affichage effectif du contenu des
+environnements |{Piton}| dans le \textsc{pdf}. Bien entendu, la valeur initiale de cette
+clé est |true|. Néanmoins, dans certains circonstances, il peut être utile
+d'utiliser |print=false| (dans le cas, par exemple, ou la clé |write|, ou bien
+la clé |join|, est utilisée).
+
 \item \index{line-numbers} La clé \Definition{line-numbers} active la
 numérotation des lignes (en débordement à gauche) dans les environnements
 |{Piton}| et dans les listings produits par la commande |\PitonInputFile|.
@@ -443,6 +456,7 @@ décrite plus bas, est active, la clé |/skip-empty-lines| n'a pas d'effet dans
 |\PitonInputFile|). La valeur initiale de cette clé est |true| (et non
 |false|).\footnote{Avec le langage Python, les lignes vides des
   \emph{docstrings} sont prises en compte.}
+
 
 \item La clé \Definition{line-numbers/label-empty-lines} demande que les labels
 (les numéros) des lignes vides soient affichés. Si la clé |/skip-empty-lines|
@@ -814,6 +828,9 @@ langages informatiques auxquels elle s'appliquera.\footnote{On rappelle que, dan
 
 \label{NewPitonEnvironment}
 \indexcommand{NewPitonEnvironment}
+\indexcommand{RenewPitonEnvironment}
+\indexcommand{DeclarePitonEnvironment}
+\indexcommand{ProvidePitonEnvironment}
 
 Comme l'environnement |{Piton}| a besoin d'absorber son contenu d'une manière spéciale (à
 peu près comme du texte verbatim), il n'est pas possible de définir de nouveaux
@@ -826,7 +843,18 @@ Avec un noyau LaTeX postérieur au 2025-06-01, il est possible d'utiliser
 C'est pourquoi \pkg{piton} propose une commande \DefinitionCommand{NewPitonEnvironment}.
 Cette commande a la même syntaxe que la commande classique
 |\NewDocumentEnvironment|.\footnote{Néanmoins, le spécificateur d'argument~|b|, qui sert à
-  capter le corps de l'environnement comme un argument LaTeX, n'est pas autorisé.}
+  capter le corps de l'environnement comme un argument LaTeX, n'est pas autorisé
+  (bien entendu).}
+
+\medskip
+\colorbox{yellow!50}{\textbf{Nouveau 4.5}}
+
+\nobreak
+\smallskip
+La version 4.5 définit aussi les commandes \DefinitionCommand{RenewPitonEnvironment},
+\DefinitionCommand{DeclarePitonEnvironment}  et \DefinitionCommand{ProvidePitonEnvironment}
+(similaires aux commandes correspondantes de L3).
+
 
 \bigskip
 Par exemple, avec l'instruction suivante, un nouvel environnement |{Python}| sera défini
@@ -851,7 +879,7 @@ Avec ce nouvel environnement |{Python}|, on peut écrire :
 \begin{Verbatim}
 ~emphase#\begin{Python}@
 def carré(x):
-    """Calcule le carré d'un nombre"""
+    """Calcule le carré de x"""
     return x*x
 ~emphase#\end{Python}@
 \end{Verbatim}
@@ -862,10 +890,13 @@ def carré(x):
 
 \begin{Python}
 def carré(x):
-    """Calcule le carré d'un nombre"""
+    """Calcule le carré de x"""
     return x*x
 \end{Python}
 
+\bigskip
+Voir d'autres exemples d'utilisation avec \pkg{tcolorbox} à la page
+\pageref{examples-tcolorbox}.
 
 
 \section{Définition de nouveaux langages avec la syntaxe de listings}
@@ -1134,7 +1165,7 @@ commentaires de Python doit être inséré sous la forme échappée |\#|).
 Comme on le voit, |marker/beginning| est une expression correspondant à la fonction
 mathématique qui, au nom du label (par exemple |Exercice 1|), associe le marqueur de début
 (dans l'exemple |#[Exercice 1]|). La chaîne |#1| correspond aux occurrences de l'argument
-de cette fonction (c'est la syntaxe habituelle de TeX). De même pour |marker/end|.
+de cette fonction (c'est la syntaxe habituelle de TeX). De même pour |marker/end|.\footnote{Du point de vue de LaTeX, les deux fonctions passées en argument doivent être \emph{fully expandable}.}
 
 
 \bigskip
@@ -1424,7 +1455,7 @@ listing de départ.
 \label{SetPitonIdentifier}
 
 La commande \DefinitionCommand{SetPitonIdentifier} permet de changer automatiquement le
-formatage de certains identificateurs en se fondant sur son nom.
+formatage de certains identificateurs en se fondant sur leur nom.
 
 \smallskip
 Cette commande prend trois arguments : un optionnel et deux obligatoires.
@@ -2379,7 +2410,242 @@ def arctan(x,n=10):
 \end{Piton}
 \endgroup
 
+\subsection{Utilisation avec tcolorbox}
+
+\label{examples-tcolorbox}
+
+Pour utiliser \pkg{piton} avec \pkg{tcolorbox}, on charge \pkg{tcolorbox} (bien sûr) puis on
+crée de nouveaux environnements avec la commande |\NewPitonEnvironment|.
+
+\medskip
+Si on souhaite une boîte à la largeur courante (|\linewidht|), la programmation est simple.
+Si on souhaite que la boîte puisse être coupée par un saut de page, il faut à la fois utiliser
+la clé |breakable| de \pkg{tcolorbox} (ce qui implique d'avoir chargé la bibliothèque
+\pkg{breakable} de \pkg{tcolorbox}: |\tcbuselibrary{breakable}|) et la clé |splittable| de
+\pkg{piton} (cf.~p.~\pageref{breakable}).
+
+\begin{Verbatim}
+~emphase#\NewPitonEnvironment@{Python}{}
+ { \PitonOptions{splittable=4}%
+   \begin{tcolorbox}[breakable]}
+ {\end{tcolorbox}}
+\end{Verbatim}
+
 \bigskip
+Avec ce nouvel environnement |{Python}|, on peut écrire : 
+
+\begin{Verbatim}
+~emphase#\begin{Python}@
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+~emphase#\end{Python}@
+\end{Verbatim}
+
+\RenewPitonEnvironment{Python}{}
+ { \PitonOptions{splittable=4}%
+   \begin{tcolorbox}[breakable]}
+ {\end{tcolorbox}}
+
+\begin{Python}
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+\end{Python}
+
+Bien sûr, si on veut changer la couleur du fond, on n'utilise pas |background-color|
+de \pkg{piton} mais les outils fournis par \pkg{tcolorbox} (|colback| pour la couleur
+du fond).
+
+
+\bigskip
+Si on souhaite une boîte de largeur ajustée à la largeur naturelle du listing, il faudra
+utiliser la clé |capture=hbox| (alias: |hbox|) de \pkg{tcolorbox} et l'environnement
+ne sera pas sécable par un saut de page, même avec la clé |breakable| (c'est là une
+caractéristique de \pkg{tcolorbox}).
+
+On programme avec la clé |width=min| de \pkg{piton}, on encapsule l'environnement
+|{Piton}| dans un environnement |{varwidth}| de l'extension \pkg{varwidth} (qu'il faut avoir
+chargé), on stocke le tout dans une boîte LaTeX (avec l'environnement |{lrbox}| de LaTeX)
+et on réutilise cette boîte dans un environnement |{tcolorbox}| dans la dernière partie de
+|\NewPitonEnvironment|.
+
+\begin{Verbatim}
+\newsavebox{\PitonBox}
+~emphase#\NewPitonEnvironment@{Python}{}
+  {%
+    \PitonOptions{width=min}%
+    \begin{lrbox}{\PitonBox}
+    \begin{varwidth}{\linewidth}
+  } 
+  {%
+    \end{varwidth}
+    \end{lrbox}
+    \begin{tcolorbox}[hbox]
+    \usebox{\PitonBox}
+    \end{tcolorbox}
+  } 
+
+
+~emphase#\begin{Python}@
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+~emphase#\end{Python}@
+\end{Verbatim}
+
+\newsavebox{\PitonBox}
+
+\RenewPitonEnvironment{Python}{}
+  {%
+  \PitonOptions{width=min}%
+  \begin{lrbox}{\PitonBox}
+  \begin{varwidth}{\linewidth}
+  } 
+  {%
+  \end{varwidth}
+  \end{lrbox}
+  \begin{tcolorbox}[hbox]
+  \usebox{\PitonBox}
+  \end{tcolorbox}
+  } 
+
+\begin{center}
+\begin{Python}
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+\end{Python}
+\end{center}
+
+\vspace{1cm}
+Voici un exemple plus sophistiqué avec une colonne colorée pour les numéros de ligne.
+Cet exemple requiert que la librairie \pkg{skins} de TikZ soit chargée :
+
+\begin{Verbatim}
+\tcbuselibrary{skins}
+\end{Verbatim}
+
+\begin{Verbatim}
+\newsavebox{\PitonBox}
+
+\NewTColorBox{BoxForPiton}{m}
+  {
+    hbox,
+    enhanced,
+    title=~#1,
+    fonttitle=\sffamily,
+    left = 6mm,
+    top = 0mm,
+    bottom = 0mm,
+    overlay={%
+        \begin{tcbclipinterior}%
+            \fill[gray!80]
+                (frame.south west) rectangle
+                ([xshift=6mm]frame.north west); 
+        \end{tcbclipinterior}%
+    }
+  }
+\end{Verbatim}
+
+\begin{Verbatim}
+~emphase#\NewPitonEnvironment@{Python}{m}
+{%
+\PitonOptions
+  {
+    width=min,
+    line-numbers,
+    line-numbers =
+     {
+       format = \footnotesize\color{white}\sffamily ,
+       sep = 2.5mm
+     }
+  }%
+\begin{lrbox}{\PitonBox}
+\begin{varwidth}{\linewidth}
+}
+{%
+\end{varwidth}
+\end{lrbox}
+\begin{BoxForPiton}{~#1}
+\usebox{\PitonBox}
+\end{BoxForPiton}
+}
+\end{Verbatim}
+
+
+\NewTColorBox{BoxForPiton}{m}
+  {
+    enhanced,
+    hbox,
+    nobeforeafter,
+    box align = center,
+    title=#1,
+    fonttitle=\sffamily,
+    left = 6mm,
+    top = 0mm,
+    bottom = 0mm,
+    overlay=
+     {%
+        \begin{tcbclipinterior}%
+            \fill[gray!80]
+                (frame.south west) rectangle
+                ([xshift=6mm]frame.north west); 
+        \end{tcbclipinterior}%
+     }
+  }
+
+\RenewPitonEnvironment{Python}{m}
+  {%
+    \PitonOptions
+      {
+        width=min,
+        line-numbers,
+        line-numbers =
+         {
+           format = \footnotesize\color{white}\sffamily ,
+           sep = 2.5mm
+         }
+      }%
+    \begin{lrbox}{\PitonBox}%
+    \begin{varwidth}{\linewidth}%
+  } 
+  {%
+    \end{varwidth}%
+    \end{lrbox}%
+    \begin{BoxForPiton}{#1}%
+    \usebox{\PitonBox}%
+    \end{BoxForPiton}%
+  }
+
+\bigskip
+
+\begin{BVerbatim}[boxwidth=8cm,baseline=c]
+~emphase#\begin{Python}@{Mon exemple}
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+
+def cube(x):
+    """Calcule le cube de x"""
+    return x*x*x
+~emphase#\end{Python}@
+\end{BVerbatim}
+%
+\begin{Python}{Mon exemple}
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+
+def cube(x):
+    """Calcule le cube de x"""
+    return x*x*x
+\end{Python}
+
+\bigskip
+
+On rappelle qu'une telle boîte ne peut pas être coupée par un saut de page
+(même en utilisant la bibliothèque \pkg{breakable} de \pkg{tcolorbox}).
 
 \subsection{Un exemple de réglage des styles}
 
@@ -2465,9 +2731,9 @@ def arctan(x,n=10):
 
 \endgroup
 
-\section{Utilisation avec pyluatex}
+\subsection{Utilisation avec pyluatex}
 
-\subsection{Utilisation standard de pyluatex}
+\subsubsection{Utilisation standard de pyluatex}
 
 \label{pyluatex}
 \index{pyluatex@{\pkg{pyluatex}} (extension)}
@@ -2525,7 +2791,7 @@ print(f'Le carré de 12 est {carré(12)}.')
 
 \bigskip
 
-\subsection{Utilisation de l'environnement \{pythonrepl\} de pyluatex}
+\subsubsection{Utilisation de l'environnement \{pythonrepl\} de pyluatex}
 
 \label{pythonrepl}
 

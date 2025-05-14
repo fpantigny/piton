@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.4x}
-\def\PitonFileDate{2025/05/07}
+\def\PitonFileVersion{4.5}
+\def\PitonFileDate{2025/05/14}
 
 
 
@@ -126,6 +126,9 @@
     piton = piton~or~{ }
     piton.last_code = ''
     piton.last_language = ''
+    piton.join = ''
+    piton.write = ''
+    piton.path_write = ''
     \bool_if:NT \g__piton_beamer_bool { piton.beamer = true }
   }
 \RequirePackage { xcolor }
@@ -255,8 +258,8 @@
       }
       { \__piton_error:n { label~with~lines~numbers } }
   }
-\cs_new_protected:Npn \__piton_marker_beginning:n #1 { }
-\cs_new_protected:Npn \__piton_marker_end:n #1 { }
+\cs_new:Npn \__piton_marker_beginning:n #1 { }
+\cs_new:Npn \__piton_marker_end:n #1 { }
 \tl_new:N \g__piton_begin_line_hook_tl
 \cs_new_protected:Npn \__piton_prompt:
   {
@@ -991,20 +994,22 @@
           }
       }
   }
-\NewDocumentCommand { \NewPitonEnvironment } { m m m m }
-  {
-    \cs_if_exist:cTF { #1 }
-      { \__piton_error:nn { Environment~yet~defined } { #1 } }
-      { \__piton_NewPitonEnvironment:nnnn { #1 } { #2 } { #3 } { #4 } }
-  }
-\cs_new_protected:Npn \__piton_NewPitonEnvironment:nnnn #1 #2 #3 #4
+\NewDocumentCommand { \NewPitonEnvironment } { }
+  { \__piton_DefinePitonEnvironment:nnnnn { New } }
+\NewDocumentCommand { \DeclarePitonEnvironment } { }
+  { \__piton_DefinePitonEnvironment:nnnnn { Declare } }
+\NewDocumentCommand { \RenewPitonEnvironment } { }
+  { \__piton_DefinePitonEnvironment:nnnnn { Renew } }
+\NewDocumentCommand { \ProvidePitonEnvironment } { }
+  { \__piton_DefinePitonEnvironment:nnnnn { Provide } }
+\cs_new_protected:Npn \__piton_DefinePitonEnvironment:nnnnn #1 #2 #3 #4 #5
   {
     \use:x
       {
         \cs_set_protected:Npn
-          \use:c { __piton_collect_ #1 :w }
+          \use:c { __piton_collect_ #2 :w }
           ####1
-          \c_backslash_str end \c_left_brace_str #1 \c_right_brace_str
+          \c_backslash_str end \c_left_brace_str #2 \c_right_brace_str
       }
           {
             \group_end:
@@ -1027,14 +1032,15 @@
               }
               { \__piton_gobble_parse_no_print:n }
               { ##1 }
-            \bool_if:NT \l__piton_width_min_bool { \__piton_width_to_aux: }
-            \end { #1 }
+            \bool_if:NT \l__piton_width_min_bool
+              { \clist_if_empty:NF \l__piton_bg_color_clist { \__piton_width_to_aux: } }
+            \end { #2 }
             \__piton_write_aux:
           }
-    \NewDocumentEnvironment { #1 } { #2 }
+    \use:c { #1 DocumentEnvironment } { #2 } { #3 }
       {
         \cs_set_eq:NN \PitonOptions \__piton_fake_PitonOptions
-        #3
+        #4
         \__piton_pre_env:
         \int_compare:nNnT { \l__piton_number_lines_start_int } > { \c_zero_int }
           { \int_gset:Nn \g__piton_visual_line_int { \l__piton_number_lines_start_int - 1 } }
@@ -1042,13 +1048,13 @@
         \tl_map_function:nN
           { \ \\ \{ \} \$ \& \# \^ \_ \% \~ \^^I }
           \char_set_catcode_other:N
-        \use:c { __piton_collect_ #1 :w }
+        \use:c { __piton_collect_ #2 :w }
       }
       {
-        #4
+        #5
         \ignorespacesafterend
       }
-    \AddToHook { env / #1 / begin } { \char_set_catcode_other:N \^^M }
+    \AddToHook { env / #2 / begin } { \char_set_catcode_other:N \^^M }
   }
 \IfFormatAtLeastTF { 2025-06-01 }
   {
@@ -1059,14 +1065,14 @@
         \tl_set:Ne \l__piton_body_tl { #1 }
         \tl_set_eq:NN \ProcessedArgument \l__piton_body_tl
       }
-    \cs_set_protected:Npn \__piton_NewPitonEnvironment:nnnn #1 #2 #3 #4
+    \cs_set_protected:Npn \__piton_DefinePitonEnvironment:nnnnn #1 #2 #3 #4 #5
       {
-        \NewDocumentEnvironment { #1 } { #2 > { \__piton_store_body:n } c }
+        \use:c { #1 DocumentEnvironment } { #2 } { #3 > { \__piton_store_body:n } c }
           {
             \tl_set:Ne \obeyedline { \char_generate:nn { 13 } { 11 } }
             \tl_set:Ne \l__piton_body_tl { \l__piton_body_tl }
             \cs_set_eq:NN \PitonOptions \__piton_fake_PitonOptions
-            #3
+            #4
             \__piton_pre_env:
             \int_compare:nNnT { \l__piton_number_lines_start_int } > { \c_zero_int }
               {
@@ -1092,9 +1098,10 @@
                   \l__piton_body_tl
               }
               { \__piton_gobble_parse_no_print:o \l__piton_body_tl }
-            \bool_if:NT \l__piton_width_min_bool { \__piton_width_to_aux: }
+            \bool_if:NT \l__piton_width_min_bool
+              { \clist_if_empty:NF \l__piton_bg_color_clist { \__piton_width_to_aux: } }
             \__piton_write_aux:
-            #4
+            #5
           }
           { \ignorespacesafterend }
       }
@@ -1460,7 +1467,7 @@
     Name.Module           = \color [ HTML ] { 0060A0 } \bfseries ,
     Name.Table            = \color [ HTML ] { 309030 } ,
     Number                = \color [ HTML ] { FF6600 } ,
-    Number.Internal       = \__piton_number:n ,
+    Number.Internal              = \__piton_number:n ,
     Operator              = \color [ HTML ] { 555555 } ,
     Operator.Word         = \bfseries ,
     String                = \color [ HTML ] { CC3300 } ,
@@ -1570,13 +1577,6 @@
     There~is~an~environment~{Piton}~and~a~command~
     \token_to_str:N \piton\ but~there~is~no~environment~
     {piton}.~This~error~is~fatal.
-  }
-\__piton_msg_new:nn { Environment~yet~defined }
-  {
-    Environment~yet~defined. \\
-    You~can't~create~a~environment~called~\{#1\}~because~
-    a~command~or~an~environment~with~that~name~has~yet~been~
-    defined.
   }
 \__piton_msg_new:nn { Language~not~defined }
   {

@@ -31,7 +31,9 @@
 \geometry{left=2.8cm,right=2.8cm,top=2.5cm,bottom=2.5cm,papersize={21cm,29.7cm}}
 \usepackage{fontspec}
 \usepackage[dvipsnames,svgnames]{xcolor}
-\usepackage{caption,tabularx,tcolorbox,luacolor,lua-ul,upquote}
+\usepackage{caption,tabularx,luacolor,lua-ul,upquote,varwidth}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
 \def\emphase{\bgroup\color{RoyalPurple}\let\next=}
 \fvset{commandchars=\~\#\@,formatcom=\color{gray}}
 \captionsetup{labelfont = bf}
@@ -82,12 +84,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.4x}
-\def\PitonFileDate{2025/05/07}
+\def\PitonFileVersion{4.5}
+\def\PitonFileDate{2025/05/14}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.4x" -- 2025/05/07
+piton_version = "4.5" -- 2025/05/14
 %</LUA>
 %\fi
 %
@@ -412,6 +414,15 @@ piton_version = "4.4x" -- 2025/05/07
 % joined files. Among the applications wich provide an access to those joined
 % files, we will mention the free application Foxit~PDF~Reader, which is
 % available on all the platforms.
+%
+% \item \index{print} \colorbox{yellow!50}{\textbf{New 4.5}}
+%
+% \nobreak
+% The key \Definition{print} controls whether the content of the environment is
+% actually printed (with the syntactic formating) in the \textsc{pdf}. Of
+% course, the initial value of |print| is |true|. However, it may be useful to
+% use |print=false| in some circonstancies (for example, when the key |write| or
+% the key |join| is used).
 %
 % \item \index{line-numbers} The key \Definition{line-numbers} activates the
 % line numbering in the environments |{Piton}| and in the listings resulting
@@ -807,8 +818,17 @@ piton_version = "4.4x" -- 2025/05/07
 % That command has the same syntax as the classical environment
 % |\NewDocumentEnvironment|.\footnote{However, the specifier of argument |b|
 % (used to catch the body of the environment as a LaTeX argument) is
-% not allowed.}
+% not allowed (of course)}
 %
+% \medskip
+% \colorbox{yellow!50}{\textbf{New 4.5}}
+%
+% \nobreak
+% \smallskip
+% The version 4.5 provides the commands \DefinitionCommand{RenewPitonEnvironment},
+% \DefinitionCommand{DeclarePitonEnvironment} and
+% \DefinitionCommand{ProvidePitonEnvironment} (similar to the corresponding
+% commands of L3).
 % 
 % \bigskip
 % With the following instruction, a new environment |{Python}| will be
@@ -833,7 +853,7 @@ piton_version = "4.4x" -- 2025/05/07
 % \begin{Verbatim}
 % ~emphase#\begin{Python}@
 % def square(x):
-%     """Compute the square of a number"""
+%     """Compute the square of x"""
 %     return x*x
 % ~emphase#\end{Python}@
 % \end{Verbatim}
@@ -844,9 +864,13 @@ piton_version = "4.4x" -- 2025/05/07
 %
 % \begin{Python}
 % def square(x):
-%     """Compute the square of a number"""
+%     """Compute the square of x"""
 %     return x*x
 % \end{Python}
+% 
+% \bigskip
+% See other examples of utilisation with \pkg{tcolorbox} at the
+% page~\pageref{examples-tcolorbox}.
 %
 % \section{Definition of new languages with the syntax of listings}
 %
@@ -1020,7 +1044,7 @@ piton_version = "4.4x" -- 2025/05/07
 % the file to include has been found (letter~|T|) or not found (letter~|F|).
 % 
 % \smallskip
-% Now, the syntax for the pathes (absolute or relative) is the following one:
+% The syntax for the pathes (absolute or relative) is the following one:
 % \begin{itemize}
 % \item The paths beginning by |/| are absolute.
 %
@@ -1119,7 +1143,8 @@ piton_version = "4.4x" -- 2025/05/07
 % mathematical function which transforms the label (here |Exercise 1|) into the
 % the beginning marker (in the example |#[Exercise 1]|). The string |#1|
 % corresponds to the occurrences of the argument of that function, which the
-% classical syntax in TeX. Idem for |marker/end|.
+% classical syntax in TeX. Idem for |marker/end|.\footnote{In regard to LateX,
+% both functions must be \emph{fully expandable}.}
 %
 % \bigskip 
 % Now, you only have to use the key \Definition{range} of |\PitonInputFile| to
@@ -2434,14 +2459,242 @@ piton_version = "4.4x" -- 2025/05/07
 % \end{Piton}
 %
 % \endgroup
+%
+% \subsection{Utilisation avec tcolorbox}
+%
+% \label{examples-tcolorbox}
+%
+% In order to use \pkg{piton} with \pkg{tcolorbox}, we have to load \pkg{tcolorbox} (of course)
+% and, then, we define new environnements with the command |\NewPitonEnvironment|.
+%
+% \medskip
+% For a box of \pkg{tcolorbox} with a width equal to |\linewidht|, the programmation is easy.
+% If w wish a box that could be broken by a change of page, we have to use both the key
+% |breakable| of \pkg{tcolorbox} (after loading the library \pkg{breakable} of \pkg{tcolorbox}:
+% |\tcbuselibrary{breakable}|) and the key |splittable| of \pkg{piton}
+% (cf.~p.~\pageref{page breaks}).
+%
+% \begin{Verbatim}
+% ~emphase#\NewPitonEnvironment@{Python}{}
+%   {\PitonOptions{splittable=4}%
+%    \begin{tcolorbox}[breakable]}
+%   {\end{tcolorbox}}
+% \end{Verbatim}
+%
+% \bigskip
+% With that environnement, it's possible to write:
+%
+% \begin{Verbatim}
+% ~emphase#\begin{Python}@
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% ~emphase#\end{Python}@
+% \end{Verbatim}
+%
+% \RenewPitonEnvironment{Python}{}
+%   {\begin{tcolorbox}}
+%   {\end{tcolorbox}}
+%
+% \begin{Python}
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% \end{Python}
+%
+% Of course, if we want to change the color of the background, we don't use the key
+% |background-color| of \pkg{piton} but the tools provided by \pkg{tcolorbox} (|colback|
+% for the color of the background).
+%
+%
+% \bigskip
+% If we wish a box with a width fitted to the natural width of the listing, we will have
+% to use the key |capture=hbox| (alias: |hbox|) of \pkg{tcolorbox} and the environment
+% won't be breakable by a change of page, even with the key |breakable| 
+% (that's a feature of \pkg{tcolorbox}).
+%
+% In the following programmation, we use the key |width=min| of \pkg{piton},
+% embed the environment |{Piton}| within an environment |{varwidth}| of the package
+% \pkg{varwidth} (which should have been loaded), store the whole in a LaTeX box
+% (with the environment |{lrbox}| of LaTeX) and use that box in an environment
+% |{tcolorbox}| in the last part of the command |\NewPitonEnvironment|.
+%
+% \begin{Verbatim}
+% \newsavebox{\PitonBox}
+% ~emphase#\NewPitonEnvironment@{Python}{}
+%   {%
+%     \PitonOptions{width=min}%
+%     \begin{lrbox}{\PitonBox}
+%     \begin{varwidth}{\linewidth}
+%   } 
+%   {%
+%     \end{varwidth}
+%     \end{lrbox}
+%     \begin{tcolorbox}[hbox]
+%     \usebox{\PitonBox}
+%     \end{tcolorbox}
+%   } 
+%
+%
+% ~emphase#\begin{Python}@
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% ~emphase#\end{Python}@
+% \end{Verbatim}
 % 
+% \newsavebox{\PitonBox}
+% 
+% \RenewPitonEnvironment{Python}{}
+%   {%
+%   \PitonOptions{width=min}%
+%   \begin{lrbox}{\PitonBox}
+%   \begin{varwidth}{\linewidth}
+%   } 
+%   {%
+%   \end{varwidth}
+%   \end{lrbox}
+%   \begin{tcolorbox}[hbox]
+%   \usebox{\PitonBox}
+%   \end{tcolorbox}
+%   } 
+%
+% \begin{center}
+% \begin{Python}
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% \end{Python}
+% \end{center}
+%
+% \vspace{1cm}
+% Here is an more sophisticated example with a colored column for the number of the lines.
+% That example requires the library \pkg{skins} of TikZ (should be loaded with
+% |\tcbuselibrary{skins}| in the preamble of the LaTeX document).
+%
+% \begin{Verbatim}
+% \newsavebox{\PitonBox}
+%
+% \NewTColorBox{BoxForPiton}{m}
+%   {
+%     hbox,
+%     enhanced,
+%     title=~#1,
+%     fonttitle=\sffamily,
+%     left = 6mm,
+%     top = 0mm,
+%     bottom = 0mm,
+%     overlay={%
+%         \begin{tcbclipinterior}%
+%             \fill[gray!80]
+%                 (frame.south west) rectangle
+%                 ([xshift=6mm]frame.north west); 
+%         \end{tcbclipinterior}%
+%     },
+%   }
+% \end{Verbatim}
+%
+% \begin{Verbatim}
+% ~emphase#\NewPitonEnvironment@{Python}{m}
+% {%
+% \PitonOptions
+%   {
+%     width=min,
+%     line-numbers,
+%     line-numbers =
+%      {
+%        format = \footnotesize\color{white}\sffamily ,
+%        sep = 2.5mm
+%      }
+%   }%
+% \begin{lrbox}{\PitonBox}
+% \begin{varwidth}{\linewidth}
+% }
+% {%
+% \end{varwidth}
+% \end{lrbox}
+% \begin{BoxForPiton}{~#1}
+% \usebox{\PitonBox}
+% \end{BoxForPiton}
+% }
+% \end{Verbatim}
+%
+% \begin{Verbatim}
+% ~emphase#\begin{Python}@
+% def carre(x):
+%     """Calcule le square de x"""
+%     return x*x
+%
+% def cube(x):
+%     """Calcule le cube de x"""
+%     return x*x*x
+% ~emphase#\end{Python}@
+% \end{Verbatim}
+%
+% \NewTColorBox{BoxForPiton}{m}
+%   {
+%     hbox,
+%     enhanced,
+%     title=#1,
+%     fonttitle=\sffamily,
+%     left = 6mm,
+%     top = 0mm,
+%     bottom = 0mm,
+%     overlay={%
+%         \begin{tcbclipinterior}%
+%             \fill[gray!80]
+%                 (frame.south west) rectangle
+%                 ([xshift=6mm]frame.north west); 
+%         \end{tcbclipinterior}%
+%     },
+%   }
+%
+% \RenewPitonEnvironment{Python}{m}
+% {%
+% \PitonOptions
+%   {
+%     width=min,
+%     line-numbers,
+%     line-numbers =
+%      {
+%        format = \footnotesize\color{white}\sffamily ,
+%        sep = 2.5mm
+%      }
+%   }%
+% \begin{lrbox}{\PitonBox}
+% \begin{varwidth}{\linewidth}
+% }
+% {%
+% \end{varwidth}
+% \end{lrbox}
+% \begin{BoxForPiton}{#1}
+% \usebox{\PitonBox}
+% \end{BoxForPiton}
+% }
+%
+%
+% \begin{center}
+% \begin{Python}{An example}
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+%
+% def cube(x):
+%     """Computes the cube of x"""
+%     return x*x*x
+% \end{Python}
+% \end{center}
+%
+% We recall that this box can't be broken by a change of page (even when using
+% the library \pkg{breakable} of \pkg{tcolorbox}).
+%
 % \subsection{Use with pyluatex}
 %
 % \index{pyluatex@{\pkg{pyluatex}} (extension)}
 % \label{pyluatex}
 %
 % The package \pkg{pyluatex} is an extension which allows the execution of some
-% Python code from |lualatex| (provided that Python is installed on the machine
+% Python code from |lualatex| (as long as Python is installed on the machine
 % and that the compilation is done with |lualatex| and |--shell-escape|).
 %
 % Here is, for example, an environment |{PitonExecute}| which formats a Python
@@ -3170,6 +3423,9 @@ piton_version = "4.4x" -- 2025/05/07
     piton = piton~or~{ } 
     piton.last_code = ''
     piton.last_language = ''
+    piton.join = ''
+    piton.write = ''
+    piton.path_write = ''
     \bool_if:NT \g_@@_beamer_bool { piton.beamer = true } 
   }
 %    \end{macrocode}
@@ -3637,10 +3893,12 @@ piton_version = "4.4x" -- 2025/05/07
 % the ``\emph{range}'' specified by the final user in an individual
 % |\PitonInputFile|. They will construct the markers used to find textually in
 % the external file loaded by \pkg{piton} the part which must be included (and
-% formatted). 
+% formatted).
+%
+% These macros must \emph{not} be protected.
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_marker_beginning:n #1 { }
-\cs_new_protected:Npn \@@_marker_end:n #1 { }
+\cs_new:Npn \@@_marker_beginning:n #1 { }
+\cs_new:Npn \@@_marker_end:n #1 { }
 %    \end{macrocode}
 % 
 % 
@@ -3829,8 +4087,8 @@ piton_version = "4.4x" -- 2025/05/07
       {
 %    \end{macrocode}
 % The case with |\@@_put_in_coffin_iii:n| is not mandatory: we have written that special
-% case only to avoid to write the width of the environment on the |aux| file in a special case
-% (therefore, we avoid a further compilation).
+% case only to avoid to write the width of the environment on the |aux| file (therefore,
+% we avoid a further compilation). 
 %    \begin{macrocode}
         \clist_if_empty:NTF \l_@@_bg_color_clist 
           \@@_put_in_coffin_iii:n
@@ -3980,7 +4238,7 @@ piton_version = "4.4x" -- 2025/05/07
 % \item there is no colored background (at least, provided by \pkg{piton}: of course,
 % the final user may put the listing in a colored box provided by another tool.
 % \end{itemize}
-% We have a special treatment for that case only to avoid to have to written
+% We have a special treatment for that case only to avoid to have to write
 %  something on the |aux| file (and therefore, we avoid a further compilation).
 %    \begin{macrocode}
 \cs_set_protected:Npn \@@_put_in_coffin_iii:n #1
@@ -4958,18 +5216,33 @@ piton_version = "4.4x" -- 2025/05/07
 % 
 %
 % 
-% \bigskip 
+% \bigskip
+% For the following commands, the arguments are provided by curryfication.
 %    \begin{macrocode}
-\NewDocumentCommand { \NewPitonEnvironment } { m m m m }
-  {
-    \cs_if_exist:cTF { #1 }
-      { \@@_error:nn { Environment~yet~defined } { #1 } }
-      { \@@_NewPitonEnvironment:nnnn { #1 } { #2 } { #3 } { #4 } }
-  }
+\NewDocumentCommand { \NewPitonEnvironment } { }
+  { \@@_DefinePitonEnvironment:nnnnn { New } }
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_NewPitonEnvironment:nnnn #1 #2 #3 #4 
+\NewDocumentCommand { \DeclarePitonEnvironment } { }
+  { \@@_DefinePitonEnvironment:nnnnn { Declare } }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\NewDocumentCommand { \RenewPitonEnvironment } { }
+  { \@@_DefinePitonEnvironment:nnnnn { Renew } }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\NewDocumentCommand { \ProvidePitonEnvironment } { }
+  { \@@_DefinePitonEnvironment:nnnnn { Provide } }
+%    \end{macrocode}
+%
+% \bigskip
+% The first argument of the following macro is one of the four strings:
+% |New|, |Renew|, |Provide| and |Declare|.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_DefinePitonEnvironment:nnnnn #1 #2 #3 #4 #5
   { 
 %    \end{macrocode}
 % We construct a TeX macro which will catch as argument all the tokens until
@@ -4981,9 +5254,9 @@ piton_version = "4.4x" -- 2025/05/07
     \use:x 
       { 
         \cs_set_protected:Npn 
-          \use:c { _@@_collect_ #1 :w } 
+          \use:c { _@@_collect_ #2 :w } 
           ####1 
-          \c_backslash_str end \c_left_brace_str #1 \c_right_brace_str
+          \c_backslash_str end \c_left_brace_str #2 \c_right_brace_str
       }
           { 
             \group_end:
@@ -5034,11 +5307,12 @@ piton_version = "4.4x" -- 2025/05/07
 % the |aux| file the value of |\l_@@_line_width_dim| (largest width of the lines
 % of code of the environment).
 %    \begin{macrocode}
-            \bool_if:NT \l_@@_width_min_bool { \@@_width_to_aux: }
+            \bool_if:NT \l_@@_width_min_bool
+              { \clist_if_empty:NF \l_@@_bg_color_clist { \@@_width_to_aux: } }
 %    \end{macrocode}
-% The following |\end{#1}| is only for the stack of environments of LaTeX.
+% The following |\end{#2}| is only for the stack of environments of LaTeX.
 %    \begin{macrocode}
-            \end { #1 }
+            \end { #2 }
             \@@_write_aux:
           }   
 %    \end{macrocode}
@@ -5050,10 +5324,10 @@ piton_version = "4.4x" -- 2025/05/07
 %
 % We are still in the definition of the command |\NewPitonEnvironment|...
 %    \begin{macrocode}
-    \NewDocumentEnvironment { #1 } { #2 } 
+    \use:c { #1 DocumentEnvironment } { #2 } { #3 } 
       {
         \cs_set_eq:NN \PitonOptions \@@_fake_PitonOptions
-        #3 
+        #4 
         \@@_pre_env:
         \int_compare:nNnT { \l_@@_number_lines_start_int } > { \c_zero_int }
           { \int_gset:Nn \g_@@_visual_line_int { \l_@@_number_lines_start_int - 1 } }
@@ -5061,10 +5335,10 @@ piton_version = "4.4x" -- 2025/05/07
         \tl_map_function:nN 
           { \ \\ \{ \} \$ \& \# \^ \_ \% \~ \^^I } 
           \char_set_catcode_other:N 
-        \use:c { _@@_collect_ #1 :w }
+        \use:c { _@@_collect_ #2 :w }
       }
       { 
-        #4 
+        #5 
         \ignorespacesafterend
       } 
 %    \end{macrocode}
@@ -5077,7 +5351,7 @@ piton_version = "4.4x" -- 2025/05/07
 % instance of the environment, a spurious space is inserted, probably because
 % the |^^M| is converted to space).
 %    \begin{macrocode}
-    \AddToHook { env / #1 / begin } { \char_set_catcode_other:N \^^M }
+    \AddToHook { env / #2 / begin } { \char_set_catcode_other:N \^^M }
   }
 %    \end{macrocode}
 % This is the end of the definition of the command |\NewPitonEnvironment|.
@@ -5101,14 +5375,18 @@ piton_version = "4.4x" -- 2025/05/07
         \tl_set:Ne \l_@@_body_tl { #1 }
         \tl_set_eq:NN \ProcessedArgument \l_@@_body_tl
       }
-    \cs_set_protected:Npn \@@_NewPitonEnvironment:nnnn #1 #2 #3 #4 
+%    \end{macrocode}      
+% The first argument of the following macro is one of the four strings:
+% |New|, |Renew|, |Provide| and |Declare|.
+%    \begin{macrocode}
+    \cs_set_protected:Npn \@@_DefinePitonEnvironment:nnnnn #1 #2 #3 #4 #5
       {
-        \NewDocumentEnvironment { #1 } { #2 > { \@@_store_body:n } c } 
+        \use:c { #1 DocumentEnvironment } { #2 } { #3 > { \@@_store_body:n } c } 
           {
             \tl_set:Ne \obeyedline { \char_generate:nn { 13 } { 11 } }
             \tl_set:Ne \l_@@_body_tl { \l_@@_body_tl }
             \cs_set_eq:NN \PitonOptions \@@_fake_PitonOptions
-            #3
+            #4
             \@@_pre_env:
             \int_compare:nNnT { \l_@@_number_lines_start_int } > { \c_zero_int }
               { 
@@ -5134,9 +5412,10 @@ piton_version = "4.4x" -- 2025/05/07
                   \l_@@_body_tl
               }
               { \@@_gobble_parse_no_print:o \l_@@_body_tl }
-            \bool_if:NT \l_@@_width_min_bool { \@@_width_to_aux: }
+            \bool_if:NT \l_@@_width_min_bool 
+              { \clist_if_empty:NF \l_@@_bg_color_clist { \@@_width_to_aux: } }
             \@@_write_aux:
-            #4
+            #5
           }
           { \ignorespacesafterend }  
       }    
@@ -5395,11 +5674,10 @@ piton_version = "4.4x" -- 2025/05/07
 % suffixes added to the markers by the functions |\@@_marker_beginning:n| and
 % |\@@_marker_end:n|. 
 %    \begin{macrocode}
-    \tl_replace_all:Nee \l_tmpa_str { \c_backslash_str \c_hash_str } \c_hash_str 
-    \tl_replace_all:Nee \l_tmpb_str { \c_backslash_str \c_hash_str } \c_hash_str 
+    \tl_replace_all:Nee \l_tmpa_str { \c_backslash_str \c_hash_str } \c_hash_str
+    \tl_replace_all:Nee \l_tmpb_str { \c_backslash_str \c_hash_str } \c_hash_str
 %    \end{macrocode}
-% However, it seems that our programmation is not good programmation because
-% our |\l_tmpa_str| is not a valid |str| value (maybe we should correct that).
+% 
 %    \begin{macrocode}
     \lua_now:e
       { 
@@ -5668,7 +5946,7 @@ piton_version = "4.4x" -- 2025/05/07
     Name.Module           = \color [ HTML ] { 0060A0 } \bfseries ,
     Name.Table            = \color [ HTML ] { 309030 } ,
     Number                = \color [ HTML ] { FF6600 } ,
-    Number.Internal       = \@@_number:n ,
+    Number.Internal              = \@@_number:n ,
     Operator              = \color [ HTML ] { 555555 } ,
     Operator.Word         = \bfseries ,
     String                = \color [ HTML ] { CC3300 } ,
@@ -5883,16 +6161,6 @@ piton_version = "4.4x" -- 2025/05/07
 % \subsubsection{The error messages of the package}
 % 
 %
-%   \begin{macrocode}
-\@@_msg_new:nn { Environment~yet~defined }
-  {
-    Environment~yet~defined. \\
-    You~can't~create~a~environment~called~\{#1\}~because~
-    a~command~or~an~environment~with~that~name~has~yet~been~
-    defined.
-  }
-%    \end{macrocode}
-% 
 % 
 %    \begin{macrocode}
 \@@_msg_new:nn { Language~not~defined }
@@ -7133,11 +7401,12 @@ do
     Compute_braces 
      (
          ( P "\"" + "r\"" + "R\"" + "f\"" + "F\"" ) 
-             * ( P "\\\"" + 1 - S "\"" ) ^ 0 * "\""  
+             * ( P '\\\"' + 1 - S "\"" ) ^ 0 * "\""  
        + 
          ( P '\'' + 'r\'' + 'R\'' + 'f\'' + 'F\'' ) 
              * ( P '\\\'' + 1 - S '\'' ) ^ 0 * '\''  
      )
+
   if piton.beamer then Beamer = Compute_Beamer ( 'python' , braces ) end
 %    \end{macrocode}
 %
@@ -7434,7 +7703,7 @@ do
 %
 % \bigskip
 %     \begin{macrocode}
-  local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
+  local braces = Compute_braces ( '\"' * ( 1 - S "\"" ) ^ 0 * '\"' )
 %     \end{macrocode}
 %
 % \bigskip
@@ -7695,8 +7964,26 @@ do
 % For the parameter of the types (for example : |`\a| as in |`a list|).
 %    \begin{macrocode}
   local TypeParameter =
-    K ( 'TypeParameter' , 
-        "'" * Q"_" ^ -1 * alpha ^ 1 * ( # ( 1 - P "'" ) + -1 ) )
+    K ( 'TypeParameter' ,
+        "'" * Q "_" ^ -1 * alpha ^ 1 * digit ^ 0 * ( # ( 1 - P "'" ) + -1 ) )
+%    \end{macrocode}
+%
+% \paragraph{DotNotation}
+% 
+% Now, we deal with the notations with points (eg: |List.length|). In OCaml,
+% such notation is used for the fields of the records and for the modules.
+%    \begin{macrocode}
+local DotNotation =
+    (
+        K ( 'Name.Module' , cap_identifier )
+          * Q "."
+          * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ^ -1
+        +
+         Identifier
+          * Q "."
+          * K ( 'Name.Field' , identifier )
+    )
+    * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0    
 %    \end{macrocode}
 %
 % \paragraph{The records}
@@ -7758,6 +8045,10 @@ do
 %    \begin{macrocode}
   local RecordVal =
     Q "{" * SkipSpace
+    *
+      (
+        (Identifier + DotNotation) * Space * K('Keyword', "with") * Space
+      ) ^-1
     *
       (
         OneField * ( Q ";" * SkipSpace * ( Comment * SkipSpace ) ^ 0 * OneField ) ^ 0
@@ -7870,7 +8161,9 @@ do
 %    \end{macrocode}
 % Of course, the specification of type is optional.
 %    \begin{macrocode}
-        * ( Q ":" * K ( 'TypeExpression' , balanced_parens ) * SkipSpace ) ^ -1
+       * ( Q ":" * #(1- P"=")
+           * K ( 'TypeExpression' , balanced_parens ) * SkipSpace
+         ) ^ -1
         * Q ")"
     )
 %    \end{macrocode}
@@ -7899,7 +8192,7 @@ do
           Argument * ( SkipSpace * Argument ) ^ 0
           * (
               SkipSpace
-              * Q ":"
+              * Q ":" * # ( 1 - P "=" )
               * K ( 'TypeExpression' , ( 1 - P "=" ) ^ 0 )
             ) ^ -1
         )
@@ -7920,13 +8213,13 @@ do
             (
               Q "(" * SkipSpace
                 * K ( 'Name.Module' , cap_identifier ) * SkipSpace
-                * Q ":" * SkipSpace
+                * Q ":" * # ( 1 - P "=" ) * SkipSpace
                 * K ( 'Name.Type' , cap_identifier ) * SkipSpace
                 *
                   (
                     Q "," * SkipSpace
                       * K ( 'Name.Module' , cap_identifier ) * SkipSpace
-                      * Q ":" * SkipSpace
+                      * Q ":" * # ( 1 - P "=" ) * SkipSpace
                       * K ( 'Name.Type' , cap_identifier ) * SkipSpace
                   ) ^ 0
                 * Q ")"
@@ -7992,6 +8285,22 @@ do
 %    \end{macrocode}
 %
 % \bigskip
+%    \begin{macrocode}
+  local prompt =
+    Q "utop[" * digit^1 * Q "]> "
+  local start_of_line = P(function(subject, position)
+  if position == 1 or subject:sub(position - 1, position - 1) == "\r" then
+    return position
+  end
+  return nil
+end)
+  local Prompt = #start_of_line * K( 'Prompt', prompt)
+  local Answer = #start_of_line * (Q"-" + Q "val" * Space * Identifier )
+                 * SkipSpace * Q ":" * #(1- P"=") * SkipSpace
+                 * (K ( 'TypeExpression' , Q ( 1 - P "=") ^ 1 ) ) * SkipSpace * Q "="
+%    \end{macrocode}
+% 
+% \bigskip
 % \paragraph{The main LPEG for the language OCaml}
 %
 %    \begin{macrocode}
@@ -8005,7 +8314,7 @@ do
       + TypeParameter
       + String + QuotedString + Char
       + Comment
-      + Operator
+      + Prompt + Answer 
 %    \end{macrocode}
 % For the labels (maybe we will write in the future a dedicated LPEG pour those tokens).
 %    \begin{macrocode}
@@ -8024,7 +8333,8 @@ do
       + Constructor
       + Identifier
       + Punct
-      + Delim
+      + Delim -- Delim is before Operator for a correct analysis of [| et |]
+      + Operator
       + Number
       + Word
 %    \end{macrocode}
@@ -8045,7 +8355,9 @@ do
 % type such as |my_type -> 'a list| (in that case, the argument of |\piton|
 % \emph{must} begin by a colon).
 %    \begin{macrocode}
-        ( P ":" + Identifier * SkipSpace * Q ":" ) * # ( 1 - P ":" ) 
+        ( P ":" + (K ( 'Name.Module' , cap_identifier ) * Q ".") ^-1
+          * Identifier * SkipSpace * Q ":" )
+          * # ( 1 - S ":=" )
           * SkipSpace
           * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 )
         +
@@ -9250,10 +9562,10 @@ end
 % The following function stores in |\l_@@_first_line_int| and
 % |\l_@@_last_line_int| the numbers of lines of the file |file_name|
 % corresponding to the strings |marker_beginning| and |marker_end|.
+%
+% |s| is the marker of the beginning and |t| is the marker of the end.
 %    \begin{macrocode}
-function piton.ComputeRange(marker_beginning,marker_end,file_name)
-  local s = marker_beginning : gsub ( '##' , '#' ) 
-  local t = marker_end : gsub ( '##' , '#' )  
+function piton.ComputeRange(s,t,file_name)
   local first_line = -1
   local count = 0
   local last_found = false
@@ -10066,7 +10378,14 @@ end
 %
 % \verb|https://github.com/fpantigny/piton|
 %
-% \subsection*{Changes between version 4.3 and 4.4}
+% \subsection*{Changes between versions 4.4 and 4.5}
+%
+% New key |print|
+%
+% |\RenewPitonEnvironment|,
+% |\DeclarePitonEnvironment| and |\ProvidePitonEnvironment| have been added.
+%
+% \subsection*{Changes between versions 4.3 and 4.4}
 %
 % New key |join| which generates files embedded in the \textsc{pdf} as \emph{joined files}.
 %

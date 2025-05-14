@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.4x" -- 2025/05/07
+piton_version = "4.5" -- 2025/05/14
 
 
 
@@ -445,11 +445,12 @@ do
     Compute_braces
      (
          ( P "\"" + "r\"" + "R\"" + "f\"" + "F\"" )
-             * ( P "\\\"" + 1 - S "\"" ) ^ 0 * "\""
+             * ( P '\\\"' + 1 - S "\"" ) ^ 0 * "\""
        +
          ( P '\'' + 'r\'' + 'R\'' + 'f\'' + 'F\'' )
              * ( P '\\\'' + 1 - S '\'' ) ^ 0 * '\''
      )
+
   if piton.beamer then Beamer = Compute_Beamer ( 'python' , braces ) end
   DetectedCommands = Compute_DetectedCommands ( 'python' , braces )
        + Compute_RawDetectedCommands ( 'python' , braces )
@@ -607,7 +608,7 @@ end
 do
   local SkipSpace = ( Q " " + EOL ) ^ 0
   local Space = ( Q " " + EOL ) ^ 1
-  local braces = Compute_braces ( "\"" * ( 1 - S "\"" ) ^ 0 * "\"" )
+  local braces = Compute_braces ( '\"' * ( 1 - S "\"" ) ^ 0 * '\"' )
   if piton.beamer then Beamer = Compute_Beamer ( 'ocaml' , braces ) end
   DetectedCommands =
     Compute_DetectedCommands ( 'ocaml' , braces )
@@ -736,7 +737,18 @@ do
     K ( 'String.Short.Internal', ocaml_char )
   local TypeParameter =
     K ( 'TypeParameter' ,
-        "'" * Q"_" ^ -1 * alpha ^ 1 * ( # ( 1 - P "'" ) + -1 ) )
+        "'" * Q "_" ^ -1 * alpha ^ 1 * digit ^ 0 * ( # ( 1 - P "'" ) + -1 ) )
+local DotNotation =
+    (
+        K ( 'Name.Module' , cap_identifier )
+          * Q "."
+          * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ^ -1
+        +
+         Identifier
+          * Q "."
+          * K ( 'Name.Field' , identifier )
+    )
+    * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0
   local expression_for_fields_type =
     P { "E" ,
         E =  (  "{" * V "F" * "}"
@@ -773,6 +785,10 @@ do
     * SkipSpace
   local RecordVal =
     Q "{" * SkipSpace
+    *
+      (
+        (Identifier + DotNotation) * Space * K('Keyword', "with") * Space
+      ) ^-1
     *
       (
         OneField * ( Q ";" * SkipSpace * ( Comment * SkipSpace ) ^ 0 * OneField ) ^ 0
@@ -832,7 +848,7 @@ do
         Q "(" * SkipSpace
         * ( C ( pattern_part ) / ParseAgain )
         * SkipSpace
-        * ( Q ":" * K ( 'TypeExpression' , balanced_parens ) * SkipSpace ) ^ -1
+       * ( Q ":" * #(1- P"=") * K ( 'TypeExpression' , balanced_parens ) * SkipSpace ) ^ -1
         * Q ")"
     )
   local DefFunction =
@@ -850,7 +866,7 @@ do
           Argument * ( SkipSpace * Argument ) ^ 0
           * (
               SkipSpace
-              * Q ":"
+              * Q ":" * # ( 1 - P "=" )
               * K ( 'TypeExpression' , ( 1 - P "=" ) ^ 0 )
             ) ^ -1
         )
@@ -866,13 +882,13 @@ do
             (
               Q "(" * SkipSpace
                 * K ( 'Name.Module' , cap_identifier ) * SkipSpace
-                * Q ":" * SkipSpace
+                * Q ":" * # ( 1 - P "=" ) * SkipSpace
                 * K ( 'Name.Type' , cap_identifier ) * SkipSpace
                 *
                   (
                     Q "," * SkipSpace
                       * K ( 'Name.Module' , cap_identifier ) * SkipSpace
-                      * Q ":" * SkipSpace
+                      * Q ":" * # ( 1 - P "=" ) * SkipSpace
                       * K ( 'Name.Type' , cap_identifier ) * SkipSpace
                   ) ^ 0
                 * Q ")"
@@ -927,6 +943,18 @@ do
            )
          )
       )
+  local prompt =
+    Q "utop[" * digit^1 * Q "]> "
+  local start_of_line = P(function(subject, position)
+  if position == 1 or subject:sub(position - 1, position - 1) == "\r" then
+    return position
+  end
+  return nil
+end)
+  local Prompt = #start_of_line * K( 'Prompt', prompt)
+  local Answer = #start_of_line * (Q"-" + Q "val" * Space * Identifier )
+                 * SkipSpace * Q ":" * #(1- P"=") * SkipSpace
+                 * (K ( 'TypeExpression' , Q ( 1 - P "=") ^ 1 ) ) * SkipSpace * Q "="
   local Main =
       space ^ 0 * EOL
       + Space
@@ -937,7 +965,7 @@ do
       + TypeParameter
       + String + QuotedString + Char
       + Comment
-      + Operator
+      + Prompt + Answer
       + Q "~" * Identifier * ( Q ":" ) ^ -1
       + Q ":" * # (1 - P ":") * SkipSpace
           * K ( 'TypeExpression' , balanced_parens ) * SkipSpace * Q ")"
@@ -953,13 +981,16 @@ do
       + Constructor
       + Identifier
       + Punct
-      + Delim
+      + Delim -- Delim is before Operator for a correct analysis of [| et |]
+      + Operator
       + Number
       + Word
   LPEG1.ocaml = Main ^ 0
   LPEG2.ocaml =
     Ct (
-        ( P ":" + Identifier * SkipSpace * Q ":" ) * # ( 1 - P ":" )
+        ( P ":" + (K ( 'Name.Module' , cap_identifier ) * Q ".") ^-1
+          * Identifier * SkipSpace * Q ":" )
+          * # ( 1 - S ":=" )
           * SkipSpace
           * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 )
         +
@@ -1632,9 +1663,7 @@ function piton.CountNonEmptyLinesFile ( name )
   sprintL3
    ( string.format ( [[ \int_set:Nn \l__piton_nb_non_empty_lines_int { % i } ]] , count ) )
 end
-function piton.ComputeRange(marker_beginning,marker_end,file_name)
-  local s = marker_beginning : gsub ( '##' , '#' )
-  local t = marker_end : gsub ( '##' , '#' )
+function piton.ComputeRange(s,t,file_name)
   local first_line = -1
   local count = 0
   local last_found = false
