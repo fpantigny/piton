@@ -521,12 +521,7 @@ piton_version = "4.5x1" -- 2025/05/15
 %
 % That key may take in as value a numeric value but also the special
 % value~|min|. With that value, the width will be computed from the maximal
-% width of the lines of code. Caution: when colored backgrounds are used, the
-% special value~|min| requires two compilations with LuaLaTeX\footnote{The
-% maximal width is computed during the first compilation, written on the |aux|
-% file and re-used during the second compilation. Several tools such as
-% |latexmk| (used by Overleaf) do automatically a sufficient number of
-% compilations.}.
+% width of the lines of code. 
 %
 % For an example of use of |width=min|, see the section~\ref{example-comments},
 % p.~\pageref{example-comments}. 
@@ -2325,14 +2320,12 @@ piton_version = "4.5x1" -- 2025/05/15
 %
 % \vspace{1cm}
 % It's also possible to display these LaTeX comments in a kind of second column
-% by limiting the width of the Python code with the key |width|. In the
-% following example, we use the key |width| with the special value~|min|.
-% Several compilations are required.
+% by limiting the width of the Python code with the key |width|. 
 %
 % \begingroup
 % \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 % \begin{Verbatim}
-% \PitonOptions{background-color=gray!15, width=min}
+% \PitonOptions{background-color=gray!15, width=9cm}
 % ~emphase&\NewDocumentCommand{\MyLaTeXCommand}{m}{\hfill \normalfont\itshape\rlap{\quad #1}}@
 % ~emphase&\SetPitonStyle{Comment.LaTeX = \MyLaTeXCommand}@
 % \begin{Piton}
@@ -2353,7 +2346,7 @@ piton_version = "4.5x1" -- 2025/05/15
 %
 %
 % \begingroup
-% \PitonOptions{background-color=gray!15, width=min}
+% \PitonOptions{background-color=gray!15, width=9cm}
 % \NewDocumentCommand{\MyLaTeXCommand}{m}{\hfill \normalfont\itshape\rlap{\quad #1}}
 % \SetPitonStyle{Comment.LaTeX = \MyLaTeXCommand}
 % \begin{Piton}
@@ -2374,93 +2367,7 @@ piton_version = "4.5x1" -- 2025/05/15
 % 
 %
 %
-% \bigskip
-%
-% \subsection{An example of tuning of the styles}
-%
-% The graphical styles have been presented in the section \ref{styles},
-% p.~\pageref{styles}.
-%
-% \smallskip
-% We present now an example of tuning of these styles adapted to the documents
-% in black and white.
-%
-% That tuning uses the command |\highLight| of \pkg{lua-ul} (that package
-% requires itself the package \pkg{luacolor}).
-%
-% \begin{Verbatim}
-% \SetPitonStyle
-%   {
-%     Number = ,
-%     String = \itshape , 
-%     String.Doc = \color{gray} \slshape ,
-%     Operator = , 
-%     Operator.Word = \bfseries ,
-%     Name.Builtin = ,
-%     Name.Function = \bfseries \highLight[gray!20] ,
-%     Comment = \color{gray} ,
-%     Comment.LaTeX = \normalfont \color{gray},
-%     Keyword = \bfseries ,
-%     Name.Namespace = ,
-%     Name.Class = , 
-%     Name.Type = ,
-%     InitialValues = \color{gray}
-%   }
-% \end{Verbatim}
-%
-% In that tuning, many values given to the keys are empty: that means that the
-% corresponding style won't insert any formatting instruction (the element will
-% be composed in the standard color, usually in black, etc.). Nevertheless,
-% those entries are mandatory because the initial value of those keys in
-% \pkg{piton} is \emph{not} empty.
-%
-% \begingroup
-%  \PitonOptions{splittable}
-%
-% \SetPitonStyle
-%   {
-%     Number = ,
-%     String = \itshape , 
-%     String.Doc = \color{gray} \slshape ,
-%     Operator.Word = \bfseries ,
-%     Operator = , 
-%     Name.Builtin = ,
-%     Name.Function = \bfseries \highLight[gray!20] ,
-%     Comment = \color{gray} ,
-%     Comment.LaTeX = \normalfont \color{gray} ,
-%     Keyword = \bfseries ,
-%     Name.Namespace = ,
-%     Name.Class = , 
-%     Name.Type = ,
-%     InitialValues = \color{gray}
-%   }
-%
-%
-% \bigskip
-%
-% \begin{Piton}
-% from math import pi
-%
-% def arctan(x,n=10):
-%     """Compute the mathematical value of arctan(x)
-%                                               
-%     n is the number of terms in the sum
-%     """
-%     if x < 0:
-%         return -arctan(-x) # recursive call
-%     elif x > 1: 
-%         return pi/2 - arctan(1/x) 
-%         #> (we have used that $\arctan(x)+\arctan(1/x)=\pi/2$ for $x>0$)
-%     else: 
-%         s = 0
-%         for k in range(n):
-%             s += (-1)**k/(2*k+1)*x**(2*k+1)
-%         return s 
-% \end{Piton}
-%
-% \endgroup
-%
-% \subsection{Utilisation avec tcolorbox}
+% \subsection{Utilization with tcolorbox}
 %
 % \label{examples-tcolorbox}
 %
@@ -2687,6 +2594,94 @@ piton_version = "4.5x1" -- 2025/05/15
 %
 % We recall that this box can't be broken by a change of page (even when using
 % the library \pkg{breakable} of \pkg{tcolorbox}).
+%
+%
+%
+% \bigskip
+%
+% \subsection{An example of tuning of the styles}
+%
+% The graphical styles have been presented in the section \ref{styles},
+% p.~\pageref{styles}.
+%
+% \smallskip
+% We present now an example of tuning of these styles adapted to the documents
+% in black and white.
+%
+% That tuning uses the command |\highLight| of \pkg{lua-ul} (that package
+% requires itself the package \pkg{luacolor}).
+%
+% \begin{Verbatim}
+% \SetPitonStyle
+%   {
+%     Number = ,
+%     String = \itshape , 
+%     String.Doc = \color{gray} \slshape ,
+%     Operator = , 
+%     Operator.Word = \bfseries ,
+%     Name.Builtin = ,
+%     Name.Function = \bfseries \highLight[gray!20] ,
+%     Comment = \color{gray} ,
+%     Comment.LaTeX = \normalfont \color{gray},
+%     Keyword = \bfseries ,
+%     Name.Namespace = ,
+%     Name.Class = , 
+%     Name.Type = ,
+%     InitialValues = \color{gray}
+%   }
+% \end{Verbatim}
+%
+% In that tuning, many values given to the keys are empty: that means that the
+% corresponding style won't insert any formatting instruction (the element will
+% be composed in the standard color, usually in black, etc.). Nevertheless,
+% those entries are mandatory because the initial value of those keys in
+% \pkg{piton} is \emph{not} empty.
+%
+% \begingroup
+%  \PitonOptions{splittable}
+%
+% \SetPitonStyle
+%   {
+%     Number = ,
+%     String = \itshape , 
+%     String.Doc = \color{gray} \slshape ,
+%     Operator.Word = \bfseries ,
+%     Operator = , 
+%     Name.Builtin = ,
+%     Name.Function = \bfseries \highLight[gray!20] ,
+%     Comment = \color{gray} ,
+%     Comment.LaTeX = \normalfont \color{gray} ,
+%     Keyword = \bfseries ,
+%     Name.Namespace = ,
+%     Name.Class = , 
+%     Name.Type = ,
+%     InitialValues = \color{gray}
+%   }
+%
+%
+% \bigskip
+%
+% \begin{Piton}
+% from math import pi
+%
+% def arctan(x,n=10):
+%     """Compute the mathematical value of arctan(x)
+%                                               
+%     n is the number of terms in the sum
+%     """
+%     if x < 0:
+%         return -arctan(-x) # recursive call
+%     elif x > 1: 
+%         return pi/2 - arctan(1/x) 
+%         #> (we have used that $\arctan(x)+\arctan(1/x)=\pi/2$ for $x>0$)
+%     else: 
+%         s = 0
+%         for k in range(n):
+%             s += (-1)**k/(2*k+1)*x**(2*k+1)
+%         return s 
+% \end{Piton}
+%
+% \endgroup
 %
 % \subsection{Use with pyluatex}
 %
@@ -3505,6 +3500,16 @@ piton_version = "4.5x1" -- 2025/05/15
 % \bigskip
 % \subsubsection{Parameters and technical definitions}
 %
+%    \begin{macrocode}
+\tl_new:N \l_@@_body_tl
+% \end{macrocode}
+%
+% The content of an environment such as |{Piton}| will be composed first in the following 
+% box... but that box be \emph{unvboxed} at the end.
+%    \begin{macrocode}
+\box_new:N \g_@@_output_box
+%    \end{macrocode}
+%
 % The following string will contain the name of the informatic language
 % considered (the initial value is |python|).
 %
@@ -3535,7 +3540,13 @@ piton_version = "4.5x1" -- 2025/05/15
 %    \begin{macrocode}
 \str_new:N \l_@@_path_write_str
 %    \end{macrocode}
-% 
+%
+% \medskip
+% The following parameter corresponds to the key |tcolorbox|.
+%    \begin{macrocode}
+\bool_new:N \l_@@_tcolorbox_bool
+% \end{macrocode}
+%
 % \medskip
 % In order to have a better control over the keys.
 %    \begin{macrocode}
@@ -3572,14 +3583,6 @@ piton_version = "4.5x1" -- 2025/05/15
 % (when |background-color| is used with a \emph{list} of colors).
 %    \begin{macrocode}
 \int_new:N \g_@@_line_int
-%    \end{macrocode}
-% 
-% \medskip
-% The following token list will contain the (potential) information to write
-% on the |aux| (to be used in the next compilation). The technic of the
-% auxiliary file will be used when the key |width| is used with the value~|min|.
-%    \begin{macrocode}
-\tl_new:N \g_@@_aux_tl
 %    \end{macrocode}
 % 
 % \medskip
@@ -3726,18 +3729,9 @@ piton_version = "4.5x1" -- 2025/05/15
 % 
 % \bigskip
 % The following dimension will be the width of the listing constructed by
-% |{Piton}| or |\PitonInputFile|.
-% \begin{itemize}
-% \item If the user uses the key |width| of |\PitonOptions| with a numerical
-% value, that value will be stored in |\l_@@_width_dim|.
-% \item If the user uses the key |width| with the special value~|min|, the
-% dimension |\l_@@_width_dim| will, \emph{in the second run}, be computed from
-% the value of |\l_@@_line_width_dim| stored in the |aux| file
-% (computed during the first run the maximal width of the lines of the listing).
-% During the first run, |\l_@@_width_line_dim| will be set equal to |\linewidth|.
-% \item Elsewhere, |\l_@@_width_dim| will be set at the beginning of the listing
-% (in |\@@_pre_env:|) equal to the current value of |\linewidth|.
-% \end{itemize}
+% |{Piton}| or |\PitonInputFile|. If the user uses the key |width| of
+% |\PitonOptions| with a numerical value, that value will be stored in
+% |\l_@@_width_dim|.
 % 
 %    \begin{macrocode} 
 \dim_new:N \l_@@_width_dim 
@@ -4085,17 +4079,8 @@ piton_version = "4.5x1" -- 2025/05/15
 % Be careful: There is curryfication in the following code.
 %    \begin{macrocode}
     \bool_if:NTF \l_@@_width_min_bool
-      {
-%    \end{macrocode}
-% The case with |\@@_put_in_coffin_iii:n| is not mandatory: we have written that special
-% case only to avoid to write the width of the environment on the |aux| file (therefore,
-% we avoid a further compilation). 
-%    \begin{macrocode}
-        \clist_if_empty:NTF \l_@@_bg_color_clist 
-          \@@_put_in_coffin_iii:n
-          \@@_put_in_coffin_ii:n
-      }
-      \@@_put_in_coffin_i:n 
+      \@@_put_in_coffin_i:n
+      \@@_put_in_coffin_ii:n 
       {
         \language = -1
         \raggedright 
@@ -4164,7 +4149,9 @@ piton_version = "4.5x1" -- 2025/05/15
 % we don't want that box to be inserted in the vertical list).
 %    \begin{macrocode}
     \mode_leave_vertical:
-    \clist_if_empty:NTF \l_@@_bg_color_clist
+    \bool_lazy_or:nnTF
+      { \clist_if_empty_p:N \l_@@_bg_color_clist }
+      { \l_@@_width_min_bool }
       { \box_use_drop:N \l_tmpa_box }
       {
         \vtop 
@@ -4186,66 +4173,38 @@ piton_version = "4.5x1" -- 2025/05/15
 %    \end{macrocode}
 %
 % \bigskip
-% In the general case (which is also the simpler), the key |width| is not used,
-% or (if used) it is not used with the special value~|min|.
-% In that case, the content of a line of code is composed in a vertical coffin
-% with a width equal to |\l_@@_line_width_dim|. That coffin may,
-% eventually, contains several lines when the key |break-lines-in-Piton| (or
-% |break-lines|) is used.
-% 
-% That commands takes in its argument by curryfication.
+% When |width=min| is in force, we first compose the content of a line of code
+% in the hbox |\l_tmpa_box| in order to compute its width (we use
+% |\g_@@_tmp_width_dim| during the composition of the whole environment and the value
+% will be stored in |\l_@@_line_width_dim| at the end).
+%
 %    \begin{macrocode}
-\cs_set_protected:Npn \@@_put_in_coffin_i:n 
+\cs_set_protected:Npn \@@_put_in_coffin_i:n #1
+  {
+    \hbox_set:Nn \l_tmpa_box { #1 }
+    \dim_compare:nNnT { \box_wd:N \l_tmpa_box } > \g_@@_tmp_width_dim
+      { \dim_gset:Nn \g_@@_tmp_width_dim { \box_wd:N \l_tmpa_box } }
+% \end{macrocode}
+% The, we put the box in the coffin |\l_tmpa_coffin| which is used, \emph{in fine}, to
+% compose the whole environment.
+% \begin{macrocode}
+    \hcoffin_set:Nn \l_tmpa_coffin { \box_use:N \l_tmpa_box }
+  }
+%    \end{macrocode}
+% 
+%
+% \bigskip
+% When |width=min| is used, the content of a line of code is composed directly
+% (in |\l_tmpa_coffin|) as a vertical coffin of width equal to |\l_@@_line_width_dim|.
+% That coffin may ontain several lines when the key |break-lines-in-Piton|
+% (or |break-lines|) is used.
+% 
+% That command takes in its argument by curryfication.
+%    \begin{macrocode}
+\cs_set_protected:Npn \@@_put_in_coffin_ii:n 
   { \vcoffin_set:Nnn \l_tmpa_coffin \l_@@_line_width_dim }
 %    \end{macrocode}
 %
-% \bigskip
-% The second case is the case when the key |width| is used with the special
-% value~|min|. 
-%    \begin{macrocode}
-\cs_set_protected:Npn \@@_put_in_coffin_ii:n #1
-  {
-%    \end{macrocode}
-% First, we compute the natural width of the line of code because we have to
-% compute the natural width of the whole listing (and it will be written on the
-% |aux| file in the variable |\l_@@_width_dim|).
-%    \begin{macrocode}
-    \hbox_set:Nn \l_tmpa_box { #1 }
-%    \end{macrocode}
-% Now, you can actualize the value of |\g_@@_tmp_width_dim| (it will be used to 
-% write on the |aux| file the natural width of the environment).
-%    \begin{macrocode}
-    \dim_compare:nNnT { \box_wd:N \l_tmpa_box } > \g_@@_tmp_width_dim
-      { \dim_gset:Nn \g_@@_tmp_width_dim { \box_wd:N \l_tmpa_box } }
-%    \end{macrocode}
-% 
-%    \begin{macrocode}
-    \hcoffin_set:Nn \l_tmpa_coffin 
-      { 
-        \hbox_to_wd:nn \l_@@_line_width_dim 
-%    \end{macrocode}
-% We unpack the block in order to free the potential |\hfill| springs present in
-% the LaTeX comments (cf. section~\ref{example-comments}, p.~\pageref{example-comments}).
-%    \begin{macrocode}
-          { \hbox_unpack:N \l_tmpa_box \hfil } 
-      } 
-  }
-%    \end{macrocode}
-%
-% \bigskip
-% For a very special case where both conditions are met:
-% \begin{itemize}
-% \item the key |width| is used with the value |min|;
-% \item there is no colored background (at least, provided by \pkg{piton}: of course,
-% the final user may put the listing in a colored box provided by another tool.
-% \end{itemize}
-% We have a special treatment for that case only to avoid to have to write
-%  something on the |aux| file (and therefore, we avoid a further compilation).
-%    \begin{macrocode}
-\cs_set_protected:Npn \@@_put_in_coffin_iii:n #1
-  { \hcoffin_set:Nn \l_tmpa_coffin { \hbox:n { #1 } } }
-%    \end{macrocode}
-% 
 % \bigskip
 % The command |\@@_color:N| will take in as argument a reference to a
 % comma-separated list of colors. A color will be picked by using the value of
@@ -4265,6 +4224,7 @@ piton_version = "4.5x1" -- 2025/05/15
       { \@@_color_i:o \l_tmpa_tl }
   }
 %    \end{macrocode}
+%
 %
 % The following command |\@@_color:n| will accept both the instruction
 % |\@@_color:n { red!15 }| and the instruction |\@@_color:n { [rgb]{0.9,0.9,0} }|.
@@ -4481,6 +4441,8 @@ piton_version = "4.5x1" -- 2025/05/15
 %    \begin{macrocode}
 \keys_define:nn { PitonOptions }
   {
+    tcolorbox .bool_set:N = \l_@@_tcolorbox_bool ,
+    tcolorbox .default:n = true ,
     break-strings-anywhere .bool_set:N = \l_@@_break_strings_anywhere_bool ,
     break-strings-anywhere .default:n = true , 
     break-numbers-anywhere .bool_set:N = \l_@@_break_numbers_anywhere_bool ,
@@ -4785,40 +4747,6 @@ piton_version = "4.5x1" -- 2025/05/15
 %    \end{macrocode}
 % 
 %
-% \bigskip
-% \subsubsection{The command to write on the aux file}
-%
-%   
-%    \begin{macrocode}
-\cs_new_protected:Npn \@@_write_aux:
-  {
-    \tl_if_empty:NF \g_@@_aux_tl 
-      {
-        \iow_now:Nn \@mainaux { \ExplSyntaxOn }
-        \iow_now:Ne \@mainaux 
-          {
-            \tl_gset:cn { c_@@_ \int_use:N \g_@@_env_int _ tl } 
-              { \exp_not:o \g_@@_aux_tl } 
-          }
-        \iow_now:Nn \@mainaux { \ExplSyntaxOff }
-      }
-    \tl_gclear:N \g_@@_aux_tl 
-  }
-%    \end{macrocode}
-%
-% \bigskip
-% The following macro with be used only when the key |width| is used with the
-% special value~|min|.
-%    \begin{macrocode}
-\cs_new_protected:Npn \@@_width_to_aux:
-  {
-    \tl_gput_right:Ne \g_@@_aux_tl
-      { 
-        \dim_set:Nn \l_@@_line_width_dim 
-          { \dim_eval:n { \g_@@_tmp_width_dim } }
-      } 
-  }
-%    \end{macrocode}
 % 
 % \bigskip
 % \subsubsection{The main commands and environments for the final user}
@@ -5100,17 +5028,8 @@ piton_version = "4.5x1" -- 2025/05/15
   {
     \automatichyphenmode = 1
     \int_gincr:N \g_@@_env_int 
-    \tl_gclear:N \g_@@_aux_tl
     \dim_compare:nNnT \l_@@_width_dim = \c_zero_dim 
       { \dim_set_eq:NN \l_@@_width_dim \linewidth }
-%    \end{macrocode}
-% We read the information written on the |aux| file by a previous run (when the
-% key |width| is used with the special value~|min|). At this time, the only
-% potential information written on the |aux| file is the value of
-% |\l_@@_line_width_dim| when the key |width| has been used with the special
-% value~|min|).
-%    \begin{macrocode}
-    \cs_if_exist_use:c { c_@@ _ \int_use:N \g_@@_env_int _ tl }
     \bool_if:NF \l_@@_resume_bool { \int_gzero:N \g_@@_visual_line_int }
     \dim_gzero:N \g_@@_tmp_width_dim
     \int_gzero:N \g_@@_line_int
@@ -5162,25 +5081,21 @@ piton_version = "4.5x1" -- 2025/05/15
 % \bigskip
 % Whereas |\l_@@_with_dim| is the width of the environment,
 % |\l_@@_line_width_dim| is the width of the lines of code without the
-% potential margins for the numbers of lines and the background. Depending on
-% the case, you have to compute |\l_@@_line_width_dim| from |\l_@@_width_dim| or
-% we have to do the opposite.
+% potential margins for the numbers of lines and the background. 
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_compute_width:
+\cs_new_protected:Npn \@@_compute_line_width:
   {
-    \dim_compare:nNnTF \l_@@_line_width_dim = \c_zero_dim
-      {
-        \dim_set_eq:NN \l_@@_line_width_dim \l_@@_width_dim
-        \clist_if_empty:NTF \l_@@_bg_color_clist
+    \dim_set_eq:NN \l_@@_line_width_dim \l_@@_width_dim
+    \clist_if_empty:NTF \l_@@_bg_color_clist
 %    \end{macrocode}
 % If there is no background, we only subtract the left margin. 
 %    \begin{macrocode}
-          { \dim_sub:Nn \l_@@_line_width_dim \l_@@_left_margin_dim }
+      { \dim_sub:Nn \l_@@_line_width_dim \l_@@_left_margin_dim }
 %    \end{macrocode}
 % If there is a background, we subtract 0.5~em for the margin on the right.
 %    \begin{macrocode}
-          { 
-            \dim_sub:Nn \l_@@_line_width_dim { 0.5 em }
+      { 
+        \dim_sub:Nn \l_@@_line_width_dim { 0.5 em }
 %    \end{macrocode}
 % And we subtract also for the left margin. If the key |left-margin| has been
 % used (with a numerical value or with the special value~|min|),
@@ -5190,32 +5105,27 @@ piton_version = "4.5x1" -- 2025/05/15
 % computed when we use the current command.} and we use that value. Elsewhere,
 % we use a value of 0.5~em.
 %    \begin{macrocode}
-            \dim_compare:nNnTF \l_@@_left_margin_dim = \c_zero_dim 
-              { \dim_sub:Nn \l_@@_line_width_dim { 0.5 em } }
-              { \dim_sub:Nn \l_@@_line_width_dim \l_@@_left_margin_dim }
-          }
-      }
-%    \end{macrocode}
-% If |\l_@@_line_width_dim| has yet a non-zero value, that means that it has
-% been read in the |aux| file: it has been written by a previous run because the
-% key |width| is used with the special value~|min|). We compute now the width of
-% the environment by computations opposite to the preceding ones.
-%    \begin{macrocode}
-      {
-        \dim_set_eq:NN \l_@@_width_dim \l_@@_line_width_dim
-        \clist_if_empty:NTF \l_@@_bg_color_clist
-          { \dim_add:Nn \l_@@_width_dim \l_@@_left_margin_dim }
-          { 
-            \dim_add:Nn \l_@@_width_dim { 0.5 em }
-            \dim_compare:nNnTF \l_@@_left_margin_dim = \c_zero_dim 
-              { \dim_add:Nn \l_@@_width_dim { 0.5 em } }
-              { \dim_add:Nn \l_@@_width_dim \l_@@_left_margin_dim }
-          }
+        \dim_compare:nNnTF \l_@@_left_margin_dim = \c_zero_dim 
+          { \dim_sub:Nn \l_@@_line_width_dim { 0.5 em } }
+          { \dim_sub:Nn \l_@@_line_width_dim \l_@@_left_margin_dim }
       }
   }
 %    \end{macrocode}
-% 
 %
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_compute_width:
+  {
+    \dim_set_eq:NN \l_@@_width_dim \l_@@_line_width_dim
+    \clist_if_empty:NTF \l_@@_bg_color_clist
+      { \dim_add:Nn \l_@@_width_dim \l_@@_left_margin_dim }
+      { 
+        \dim_add:Nn \l_@@_width_dim { 0.5 em }
+        \dim_compare:nNnTF \l_@@_left_margin_dim = \c_zero_dim 
+          { \dim_add:Nn \l_@@_width_dim { 0.5 em } }
+          { \dim_add:Nn \l_@@_width_dim \l_@@_left_margin_dim }
+      }
+  }
+%    \end{macrocode}
 % 
 % \bigskip
 % For the following commands, the arguments are provided by curryfication.
@@ -5268,53 +5178,16 @@ piton_version = "4.5x1" -- 2025/05/15
 % \verb|\IfPackageLoadedT { babel } { \languageshorthands { none } }|
 %
 % But we should be sure that there is no consequence in the LaTeX comments...
-%    \begin{macrocode}
-            \mode_if_vertical:TF { \noindent } { \newline }
-%    \end{macrocode}
-% The following line is only to compute |\l_@@_lines_int| which will be used
-% only when both |left-margin=auto| and |skip-empty-lines = false| are in force.
-% We should change that.
-%    \begin{macrocode}
-            \lua_now:e { piton.CountLines ( '\lua_escape:n{##1}' ) }
-%    \end{macrocode}
-% The first argument of the following function is the name of the Lua function
-% that will be applied to the second argument in order to count the number of lines.
-%    \begin{macrocode}
-            \@@_compute_left_margin:nn { CountNonEmptyLines } { ##1 }
-            \@@_compute_width:
-            \lua_now:e
-              {
-                piton.join = "\l_@@_join_str"
-                piton.write = "\l_@@_write_str"
-                piton.path_write = "\l_@@_path_write_str"
-              }
-            \noindent
-%    \end{macrocode}
 %
 % \bigskip
-% Now, the main job. The main argument is provided by curryfication.
 %    \begin{macrocode}
-            \bool_if:NTF \l_@@_print_bool
-              {
-                \bool_if:NTF \l_@@_split_on_empty_lines_bool
-                  { \@@_retrieve_gobble_split_parse:n }
-                  { \@@_retrieve_gobble_parse:n }
-              }
-              { \@@_gobble_parse_no_print:n }
-              { ##1 }
-%    \end{macrocode}
-%
-% If the user has used the key |width| with the special value~|min|, we write on
-% the |aux| file the value of |\l_@@_line_width_dim| (largest width of the lines
-% of code of the environment).
-%    \begin{macrocode}
-            \bool_if:NT \l_@@_width_min_bool
-              { \clist_if_empty:NF \l_@@_bg_color_clist { \@@_width_to_aux: } }
-%    \end{macrocode}
+            \tl_set:Nn \l_@@_body_tl { ##1 }
+            \@@_composition:
+% \end{macrocode}
+% 
 % The following |\end{#2}| is only for the stack of environments of LaTeX.
 %    \begin{macrocode}
             \end { #2 }
-            \@@_write_aux:
           }   
 %    \end{macrocode}
 % 
@@ -5365,14 +5238,13 @@ piton_version = "4.5x1" -- 2025/05/15
 %    \end{macrocode}
 % We will retreive the body of the environment in |\l_@@_body_tl|.
 %    \begin{macrocode}
-    \tl_new:N \l_@@_body_tl
     \cs_new_protected:Npn \@@_store_body:n #1 
       {
 %    \end{macrocode}
 % Now, we have to replace all the occurrences of |\obeyedline| by a character of
 % end of line (|\r| in the strings of Lua).
 %    \begin{macrocode}
-        \tl_set:Ne \obeyedline { \char_generate:nn { 13 } { 12 } }
+        \tl_set:Ne \obeyedline { \char_generate:nn { 13 } { 11 } }
         \tl_set:Ne \l_@@_body_tl { #1 }
         \tl_set_eq:NN \ProcessedArgument \l_@@_body_tl
       }
@@ -5384,8 +5256,6 @@ piton_version = "4.5x1" -- 2025/05/15
       {
         \use:c { #1 DocumentEnvironment } { #2 } { #3 > { \@@_store_body:n } c } 
           {
-            \tl_set:Ne \obeyedline { \char_generate:nn { 13 } { 11 } }
-            \tl_set:Ne \l_@@_body_tl { \l_@@_body_tl }
             \cs_set_eq:NN \PitonOptions \@@_fake_PitonOptions
             #4
             \@@_pre_env:
@@ -5394,28 +5264,10 @@ piton_version = "4.5x1" -- 2025/05/15
                 \int_gset:Nn \g_@@_visual_line_int 
                   { \l_@@_number_lines_start_int - 1 } 
               }
-            \mode_if_vertical:TF { \noindent } { \newline }
-            \lua_now:e { piton.CountLines ( '\lua_escape:n{\l_@@_body_tl}' ) }
-            \@@_compute_left_margin:no { CountNonEmptyLines } { \l_@@_body_tl }
-            \@@_compute_width:
-            \lua_now:e
-              {
-                piton.join = "\l_@@_join_str"
-                piton.write = "\l_@@_write_str"
-                piton.path_write = "\l_@@_path_write_str"
-              }
-            \noindent
-            \bool_if:NTF \l_@@_print_bool
-              {
-                \bool_if:NTF \l_@@_split_on_empty_lines_bool
-                  { \@@_retrieve_gobble_split_parse:o }
-                  { \@@_retrieve_gobble_parse:o }
-                  \l_@@_body_tl
-              }
-              { \@@_gobble_parse_no_print:o \l_@@_body_tl }
-            \bool_if:NT \l_@@_width_min_bool 
-              { \clist_if_empty:NF \l_@@_bg_color_clist { \@@_width_to_aux: } }
-            \@@_write_aux:
+%    \end{macrocode}
+% Now, the main job.
+%    \begin{macrocode}
+            \@@_composition:
             #5
           }
           { \ignorespacesafterend }  
@@ -5423,6 +5275,176 @@ piton_version = "4.5x1" -- 2025/05/15
   }
   { } 
 %    \end{macrocode}
+%
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_composition:
+  {
+     \mode_if_vertical:TF { \noindent } { \newline } 
+%    \end{macrocode}
+% The following line is only to compute |\l_@@_lines_int| which will be used
+% only when both |left-margin=auto| and |skip-empty-lines = false| are in force.
+% We should change that.
+%    \begin{macrocode}
+    \lua_now:e { piton.CountLines ( '\lua_escape:n{\l_@@_body_tl}' ) }
+%    \end{macrocode}
+% The first argument of the following function is the name of the Lua function
+% that will be applied to the second argument in order to count the number of lines.
+%    \begin{macrocode}
+    \@@_compute_left_margin:no { CountNonEmptyLines } { \l_@@_body_tl }
+    \lua_now:e
+      {
+        piton.join = "\l_@@_join_str"
+        piton.write = "\l_@@_write_str"
+        piton.path_write = "\l_@@_path_write_str"
+      }
+    \noindent
+    \bool_if:NTF \l_@@_print_bool
+      {
+        \bool_lazy_and:nnTF
+          { \l_@@_width_min_bool }
+          { ! \clist_if_empty_p:N \l_@@_bg_color_clist }
+          { \@@_unstandard_composition: }
+          { \@@_standard_composition: }
+%    \end{macrocode}
+% Now, the listing has been composed in |\g_@@_output_box|.
+%    \begin{macrocode}
+        \bool_if:NT \l_@@_tcolorbox_bool
+          {
+            \tcbset { text~width = \g_@@_width_dim } 
+            \begin { tcolorbox } [ breakable ]
+            \par
+          }
+        \vbox_unpack:N \g_@@_output_box
+        \bool_if:NT \l_@@_tcolorbox_bool
+          { \end { tcolorbox } } 
+      }
+      { \@@_gobble_parse_no_print:o \l_@@_body_tl }
+  }
+% \bigskip
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_standard_composition:
+  {
+    \dim_zero_new:N \g_@@_width_dim
+    \dim_gset_eq:NN \g_@@_width_dim \l_@@_width_dim
+    \bool_if:NF \l_@@_width_min_bool
+      { \@@_compute_line_width: }
+    \vbox_gset:Nn \g_@@_output_box
+      {
+        \bool_if:NTF \l_@@_split_on_empty_lines_bool
+          { \@@_retrieve_gobble_split_parse:o }
+          { \@@_retrieve_gobble_parse:o }
+          \l_@@_body_tl
+      }
+    \bool_if:NT \l_@@_width_min_bool 
+      {
+        \dim_set_eq:NN \l_@@_line_width_dim \g_@@_tmp_width_dim
+        \@@_compute_width:
+        \dim_gset_eq:NN \g_@@_width_dim \l_@@_width_dim        
+      }
+  }
+%    \end{macrocode}
+%
+% \bigskip
+% The following version is used only when both conditions are present:
+% \begin{itemize}
+% \item |width=min| is in force;
+% item a background color is used.
+% \end{itemize}
+%
+% In that case, we have to add a background under each line of code \emph{after}
+% the composition of all these lines since we have to know the maximal width
+% of those lines before constructing those backgrounds.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_unstandard_composition:
+  {
+    \box_clear_new:N \g_@@_input_box
+%    \end{macrocode}
+% We compose all the lines in a vertical box |\g_@@_input_box| and, after, we will
+% loop over the (horizontal) boxes in that vertical box in order to add a
+% background under each line.
+%    \begin{macrocode}
+    \vbox_gset:Nn \g_@@_input_box
+      {
+        \offinterlineskip
+        \bool_if:NTF \l_@@_print_bool
+          {
+            \bool_if:NTF \l_@@_split_on_empty_lines_bool
+              { \_@@_retrieve_gobble_split_parse:o }
+              { \_@@_retrieve_gobble_parse:o }
+              \l_@@_body_tl
+          }
+          { \_@@_gobble_parse_no_print:o \l_@@_body_tl }
+      }
+    \dim_set_eq:NN \l_@@_line_width_dim \g_@@_tmp_width_dim
+%    \end{macrocode}
+% We compute |\l_@@_width_dim| (which is the total width of the environment) from
+% the length |\l_@@_line_width_dim|.
+%    \begin{macrocode}
+    \@@_compute_width:
+    \dim_zero_new:N \g_@@_width_dim
+    \dim_gset_eq:NN \g_@@_width_dim \l_@@_width_dim
+    \box_clear_new:N \l_@@_sand_box
+    \box_clear:N \g_@@_output_box
+    \int_gzero:N \g_@@_line_int
+%    \end{macrocode}
+% |\l_@@_sand_box| is only used to \emph{unpack} the vertical box |\g_@@_input_box|.
+% Maybe we could have used a standard scratch box such as |\l_tmpa_box|...
+%    \begin{macrocode}
+    \vbox_set:Nn \l_@@_sand_box
+      {
+%    \end{macrocode}        
+% We will raise |\g_tmpa_bool| to exit the loop (see |\bool_do_until:nn| below).
+%    \begin{macrocode} 
+        \bool_gset_false:N \g_tmpa_bool
+        \vbox_unpack:N \g_@@_input_box
+        \unskip \unskip
+%    \end{macrocode}
+% We begin the loop.
+%    \begin{macrocode}
+        \bool_do_until:nn \g_tmpa_bool
+          {
+            \unskip \unskip \unskip
+            \int_set_eq:NN \l_tmpa_int \lastpenalty
+            \unpenalty \unkern
+%    \end{macrocode}
+% In standard TeX (not LuaTeX), the only way to loop over the sub-boxes of a given
+% box is to use the TeX primitive |\lastbox| (via |\box_set_to_last:N| of L3).
+% Of course, it would be interesting to replace that programmation by a programmation
+% in Lua of LuaTeX...
+%    \begin{macrocode}
+            \box_set_to_last:N \l_tmpa_box
+            \box_if_empty:NTF \l_tmpa_box
+              { \bool_gset_true:N \g_tmpa_bool }
+              {
+%    \end{macrocode}
+% The correct value of |\g_@@_line_int| is used by the command |\@@_color:N|.
+%    \begin{macrocode}
+                \int_gincr:N \g_@@_line_int
+                \vbox_gset:Nn \g_@@_output_box
+                  {
+                    \vbox
+                      {
+                        \offinterlineskip
+                        \hbox
+                          {
+                            \@@_color:N \l_@@_bg_color_clist 
+                            \vrule height \box_ht:N \l_tmpa_box 
+                                   depth \box_dp:N \l_tmpa_box 
+                                   width \l_@@_width_dim
+                          } 
+                        \skip_vertical:n { - \box_ht_plus_dp:N \l_tmpa_box }
+                        \box_use_drop:N \l_tmpa_box 
+                      }
+                    \kern -2.5 pt 
+                    \penalty \l_tmpa_int
+                    \vbox_unpack:N \g_@@_output_box
+                  }
+              }
+          }
+      }
+  }
+%    \end{macrocode}
+%
 %
 % \bigskip
 % The following will be used when the final user has user |print=false|.
@@ -5630,7 +5652,9 @@ piton_version = "4.5x1" -- 2025/05/15
       \@@_compute_left_margin:no 
         { CountNonEmptyLinesFile } 
         { \l_@@_file_name_str }
-      \@@_compute_width:
+      \dim_compare:nNnTF \l_@@_line_width_dim = \c_zero_dim
+        { \@@_compute_line_width: }
+        { \@@_compute_width: }
       \lua_now:e
         { 
           piton.ParseFile(
@@ -5643,7 +5667,6 @@ piton_version = "4.5x1" -- 2025/05/15
              { \int_use:N \l_@@_splittable_int } ,
            \bool_if:NTF \l_@@_split_on_empty_lines_bool { 1 } { 0 } ) 
         } 
-      \bool_if:NT \l_@@_width_min_bool { \@@_width_to_aux: }
     \group_end:
 %    \end{macrocode}
 %
@@ -5654,7 +5677,6 @@ piton_version = "4.5x1" -- 2025/05/15
 %    \begin{macrocode}
     \tl_if_novalue:nF { #1 }
       { \bool_if:NT \g_@@_beamer_bool { \end { uncoverenv } } }
-    \@@_write_aux:
   }
 %    \end{macrocode}
 % 
@@ -6158,7 +6180,7 @@ piton_version = "4.5x1" -- 2025/05/15
 % \bigskip
 %    \begin{macrocode}
 \AtEndDocument
-  { \lua_now:n { piton.write_and_join_files() } }
+  { \lua_now:n { piton.join_and_write_files() } }
 %    \end{macrocode}
 %
 % \bigskip
@@ -6414,6 +6436,7 @@ piton_version = "4.5x1" -- 2025/05/15
     split-separation,~
     tabs-auto-gobble,~
     tab-size,~
+    tcolorbox,~
     width~and~write.
   }
 %    \end{macrocode}
@@ -10329,7 +10352,7 @@ end
 % \subsubsection{We write the files (key 'write') and join the files in the PDF (key 'join')}
 %
 %    \begin{macrocode}
-function piton.write_and_join_files ( )
+function piton.join_and_write_files ( )
   for file_name , file_content in pairs ( piton.write_files ) do
     local file = io.open ( file_name , "w" ) 
     if file then
