@@ -3555,7 +3555,7 @@ piton_version = "4.5x1" -- 2025/05/15
 % \medskip
 % The following parameter corresponds to the key |box|.
 %    \begin{macrocode}
-\bool_new:N \l_@@_box_bool
+\tl_new:N \l_@@_box_tl
 % \end{macrocode}
 %
 % \medskip
@@ -4167,7 +4167,7 @@ piton_version = "4.5x1" -- 2025/05/15
 % when the key |box| is not in force, we have to explicitely begin a paragraph because
 % we will insert a TeX box (and we don't want that box to be inserted in the vertical list).
 %    \begin{macrocode}
-    \bool_if:NF \l_@@_box_bool { \mode_leave_vertical: }
+    \tl_if_empty:NT \l_@@_box_tl { \mode_leave_vertical: }
     \dim_gset_eq:NN \g_@@_width_dim \l_@@_width_dim 
     \bool_lazy_or:nnTF
       { \clist_if_empty_p:N \l_@@_bg_color_clist }
@@ -4522,8 +4522,8 @@ piton_version = "4.5x1" -- 2025/05/15
         }
         { \@@_error:n { tcolorbox~not~loaded } } ,
     tcolorbox .default:n = true ,
-    box .bool_set:N = \l_@@_box_bool ,
-    box .default:n = true ,
+    box .tl_set:N = \l_@@_box_tl ,
+    box .default:n = c ,
     break-strings-anywhere .bool_set:N = \l_@@_break_strings_anywhere_bool ,
     break-strings-anywhere .default:n = true , 
     break-numbers-anywhere .bool_set:N = \l_@@_break_numbers_anywhere_bool ,
@@ -5365,7 +5365,7 @@ piton_version = "4.5x1" -- 2025/05/15
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_composition:
   {
-     \bool_if:NF \l_@@_box_bool
+     \tl_if_empty:NT \l_@@_box_tl
        { \mode_if_vertical:TF { \noindent } { \newline } }
 %    \end{macrocode}
 % The following line is only to compute |\l_@@_lines_int| which will be used
@@ -5415,13 +5415,14 @@ piton_version = "4.5x1" -- 2025/05/15
                 \end { tcolorbox }
               }
               {
-                \bool_if:NTF \l_@@_box_bool
+                \tl_if_empty:NTF \l_@@_box_tl
+                  { \vbox_unpack:N \g_@@_output_box }
                   {
-                    \begin { minipage } { \g_@@_width_dim } 
+                    \use:e { \begin { minipage } [ \l_@@_box_tl ] }
+                      { \g_@@_width_dim } 
                     \vbox_unpack:N \g_@@_output_box
                     \end { minipage }
                   }
-                  { \vbox_unpack:N \g_@@_output_box }
               }
          }
       }
