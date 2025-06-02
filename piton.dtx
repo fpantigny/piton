@@ -3515,6 +3515,10 @@ piton_version = "4.5x1" -- 2025/05/15
 \box_new:N \g_@@_output_box
 %    \end{macrocode}
 %
+%    \begin{macrocode}
+\box_new:N \l_@@_line_box
+%    \end{macrocode}
+%
 % The following string will contain the name of the informatic language
 % considered (the initial value is |python|).
 %
@@ -3746,6 +3750,13 @@ piton_version = "4.5x1" -- 2025/05/15
 % 
 %    \begin{macrocode} 
 \dim_new:N \l_@@_width_dim
+% \end{macrocode}
+%
+% \bigskip
+% |\g_@@_width_dim| will be the width of the environment, after construction.
+% In particular, if |max-width| is used, |\g_@@_width_dim| has to be computed
+% from the actual content of the environment.
+%    \begin{macrocode}
 \dim_new:N \g_@@_width_dim 
 %    \end{macrocode}
 % 
@@ -3761,10 +3772,11 @@ piton_version = "4.5x1" -- 2025/05/15
 %    \end{macrocode}
 % 
 % \medskip
-% The following flag will be raised with the key |width| is used with the
-% special value |min|.
+% The following flag will be raised when the key |max-width| (and 
+% when |width| is used with the key |min|, which is equivalent to
+% |max-width=\linewidth|). 
 %    \begin{macrocode}
-\bool_new:N \l_@@_width_min_bool
+\bool_new:N \l_@@_minimize_width_bool
 %    \end{macrocode}
 %
 % \medskip
@@ -4081,26 +4093,10 @@ piton_version = "4.5x1" -- 2025/05/15
 %    \end{macrocode}
 %
 % \medskip
-% First, we will put in the coffin |\l_tmpa_coffin| the actual content of a line
-% of the code (without the potential number of line).
-%
-% Be careful: There is curryfication in the following code.
-%    \begin{macrocode}
-    \bool_if:NTF \l_@@_width_min_bool
-      \@@_put_in_coffin_i:n
-      \@@_put_in_coffin_ii:n 
-      {
-        \language = -1
-        \raggedright 
-        \strut 
-        \@@_replace_spaces:n { #1 }
-        \strut \hfil 
-      } 
-%    \end{macrocode}
-% Now, we add the potential number of line, the potential left margin and the
+% We put the potential number of line, the potential left margin and the
 % potential background.
 %    \begin{macrocode}
-    \hbox_set:Nn \l_tmpa_box 
+    \hbox_set:Nn \l_@@_line_box 
       { 
         \skip_horizontal:N \l_@@_left_margin_dim
         \bool_if:NT \l_@@_line_numbers_bool
@@ -4148,16 +4144,77 @@ piton_version = "4.5x1" -- 2025/05/15
             \dim_compare:nNnT \l_@@_left_margin_dim = \c_zero_dim 
               { \skip_horizontal:n { 0.5 em } }
           }
-        \coffin_typeset:Nnnnn \l_tmpa_coffin T l \c_zero_dim \c_zero_dim 
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+        \bool_if:NTF \l_@@_minimize_width_bool
+          {
+            \hbox_set:Nn \l_@@_line_box
+              {
+                \language = -1
+                \raggedright 
+                \strut 
+                \@@_replace_spaces:n { #1 }
+                \strut \hfil 
+              }
+             \dim_compare:nNnTF
+               { \box_wd:N \l_@@_line_box } < \l_@@_code_width_dim
+               { \box_use:N \l_@@_line_box }
+               {
+                 \vtop
+                   {
+                     \hsize = \l_@@_code_width_dim 
+                     \language = -1
+                     \raggedright 
+                     \strut 
+                     \@@_replace_spaces:n { #1 }
+                     \strut \hfil 
+                   }
+               }
+          }
+          {
+%    \end{macrocode}
+%
+% Be careful: There is curryfication in the following code.
+%    \begin{macrocode}
+            \bool_if:NTF \l_@@_minimize_width_bool 
+              { \hbox }
+              { \vtop }
+              {
+                \bool_if:NF \l_@@_minimize_width_bool
+                  { \hsize = \l_@@_code_width_dim }
+                \language = -1
+                \raggedright 
+                \strut 
+                \@@_replace_spaces:n { #1 }
+                \strut \hfil 
+              }
+          }
       }
-    \box_set_dp:Nn \l_tmpa_box { \box_dp:N \l_tmpa_box + 1.25 pt } 
-    \box_set_ht:Nn \l_tmpa_box { \box_ht:N \l_tmpa_box + 1.25 pt }
-    \dim_gset_eq:NN \g_@@_width_dim \l_@@_width_dim 
+%    \end{macrocode}
+% Now, the line of code is composed in the box |\l_@@_line_box|.
+% 
+% \bigskip
+%    \begin{macrocode}
+    \box_set_dp:Nn \l_@@_line_box { \box_dp:N \l_@@_line_box + 1.25 pt } 
+    \box_set_ht:Nn \l_@@_line_box { \box_ht:N \l_@@_line_box + 1.25 pt }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+    \dim_gset_eq:NN \g_@@_width_dim \l_@@_width_dim
+%    \end{macrocode}
+%
+% Maybe we will have to put a colored background for that line of code.
+%    \begin{macrocode}
     \bool_lazy_or:nnTF
       { \clist_if_empty_p:N \l_@@_bg_color_clist }
-      { \l_@@_width_min_bool }
-      { \box_use_drop:N \l_tmpa_box }
-      { \@@_compose_line_with_background: }  
+      { \l_@@_minimize_width_bool }
+      { \box_use_drop:N \l_@@_line_box }
+      { \@@_add_background_to_line_and_use: }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
     \group_end:
     \tl_gclear:N \g_@@_begin_line_hook_tl
   }
@@ -4165,15 +4222,16 @@ piton_version = "4.5x1" -- 2025/05/15
 %
 %
 % \bigskip
-% Of course, the following command will be used when the key |background| is used.
+% Of course, the following command will be used when the key |background-color|
+% is used.
 %
-% However, one must remark that it will be used both in |\@@_begin_line:|
-% (when |width=min| is \emph{not} in force) and in |\@@_unstandard_composition:|
-% (when |width=min| is in force).
+% However, one must remark that it will be used both in the command 
+% |\@@_add_backgrounds_to_output_box:| (when |max-width| of |width=min| is used) 
+% and in |\@@_begin_line:|... |\@@_end_line:| (elsewhere).
 %
-% The content of the line has been previously set in |\l_tmpa_box|.
+% The content of the line has been previously set in |\l_@@_line_box|.
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_compose_line_with_background:
+\cs_new_protected:Npn \@@_add_background_to_line_and_use:
   {
     \vtop
       {
@@ -4189,7 +4247,7 @@ piton_version = "4.5x1" -- 2025/05/15
 % The colored panels are overlapping. However, if the special color |none| is used
 % we must not put such overlapping.
 %    \begin{macrocode}
-            \dim_set:Nn \l_tmpa_dim { \box_dp:N \l_tmpa_box }
+            \dim_set:Nn \l_tmpa_dim { \box_dp:N \l_@@_line_box }
             \bool_if:NT \g_@@_next_color_is_none_bool
               { \dim_sub:Nn \l_tmpa_dim { 2.5 pt } }
 %    \end{macrocode}
@@ -4202,47 +4260,18 @@ piton_version = "4.5x1" -- 2025/05/15
 %    \end{macrocode}
 % Now, the colored panel.
 %    \begin{macrocode}
-            \vrule height \box_ht:N \l_tmpa_box 
+            \vrule height \box_ht:N \l_@@_line_box 
                    depth \l_tmpa_dim
                    width \l_tmpb_dim
           }
         \bool_if:NT \g_@@_next_color_is_none_bool
           { \skip_vertical:n { 2.5 pt } }
-        \skip_vertical:n { - \box_ht_plus_dp:N \l_tmpa_box } 
-        \box_use_drop:N \l_tmpa_box
+        \skip_vertical:n { - \box_ht_plus_dp:N \l_@@_line_box } 
+        \box_use_drop:N \l_@@_line_box
      }
   }
 %    \end{macrocode}
 %
-%
-% \bigskip
-% When |width=min| is in force, we first compose the content of a line of code
-% in the hbox |\l_tmpa_box| in order to compute its width.
-%
-%    \begin{macrocode}
-\cs_set_protected:Npn \@@_put_in_coffin_i:n #1
-  {
-    \hbox_set:Nn \l_tmpa_box { #1 }
-% \end{macrocode}
-% Then, we put the box in the coffin |\l_tmpa_coffin| which is used, \emph{in fine}, to
-% compose the whole environment.
-% \begin{macrocode}
-    \hcoffin_set:Nn \l_tmpa_coffin { \box_use:N \l_tmpa_box }
-  }
-%    \end{macrocode}
-% 
-%
-% \bigskip
-% When |width=min| is used, the content of a line of code is composed directly
-% (in |\l_tmpa_coffin|) as a vertical coffin of width equal to |\l_@@_code_width_dim|.
-% That coffin may contain several lines when the key |break-lines-in-Piton|
-% (or |break-lines|) is used.
-% 
-% That command takes in its argument by curryfication.
-%    \begin{macrocode}
-\cs_set_protected:Npn \@@_put_in_coffin_ii:n 
-  { \vcoffin_set:Nnn \l_tmpa_coffin \l_@@_code_width_dim }
-%    \end{macrocode}
 %
 % \bigskip
 % The command |\@@_color:N| will take in as argument a reference to a
@@ -4640,15 +4669,20 @@ piton_version = "4.5x1" -- 2025/05/15
     width .code:n = 
       \str_if_eq:nnTF  { #1 } { min } 
         { 
-          \bool_set_true:N \l_@@_width_min_bool 
+          \bool_set_true:N \l_@@_minimize_width_bool 
           \dim_zero:N \l_@@_width_dim 
         }
         { 
-          \bool_set_false:N \l_@@_width_min_bool
+          \bool_set_false:N \l_@@_minimize_width_bool
           \dim_set:Nn \l_@@_width_dim { #1 } 
         } , 
     width .value_required:n  = true ,
 
+    max-width .code:n =
+      \bool_set_true:N \l_@@_minimize_width_bool
+      \dim_set:Nn \l_@@_width_dim { #1 } ,
+    max-width .value_required:n = true ,
+    
     write .str_set:N = \l_@@_write_str ,
     write .value_required:n = true ,
 %     \end{macrocode}
@@ -5101,7 +5135,7 @@ piton_version = "4.5x1" -- 2025/05/15
             \dim_compare:nNnT \l_@@_width_dim = \c_zero_dim 
               { \dim_set_eq:NN \l_@@_width_dim \linewidth }
           }
-          { \bool_set_true:N \l_@@_width_min_bool }
+          { \bool_set_true:N \l_@@_minimize_width_bool }
       }
     \bool_if:NF \l_@@_resume_bool { \int_gzero:N \g_@@_visual_line_int }
     \int_gzero:N \g_@@_line_int
@@ -5151,7 +5185,7 @@ piton_version = "4.5x1" -- 2025/05/15
 %
 % \bigskip
 % The following command computes |\g_@@_width_dim| and it will be used
-% when |width=min| is in force. 
+% when |max-wdith| or |width=min| is used.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_compute_width:
   {
@@ -5169,11 +5203,11 @@ piton_version = "4.5x1" -- 2025/05/15
 %
 % \bigskip
 % Whereas |\l_@@_with_dim| is the width of the environment as specified by the key
-% |width| (except when |width=min| is used), |\l_@@_code_width_dim| is the width
-% of the lines of code without the potential margins for the numbers of lines
-% and the background.
+% |width| (except when |max-width| or |width=min| is used), |\l_@@_code_width_dim|
+% is the width of the lines of code without the potential margins for the numbers
+% of lines and the background.
 %
-% The following command will be used only in |\@@_standard_composition:| when
+% The following command will be used only in |\@@_create_output_box:| when
 % |widht=min| is \emph{not} in force before the composition of |\g_@@_output_box|.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_compute_code_width:
@@ -5390,22 +5424,18 @@ piton_version = "4.5x1" -- 2025/05/15
         \bool_if:NTF \l_@@_split_on_empty_lines_bool
           { \@@_retrieve_gobble_split_parse:o \l_@@_body_tl }
           {
-            \bool_lazy_and:nnTF
-              { \l_@@_width_min_bool }
-              { ! \clist_if_empty_p:N \l_@@_bg_color_clist }
-              { \@@_unstandard_composition: }
-              { \@@_standard_composition: }
+            \@@_create_output_box:
 %    \end{macrocode}
 % Now, the listing has been composed in |\g_@@_output_box| and |\g_@@_width_dim|
 % contains the width of the listing (with the potential margin for the numbers of lines).
 %    \begin{macrocode}
             \bool_if:NTF \l_@@_tcolorbox_bool
               {
-                \bool_if:NT \l_@@_width_min_bool 
+                \bool_if:NT \l_@@_minimize_width_bool 
                   { \tcbset { text~width = \g_@@_width_dim } }
 %    \end{macrocode}
-% Even though we use the key |breakable| of |{tcolorbox}|, our environment will be breakable
-% only when the key |splittable| of \pkg{piton} is used.
+% Even though we use the key |breakable| of |{tcolorbox}|, our environment will be
+% breakable only when the key |splittable| of \pkg{piton} is used.
 %    \begin{macrocode}
                 \begin { tcolorbox } [ breakable ]
                 \par
@@ -5430,72 +5460,44 @@ piton_version = "4.5x1" -- 2025/05/15
 %
 % \bigskip
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_standard_composition:
+\cs_new_protected:Npn \@@_create_output_box:
   {
-    \bool_if:NF \l_@@_width_min_bool
-      {
-        \@@_compute_code_width:
-        \dim_gset_eq:NN \g_@@_width_dim \l_@@_width_dim
-      }
+    \@@_compute_code_width:
+    \dim_gset_eq:NN \g_@@_width_dim \l_@@_width_dim
     \vbox_gset:Nn \g_@@_output_box
       { \@@_retrieve_gobble_parse:o \l_@@_body_tl }
-%    \end{macrocode}
-% We compute |\g_@@_width_dim| because it will be used if the
-% key |tcolorbox| is in force.
-%    \begin{macrocode}
-    \dim_show:n { \box_wd:N \g_@@_output_box }
-    \bool_if:NT \l_@@_width_min_bool { \@@_compute_width: } 
+    \bool_if:NT \l_@@_minimize_width_bool
+      {
+        \@@_compute_width: 
+        \clist_if_empty:NF \l_@@_bg_color_clist
+          { \@@_add_backgrounds_to_output_box: }
+      }
   }
 %    \end{macrocode}
 %
-% 
-% \bigskip
-% The following version is used only when both conditions are present:
-% \begin{itemize}
-% \item |width=min| is in force;
-% \item a background color is used.
-% \end{itemize}
 %
-% In that case, we have to add a background under each line of code \emph{after}
-% the composition of all these lines since we have to know the maximal width
-% of those lines before constructing those backgrounds.
+% \bigskip
+% Usually, we add the backgrounds under each line when the line is actually composed
+% in |\@@_begin_line:|... |\@@_end_line|. However, it's not possible when the width
+% of the environment must be minimized. In that case, we add the backgrounds after the
+% composition of the box |\g_@@_output_box| by a loop over the lines in that box.
+%
+% However, in fact, we could drop the first technic and always use that one for
+% the backgrounds (but it would be a bit slower...).
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_unstandard_composition:
+\cs_new_protected:Npn \@@_add_backgrounds_to_output_box:
   {
-    \box_clear:N \g_@@_output_box
-%    \end{macrocode}
-% We compose all the lines in a vertical box |\g_@@_output_box| and, after, we will
-% loop over the (horizontal) boxes in that vertical box in order to add a
-% background under each line.
-%    \begin{macrocode}
-    \vbox_gset:Nn \g_@@_output_box
-      {
-        \offinterlineskip
-        \_@@_retrieve_gobble_parse:o \l_@@_body_tl
-      }
-%    \end{macrocode}
-% We compute |\g_@@_width_dim| since |width=min| is in force. That width will be
-% the width of the rectangles we have to put under the lines of the code.
-%    \begin{macrocode}
-    \@@_compute_width:
-    \box_clear_new:N \l_@@_sand_box
     \int_gzero:N \g_@@_line_int
 %    \end{macrocode}
-% |\l_@@_sand_box| is only used to \emph{unpack} the vertical box |\g_@@_input_box|.
-% Maybe we could have used a standard scratch box such as |\l_tmpa_box|...
+% |\l_tmpa_box| is only used to \emph{unpack} the vertical box |\g_@@_output_box|.
 %    \begin{macrocode}
-    \vbox_set:Nn \l_@@_sand_box
+    \vbox_set:Nn \l_tmpa_box
       {
+        \vbox_unpack_drop:N \g_@@_output_box
 %    \end{macrocode}        
-% We will raise |\g_tmpa_bool| to exit the loop (see |\bool_do_until:nn| below).
+% We will raise |\g_tmpa_bool| to exit the loop |\bool_do_until:nn| below.
 %    \begin{macrocode} 
         \bool_gset_false:N \g_tmpa_bool
-        \vbox_unpack:N \g_@@_output_box
-%    \end{macrocode}
-% We clear |\g_@@_output_box| because we will now recreate |\g_@@_output_box| with
-% the colored panels under the lines.
-%    \begin{macrocode}
-        \box_clear:N \g_@@_output_box
         \unskip \unskip
 %    \end{macrocode}
 % We begin the loop.
@@ -5511,17 +5513,18 @@ piton_version = "4.5x1" -- 2025/05/15
 % Of course, it would be interesting to replace that programmation by a programmation
 % in Lua of LuaTeX...
 %    \begin{macrocode}
-            \box_set_to_last:N \l_tmpa_box
-            \box_if_empty:NTF \l_tmpa_box
+            \box_set_to_last:N \l_@@_line_box
+            \box_if_empty:NTF \l_@@_line_box
               { \bool_gset_true:N \g_tmpa_bool }
               {
                 \vbox_gset:Nn \g_@@_output_box
                   {
 %    \end{macrocode}
-% The command |\@@_compose_line_with_background:| will compose the line with its
-% background. It uses the box |\l_tmpa_box|.
+% The command |\@@_add_background_to_line_and_use:| will add a background to
+% the line (in |\l_@@_line_box|) but will also put the line in the current box.
+% background. 
 %    \begin{macrocode}
-                    \@@_compose_line_with_background:
+                    \@@_add_background_to_line_and_use:
                     \kern -2.5 pt 
                     \penalty \l_tmpa_int
                     \vbox_unpack:N \g_@@_output_box
@@ -5530,10 +5533,9 @@ piton_version = "4.5x1" -- 2025/05/15
             \int_gincr:N \g_@@_line_int
           }
       }
-  }
+  }      
 %    \end{macrocode}
-%
-%
+% 
 % \bigskip
 % The following will be used when the final user has user |print=false|.
 %    \begin{macrocode}
@@ -6557,6 +6559,7 @@ piton_version = "4.5x1" -- 2025/05/15
     tabs-auto-gobble,~
     tab-size,~
     tcolorbox,~
+    varwidth,~
     width~and~write.
   }
 %    \end{macrocode}
