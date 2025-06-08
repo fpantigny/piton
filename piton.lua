@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.5" -- 2025/05/14
+piton_version = "4.5x" -- 2025/06/08
 
 
 
@@ -518,7 +518,7 @@ do
         * K ( 'String.Doc.Internal' , ( 1 - P "\"\"\"" - "\r" ) ^ 0 * "\"\"\"" )
   local Comment =
     WithStyle
-     ( 'Comment' ,
+     ( 'Comment.Internal' ,
        Q "#" * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0  -- $
      )
     * ( EOL + -1 )
@@ -689,7 +689,7 @@ do
                 ) ^ 0
               * Q "*)"
         }
-  local Comment = WithStyle ( 'Comment' , comment )
+  local Comment = WithStyle ( 'Comment.Internal' , comment )
   local Delim = Q ( P "[|" + "|]" + S "[()]" )
   local Punct = Q ( S ",:;!" )
   local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
@@ -848,7 +848,9 @@ local DotNotation =
         Q "(" * SkipSpace
         * ( C ( pattern_part ) / ParseAgain )
         * SkipSpace
-       * ( Q ":" * #(1- P"=") * K ( 'TypeExpression' , balanced_parens ) * SkipSpace ) ^ -1
+       * ( Q ":" * #(1- P"=")
+           * K ( 'TypeExpression' , balanced_parens ) * SkipSpace
+         ) ^ -1
         * Q ")"
     )
   local DefFunction =
@@ -1065,12 +1067,12 @@ do
   LPEG_cleaner.c = Compute_LPEG_cleaner ( 'c' , braces )
   local Preproc = K ( 'Preproc' , "#" * ( 1 - P "\r" ) ^ 0  ) * ( EOL + -1 )
   local Comment =
-    WithStyle ( 'Comment' ,
+    WithStyle ( 'Comment.Internal' ,
        Q "//" * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 ) -- $
               * ( EOL + -1 )
 
   local LongComment =
-    WithStyle ( 'Comment' ,
+    WithStyle ( 'Comment.Internal' ,
                  Q "/*"
                  * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0
                  * Q "*/"
@@ -1192,13 +1194,13 @@ do
     + Compute_RawDetectedCommands ( 'sql' , braces )
   LPEG_cleaner.sql = Compute_LPEG_cleaner ( 'sql' , braces )
   local Comment =
-    WithStyle ( 'Comment' ,
+    WithStyle ( 'Comment.Internal' ,
        Q "--"   -- syntax of SQL92
        * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 ) -- $
     * ( EOL + -1 )
 
   local LongComment =
-    WithStyle ( 'Comment' ,
+    WithStyle ( 'Comment.Internal' ,
                  Q "/*"
                  * ( CommentMath + Q ( ( 1 - P "*/" - S "$\r" ) ^ 1 ) + EOL ) ^ 0
                  * Q "*/"
@@ -1280,7 +1282,7 @@ do
   local Punct = Q ( S ",:;!\\" )
 
   local Comment =
-    WithStyle ( 'Comment' ,
+    WithStyle ( 'Comment.Internal' ,
                 Q "#"
                 * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
               )
@@ -1453,6 +1455,29 @@ function piton.ParseFile
     piton.RetrieveGobbleParse ( lang , 0 , splittable , s )
   end
 end
+function piton.ReadFile ( name , first_line , last_line )
+  local s = ''
+  local i = 0
+  for line in cr_file_lines ( name ) do
+    i = i + 1
+    if i >= first_line then
+      s = s .. '\r' .. line
+    end
+    if i >= last_line then break end
+  end
+  if string.byte ( s , 1 ) == 13 then
+    if string.byte ( s , 2 ) == 239 then
+      if string.byte ( s , 3 ) == 187 then
+        if string.byte ( s , 4 ) == 191 then
+          s = string.sub ( s , 5 , -1 )
+        end
+      end
+    end
+  end
+  sprintL3 ( [[ \tl_set:Nn \l__piton_body_tl { ]])
+  tex.sprint ( luatexbase.catcodetables.CatcodeTableOther , s )
+  sprintL3 ( [[ } ]] )
+end
 function piton.RetrieveGobbleParse ( lang , n , splittable , code )
   local s
   s = ( ( P " " ^ 0 * "\r" ) ^ -1 * C ( P ( 1 ) ^ 0 ) * -1 ) : match ( code )
@@ -1509,12 +1534,14 @@ function piton.Gobble ( n , code )
   else
     if n == -1 then
       n = AutoGobbleLPEG : match ( code )
+      if tonumber(n) then else n = 0 end
     else
       if n == -2 then
         n = EnvGobbleLPEG : match ( code )
       else
         if n == -3 then
           n = TabsAutoGobbleLPEG : match ( code )
+          if tonumber(n) then else n = 0 end
         end
       end
     end
@@ -2135,7 +2162,7 @@ function piton.new_language ( lang , definition )
          )
   end
 end
-function piton.write_and_join_files ( )
+function piton.join_and_write_files ( )
   for file_name , file_content in pairs ( piton.write_files ) do
     local file = io.open ( file_name , "w" )
     if file then

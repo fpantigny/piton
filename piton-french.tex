@@ -547,15 +547,7 @@ p.~\pageref{line-breaks}).
 
 Cette clé peut prendre comme valeur une longueur explicite mais aussi la valeur
 spéciale~|min|. Avec cette valeur, la largeur sera calculée à partir de la
-largeur maximale des lignes de code. Attention : dans le cas où des fonds
-colorés sont utilisés, l'usage de cette valeur spéciale~|min| requiert deux
-compilations LuaLaTeX\footnote{La largeur maximale est calculée lors de la
-  première compilation, écrite sur le fichier~|aux|, puis réutilisée lors de la
-  compilation suivante. Certains outils comme |latexmk| (utilisé par Overleaf)
-  effectuent automatiquement un nombre suffisant de compilations.}.
-
-Pour un exemple d'utilisation de |width=min|, voir la
-partie~\ref{example-comments} sur les exemples, p.~\pageref{example-comments}.
+largeur maximale des lignes de code.
 
 \item \index{show-spaces-in-strings} En activant la clé
 \Definition{show-spaces-in-strings}, les espaces dans les chaînes de
@@ -589,7 +581,8 @@ sont représentées par des flèches.
 \begingroup
 \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 \begin{Verbatim}
-~emphase&\begin{Piton}[language=C,line-numbers,gobble,background-color = gray!15]@
+~emphase&\begin{Piton}[language=C,line-numbers,@
+~emphase&     splittable=4,gobble,background-color=gray!15,width=min]@
     void bubbleSort(int arr[], int n) {
         int temp;
         int swapped;
@@ -611,7 +604,7 @@ sont représentées par des flèches.
 \endgroup
 
 
-\begin{Piton}[language=C,line-numbers,gobble,background-color = gray!15]
+\begin{Piton}[language=C,line-numbers,gobble,background-color = gray!15,width=min]
     void bubbleSort(int arr[], int n) {
         int temp;
         int swapped;
@@ -2372,7 +2365,7 @@ sont nécessaires.
 \begingroup
 \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 \begin{Verbatim}
-\PitonOptions{width=min, background-color=gray!15}
+\PitonOptions{width=9cm, background-color=gray!15}
 ~emphase&\NewDocumentCommand{\MyLaTeXCommand}{m}{\hfill \normalfont\itshape\rlap{\quad #1}}@
 ~emphase&\SetPitonStyle{Comment.LaTeX = \MyLaTeXCommand}@
 \begin{Piton}
@@ -2393,7 +2386,7 @@ def arctan(x,n=10):
 
 
 \begingroup
-\PitonOptions{width = min, background-color=gray!15}
+\PitonOptions{width = 9cm, background-color=gray!15}
 \NewDocumentCommand{\MyLaTeXCommand}{m}{\hfill \normalfont\itshape\rlap{\quad #1}}
 \SetPitonStyle{Comment.LaTeX = \MyLaTeXCommand}
 \begin{Piton}
@@ -2418,7 +2411,7 @@ Pour utiliser \pkg{piton} avec \pkg{tcolorbox}, on charge \pkg{tcolorbox} (bien 
 crée de nouveaux environnements avec la commande |\NewPitonEnvironment|.
 
 \medskip
-Si on souhaite une boîte à la largeur courante (|\linewidht|), la programmation est simple.
+Si on souhaite une boîte à la largeur courante (|\linewidth|), la programmation est simple.
 Si on souhaite que la boîte puisse être coupée par un saut de page, il faut à la fois utiliser
 la clé |breakable| de \pkg{tcolorbox} (ce qui implique d'avoir chargé la bibliothèque
 \pkg{breakable} de \pkg{tcolorbox}: |\tcbuselibrary{breakable}|) et la clé |splittable| de

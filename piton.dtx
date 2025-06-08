@@ -84,12 +84,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.5x1}
-\def\PitonFileDate{2025/05/15}
+\def\PitonFileVersion{4.5x}
+\def\PitonFileDate{2025/06/08}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.5x1" -- 2025/05/15
+piton_version = "4.5x" -- 2025/06/08
 %</LUA>
 %\fi
 %
@@ -440,7 +440,7 @@ piton_version = "4.5x1" -- 2025/05/15
 % (that is to say the numbers) of the empty lines are displayed. If the key
 % |/skip-empty-line| is in force, the clé |/label-empty-lines| is no-op. The
 % initial value of that key is~|true|.\footnote{When the key
-% |split-on-empty-lines| is in force, the labels of the empty are never printed.}
+% |split-on-empty-lines| is in force, the labels of the empty lines are never printed.}
 % \item With the key \Definition{line-numbers/absolute}, in the listings
 % generated in |\PitonInputFile|, the numbers of the lines displayed are
 % \emph{absolute} (that is to say: they are the numbers of the lines in the
@@ -3919,6 +3919,11 @@ piton_version = "4.5x1" -- 2025/05/15
 \tl_new:N \g_@@_begin_line_hook_tl
 %    \end{macrocode}
 %
+% \bigskip
+%    \begin{macrocode}
+\tl_new:N \g_@@_after_line_hook_tl
+%    \end{macrocode}
+%
 % \smallskip
 % For example, the LPEG |Prompt| will trigger the following command which will
 % insert an instruction in the hook |\g_@@_begin_line_hook| to specify that a
@@ -4011,6 +4016,13 @@ piton_version = "4.5x1" -- 2025/05/15
 % construct \textsc{lpeg}).
 %
 %
+% \bigskip
+%    \begin{macrocode}
+        % \cs_set_eq:NN \@@_old_newpage: \newpage
+        % \cs_new_protected:Npn \@@_newpage:
+        %   { \tl_gput_right:Nn \g_@@_after_line_hook_tl { \@@_old_newpage: } }
+%    \end{macrocode}
+% 
 % \bigskip
 % \subsubsection{Treatment of a line of code}
 % 
@@ -4216,6 +4228,8 @@ piton_version = "4.5x1" -- 2025/05/15
 %
 %    \begin{macrocode}
     \group_end:
+    \g_@@_after_line_hook_tl
+    \tl_gclear:N \g_@@_after_line_hook_tl
     \tl_gclear:N \g_@@_begin_line_hook_tl
   }
 %    \end{macrocode}
@@ -4225,8 +4239,8 @@ piton_version = "4.5x1" -- 2025/05/15
 % Of course, the following command will be used when the key |background-color|
 % is used.
 %
-% However, one must remark that it will be used both in the command 
-% |\@@_add_backgrounds_to_output_box:| (when |max-width| of |width=min| is used) 
+% However, one must remark that it will be used both in  
+% |\@@_add_backgrounds_to_output_box:| (when |max-width| or |width=min| is used) 
 % and in |\@@_begin_line:|... |\@@_end_line:| (elsewhere).
 %
 % The content of the line has been previously set in |\l_@@_line_box|.
@@ -4239,8 +4253,8 @@ piton_version = "4.5x1" -- 2025/05/15
         \hbox
           {
 %    \end{macrocode}
-% The command |\@@_color:N| sets the current color but also sets the
-% booleans |\g_@@_color_is_none_bool| and |\g_@@_next_color_is_none_bool|.
+% |\@@_color:N| sets the current color but also sets the booleans
+% |\g_@@_color_is_none_bool| and |\g_@@_next_color_is_none_bool|.
 %    \begin{macrocode}
             \@@_color:N \l_@@_bg_color_clist
 %    \end{macrocode}
@@ -4548,7 +4562,10 @@ piton_version = "4.5x1" -- 2025/05/15
     detected-commands .code:n = 
       \clist_put_right:Nn \l_@@_detected_commands_clist { #1 } ,
     detected-commands .value_required:n = true , 
-    detected-commands .usage:n = preamble , 
+    detected-commands .usage:n = preamble ,
+    vertical-detected-commands .code:n = \@@_vertical_commands:n { #1 } ,
+    vertical-detected-commands .value_required:n = true , 
+    vertical-detected-commands .usage:n = preamble , 
     raw-detected-commands .code:n = 
       \clist_put_right:Nn \l_@@_raw_detected_commands_clist { #1 } ,
     raw-detected-commands .value_required:n = true , 
@@ -4805,8 +4822,31 @@ piton_version = "4.5x1" -- 2025/05/15
 %    \end{macrocode}
 % 
 %
-% 
 %
+% \bigskip
+%    \begin{macrocode}
+\tl_new:N \g_@@_def_vertical_commands_tl
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_vertical_commands:n #1
+  {
+    \clist_put_right:Nn \l_@@_raw_detected_commands_clist { #1 } 
+    \clist_map_inline:nn { #1 }
+      {
+        \cs_set_eq:cc { @@ _ old _ ##1 : } { ##1 }
+        \cs_new_protected:cn { @@ _ new _ ##1 : n }
+          {
+            \tl_gput_right:Nn \g_@@_after_line_hook_tl
+              { \use:c { @@ _old _ ##1 : } { ####1 } } 
+          }
+        \tl_gput_right:Nn \g_@@_def_vertical_commands_tl
+          { \cs_set_eq:cc { ##1 } { @@ _ new _ ##1 : n } }
+      }
+  }
+%    \end{macrocode}
+% 
 % \bigskip
 % \subsubsection{The numbers of the lines}
 %
@@ -5138,6 +5178,7 @@ piton_version = "4.5x1" -- 2025/05/15
           { \bool_set_true:N \l_@@_minimize_width_bool }
       }
     \bool_if:NF \l_@@_resume_bool { \int_gzero:N \g_@@_visual_line_int }
+    \g_@@_def_vertical_commands_tl
     \int_gzero:N \g_@@_line_int
     \dim_zero:N \parindent 
     \dim_zero:N \lineskip 
@@ -5447,7 +5488,7 @@ piton_version = "4.5x1" -- 2025/05/15
                   { \vbox_unpack:N \g_@@_output_box }
                   {
                     \use:e { \begin { minipage } [ \l_@@_box_tl ] }
-                      { \g_@@_width_dim } 
+                      { \g_@@_width_dim }
                     \vbox_unpack:N \g_@@_output_box
                     \end { minipage }
                   }
@@ -5477,8 +5518,8 @@ piton_version = "4.5x1" -- 2025/05/15
 %
 %
 % \bigskip
-% Usually, we add the backgrounds under each line when the line is actually composed
-% in |\@@_begin_line:|... |\@@_end_line|. However, it's not possible when the width
+% Usually, we add the backgrounds under each line when the line is composed
+% in |\@@_begin_line:|. However, it's not possible when the width
 % of the environment must be minimized. In that case, we add the backgrounds after the
 % composition of the box |\g_@@_output_box| by a loop over the lines in that box.
 %
@@ -6560,6 +6601,7 @@ piton_version = "4.5x1" -- 2025/05/15
     tab-size,~
     tcolorbox,~
     varwidth,~
+    vertical-detected-commands,~
     width~and~write.
   }
 %    \end{macrocode}
@@ -6915,7 +6957,7 @@ local SpaceInString = space * Lc [[ \l_@@_space_in_string_tl ]]
 % |explode| of the Lua of LuaTeX is unable to do itself such purification of the
 % components). 
 %    \begin{macrocode}
-local detected_commands = tex.toks.PitonDetectedCommands : explode ( ',' ) 
+local detected_commands = tex.toks.PitonDetectedCommands : explode ( ',' )
 local raw_detected_commands = tex.toks.PitonRawDetectedCommands : explode ( ',' )
 local beamer_commands = tex.toks.PitonBeamerCommands : explode ( ',' )  
 local beamer_environments = tex.toks.PitonBeamerEnvironments : explode ( ',' ) 
@@ -6924,7 +6966,7 @@ local beamer_environments = tex.toks.PitonBeamerEnvironments : explode ( ',' )
 % We will also create some \textsc{lpeg}.
 %
 % According to our conventions, a \textsc{lpeg} with a name in camelCase is a
-% \textsc{lpeg} which doen't do any capture.
+% \textsc{lpeg} which doesn't do any capture.
 %    \begin{macrocode}
 local detectedCommands = P ( false ) 
 for _ , x in ipairs ( detected_commands ) do
@@ -6941,6 +6983,7 @@ for _ , x in ipairs ( raw_detected_commands ) do
   rawDetectedCommands = rawDetectedCommands + P ( "\\" .. x ) 
 end 
 %    \end{macrocode}
+%
 %
 %    \begin{macrocode}
 local beamerCommands = P ( false ) 
@@ -7042,7 +7085,7 @@ function Compute_RawDetectedCommands ( lang , braces ) return
   Ct ( C ( rawDetectedCommands * space ^ 0 * P "{" * braces * P "}" ) )
 end
 %    \end{macrocode}
-% 
+%
 % \bigskip
 %    \begin{macrocode}
 local Compute_LPEG_cleaner
@@ -7582,7 +7625,7 @@ do
 %
 %    \begin{macrocode}
   DetectedCommands = Compute_DetectedCommands ( 'python' , braces ) 
-       + Compute_RawDetectedCommands ( 'python' , braces ) 
+       + Compute_RawDetectedCommands ( 'python' , braces )
 %    \end{macrocode}
 %
 % \bigskip
@@ -8656,7 +8699,7 @@ do
 %    \begin{macrocode}
   DetectedCommands = 
     Compute_DetectedCommands ( 'c' , braces ) 
-    + Compute_RawDetectedCommands ( 'c' , braces ) 
+    + Compute_RawDetectedCommands ( 'c' , braces )
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -8905,7 +8948,7 @@ do
 %    \begin{macrocode}
   DetectedCommands = 
     Compute_DetectedCommands ( 'sql' , braces ) 
-    + Compute_RawDetectedCommands ( 'sql' , braces ) 
+    + Compute_RawDetectedCommands ( 'sql' , braces )
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -9082,7 +9125,7 @@ do
 
   DetectedCommands = 
     Compute_DetectedCommands ( 'minimal' , braces ) 
-    + Compute_RawDetectedCommands ( 'minimal' , braces ) 
+    + Compute_RawDetectedCommands ( 'minimal' , braces )
 
   LPEG_cleaner.minimal = Compute_LPEG_cleaner ( 'minimal' , braces ) 
 
@@ -9155,7 +9198,7 @@ do
 
   DetectedCommands = 
     Compute_DetectedCommands ( 'verbatim' , braces ) 
-    + Compute_RawDetectedCommands ( 'verbatim' , braces ) 
+    + Compute_RawDetectedCommands ( 'verbatim' , braces )
 
   LPEG_cleaner.verbatim = Compute_LPEG_cleaner ( 'verbatim' , braces ) 
 %    \end{macrocode}
@@ -9469,12 +9512,17 @@ function piton.Gobble ( n , code )
   else 
     if n == -1 then 
       n = AutoGobbleLPEG : match ( code )
+%    \end{macrocode}
+% for the cas of an empty environment (only blank lines)
+%    \begin{macrocode}
+      if tonumber(n) then else n = 0 end
     else 
       if n == -2 then 
         n = EnvGobbleLPEG : match ( code )
       else 
         if n == -3 then 
-          n = TabsAutoGobbleLPEG : match ( code ) 
+          n = TabsAutoGobbleLPEG : match ( code )
+          if tonumber(n) then else n = 0 end
         end
       end
     end
@@ -10283,7 +10331,7 @@ function piton.new_language ( lang , definition )
 
   DetectedCommands = 
     Compute_DetectedCommands ( lang , braces ) 
-    + Compute_RawDetectedCommands ( lang , braces ) 
+    + Compute_RawDetectedCommands ( lang , braces )
 
   LPEG_cleaner[lang] = Compute_LPEG_cleaner ( lang , braces ) 
 %    \end{macrocode}
