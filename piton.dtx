@@ -32,8 +32,10 @@
 \usepackage{fontspec}
 \usepackage[dvipsnames,svgnames]{xcolor}
 \usepackage{caption,tabularx,luacolor,lua-ul,upquote,varwidth}
+\usepackage[framemethod=tikz]{mdframed}
 \usepackage{tcolorbox}
-\tcbuselibrary{skins}
+\tcbuselibrary{skins,breakable}
+\tcbset{enhanced}
 \def\emphase{\bgroup\color{RoyalPurple}\let\next=}
 \fvset{commandchars=\~\#\@,formatcom=\color{gray}}
 \captionsetup{labelfont = bf}
@@ -47,7 +49,9 @@
     end-escape = ! ,
     begin-escape-math = \( , 
     end-escape-math = \) ,
-    detected-commands = { highLight, footnote }
+    detected-commands = { highLight, footnote } ,
+    vertical-detected-commands = newpage ,
+    raw-detected-commands = NameTable
   }
 
 \parindent 0pt
@@ -84,12 +88,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.5x}
-\def\PitonFileDate{2025/06/08}
+\def\PitonFileVersion{4.6}
+\def\PitonFileDate{2025/06/16}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.5x" -- 2025/06/08
+piton_version = "4.6" -- 2025/06/16
 %</LUA>
 %\fi
 %
@@ -200,7 +204,7 @@ piton_version = "4.5x" -- 2025/06/08
 % and its key \Definition{language}: |\PitonOptions{language = OCaml}|.
 %
 % \smallskip
-% In fact, for \pkg{piton}, the names of the informatic languages are always
+% In fact, for \pkg{piton}, the names of the computer languages are always
 % \textbf{case-insensitive}. In this example, we might have written |Ocaml| or
 % |ocaml|. 
 %
@@ -486,7 +490,7 @@ piton_version = "4.5x" -- 2025/06/08
 % |line-numbers| if one does not want the numbers in an overlapping position on
 % the left. 
 %
-% It's possible to use the key |left-margin| with the value |auto|. With that
+% It's possible to use the key |left-margin| with the special value |auto|. With that
 % value, if the key |line-numbers| is in force, a margin will be automatically
 % inserted to fit the numbers of lines. See an example part
 % \ref{example-numbering} on page~\pageref{example-numbering}.
@@ -494,18 +498,23 @@ piton_version = "4.5x" -- 2025/06/08
 % \item \index{background-color} The key \Definition{background-color} sets the
 % background color of the environments |{Piton}| and the listings produced by
 % |\PitonInputFile| (it's possible to fix the width of that background with the
-% key |width| described below). 
+% key |width| or the key |max-width| described below).
+
+% The key |background-color| accepts a color
+% defined «on the fly». For example, it's possible to write
+% |background-color = [cmyk]{0.1,0.05,0,0}|.
 %
 % \smallskip
 % The key |background-color| supports also as value a \emph{list} of colors. In
 % this case, the successive rows are colored by using the colors of the list in
 % a cyclic way.
 %
-% \emph{Example} : |\PitonOptions{background-color = {gray!15,white}}|
+% \smallskip
+% \colorbox{yellow!50}{\textbf{New 4.6}}\enskip
+% In that list, the special color \Definition{none} may be use to specify no
+% color at all.
 %
-% The key |background-color| accepts a color defined «on the fly». For example,
-% it's possible to write |background-color = [cmyk]{0.1,0.05,0,0}|.
-%
+% \emph{Example} : |\PitonOptions{background-color = {gray!15,none}}|
 %
 % \item \index{prompt-background-color} With the key
 % \Definition{prompt-background-color}, \pkg{piton} adds a 
@@ -513,17 +522,34 @@ piton_version = "4.5x" -- 2025/06/08
 % continuation ``|...|'') characteristic of the Python consoles with
 % \textsc{repl} (\emph{read-eval-print loop}).
 %
-% \item \index{width} The key \Definition{width} will fix the width of the
-% listing. That width applies to the colored backgrounds specified by
-% |background-color| and |prompt-background-color| but also for the automatic
-% breaking of the lines (when required by |break-lines|: cf.~\ref{line-breaks},
-% p.~\pageref{line-breaks}).
+% \item \index{width} \label{width} The key \Definition{width} fixes the width
+% of the listing in the \textsc{pdf}. The initial value of that parameter
+% is the current value of |\linewidth|.
 %
-% That key may take in as value a numeric value but also the special
-% value~|min|. With that value, the width will be computed from the maximal
-% width of the lines of code. 
+% That parameter is used for:
+% \begin{itemize}
+% \item the breaking the lines which are too long (except, of course, when the key
+% |break-lines| is set to false: cf.~p.~\pageref{line-breaks});
+% \item the color of the backgrounds specified by the keys |background-color| and
+% |prompt-background-color| described below;
+% \item the width of the LaTeX box created by the key |box| when that key is used
+% (cf. p.~\pageref{box});
+% \item the width of the graphical box created by the key |tcolorbox| when that
+% key is used.
+% \end{itemize}
 %
+% \item \index{max-width} \colorbox{yellow!50}{\textbf{New 4.6}}
 %
+% \nobreak
+
+% The key \Definition{max-width} is similar to the key |width| but it fixes the
+% \emph{maximal} width of the lines. If all the lines of the listing are shorter
+% than the value provided to |max-width|, the parameter |width| will be equal to
+% the maximal length of the lines of the listing, that is to say the natural width of
+% the listing.
+%
+% For legibility of the code, |width=min| is a shortcut for |max-width=\linewidth|.
+% 
 %
 % \item \index{show-spaces-in-strings} When the key
 % \Definition{show-spaces-in-strings} is activated, the spaces in the 
@@ -677,7 +703,7 @@ piton_version = "4.5x" -- 2025/06/08
 % \subsubsection{Global styles and local styles}
 %
 % A style may be defined globally with the command |\SetPitonStyle|. That means
-% that it will apply to all the informatic languages that use that style.
+% that it will apply to all the computer languages that use that style.
 %
 % \bigskip
 % For example, with the command
@@ -685,14 +711,14 @@ piton_version = "4.5x" -- 2025/06/08
 % \SetPitonStyle{Comment = \color{gray}}
 % \end{Verbatim}
 % all the comments will be composed in gray in all the listings, whatever
-% informatic language they use (Python, C, OCaml, etc. or a language defined by
+% computer language they use (Python, C, OCaml, etc. or a language defined by
 % the command |\NewPitonLanguage|).
 % 
 % \bigskip
 % But it's also possible to define a style locally for a given informatic
 % language by providing the name of that language as optional argument (between
 % square brackets) to the command |\SetPitonStyle|.\footnote{We recall, that, in
-% the package \pkg{piton}, the names of the informatic languages are
+% the package \pkg{piton}, the names of the computer languages are
 % case-insensitive.}
 %
 % \bigskip
@@ -705,7 +731,7 @@ piton_version = "4.5x" -- 2025/06/08
 % keywords are case-insensitive).
 %
 % \bigskip
-% As expected, if an informatic language uses a given style and if that style has
+% As expected, if a computer language uses a given style and if that style has
 % no local definition for that language, the global version is used. That notion
 % of ``global style'' has no link with the notion of global definition in TeX
 % (the notion of \emph{group} in TeX).\footnote{As regards the TeX groups, the
@@ -786,9 +812,9 @@ piton_version = "4.5x" -- 2025/06/08
 % list : it's the command \DefinitionCommand{PitonClearUserFunctions}. When it
 % is used without argument, that command is applied to all the informatic
 % languages used by the user but it's also possible to use it with an optional
-% argument (between square brackets) which is a list of informatic languages to
+% argument (between square brackets) which is a list of computer languages to
 % which the command will be applied.\footnote{We remind that, in \pkg{piton},
-% the name of the informatic languages are case-insensitive.}
+% the name of the computer languages are case-insensitive.}
 % \end{small}
 % 
 % \subsection{Creation of new environments}
@@ -828,18 +854,21 @@ piton_version = "4.5x" -- 2025/06/08
 % With the following instruction, a new environment |{Python}| will be
 % constructed with the same behaviour as |{Piton}|:
 %
-% {\color{gray}\verb|\NewPitonEnvironment{Python}{O{}}{\PitonOptions{#1}}{}|}
+% \begin{Verbatim}
+% ~emphase#\NewPitonEnvironment@{Python}{O{}}{\PitonOptions{~#1}}{} 
+% \end{Verbatim}
 % 
 % \bigskip
-% If one wishes to format Python code in a box of \pkg{tcolorbox}, it's possible
+% If one wishes to format Python code in a box of \pkg{mdframed}, it's possible
 % to define an environment |{Python}| with the following code (of course, the
-% package \pkg{tcolorbox} must be loaded).
+% package \pkg{mdframed} must be loaded, and, in this document, it has been loaded
+% with the key |framemethod=tikz|).
 %
-%\begin{verbatim}
-% \NewPitonEnvironment{Python}{}
-%   {\begin{tcolorbox}}
-%   {\end{tcolorbox}}
-% \end{verbatim}
+%\begin{Verbatim}
+% ~emphase#\NewPitonEnvironment@{Python}{}
+%   {\begin{mdframed}[roundcorner=3mm]}
+%   {\end{mdframed}}
+% \end{Verbatim}
 %
 % \bigskip
 % With this new environment |{Python}|, it's possible to write:
@@ -853,8 +882,8 @@ piton_version = "4.5x" -- 2025/06/08
 % \end{Verbatim}
 %
 % \NewPitonEnvironment{Python}{}
-%   {\begin{tcolorbox}}
-%   {\end{tcolorbox}}
+%   {\begin{mdframed}[roundcorner=3mm]}
+%   {\end{mdframed}}
 %
 % \begin{Python}
 % def square(x):
@@ -863,8 +892,10 @@ piton_version = "4.5x" -- 2025/06/08
 % \end{Python}
 % 
 % \bigskip
-% See other examples of utilisation with \pkg{tcolorbox} at the
-% page~\pageref{examples-tcolorbox}.
+% It's possible to a similar construction with an environment of \pkg{tcolorbox}.
+% However, for a better cooperation between \pkg{piton} and \pkg{tcolorbox}, the
+% extension \pkg{piton} provides a key \pkg{tcolorbox}: cf.~p.~\pageref{tcolorbox}.
+% 
 %
 % \section{Definition of new languages with the syntax of listings}
 %
@@ -955,7 +986,7 @@ piton_version = "4.5x" -- 2025/06/08
 %
 % Here is an example of code formatted in an environment |{Piton}| with
 % the key |language=Java|.\footnote{We recall that, for \pkg{piton}, the names
-% of the informatic languages are case-insensitive. Hence, it's possible to
+% of the computer languages are case-insensitive. Hence, it's possible to
 % write, for instance, |language=java|.}
 %
 % 
@@ -1016,11 +1047,394 @@ piton_version = "4.5x" -- 2025/06/08
 % \end{Verbatim}
 %
 % Initially, the characters |@| and |_| are considered as letters because, in
-% many informatic languages, they are allowed in the keywords and the names of
+% many computer languages, they are allowed in the keywords and the names of
 % the identifiers. With \verb|alsoletter = @_|, we retrieve them from the
 % category of the letters. 
 % 
 % \section{Advanced features}
+%
+% \subsection{The key ``box''}
+%
+% \label{box}
+% \index{box}
+% 
+% \colorbox{yellow!50}{\textbf{New 4.6}}
+%
+% \nobreak
+% \smallskip
+% If one wishes to compose a listing in a box of LaTeX, he should use the key
+% |box|. That key takes in as value |c|, |t| or |b| corresponding to the parameter
+% of vertical position (as for the envionment |{minipage}| of LaTeX). The default value
+% is |c| (as for |{minipage}|).
+%
+% When the  key |box| is used, |width=min| is activated (except, of course, when the
+% key |width| or the key |max-width| is explicitely used). For the keys |width| and
+% |max-width|, cf.~p.~\pageref{width}.
+%
+%
+% \smallskip
+% \begin{Verbatim}
+% \begin{center}
+% \PitonOptions{~emphase#box@,background-color=gray!15}
+% \begin{Piton}
+% def square(x):
+%     return x*x
+% \end{Piton}
+% \hspace{1cm}
+% def cube(x):
+%     return x*x*x
+% \end{Piton}
+% \end{center}
+% \end{Verbatim}
+%
+% \begin{center}
+% \PitonOptions{box,background-color=gray!15}
+% \begin{Piton}
+% def square(x):
+%     return x*x
+% \end{Piton}
+% \hspace{1cm}
+% \begin{Piton}
+% def cube(x):
+%     return x*x*x
+% \end{Piton}
+% \end{center}
+%
+% \vspace{1cm}
+% It's possible to use the key |box| with a numerical value for the key |width|.
+% 
+%
+% \smallskip
+%
+% \begin{Verbatim}
+% \begin{center}
+% \PitonOptions{~emphase#box,width=5cm@,background-color=gray!15}
+% \begin{Piton}
+% def square(x):
+%     return x*x
+% \end{Piton}
+% \hspace{1cm}
+% def cube(x):
+%     return x*x*x
+% \end{Piton}
+% \end{center}
+% \end{Verbatim}
+%
+% \begin{center}
+% \PitonOptions{box,width=5cm,background-color=gray!15}
+% \begin{Piton}
+% def square(x):
+%     return x*x
+% \end{Piton}
+% \hspace{1cm}
+% \begin{Piton}
+% def cube(x):
+%     return x*x*x
+% \end{Piton}
+% \end{center}
+%
+% \vspace{1cm}
+% Here is an exemple with the key |max-width|.
+%
+% \begin{Verbatim}
+% \begin{center}
+% \PitonOptions{~emphase#box=t,max-width=7cm@,background-color=gray!15}
+% \begin{Piton}
+% def square(x):
+%     return x*x
+% \end{Piton}
+% \hspace{1cm}
+% \begin{Piton}
+% def P(x):
+%     return 24*x**8 - 7*x**7 + 12*x**6 -4*x**5 + 4*x**3 + x**2 - 5*x + 2
+% \end{Piton}
+% \end{center}
+% \end{Verbatim}
+%
+% \begin{center}
+% \PitonOptions{box=t,max-width=7cm,background-color=gray!15}
+% \begin{Piton}
+% def square(x):
+%     return x*x
+% \end{Piton}
+% \hspace{1cm}
+% \begin{Piton}
+% def P(x):
+%     return 24*x**8 - 7*x**7 + 12*x**6 -4*x**5 + 4*x**3 + x**2 - 5*x + 2
+% \end{Piton}
+% \end{center}
+%
+% \subsection{The key ``tcolorbox''}
+%
+% \label{tcolorbox}
+% \index{tcolorbox (key)}
+%
+% The extension \pkg{piton} provides a key \Definition{tcolorbox} in order to
+% ease the use of the extension \pkg{tcolorbox} in conjunction with the extension
+% \pkg{piton}. However, the extension \pkg{piton} does not load \pkg{tcolorbox} and
+% the final user should have loaded it. Moreover, he must load the library |breakable|
+% of \pkg{tcolorbox} with |\tcbuselibrary{breakable}| in the preamble of the LaTeX document.
+% If this is not the case, an error will be raised at the first use of the key
+% |tcolorbox|.
+% 
+% \bigskip
+% When the key |tcolorbox| is used, the listing formated by \pkg{piton} is
+% included in an environment |{tcolorbox}|. That applies both to the command
+% |\PitonInputFile| and the environment |{Piton}| (or, more generally, an
+% environment created by the dedicated command |\NewPitonEnvironment|:
+% cf.~p.~\pageref{NewPitonEnvironment}). If the key |splittable| of \pkg{piton}
+% is used (cf. p.~\pageref{page breaks}), the graphical box created by
+% \pkg{tcolorbox} will be splittable by a change of page.
+%
+% \bigskip
+% In the present document, we have loaded, besides \pkg{tcolorbox} and its library
+% |breakable|, the library |skins| of \pkg{tcolorbox} and we have activated the
+% ``\emph{skin}'' |enhanced|, in order to have a better appearance at the page break.
+%
+%
+% \begin{Verbatim}[formatcom = \footnotesize\color{gray}]
+% \tcbuselibrary{skins,breakable} % in the preamble
+% \tcbset{enhanced}               % in the preamble 
+% \end{Verbatim}
+%
+% \begin{Verbatim}
+% \begin{Piton}~emphase#[tcolorbox,splittable=3]@
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% ...
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% \end{Piton}
+% \end{Verbatim}
+%
+% \begin{Piton}[tcolorbox,splittable=3]
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% def carré(x):
+%     """Computes the square of x"""
+%     return x*x
+% \end{Piton}
+%
+% Of course, if we want to change the color of the background, we won't use the key
+% |background-color| of \pkg{piton} but the tools provided by \pkg{tcolorbox}
+% (the key |colback| for the color of the background).
+%
+% \bigskip
+% If we want to adjust the width of the graphical box to its content, we only
+% have to use the key |width=min| provided by \pkg{piton} (cf.
+% p.~\pageref{width}). It's also possible to use |width| or |max-width| with a
+% numerical value. The environment is splittable if the key |splittable| is used (cf.
+% p.~\pageref{page breaks}).
+%
+% \begin{Verbatim}
+% \begin{Piton}~emphase#[tcolorbox,width=min,splittable=3]@
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% ...
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% \end{Piton}
+% \end{Verbatim}
+%
+% \begin{Piton}[tcolorbox,width=min,splittable=3]
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% \end{Piton}
+%
+% \bigskip
+% If we want an output composed in a LaTeX box (despites its name, an environment
+% of \pkg{tcolorbox} does not always create a LaTeX box), we only have to use
+% key |box| provided by \pkg{piton} (cf. p.~\pageref{box}). Of course, such LaTeX 
+% box can't be broken by a change of page.
+%
+% We recall that, when the key |box| is used, |width=min| is activated (except,
+% when the key |width| or the key |max-width| is explicitely used).
+%
+%
+% \smallskip
+% \begin{Verbatim}
+% \begin{center}
+% \PitonOptions{~emphase#tcolorbox,box=t@}
+% \begin{Piton}
+% def square(x):
+%     return x*x
+% \end{Piton}
+% \hspace{1cm}
+% \begin{Piton}
+% def cube(x):
+%     """The cube of x"""
+%     return x*x*x
+% \end{Piton}
+% \end{center}
+% \end{Verbatim}
+%
+% \begin{center}
+% \PitonOptions{tcolorbox,box=t}%
+% \begin{Piton}
+% def square(x):
+%     return x*x
+% \end{Piton}
+% \hspace{1cm}
+% \begin{Piton}
+% def cube(x):
+%     """The cube of x"""
+%     return x*x*x
+% \end{Piton}
+% \end{center}
+%
+%
+%
+% \bigskip
+% For a more sophisticated example of use of the key |tcolorbox|, see the example
+% given at the page~\pageref{examples-tcolorbox}.
+% 
 % \subsection{Insertion of a file}
 %
 % \label{PitonInputFile}
@@ -1216,7 +1630,7 @@ piton_version = "4.5x" -- 2025/06/08
 % By default, the elements produced by \pkg{piton} can't be broken by an end on
 % line. However, there are keys to allow such breaks (the possible breaking
 % points are the spaces, even the spaces which appear in the strings of the
-% informatic languages).
+% computer languages).
 % \begin{itemize}
 % \item \index{break-lines!break-lines-in-piton} With the key
 % \Definition{break-lines-in-piton}, the line breaks are allowed in the command
@@ -1225,7 +1639,8 @@ piton_version = "4.5x" -- 2025/06/08
 % \item \index{break-lines!break-lines-in-Piton} With the key
 % \Definition{break-lines-in-Piton}, the line breaks are allowed in the
 % environment |{Piton}| (hence the capital letter |P| in the name) and in the
-% listings produced by |\PitonInputFile|.
+% listings produced by |\PitonInputFile|. The initial value of that parameter is
+% |true| (and not |false|).
 % \item \index{break-lines} The key \Definition{break-lines} is a conjunction of
 % the two previous keys. 
 % \end{itemize}
@@ -1430,9 +1845,9 @@ piton_version = "4.5x" -- 2025/06/08
 % \begin{itemize}
 % \item The optional argument (within square brackets) specifies the informatic
 % language. If this argument is not present, the tunings done by
-% |\SetPitonIdentifier| will apply to all the informatic languages of
+% |\SetPitonIdentifier| will apply to all the computer languages of
 % \pkg{piton}.\footnote{We recall, that, in the package \pkg{piton}, the
-% names of the informatic languages are case-insensitive.}
+% names of the computer languages are case-insensitive.}
 %
 % \item The first mandatory argument is a comma-separated list of names of
 % identifiers.
@@ -1530,7 +1945,8 @@ piton_version = "4.5x" -- 2025/06/08
 % \item It's possible to have the elements between \texttt{\$} in the comments
 % composed in LateX mathematical mode.
 % \item It's possible to ask \pkg{piton} to detect automatically some LaTeX
-% commands, thanks to the keys |detected-commands| and |raw-detected-commands|.
+% commands, thanks to the keys |detected-commands|, |raw-detected-commands| and
+% |vertical-detected-commands|.
 % \item It's also possible to insert LaTeX code almost everywhere in a Python listing.
 % \end{itemize}
 %
@@ -1617,10 +2033,12 @@ piton_version = "4.5x" -- 2025/06/08
 %     return x*x # compute $x^2$
 % \end{Piton}
 %
-% \subsubsection{The keys ``detected-commands'' and ``raw-detected-commands''}
+% \subsubsection{The key ``detected-commands'' and its variants}
 %
 % \index{raw-detected-commands (key)}
 % \label{raw-detected-commands}
+% \index{vertical-detected-commands (key)}
+% \label{vertical-detected-commands}
 % \index{detected-commands (key)}
 % \label{detected-commands}
 %
@@ -1706,25 +2124,52 @@ piton_version = "4.5x" -- 2025/06/08
 % In the preamble of the LaTeX document, we insert the following lines:
 %
 % \begin{Verbatim}
-% \NewDocumentCommand{\NomTable}{m}{{\PitonStyle{Name.Table}{~#1}}}
-% \PitonOptions{language=SQL, ~emphase#raw-detected-commands = NomTable@}
+% \NewDocumentCommand{\NameTable}{m}{{\PitonStyle{Name.Table}{~#1}}}
+% \PitonOptions{language=SQL, ~emphase#raw-detected-commands = NameTable@}
 % \end{Verbatim}
 % 
-% In the main, the instruction:
+% In the main document, the instruction:
 %
 % \begin{Verbatim}
-% Exemple : \piton{\NomTable{client} (name, town)}
+% Exemple : \piton{\NameTable{client} (name, town)}
 % \end{Verbatim}
 %
-% \NewDocumentCommand{\NomTable}{m}{{\PitonStyle{Name.Table}{#1}}}
+% \NewDocumentCommand{\NameTable}{m}{{\PitonStyle{Name.Table}{#1}}}
 %
 % produces the following output :
 %
 % \smallskip
 % \begingroup
 % \PitonOptions{language=SQL}%
-% Exemple : \piton{\NomTable{client} (nom, prénom)}
+% Exemple : \piton{\NameTable{client} (nom, prénom)}
 % \endgroup
+%
+% \bigskip
+% \colorbox{yellow!50}{\textbf{New 4.6}}
+%
+% \nobreak
+% \smallskip
+% The key \Definition{vertical-detected-commands} is similar to the key |raw-detected-commands|
+% but the commands which are detected by this key must be LaTeX commands (with one argument)
+% which are executed in \emph{vertical} mode between the lines of the code.
+%
+% \smallskip
+% For example, it's possible to detect the command |\newpage| by
+%
+% \begin{Verbatim}
+% \PitonOptions{vertical-detected-commands = newpage}
+% \end{Verbatim}
+%
+% and ask in a listing a mandatory break of page with |\newgage{}|:
+%
+% \begin{Verbatim}
+% \begin{Piton}
+% def square(x):
+%     return x*x  ~emphase#\newpage{}@
+% def cube(x):
+%     return x*x*x
+% \end{Piton}
+% \end{Verbatim}
 % 
 % \subsubsection{The mechanism ``escape''}
 %
@@ -1816,7 +2261,7 @@ piton_version = "4.5x" -- 2025/06/08
 % \end{Verbatim}
 % 
 % \bigskip
-% Here is an example of utilisation.
+% Here is an example of use.
 %
 % \medskip
 % \begin{Verbatim}
@@ -1872,10 +2317,10 @@ piton_version = "4.5x" -- 2025/06/08
 % and the package \pkg{beamerarticle} if it is loaded previously
 % but, if needed, it's also possible to activate that mechanism with the key
 % |beamer| provided by \pkg{piton} at load-time:
-% |\usepackage[beamer]\{piton\}|}, the behaviour of \pkg{piton} is slightly 
+% |\usepackage[beamer]{piton}|}, the behaviour of \pkg{piton} is slightly 
 % modified, as described now.
 %
-% \subsubsection{\{Piton\} et \textbackslash PitonInputFile are
+% \subsubsection{\{Piton\} and \textbackslash PitonInputFile are
 % ``overlay-aware''}
 %
 % When \pkg{piton} is used in the class \cls{beamer}, the environment |{Piton}|
@@ -1900,7 +2345,7 @@ piton_version = "4.5x" -- 2025/06/08
 %
 % \index{detected-beamer-commands}
 %
-% When \pkg{piton} is used in the class \cls{beamer} , the following commands of
+% When \pkg{piton} is used in the class \cls{beamer}, the following commands of
 % \cls{beamer} (classified upon their number of arguments) are automatically
 % detected in the environments |{Piton}| (and in the listings processed by
 % |\PitonInputFile|):
@@ -2171,7 +2616,7 @@ piton_version = "4.5x" -- 2025/06/08
 % \smallskip 
 % Even though it's probably recommended to indent the informatics listings with
 % spaces and not tabulations\footnote{For the language Python, see the note %
-% PEP~8}, \pkg{piton} accepts the characters of tabulation (that is to say the 
+% PEP~8.}, \pkg{piton} accepts the characters of tabulation (that is to say the 
 % characters U+0009) at the beginning of the lines. Each character U+0009 is
 % replaced by $n$~spaces. The initial value of $n$ is $4$ but it's possible to
 % change it with the key \Definition{tab-size} of |\PitonOptions|.
@@ -2210,8 +2655,9 @@ piton_version = "4.5x" -- 2025/06/08
 %
 % \item The extra formatting elements added in the code are deleted in the code
 % returned by |piton.get_last_code()|. That concerns the LaTeX commands declared
-% by the key |detected-commands| (cf. part~\ref{detected-commands}) and the
-% elements inserted by the mechanism ``|escape|'' (cf. part~\ref{escape}).
+% by the key |detected-commands| and its variants (cf.
+% part~\ref{detected-commands}) and the elements inserted by the mechanism
+% ``|escape|'' (cf. part~\ref{escape}).
 %
 % \item |piton.get_last_code| is a Lua function and not a Lua string: the
 % treatments outlined above are executed when the function is called. Therefore,
@@ -2225,6 +2671,92 @@ piton_version = "4.5x" -- 2025/06/08
 %
 %
 % \section{Examples}
+%
+%
+% \subsection{An example of tuning of the styles}
+%
+% The graphical styles have been presented in the section \ref{styles},
+% p.~\pageref{styles}.
+%
+% \smallskip
+% We present now an example of tuning of these styles adapted to the documents
+% in black and white.
+%
+% That tuning uses the command |\highLight| of \pkg{lua-ul} (that package
+% requires itself the package \pkg{luacolor}).
+%
+% \begin{Verbatim}
+% \SetPitonStyle
+%   {
+%     Number = ,
+%     String = \itshape , 
+%     String.Doc = \color{gray} \slshape ,
+%     Operator = , 
+%     Operator.Word = \bfseries ,
+%     Name.Builtin = ,
+%     Name.Function = \bfseries \highLight[gray!20] ,
+%     Comment = \color{gray} ,
+%     Comment.LaTeX = \normalfont \color{gray},
+%     Keyword = \bfseries ,
+%     Name.Namespace = ,
+%     Name.Class = , 
+%     Name.Type = ,
+%     InitialValues = \color{gray}
+%   }
+% \end{Verbatim}
+%
+% In that tuning, many values given to the keys are empty: that means that the
+% corresponding style won't insert any formatting instruction (the element will
+% be composed in the standard color, usually in black, etc.). Nevertheless,
+% those entries are mandatory because the initial value of those keys in
+% \pkg{piton} is \emph{not} empty.
+%
+% \begingroup
+%  \PitonOptions{splittable}
+%
+% \SetPitonStyle
+%   {
+%     Number = ,
+%     String = \itshape , 
+%     String.Doc = \color{gray} \slshape ,
+%     Operator.Word = \bfseries ,
+%     Operator = , 
+%     Name.Builtin = ,
+%     Name.Function = \bfseries \highLight[gray!20] ,
+%     Comment = \color{gray} ,
+%     Comment.LaTeX = \normalfont \color{gray} ,
+%     Keyword = \bfseries ,
+%     Name.Namespace = ,
+%     Name.Class = , 
+%     Name.Type = ,
+%     InitialValues = \color{gray}
+%   }
+%
+%
+% \bigskip
+%
+% \begin{Piton}
+% from math import pi
+%
+% def arctan(x,n=10):
+%     """Compute the mathematical value of arctan(x)
+%                                               
+%     n is the number of terms in the sum
+%     """
+%     if x < 0:
+%         return -arctan(-x) # recursive call
+%     elif x > 1: 
+%         return pi/2 - arctan(1/x) 
+%         #> (we have used that $\arctan(x)+\arctan(1/x)=\pi/2$ for $x>0$)
+%     else: 
+%         s = 0
+%         for k in range(n):
+%             s += (-1)**k/(2*k+1)*x**(2*k+1)
+%         return s 
+% \end{Piton}
+%
+% \endgroup
+%
 %
 % \subsection{Line numbering}
 %
@@ -2366,322 +2898,232 @@ piton_version = "4.5x" -- 2025/06/08
 % 
 %
 %
-% \subsection{Utilization with tcolorbox}
+% \subsection{Use with tcolorbox}
 %
 % \label{examples-tcolorbox}
 %
-% In order to use \pkg{piton} with \pkg{tcolorbox}, we have to load \pkg{tcolorbox} (of course)
-% and, then, we define new environnements with the command |\NewPitonEnvironment|.
+% The key |tcolorbox| of \pkg{piton} has been presented at the page
+% \pageref{tcolorbox}.
+%
+% If, when that key is used, we wish to customize the graphical box created by
+% \pkg{tcolorbox} (with the keys provided by \pkg{tcolorbox}), we should use the
+% command |\tcbset| provided by \pkg{tcolorbox}. In order to limit the scope of
+% the settings done by that command, the best way is to create a new environment
+% with the dedicated command |\NewPitonEnvironment|
+% (cf.~p.~\pageref{NewPitonEnvironment}). That environment with contain the
+% settings done by \pkg{piton} (with |\PitonOptions|) and those done by
+% \pkg{tcolorbox} (with |\tcbset|).
+%
+%
+% \bigskip Here is an example of such environment |{Python}| with a colored
+% column on the left for the numbers of lines. That example requires the library
+% |skins| of \pkg{tcolorbox} to be loaded in the preamble of the LaTeX document
+% with the instruction |\tcbuselibrary{skins}| (in order to be able to use the
+% key |enhanced|).
+% 
+%
+% \begin{Verbatim}
+% \NewPitonEnvironment{Python}{m}
+%   {%
+%     \PitonOptions
+%       {
+%         ~emphase#tcolorbox@,
+%         splittable=3,
+%         width=min,
+%         line-numbers,       % activate the numbers of lines
+%         line-numbers =      % tuning for the numbers of lines
+%          {
+%            format = \footnotesize\color{white}\sffamily ,
+%            sep = 2.5mm
+%          }
+%       }%
+%     \tcbset
+%       {
+%         enhanced,
+%         title=~#1,
+%         fonttitle=\sffamily,
+%         left = 6mm,
+%         top = 0mm,
+%         bottom = 0mm,
+%         overlay=
+%          {%
+%             \begin{tcbclipinterior}%
+%                 \fill[gray!80]
+%                     (frame.south west) rectangle
+%                     ([xshift=6mm]frame.north west); 
+%             \end{tcbclipinterior}%
+%          }
+%       } 
+%   } 
+%   { }
+% \end{Verbatim}
+%
+% \bigskip
+% In the following example of use, we have illustrated the fact that it is possible
+% to impose a break of page in such environment with |\newpage{}| if we have required the
+% detection of the LaTeX command |\newpage| with the key |vertical-detected-commands|
+% (cf.~p.~\pageref{vertical-detected-commands}) in the premable of the LaTeX document.
+%
+% Remark that we must use |\newpage{}| and not |\newpage| because the LaTeX commands
+% detected by \pkg{piton} are meant to be commands with one argument (between curly
+% braces).
+%
+% \begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+% \PitonOptions{vertical-detected-commands = newpage} % in the premable
+% \end{Verbatim}
 %
 % \medskip
-% For a box of \pkg{tcolorbox} with a width equal to |\linewidth|, the programmation is easy.
-% If w wish a box that could be broken by a change of page, we have to use both the key
-% |breakable| of \pkg{tcolorbox} (after loading the library \pkg{breakable} of \pkg{tcolorbox}:
-% |\tcbuselibrary{breakable}|) and the key |splittable| of \pkg{piton}
-% (cf.~p.~\pageref{page breaks}).
-%
 % \begin{Verbatim}
-% ~emphase#\NewPitonEnvironment@{Python}{}
-%   {\PitonOptions{splittable=4}%
-%    \begin{tcolorbox}[breakable]}
-%   {\end{tcolorbox}}
+% ~emphase#\begin{Python}@{My example}
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x ~emphase#\newpage{}@
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% ...    
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% ~emphase#\end{Python}@
 % \end{Verbatim}
 %
 % \bigskip
-% With that environnement, it's possible to write:
-%
-% \begin{Verbatim}
-% ~emphase#\begin{Python}@
-% def square(x):
-%     """Computes the square of x"""
-%     return x*x
-% ~emphase#\end{Python}@
-% \end{Verbatim}
-%
-% \RenewPitonEnvironment{Python}{}
-%   {\begin{tcolorbox}}
-%   {\end{tcolorbox}}
-%
-% \begin{Python}
-% def square(x):
-%     """Computes the square of x"""
-%     return x*x
-% \end{Python}
-%
-% Of course, if we want to change the color of the background, we don't use the key
-% |background-color| of \pkg{piton} but the tools provided by \pkg{tcolorbox} (|colback|
-% for the color of the background).
-%
-%
-% \bigskip
-% If we wish a box with a width fitted to the natural width of the listing, we will have
-% to use the key |capture=hbox| (alias: |hbox|) of \pkg{tcolorbox} and the environment
-% won't be breakable by a change of page, even with the key |breakable| 
-% (that's a feature of \pkg{tcolorbox}).
-%
-% In the following programmation, we use the key |width=min| of \pkg{piton},
-% embed the environment |{Piton}| within an environment |{varwidth}| of the package
-% \pkg{varwidth} (which should have been loaded), store the whole in a LaTeX box
-% (with the environment |{lrbox}| of LaTeX) and use that box in an environment
-% |{tcolorbox}| in the last part of the command |\NewPitonEnvironment|.
-%
-% \begin{Verbatim}
-% \newsavebox{\PitonBox}
-% ~emphase#\NewPitonEnvironment@{Python}{}
-%   {%
-%     \PitonOptions{width=min}%
-%     \begin{lrbox}{\PitonBox}
-%     \begin{varwidth}{\linewidth}
-%   } 
-%   {%
-%     \end{varwidth}
-%     \end{lrbox}
-%     \begin{tcolorbox}[hbox]
-%     \usebox{\PitonBox}
-%     \end{tcolorbox}
-%   } 
-%
-%
-% ~emphase#\begin{Python}@
-% def square(x):
-%     """Computes the square of x"""
-%     return x*x
-% ~emphase#\end{Python}@
-% \end{Verbatim}
-% 
-% \newsavebox{\PitonBox}
-% 
-% \RenewPitonEnvironment{Python}{}
-%   {%
-%   \PitonOptions{width=min}%
-%   \begin{lrbox}{\PitonBox}
-%   \begin{varwidth}{\linewidth}
-%   } 
-%   {%
-%   \end{varwidth}
-%   \end{lrbox}
-%   \begin{tcolorbox}[hbox]
-%   \usebox{\PitonBox}
-%   \end{tcolorbox}
-%   } 
-%
-% \begin{center}
-% \begin{Python}
-% def square(x):
-%     """Computes the square of x"""
-%     return x*x
-% \end{Python}
-% \end{center}
-%
-% \vspace{1cm}
-% Here is an more sophisticated example with a colored column for the number of the lines.
-% That example requires the library \pkg{skins} of TikZ (should be loaded with
-% |\tcbuselibrary{skins}| in the preamble of the LaTeX document).
-%
-% \begin{Verbatim}
-% \newsavebox{\PitonBox}
-%
-% \NewTColorBox{BoxForPiton}{m}
-%   {
-%     hbox,
-%     enhanced,
-%     title=~#1,
-%     fonttitle=\sffamily,
-%     left = 6mm,
-%     top = 0mm,
-%     bottom = 0mm,
-%     overlay={%
-%         \begin{tcbclipinterior}%
-%             \fill[gray!80]
-%                 (frame.south west) rectangle
-%                 ([xshift=6mm]frame.north west); 
-%         \end{tcbclipinterior}%
-%     },
-%   }
-% \end{Verbatim}
-%
-% \begin{Verbatim}
-% ~emphase#\NewPitonEnvironment@{Python}{m}
-% {%
-% \PitonOptions
-%   {
-%     width=min,
-%     line-numbers,
-%     line-numbers =
-%      {
-%        format = \footnotesize\color{white}\sffamily ,
-%        sep = 2.5mm
-%      }
-%   }%
-% \begin{lrbox}{\PitonBox}
-% \begin{varwidth}{\linewidth}
-% }
-% {%
-% \end{varwidth}
-% \end{lrbox}
-% \begin{BoxForPiton}{~#1}
-% \usebox{\PitonBox}
-% \end{BoxForPiton}
-% }
-% \end{Verbatim}
-%
-% \begin{Verbatim}
-% ~emphase#\begin{Python}@
-% def carre(x):
-%     """Calcule le square de x"""
-%     return x*x
-%
-% def cube(x):
-%     """Calcule le cube de x"""
-%     return x*x*x
-% ~emphase#\end{Python}@
-% \end{Verbatim}
-%
-% \NewTColorBox{BoxForPiton}{m}
-%   {
-%     hbox,
-%     enhanced,
-%     title=#1,
-%     fonttitle=\sffamily,
-%     left = 6mm,
-%     top = 0mm,
-%     bottom = 0mm,
-%     overlay={%
-%         \begin{tcbclipinterior}%
-%             \fill[gray!80]
-%                 (frame.south west) rectangle
-%                 ([xshift=6mm]frame.north west); 
-%         \end{tcbclipinterior}%
-%     },
-%   }
 %
 % \RenewPitonEnvironment{Python}{m}
-% {%
-% \PitonOptions
-%   {
-%     width=min,
-%     line-numbers,
-%     line-numbers =
-%      {
-%        format = \footnotesize\color{white}\sffamily ,
-%        sep = 2.5mm
-%      }
-%   }%
-% \begin{lrbox}{\PitonBox}
-% \begin{varwidth}{\linewidth}
-% }
-% {%
-% \end{varwidth}
-% \end{lrbox}
-% \begin{BoxForPiton}{#1}
-% \usebox{\PitonBox}
-% \end{BoxForPiton}
-% }
+%   {%
+%     \PitonOptions
+%       {
+%         tcolorbox,
+%         splittable=3,
+%         width=min,
+%         line-numbers,
+%         line-numbers =
+%          {
+%            format = \footnotesize\color{white}\sffamily ,
+%            sep = 2.5mm
+%          }
+%       }%
+%     \tcbset
+%       {
+%         enhanced,
+%         title=#1,
+%         fonttitle=\sffamily,
+%         left = 6mm,
+%         top = 0mm,
+%         bottom = 0mm,
+%         overlay=
+%          {%
+%             \begin{tcbclipinterior}%
+%                 \fill[gray!80]
+%                     (frame.south west) rectangle
+%                     ([xshift=6mm]frame.north west); 
+%             \end{tcbclipinterior}%
+%          }
+%       } 
+%   } 
+%   { }
+%  
 %
-%
-% \begin{center}
-% \begin{Python}{An example}
+% \begin{Python}{My example}
 % def square(x):
 %     """Computes the square of x"""
 %     return x*x
-%
-% def cube(x):
-%     """Computes the cube of x"""
-%     return x*x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x \newpage{}
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
 % \end{Python}
-% \end{center}
-%
-% We recall that this box can't be broken by a change of page (even when using
-% the library \pkg{breakable} of \pkg{tcolorbox}).
 %
 %
 %
 % \bigskip
-%
-% \subsection{An example of tuning of the styles}
-%
-% The graphical styles have been presented in the section \ref{styles},
-% p.~\pageref{styles}.
-%
-% \smallskip
-% We present now an example of tuning of these styles adapted to the documents
-% in black and white.
-%
-% That tuning uses the command |\highLight| of \pkg{lua-ul} (that package
-% requires itself the package \pkg{luacolor}).
-%
-% \begin{Verbatim}
-% \SetPitonStyle
-%   {
-%     Number = ,
-%     String = \itshape , 
-%     String.Doc = \color{gray} \slshape ,
-%     Operator = , 
-%     Operator.Word = \bfseries ,
-%     Name.Builtin = ,
-%     Name.Function = \bfseries \highLight[gray!20] ,
-%     Comment = \color{gray} ,
-%     Comment.LaTeX = \normalfont \color{gray},
-%     Keyword = \bfseries ,
-%     Name.Namespace = ,
-%     Name.Class = , 
-%     Name.Type = ,
-%     InitialValues = \color{gray}
-%   }
-% \end{Verbatim}
-%
-% In that tuning, many values given to the keys are empty: that means that the
-% corresponding style won't insert any formatting instruction (the element will
-% be composed in the standard color, usually in black, etc.). Nevertheless,
-% those entries are mandatory because the initial value of those keys in
-% \pkg{piton} is \emph{not} empty.
-%
-% \begingroup
-%  \PitonOptions{splittable}
-%
-% \SetPitonStyle
-%   {
-%     Number = ,
-%     String = \itshape , 
-%     String.Doc = \color{gray} \slshape ,
-%     Operator.Word = \bfseries ,
-%     Operator = , 
-%     Name.Builtin = ,
-%     Name.Function = \bfseries \highLight[gray!20] ,
-%     Comment = \color{gray} ,
-%     Comment.LaTeX = \normalfont \color{gray} ,
-%     Keyword = \bfseries ,
-%     Name.Namespace = ,
-%     Name.Class = , 
-%     Name.Type = ,
-%     InitialValues = \color{gray}
-%   }
-%
-%
-% \bigskip
-%
-% \begin{Piton}
-% from math import pi
-%
-% def arctan(x,n=10):
-%     """Compute the mathematical value of arctan(x)
-%                                               
-%     n is the number of terms in the sum
-%     """
-%     if x < 0:
-%         return -arctan(-x) # recursive call
-%     elif x > 1: 
-%         return pi/2 - arctan(1/x) 
-%         #> (we have used that $\arctan(x)+\arctan(1/x)=\pi/2$ for $x>0$)
-%     else: 
-%         s = 0
-%         for k in range(n):
-%             s += (-1)**k/(2*k+1)*x**(2*k+1)
-%         return s 
-% \end{Piton}
-%
-% \endgroup
-%
 % \subsection{Use with pyluatex}
 %
 % \index{pyluatex@{\pkg{pyluatex}} (extension)}
@@ -2729,7 +3171,7 @@ piton_version = "4.5x" -- 2025/06/08
 % \bigskip
 %
 % The initial settings
-% done by \pkg{piton} in |piton.sty| are inspired by the style \pkg{manni} de
+% done by \pkg{piton} in |piton.sty| are inspired by the style \pkg{manni} of
 % Pygments, as applied by Pygments to the language Python.\footnote{See:
 % \url{https://pygments.org/styles/}. Remark that, by default, Pygments provides
 % for its style \pkg{manni} a colored background whose color is the HTML color
@@ -2959,7 +3401,7 @@ piton_version = "4.5x" -- 2025/06/08
 % \subsection{The languages defined by \textbackslash NewPitonLanguage}
 %
 % \vspace{1cm}
-% The command |\NewPitonLanguage|, which defines new informatic languages with the
+% The command |\NewPitonLanguage|, which defines new computer languages with the
 % syntax of the extension \pkg{listings}, has been described p.~\pageref{NewPitonLanguage}.
 %
 % All the languages defined by the command |\NewPitonLanguage| use the same styles.
@@ -3519,7 +3961,7 @@ piton_version = "4.5x" -- 2025/06/08
 \box_new:N \l_@@_line_box
 %    \end{macrocode}
 %
-% The following string will contain the name of the informatic language
+% The following string will contain the name of the computer language
 % considered (the initial value is |python|).
 %
 %    \begin{macrocode}
@@ -3559,7 +4001,7 @@ piton_version = "4.5x" -- 2025/06/08
 % \medskip
 % The following parameter corresponds to the key |box|.
 %    \begin{macrocode}
-\tl_new:N \l_@@_box_tl
+\str_new:N \l_@@_box_str
 % \end{macrocode}
 %
 % \medskip
@@ -3711,6 +4153,7 @@ piton_version = "4.5x" -- 2025/06/08
 % |indent-broken-lines|.
 %    \begin{macrocode}
 \bool_new:N \l_@@_break_lines_in_Piton_bool
+\bool_set_true:N \l_@@_break_lines_in_Piton_bool
 \bool_new:N \l_@@_indent_broken_lines_bool
 %    \end{macrocode}
 %
@@ -3987,7 +4430,7 @@ piton_version = "4.5x" -- 2025/06/08
 %
 % However, after the |\begin{document}|, it's no longer possible to modify those
 % clists because their contents will be used in the construction of the main
-% \textsc{lpeg} for each informatic language.
+% \textsc{lpeg} for each computer language.
 %
 % \bigskip
 % However, in a |\AtBeginDocument|, we will convert those clists into
@@ -4016,12 +4459,36 @@ piton_version = "4.5x" -- 2025/06/08
 % construct \textsc{lpeg}).
 %
 %
+% 
+% \bigskip
+% When the key |vertical-detected-commands| is used, we will have to redefine
+% the corresponding commands in |\@@_pre_composition:|.
+%
+% The instructions for these redefinitions will be put in the following token list.
+%    \begin{macrocode}
+\tl_new:N \g_@@_def_vertical_commands_tl
+%    \end{macrocode}
+%
 % \bigskip
 %    \begin{macrocode}
-        % \cs_set_eq:NN \@@_old_newpage: \newpage
-        % \cs_new_protected:Npn \@@_newpage:
-        %   { \tl_gput_right:Nn \g_@@_after_line_hook_tl { \@@_old_newpage: } }
+\cs_new_protected:Npn \@@_vertical_commands:n #1
+  {
+    \clist_put_right:Nn \l_@@_raw_detected_commands_clist { #1 } 
+    \clist_map_inline:nn { #1 }
+      {
+        \cs_set_eq:cc { @@ _ old _ ##1 : } { ##1 }
+        \cs_new_protected:cn { @@ _ new _ ##1 : n }
+          {
+            \tl_gput_right:Nn \g_@@_after_line_hook_tl
+              { \use:c { @@ _old _ ##1 : } { ####1 } } 
+          }
+        \tl_gput_right:Nn \g_@@_def_vertical_commands_tl
+          { \cs_set_eq:cc { ##1 } { @@ _ new _ ##1 : n } }
+      }
+  }
 %    \end{macrocode}
+%
+%
 % 
 % \bigskip
 % \subsubsection{Treatment of a line of code}
@@ -4550,7 +5017,8 @@ piton_version = "4.5x" -- 2025/06/08
         }
         { \@@_error:n { tcolorbox~not~loaded } } ,
     tcolorbox .default:n = true ,
-    box .choices:nn = { c , t , b } { \tl_set_eq:NN \l_@@_box_tl \l_keys_choice_tl } , 
+    box .choices:nn = { c , t , b , m }
+      { \str_set_eq:NN \l_@@_box_str \l_keys_choice_tl } , 
     box .default:n = c ,
     break-strings-anywhere .bool_set:N = \l_@@_break_strings_anywhere_bool ,
     break-strings-anywhere .default:n = true , 
@@ -4822,30 +5290,6 @@ piton_version = "4.5x" -- 2025/06/08
 %    \end{macrocode}
 % 
 %
-%
-% \bigskip
-%    \begin{macrocode}
-\tl_new:N \g_@@_def_vertical_commands_tl
-%    \end{macrocode}
-%
-% \bigskip
-%    \begin{macrocode}
-\cs_new_protected:Npn \@@_vertical_commands:n #1
-  {
-    \clist_put_right:Nn \l_@@_raw_detected_commands_clist { #1 } 
-    \clist_map_inline:nn { #1 }
-      {
-        \cs_set_eq:cc { @@ _ old _ ##1 : } { ##1 }
-        \cs_new_protected:cn { @@ _ new _ ##1 : n }
-          {
-            \tl_gput_right:Nn \g_@@_after_line_hook_tl
-              { \use:c { @@ _old _ ##1 : } { ####1 } } 
-          }
-        \tl_gput_right:Nn \g_@@_def_vertical_commands_tl
-          { \cs_set_eq:cc { ##1 } { @@ _ new _ ##1 : n } }
-      }
-  }
-%    \end{macrocode}
 % 
 % \bigskip
 % \subsubsection{The numbers of the lines}
@@ -4967,7 +5411,7 @@ piton_version = "4.5x" -- 2025/06/08
 %    \end{macrocode}
 % The Lua part of the package \pkg{piton} will be loaded in a
 % |\AtBeginDocument|. Hence, we will put also in a |\AtBeginDocument| the
-% utilisation of the Lua function |piton.new_language| (which does the main job).
+% use of the Lua function |piton.new_language| (which does the main job).
 %    \begin{macrocode}
     \@@_NewPitonLanguage:on \l_tmpa_tl { #3 }
   }
@@ -5170,11 +5614,8 @@ piton_version = "4.5x" -- 2025/06/08
     \int_gincr:N \g_@@_env_int
     \dim_compare:nNnT \l_@@_width_dim = \c_zero_dim
       {
-        \tl_if_empty:NTF \l_@@_box_tl
-          {
-            \dim_compare:nNnT \l_@@_width_dim = \c_zero_dim 
-              { \dim_set_eq:NN \l_@@_width_dim \linewidth }
-          }
+        \dim_set_eq:NN \l_@@_width_dim \linewidth
+        \str_if_empty:NF \l_@@_box_str
           { \bool_set_true:N \l_@@_minimize_width_bool }
       }
     \bool_if:NF \l_@@_resume_bool { \int_gzero:N \g_@@_visual_line_int }
@@ -5226,7 +5667,7 @@ piton_version = "4.5x" -- 2025/06/08
 %
 % \bigskip
 % The following command computes |\g_@@_width_dim| and it will be used
-% when |max-wdith| or |width=min| is used.
+% when |max-width| or |width=min| is used.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_compute_width:
   {
@@ -5434,7 +5875,7 @@ piton_version = "4.5x" -- 2025/06/08
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_composition:
   {
-     \tl_if_empty:NT \l_@@_box_tl
+     \str_if_empty:NT \l_@@_box_str
        { \mode_if_vertical:TF { \noindent } { \newline } }
 %    \end{macrocode}
 % The following line is only to compute |\l_@@_lines_int| which will be used
@@ -5474,20 +5915,43 @@ piton_version = "4.5x" -- 2025/06/08
               {
                 \bool_if:NT \l_@@_minimize_width_bool 
                   { \tcbset { text~width = \g_@@_width_dim } }
+                \str_if_empty:NTF \l_@@_box_str
 %    \end{macrocode}
 % Even though we use the key |breakable| of |{tcolorbox}|, our environment will be
 % breakable only when the key |splittable| of \pkg{piton} is used.
 %    \begin{macrocode}
-                \begin { tcolorbox } [ breakable ]
-                \par
-                \vbox_unpack:N \g_@@_output_box
-                \end { tcolorbox }
+                  {
+                    \begin { tcolorbox } [ breakable ]
+                    \par
+                    \vbox_unpack:N \g_@@_output_box
+                    \end { tcolorbox }
+                  }
+                  {
+                    \use:e
+                      {
+                        \begin { tcolorbox }
+                          [
+                            hbox ,
+                            nobeforeafter ,
+                            box~align =
+                              \str_case:Nn \l_@@_box_str 
+                                { 
+                                  t { top }
+                                  b { bottom }
+                                  c { center }
+                                  m { center }
+                                }
+                          ]
+                      }                                              
+                    \box_use:N \g_@@_output_box
+                    \end { tcolorbox }
+                  }
               }
               {
-                \tl_if_empty:NTF \l_@@_box_tl
+                \str_if_empty:NTF \l_@@_box_str
                   { \vbox_unpack:N \g_@@_output_box }
                   {
-                    \use:e { \begin { minipage } [ \l_@@_box_tl ] }
+                    \use:e { \begin { minipage } [ \l_@@_box_str ] }
                       { \g_@@_width_dim }
                     \vbox_unpack:N \g_@@_output_box
                     \end { minipage }
@@ -6258,7 +6722,7 @@ piton_version = "4.5x" -- 2025/06/08
     \tl_if_novalue:nTF { #1 }
 %    \end{macrocode}
 % If the command is used without its optional argument, we will deleted the
-% user language for all the informatic languages.
+% user language for all the computer languages.
 %    \begin{macrocode}
       { \@@_clear_all_functions: }
       { \@@_clear_list_functions:n { #1 } }
@@ -6308,7 +6772,7 @@ piton_version = "4.5x" -- 2025/06/08
 % 
 % \bigskip
 % The following command clears all the user-defined functions for all the
-% informatic languages.
+% computer languages.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_clear_all_functions:
   { 
@@ -7107,7 +7571,7 @@ end
 % 
 % \bigskip
 % The following function |ParseAgain| will be used in the definitions of the
-% LPEG of the different informatic languages when we will need to
+% LPEG of the different computer languages when we will need to
 % \emph{parse again} a small chunk of code. It's a way to avoid the use of a actual
 % \emph{grammar} of LPEG (in a sens, a recursive regular expression). 
 %
@@ -7142,7 +7606,7 @@ local Beamer = P ( false )
 % 
 % \bigskip
 % The following Lua function will be used to compute the \textsc{lpeg} |Beamer|
-% for each informatic language.
+% for each computer language.
 %
 % According to our conventions, the \textsc{lpeg} |Beamer|, with its name in
 % PascalCase does captures.
@@ -10620,6 +11084,12 @@ end
 %
 % \verb|https://github.com/fpantigny/piton|
 %
+% \subsection*{Changes between versions 4.5 and 4.6}
+%
+% New keys |tcolorbox|, |box|, |max-width| and |vertical-detected-commands|
+%
+% New special color: |none|
+%
 % \subsection*{Changes between versions 4.4 and 4.5}
 %
 % New key |print|
@@ -10666,8 +11136,8 @@ end
 % \subsection*{Changes between versions 2.8 and 3.0}
 %
 % New command |\NewPitonLanguage|. Thanks to that command, it's now possible to
-% define new informatic languages with the syntax used by \pkg{listings}.
-% Therefore, it's possible to say that virtually all the informatic languages
+% define new computer languages with the syntax used by \pkg{listings}.
+% Therefore, it's possible to say that virtually all the computer languages
 % are now supported by \pkg{piton}.
 %
 % \subsection*{Changes between versions 2.7 and 2.8}

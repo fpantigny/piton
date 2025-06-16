@@ -16,7 +16,8 @@
     begin-escape-math = \( , 
     end-escape-math = \) ,
     detected-commands =  { highLight , footnote } ,
-    raw-detected-commands = NomTable
+    vertical-detected-commands = newpage ,
+    raw-detected-commands = NomTable ,
   }
 
 
@@ -33,8 +34,10 @@
 \usepackage{amsmath}
 \usepackage{tabularx}
 \usepackage{booktabs}
+\usepackage[framemethod=tikz]{mdframed}
 \usepackage{tcolorbox}
 \tcbuselibrary{skins,breakable}
+\tcbset{enhanced}
 
 \usepackage{luacolor,lua-ul}
 \usepackage{caption}
@@ -154,7 +157,7 @@ def arctan(x,n=10:int):
         s = 0
         for k in range(n):
             s += (-1)**k/(2*k+1)*x**(2*k+1)
-        return s 
+        return s
 \end{Piton}
 
 \medskip
@@ -413,7 +416,7 @@ nom de cette clé vient de \emph{environment gobble}: le nombre d'espaces à
 retirer ne dépend que de la position des délimiteurs |\begin{Piton}| et
 \texttt{\textbackslash end\{Piton\}} de l'environnement.
 
-\item \index{write} La clé \Definition{write} prend en argument un nom de
+\item \index{write (clé)} La clé \Definition{write} prend en argument un nom de
 fichier (avec l'extension) et écrit le contenu\footnote{En fait, il ne s'agit
   pas exactement du contenu de l'environnement mais de la valeur renvoyée par
   l'instruction Lua |piton.get_last_code()| qui en est une version sans les
@@ -425,7 +428,7 @@ L'écriture du fichier ne se fait en fait qu'à la fin de la compilation avec Lu
 \item \index{path-write} La clé \Definition{path-write} indique un chemin où
 seront écrits les fichiers écrits par l'emploi de la clé |write| précédente.
 
-\item \index{join} \colorbox{yellow!50}{\textbf{Nouveau 4.4}}
+\item \index{join (clé)} \colorbox{yellow!50}{\textbf{Nouveau 4.4}}
 
 \nobreak
 La clé \Definition{join} est similaire à la clé |write| mais les fichiers créés sont
@@ -434,7 +437,7 @@ certains lecteurs de \textsc{pdf} ne proposent pas d'outil permettant d'accéder
 ces fichiers joints. Parmi les lecteurs qui le proposent, on peut citer le
 logiciel gratuit Foxit PDF Reader, disponible sur toutes les plateformes.
 
-\item \index{print} \colorbox{yellow!50}{\textbf{Nouveau 4.5}}
+\item \index{print (clé)} \colorbox{yellow!50}{\textbf{Nouveau 4.5}}
 
 \nobreak
 La clé \Definition{print} contrôle l'affichage effectif du contenu des
@@ -520,8 +523,10 @@ quand la clé |line-numbers| est utilisée. Voir un exemple à la partie
 
 \item \index{background-color} La clé \Definition{background-color} fixe la
 couleur de fond des environnements |{Piton}| et des listings produits par
-|\PitonInputFile| (ce fond a une largeur que l'on peut fixer avec la clé |width|
-décrite ci-dessous). La clé |background-color| accepte une couleur définie
+|\PitonInputFile| (ce fond a une largeur que l'on peut fixer avec la clé |width| ou
+la clé |max-width| décrites ci-dessous).
+
+La clé |background-color| accepte une couleur définie
 «à la volée», c'est-à-dire que l'on peut écrire par exemple
 |background-color = [cmyk]{0.1,0.05,0,0}|
 
@@ -529,8 +534,11 @@ décrite ci-dessous). La clé |background-color| accepte une couleur définie
 La clé |background-color| accepte aussi en argument une \emph{liste} de
 couleurs. Les lignes sont alors coloriées de manière cyclique avec ces couleurs.
 
-\emph{Exemple} : |\PitonOptions{background-color = {gray!5,white}}|
+\smallskip
+\colorbox{yellow!50}{\textbf{Nouveau 4.6}}\enskip
+Dans cette liste, la couleur spéciale \Definition{none} désigne une absence de couleur.
 
+\emph{Exemple} : |\PitonOptions{background-color = {gray!5,none}}|
 
 \item \index{prompt-background-color} Avec la clé
 \Definition{prompt-background-color}, \pkg{piton} ajoute un fond coloré aux
@@ -539,15 +547,31 @@ caractéristique des consoles Python avec boucle \textsc{repl}
 (\emph{read-eval-print loop}). Pour un exemple d'utilisation de cette clé, voir
 la partie \ref{pythonrepl} p.~\pageref{pythonrepl}.
 
-\item \index{width} La clé \Definition{width} fixe la largeur du listing
-produit. Cette largeur s'applique aux fonds colorés spécifiés par les clés
-|background-color| et |prompt-background-color| et également quand une coupure
-automatique des lignes est demandée par |break-lines| (cf.~\ref{line-breaks},
-p.~\pageref{line-breaks}).
+\item \index{width (clé)} \label{width} La clé \Definition{width} fixe la largeur du
+listing produit. La valeur initiale de ce paramètre est la valeur courante de
+|\linewidth|.
 
-Cette clé peut prendre comme valeur une longueur explicite mais aussi la valeur
-spéciale~|min|. Avec cette valeur, la largeur sera calculée à partir de la
-largeur maximale des lignes de code.
+Ce paramètre est utilisé pour :
+\begin{itemize}
+\item couper les lignes trop longues (sauf, bien sûr, quand la clé |break-lines| est
+mise à |false|: cf. p.~\pageref{line-breaks}) ;
+\item les fonds colorés spécifiés par les clés |background-color| et
+|prompt-background-color| ;
+\item la largeur de la boîte LaTeX créée par la clé |box| quand celle-ci est
+utilisée (cf. p.~\pageref{box}) ;
+\item la largeur de la boîte graphique créée par la clé |tcolorbox| quand celle-ci
+est utilisée.
+\end{itemize}
+
+\item \index{max-width (clé)} \colorbox{yellow!50}{\textbf{Nouveau 4.6}}
+
+La clé \Definition{max-width} est similaire à la clé |width| mais elle fixe la
+largeur maximale des lignes. Si les lignes du listings sont toutes plus courtes
+que la valeur fournie à |max-width|, la largeur (qui sera transmise au paramètre
+|width|) sera la largeur maximale des lignes du listing, c'est-à-dire la largeur naturelle
+du listing.
+
+Pour la lisibilité du code |width=min| est un raccourci pour |max-width=\linewidth|.
 
 \item \index{show-spaces-in-strings} En activant la clé
 \Definition{show-spaces-in-strings}, les espaces dans les chaînes de
@@ -568,7 +592,7 @@ Exemple : \piton{my_string = 'Très bonne réponse'}
 
 \item \index{show-spaces} Avec la clé \Definition{show-spaces}, tous les espaces
 sont matérialisés par le caractère ␣ (et aucune coupure de ligne ne peut plus
-intervenir sur ces espaces matérialisés, même si la clé
+intervenir sur ces espaces matérialisés, même quand la clé
 |break-lines|\footnote{cf. \ref{line-breaks} p.~\pageref{line-breaks}.} est
 active). Il faut néanmoins remarquer que les espaces en fin de ligne sont tous
 supprimés par \pkg{piton} --- et ne seront donc pas représentés par~␣. Pour leur
@@ -853,17 +877,19 @@ La version 4.5 définit aussi les commandes \DefinitionCommand{RenewPitonEnviron
 Par exemple, avec l'instruction suivante, un nouvel environnement |{Python}| sera défini
 avec le même comportement que l'environnement |{Piton}|:
 
-{\color{gray}|\NewPitonEnvironment{Python}{O{}}{\PitonOptions{#1}}{}|}
+\begin{Verbatim}
+~emphase#\NewPitonEnvironment@{Python}{O{}}{\PitonOptions{~#1}}{}
+\end{Verbatim}
 
 \bigskip
 Si on souhaite un environnement |{Python}| qui compose le code inclus dans une boîte de
-\pkg{tcolorbox}, on peut écrire (à condition, bien entendu, d'avoir chargé l'extension
-\pkg{tcolorbox}):
+\pkg{mdframed}, on peut écrire (à condition, bien entendu, d'avoir chargé l'extension
+\pkg{mdframed} et, dans ce document, il a été chargé avec la clé |framemethod=tikz|):
 
 \begin{Verbatim}
-\NewPitonEnvironment{Python}{}
-  {\begin{tcolorbox}}
-  {\end{tcolorbox}}
+~emphase#\NewPitonEnvironment@{Python}{}
+  {\begin{mdframed}[roundcorner=3mm]}
+  {\end{mdframed}}
 \end{Verbatim}
 
 \bigskip
@@ -878,8 +904,8 @@ def carré(x):
 \end{Verbatim}
 
 \NewPitonEnvironment{Python}{}
-  {\begin{tcolorbox}}
-  {\end{tcolorbox}}
+  {\begin{mdframed}[roundcorner=3mm]}
+  {\end{mdframed}}
 
 \begin{Python}
 def carré(x):
@@ -888,9 +914,9 @@ def carré(x):
 \end{Python}
 
 \bigskip
-Voir d'autres exemples d'utilisation avec \pkg{tcolorbox} à la page
-\pageref{examples-tcolorbox}.
-
+On peut faire une construction similaire avec une boîte graphique de \pkg{tcolorbox}.
+Néanmoins, pour permettre une meilleure cohérence entre \pkg{tcolorbox} et \pkg{piton},
+l'extension \pkg{piton} propose la clé |tcolorbox| : cf.~p.~\pageref{tcolorbox}.
 
 \section{Définition de nouveaux langages avec la syntaxe de listings}
 
@@ -1047,6 +1073,361 @@ langages de programmation les autorisent dans les mots-clés et les identificate
 
 
 \section{Fonctionnalités avancées}
+
+\subsection{La clé «box»}
+
+\index{box (clé)}
+\label{box}
+
+\colorbox{yellow!50}{\textbf{Nouveau 4.6}}
+
+\nobreak
+\smallskip
+Si on souhaite composer un listing dans une boîte de LaTeX, on doit utiliser la clé
+\Definition{box}. Cette clé prend comme valeur |c|, |t| ou |b| correspondant
+au paramètre de position verticale (comme dans un environnement |{minipage}| de LaTeX).
+La valeur par défaut est |c| (comme pour |{minipage}|).
+
+\smallskip
+L'emploi de la clé |box| active |width=min| (sauf, bien sûr, si on utilise
+explicitement |width| ou |max-width|). Pour les clés |width| et |max-width|,
+cf.~p.~\pageref{width}.
+
+
+\smallskip
+\begin{Verbatim}
+\begin{center}
+\PitonOptions{~emphase#box@,background-color=gray!15}
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+def cube(x):
+    return x*x*x
+\end{Piton}
+\end{center}
+\end{Verbatim}
+
+\begin{center}
+\PitonOptions{box,background-color=gray!15}
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+\begin{Piton}
+def cube(x):
+    return x*x*x
+\end{Piton}
+\end{center}
+
+\vspace{1cm} Il est possible d'utiliser la clé |box| avec une valeur numérique pour |width|
+(5~cm dans l'exemple qui suit).
+
+\begin{Verbatim}
+\begin{center}
+\PitonOptions{~emphase#box,width=5cm@,background-color=gray!15}
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+def cube(x):
+    return x*x*x
+\end{Piton}
+\end{center}
+\end{Verbatim}
+
+\begin{center}
+\PitonOptions{box,width=5cm,background-color=gray!15}
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+\begin{Piton}
+def cube(x):
+    return x*x*x
+\end{Piton}
+\end{center}
+
+
+\vspace{1cm}
+Voici un exemple avec la clé |max-width|.
+
+\begin{Verbatim}
+\begin{center}
+\PitonOptions{~emphase#box=t,max-width=7cm@,background-color=gray!15}
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+\begin{Piton}
+def P(x):
+    return 24*x**8 - 7*x**7 + 12*x**6 -4*x**5 + 4*x**3 + x**2 - 5*x + 2
+\end{Piton}
+\end{center}
+\end{Verbatim}
+
+\begin{center}
+\PitonOptions{box=t,max-width=7cm,background-color=gray!15}
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+\begin{Piton}
+def P(x):
+    return 24*x**8 - 7*x**7 + 12*x**6 -4*x**5 + 4*x**3 + x**2 - 5*x + 2
+\end{Piton}
+\end{center}
+
+
+\subsection{La clé «tcolorbox»}
+
+\label{tcolorbox}
+\index{tcolorbox (clé)}
+
+L'extension \pkg{piton} propose une clé \Definition{tcolorbox} qui facilite
+l'utilisation de l'extension \pkg{tcolorbox} en coordination avec l'extension
+\pkg{piton}. Néanmoins, l'extension \pkg{piton} ne charge \emph{pas} \pkg{tcolorbox}
+et l'utilisateur final doit l'avoir chargée. Il doit aussi avoir chargé la
+librairie |breakable| de \pkg{tcolorbox} avec |\tcbuselibrary{breakable}| dans le
+préambule du document LaTeX. Si ce n'est pas le cas, une erreur sera levée à la première
+utilisation de la clé |tcolorbox|.
+
+
+\bigskip
+Quand la clé |tcolorbox| est utilisée, le listing formaté par \pkg{piton} est
+inclus dans un environnement |{tcolorbox}|. Cela s'applique aussi bien à la
+commande |\PitonInputFile| qu'à un environnement |{Piton}| (ou, plus
+généralement, à un environnement défini par |\NewPitonEnvironment|:
+cf.~p.~\pageref{NewPitonEnvironment}). Dans le cas où la clé |splittable| de
+\pkg{piton} est utilisée (cf. p.~\pageref{coupure-de-pages}), la boîte graphique
+créée par \pkg{tcolorbox} sera sécable par un saut de page.
+
+\bigskip
+Dans le présent document, on a, de plus, chargé, dans le préambule du document LaTeX,
+la librairie |skins| de \pkg{tcolorbox} et activé la \emph{skin} |enhanced| pour avoir
+une meilleure apparence au niveau du saut de page.
+
+\begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+\tcbuselibrary{skins,breakable} % dans le préambule
+\tcbset{enhanced}               % dans le préambule
+\end{Verbatim}
+
+\smallskip
+\begin{Verbatim}
+\begin{Piton}~emphase#[tcolorbox,splittable=3]@
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+...
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+\end{Piton}
+\end{Verbatim}
+
+\begin{Piton}[tcolorbox,splittable=3]
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+\end{Piton}
+
+
+Bien sûr, si on veut changer la couleur du fond, on n'utilise pas
+|background-color| de \pkg{piton} mais les outils fournis par \pkg{tcolorbox}
+(la clé |colback| pour la couleur du fond).
+
+
+\bigskip
+Si on souhaite ajuster la largeur de la boîte graphique au contenu, il suffit
+d'utiliser la clé |width=min| fournie par \pkg{piton} (cf. p.~\pageref{width}).
+On peut aussi utiliser |width| ou |max-width| avec une valeur numérique.
+L'environnement est sécable si la clé |splittable| est utilisée
+(cf. p.~\pageref{coupure-de-pages}).
+
+\begin{Verbatim}
+\begin{Piton}~emphase#[tcolorbox,width=min,splittable=3]@
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+...
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+\end{Piton}
+\end{Verbatim}
+
+\begin{Piton}[tcolorbox,width=min,splittable=3]
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+\end{Piton}
+
+
+
+\bigskip
+Si on souhaite que le résultat soit produit dans une boîte LaTeX (en dépit de
+son nom, un environnement de \pkg{tcolorbox} n'est pas nécessairement une boîte
+LaTeX), il suffit d'utiliser la clé |box| fournie par \pkg{piton} (cf.
+p.~\pageref{box}). Bien sûr, la boîte ainsi créée ne sera \emph{pas} sécable par
+un saut de page.
+
+On rappelle que l'emploi de la clé |box| active |width=min| (sauf si on utilise
+explicitement |width| ou |max-width|).
+
+\smallskip
+\begin{Verbatim}
+\begin{center}
+\PitonOptions{~emphase#tcolorbox,box=t@}
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+\begin{Piton}
+def cube(x):
+    """Le cube de x"""
+    return x*x*x
+\end{Piton}
+\end{center}
+\end{Verbatim}
+
+\begin{center}
+\PitonOptions{tcolorbox,box=t}%
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+\begin{Piton}
+def cube(x):
+    """Le cube de x"""
+    return x*x*x
+\end{Piton}
+\end{center}
+
+\bigskip
+Pour  un exemple plus sophistiqué d'utilisation de la clé |tcolorbox|, voir l'exemple fourni
+à la page~\pageref{examples-tcolorbox}.
 
 
 \subsection{Insertion d'un fichier}
@@ -1242,8 +1623,9 @@ verbatim).
 
 \item \index{break-lines!break-lines-in-Piton} Avec la clé
 \Definition{break-lines-in-Piton}, les coupures de ligne sont autorisées dans
-l'environnement |{Piton}| (d'où la lettre |P| capitale dans le nom) et les listings
-produits par |\PitonInputFile|.
+l'environnement |{Piton}| (d'où la lettre |P| capitale dans le nom) et les
+listings produits par |\PitonInputFile|. La valeur initiale de ce paramètre est
+|true| (et non |false|).
 
 \item \index{break-lines} La clé \Definition{break-lines} est la conjonction des deux clés
 précédentes.
@@ -1656,12 +2038,14 @@ def carré(x):
 
 
 
-\subsubsection{Les clés «detected-commands» et «raw-detected-commands»}
+\subsubsection{La clé «detected-commands» et ses variantes}
 
-\index{detected-commands (key)}
-\index{raw-detected-commands (key)}
+\index{detected-commands (clé)}
+\index{raw-detected-commands (clé)}
+\index{vertical-detected-commands (clé)}
 \label{detected-commands}
 \label{raw-detected-commands}
+\label{vertical-detected-commands}
 
 La clé \Definition{detected-commands} de |\PitonOptions| permet de spécifier une liste de
 noms de commandes LaTeX qui seront directement détectées par \pkg{piton}.
@@ -1675,6 +2059,9 @@ document.
 
 \item Ces commandes doivent être des commandes LaTeX à un seul argument obligatoire entre
 accolades (et ces accolades doivent apparaître explicitement dans le listing).
+
+\item Ces commandes doivent être des commandes qui s'exécutent en mode horizontal de LaTeX
+(à l'intérieur d'une ligne de code).
 
 \item Ces commandes doivent être \textbf{protégées}\footnote{On rappelle que, par défaut,
   |\NewDocumentCommand| crée des commandes protégées au contraire de la commande
@@ -1764,6 +2151,38 @@ donne alors le résultat suivant :
 \PitonOptions{language=SQL}%
 Exemple : \piton{\NomTable{client} (nom, prénom)}
 \endgroup
+
+
+\bigskip
+
+\colorbox{yellow!50}{\textbf{Nouveau 4.6}}
+
+\nobreak
+\smallskip
+La clé \Definition{vertical-detected-commands} est similaire à la clé
+|raw-detected-commands| mais les commandes ainsi détectées doivent être des
+commandes LaTeX (à un argument) qui s'exécutent en mode vertical entre les lignes
+du listing.
+
+\smallskip
+On peut par exemple demander la détection de |\newpage| par
+
+\begin{Verbatim}
+\PitonOptions{vertical-detected-commands = newpage}
+\end{Verbatim}
+
+et demander dans un listing un saut de page obligatoire par |\newpage{}| :
+
+\begin{Verbatim}
+\begin{Piton}
+def carré(x):
+    return x*x   ~emphase#\newpage{}@
+def cube(x):
+    return x*x*x
+\end{Piton}    
+\end{Verbatim}
+
+
 
 \subsubsection{Le mécanisme «escape»}
 
@@ -2213,7 +2632,7 @@ def arctan(x,n=10):
 
 \smallskip
 Même s'il est sans doute recommandable d'indenter les listings informatiques avec des
-espaces et non des tabulations\footnote{Voir, par exemple, pour le langage Piton, la note PEP~8},
+espaces et non des tabulations\footnote{Voir, par exemple, pour le langage Python, la note PEP~8.},
 \pkg{piton} accepte les caractères de tabulations (U+0009) en début de ligne. Chaque
 caractère U+0009 est remplacé par $n$ espaces. La valeur initiale de~$n$ est~4 mais on
 peut la changer avec la clé \Definition{tab-size} de |\PitonOptions|.
@@ -2235,47 +2654,137 @@ La clé |env-gobble| n'est pas compatible avec les tabulations.
 \index{piton.last@\texttt{piton.get\_last\_code} (fonction Lua)}
 \label{API}
 
-La variable L3 \DefinitionCommand{l_piton_language_str} contient le nom du langage courant
-(en minuscules).
+La variable L3 \DefinitionCommand{l_piton_language_str} contient le nom du
+langage courant (en minuscules).
 
 \bigskip
 
-L'extension \pkg{piton} fournit une fonction Lua \Definition{piton.get_last_code} sans
-argument permettant de récupérer le code contenu dans le dernier environnement de \pkg{piton}.
+L'extension \pkg{piton} fournit une fonction Lua
+\Definition{piton.get_last_code} sans argument permettant de récupérer le code
+contenu dans le dernier environnement de \pkg{piton}.
 \begin{itemize}
-\item Les retours à la ligne (présents dans l'environnement de départ) apparaissent comme
-des caractères |\r| (c'est-à-dire des caractères U+000D).
+\item Les retours à la ligne (présents dans l'environnement de départ)
+apparaissent comme des caractères |\r| (c'est-à-dire des caractères U+000D).
 
-\item Le code fourni par |piton.get_last_code()| tient compte de l'éventuelle application
-d'une clé |gobble| (cf. p.~\pageref{gobble}).
+\item Le code fourni par |piton.get_last_code()| tient compte de l'éventuelle
+application d'une clé |gobble| (cf. p.~\pageref{gobble}).
 
-\item Les surcharges du code (qui entraînent des échappements vers LaTeX) ont été retirées
-du code fourni par |piton.get_last_code()|. Cela s'applique aux commandes LaTeX déclarées
-par la clé |detected-commands| (cf. partie~\ref{detected-commands}) et aux éléments
-insérés avec le mécanisme «|escape|» (cf. partie~\ref{escape}).
+\item Les surcharges du code (qui entraînent des échappements vers LaTeX) ont
+été retirées du code fourni par |piton.get_last_code()|. Cela s'applique aux
+commandes LaTeX déclarées par la clé |detected-commands| et ses variantess (cf.
+partie~\ref{detected-commands}) et aux éléments insérés avec le mécanisme
+«|escape|» (cf. partie~\ref{escape}).
 
-\item |piton.get_last_code| est une fonction Lua et non une chaîne de caractères : les
-traitements présentés précédemment sont exécutés lorsque la fonction est appelée. De ce
-fait, il peut être judicieux de stocker la valeur renvoyée par |piton.get_last_code()|
-dans une variable Lua si on doit l'utiliser plusieurs fois.
+\item |piton.get_last_code| est une fonction Lua et non une chaîne de caractères
+: les traitements présentés précédemment sont exécutés lorsque la fonction est
+appelée. De ce fait, il peut être judicieux de stocker la valeur renvoyée par
+|piton.get_last_code()| dans une variable Lua si on doit l'utiliser plusieurs
+fois.
 \end{itemize}
 
 \medskip
-Pour un exemple d'utilisation, voir la partie concernant l'utilisation (standard) de
-\pkg{pyluatex}, partie~\ref{pyluatex}, p.~\pageref{pyluatex}.
+Pour un exemple d'utilisation, voir la partie concernant l'utilisation
+(standard) de \pkg{pyluatex}, partie~\ref{pyluatex}, p.~\pageref{pyluatex}.
 
 \section{Exemples}
+
+
+
+\subsection{Un exemple de réglage des styles}
+
+Les styles graphiques ont été présentés à la partie \ref{styles}, p.~\pageref{styles}.
+
+\smallskip
+On présente ici un réglage de ces styles adapté pour les documents en noir et blanc.
+
+Ce réglage utilise la commande |\highLight| de \pkg{lua-ul} (cette extension nécessite
+elle-même l'extension \pkg{luacolor}).
+
+
+\begin{Verbatim}
+\SetPitonStyle
+  {
+    Number = ,
+    String = \itshape , 
+    String.Doc = \color{gray} \itshape ,
+    Operator = , 
+    Operator.Word = \bfseries ,
+    Name.Builtin = ,
+    Name.Function = \bfseries \highLight[gray!20] ,
+    Comment = \color{gray} ,
+    Comment.LaTeX = \normalfont \color{gray},
+    Keyword = \bfseries ,
+    Name.Namespace = ,
+    Name.Class = , 
+    Name.Type = ,
+    InitialValues = \color{gray}
+  }
+\end{Verbatim}
+
+
+Dans ce réglage, de nombreuses valeurs fournies aux clés sont vides, ce qui signifie que
+le style correspondant n'insèrera aucune instruction de formatage (l'élément sera composé
+dans la couleur standard, le plus souvent, en noir, etc.). Ces entrées avec valeurs nulles
+sont néanmoins nécessaires car la valeur initiale de ces styles dans \pkg{piton} n'est
+\emph{pas} vide.
+
+\begingroup
+
+\SetPitonStyle
+  {
+    Number = ,
+    String = \itshape , 
+    String.Doc = \color{gray} \itshape ,
+    Operator = , 
+    Operator.Word = \bfseries ,
+    Name.Builtin = ,
+    Name.Function = \bfseries \highLight[gray!20] ,
+    Comment = \color{gray} ,
+    Comment.LaTeX = \normalfont \color{gray},
+    Keyword = \bfseries ,
+    Name.Namespace = ,
+    Name.Class = , 
+    Name.Type = ,
+    InitialValues = \color{gray}
+  }
+
+
+\bigskip 
+
+\begin{Piton}
+from math import pi
+
+def arctan(x,n=10):
+    """Compute the mathematical value of arctan(x)
+
+    n is the number of terms in the sum
+    """
+    if x < 0:
+        return -arctan(-x) # appel récursif
+    elif x > 1: 
+        return pi/2 - arctan(1/x) 
+        #> (on a utilisé le fait que $\arctan(x)+\arctan(1/x)=\pi/2$ pour $x>0$)
+    else: 
+        s = 0
+        for k in range(n):
+            s += (-1)**k/(2*k+1)*x**(2*k+1)
+        return s 
+\end{Piton}
+
+
+\endgroup
+
 
 \subsection{Numérotation des lignes}
 
 \label{example-numbering}
 \index{numérotation des lignes de code|emph}
 
-On rappelle que l'on peut demander la numérotation des lignes des listings avec la clé
-|line-numbers| (utilisée sans valeur).
+On rappelle que l'on peut demander la numérotation des lignes des listings avec
+la clé |line-numbers| (utilisée sans valeur).
 
-Par défaut, les numéros de ligne sont composés par \pkg{piton} en débordement à gauche (en
-utilisant en interne la commande |\llap| de LaTeX).
+Par défaut, les numéros de ligne sont composés par \pkg{piton} en débordement à
+gauche (en utilisant en interne la commande |\llap| de LaTeX).
 
 Si on ne veut pas de débordement, on peut utiliser l'option |left-margin=auto| qui va
 insérer une marge adaptée aux numéros qui seront insérés (elle est plus large quand les
@@ -2406,192 +2915,107 @@ def arctan(x,n=10):
 \subsection{Utilisation avec tcolorbox}
 
 \label{examples-tcolorbox}
+\index{tcolorbox (clé)|emph}
 
-Pour utiliser \pkg{piton} avec \pkg{tcolorbox}, on charge \pkg{tcolorbox} (bien sûr) puis on
-crée de nouveaux environnements avec la commande |\NewPitonEnvironment|.
+La clé |tcolorbox| de \pkg{piton} a été présentée à la page \pageref{tcolorbox}.
 
-\medskip
-Si on souhaite une boîte à la largeur courante (|\linewidth|), la programmation est simple.
-Si on souhaite que la boîte puisse être coupée par un saut de page, il faut à la fois utiliser
-la clé |breakable| de \pkg{tcolorbox} (ce qui implique d'avoir chargé la bibliothèque
-\pkg{breakable} de \pkg{tcolorbox}: |\tcbuselibrary{breakable}|) et la clé |splittable| de
-\pkg{piton} (cf.~p.~\pageref{breakable}).
+Si on souhaite l'utiliser en paramétrant la boîte graphique créée par
+\pkg{tcolorbox} (avec les clés fournies par \pkg{tcolorbox}), il convient
+d'utiliser la commande |\tcbset| de \pkg{tcolorbox}. Pour limiter la portée de
+ces réglages, le mieux est sans doute de créer un nouvel environnement avec
+|\NewPitonEnvironment| (cf.~p.~\pageref{NewPitonEnvironment}). Cet environnement
+contiendra les personnalisations de \pkg{piton} (avec |\PitonOptions|) et celles
+de \pkg{tcolorbox} (avec |\tcbset|).
+
+\bigskip
+Voici un exemple d'un tel environnement |{Python}| avec une colonne colorée à gauche
+pour les numéros de ligne. Cet exemple requiert que la librairie \pkg{skins} de \pkg{tcolorbox}
+soit chargée dans le préambule du document LaTeX avec l'instruction |\tcbuselibrary{skins}|
+(de manière à pouvoir utiliser la clé |enhanced|).
 
 \begin{Verbatim}
-~emphase#\NewPitonEnvironment@{Python}{}
- { \PitonOptions{splittable=4}%
-   \begin{tcolorbox}[breakable]}
- {\end{tcolorbox}}
+\NewPitonEnvironment{Python}{m}
+  {%
+    \PitonOptions
+      {
+        ~emphase#tcolorbox@,
+        splittable=3,
+        width=min,
+        line-numbers,       % active les numéros de ligne
+        line-numbers =      % personnalisation des numéros de ligne
+         {
+           format = \footnotesize\color{white}\sffamily ,
+           sep = 2.5mm
+         }
+      }%
+    \tcbset
+      {
+        enhanced,
+        title=~#1,
+        fonttitle=\sffamily,
+        left = 6mm,
+        top = 0mm,
+        bottom = 0mm,
+        overlay=
+         {%
+            \begin{tcbclipinterior}%
+                \fill[gray!80]
+                    (frame.south west) rectangle
+                    ([xshift=6mm]frame.north west); 
+            \end{tcbclipinterior}%
+         }
+      } 
+  } 
+  { }
 \end{Verbatim}
 
 \bigskip
-Avec ce nouvel environnement |{Python}|, on peut écrire : 
+Dans l'exemple d'utilisation qui suit, on a illustré le fait que l'on peut
+forcer un saut de page dans un tel environnement avec |\newpage{}| si on a
+demandé à \pkg{piton} de détecter la commande |\newpage| avec la clé
+|vertical-detected-commands| (cf.~p.~\pageref{vertical-detected-commands}) dans
+le préambule du document LaTeX.
+
+Remarquer que l'on doit bien utiliser |\newpage{}| et non |\newpage| car les
+commandes LaTeX détectées par \pkg{piton} sont censées être des commandes à un argument
+entre accolades.
+
+\begin{Verbatim}[formatcom = \footnotesize\color{gray}]
+\PitonOptions{vertical-detected-commands = newpage}  % dans le préambule
+\end{Verbatim}
 
 \begin{Verbatim}
-~emphase#\begin{Python}@
+~emphase#\begin{Python}@{Mon exemple}
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x ~emphase#\newpage{}@
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+...    
 def carré(x):
     """Calcule le carré de x"""
     return x*x
 ~emphase#\end{Python}@
 \end{Verbatim}
 
-\RenewPitonEnvironment{Python}{}
- { \PitonOptions{splittable=4}%
-   \begin{tcolorbox}[breakable]}
- {\end{tcolorbox}}
-
-\begin{Python}
-def carré(x):
-    """Calcule le carré de x"""
-    return x*x
-\end{Python}
-
-Bien sûr, si on veut changer la couleur du fond, on n'utilise pas |background-color|
-de \pkg{piton} mais les outils fournis par \pkg{tcolorbox} (|colback| pour la couleur
-du fond).
-
-
 \bigskip
-Si on souhaite une boîte de largeur ajustée à la largeur naturelle du listing, il faudra
-utiliser la clé |capture=hbox| (alias: |hbox|) de \pkg{tcolorbox} et l'environnement
-ne sera pas sécable par un saut de page, même avec la clé |breakable| (c'est là une
-caractéristique de \pkg{tcolorbox}).
-
-On programme avec la clé |width=min| de \pkg{piton}, on encapsule l'environnement
-|{Piton}| dans un environnement |{varwidth}| de l'extension \pkg{varwidth} (qu'il faut avoir
-chargé), on stocke le tout dans une boîte LaTeX (avec l'environnement |{lrbox}| de LaTeX)
-et on réutilise cette boîte dans un environnement |{tcolorbox}| dans la dernière partie de
-|\NewPitonEnvironment|.
-
-\begin{Verbatim}
-\newsavebox{\PitonBox}
-~emphase#\NewPitonEnvironment@{Python}{}
-  {%
-    \PitonOptions{width=min}%
-    \begin{lrbox}{\PitonBox}
-    \begin{varwidth}{\linewidth}
-  } 
-  {%
-    \end{varwidth}
-    \end{lrbox}
-    \begin{tcolorbox}[hbox]
-    \usebox{\PitonBox}
-    \end{tcolorbox}
-  } 
-
-
-~emphase#\begin{Python}@
-def carré(x):
-    """Calcule le carré de x"""
-    return x*x
-~emphase#\end{Python}@
-\end{Verbatim}
-
-\newsavebox{\PitonBox}
-
-\RenewPitonEnvironment{Python}{}
-  {%
-  \PitonOptions{width=min}%
-  \begin{lrbox}{\PitonBox}
-  \begin{varwidth}{\linewidth}
-  } 
-  {%
-  \end{varwidth}
-  \end{lrbox}
-  \begin{tcolorbox}[hbox]
-  \usebox{\PitonBox}
-  \end{tcolorbox}
-  } 
-
-\begin{center}
-\begin{Python}
-def carré(x):
-    """Calcule le carré de x"""
-    return x*x
-\end{Python}
-\end{center}
-
-\vspace{1cm}
-Voici un exemple plus sophistiqué avec une colonne colorée pour les numéros de ligne.
-Cet exemple requiert que la librairie \pkg{skins} de TikZ soit chargée :
-
-\begin{Verbatim}
-\tcbuselibrary{skins}
-\end{Verbatim}
-
-\begin{Verbatim}
-\newsavebox{\PitonBox}
-
-\NewTColorBox{BoxForPiton}{m}
-  {
-    hbox,
-    enhanced,
-    title=~#1,
-    fonttitle=\sffamily,
-    left = 6mm,
-    top = 0mm,
-    bottom = 0mm,
-    overlay={%
-        \begin{tcbclipinterior}%
-            \fill[gray!80]
-                (frame.south west) rectangle
-                ([xshift=6mm]frame.north west); 
-        \end{tcbclipinterior}%
-    }
-  }
-\end{Verbatim}
-
-\begin{Verbatim}
-~emphase#\NewPitonEnvironment@{Python}{m}
-{%
-\PitonOptions
-  {
-    width=min,
-    line-numbers,
-    line-numbers =
-     {
-       format = \footnotesize\color{white}\sffamily ,
-       sep = 2.5mm
-     }
-  }%
-\begin{lrbox}{\PitonBox}
-\begin{varwidth}{\linewidth}
-}
-{%
-\end{varwidth}
-\end{lrbox}
-\begin{BoxForPiton}{~#1}
-\usebox{\PitonBox}
-\end{BoxForPiton}
-}
-\end{Verbatim}
-
-
-\NewTColorBox{BoxForPiton}{m}
-  {
-    enhanced,
-    hbox,
-    nobeforeafter,
-    box align = center,
-    title=#1,
-    fonttitle=\sffamily,
-    left = 6mm,
-    top = 0mm,
-    bottom = 0mm,
-    overlay=
-     {%
-        \begin{tcbclipinterior}%
-            \fill[gray!80]
-                (frame.south west) rectangle
-                ([xshift=6mm]frame.north west); 
-        \end{tcbclipinterior}%
-     }
-  }
 
 \RenewPitonEnvironment{Python}{m}
   {%
     \PitonOptions
       {
+        tcolorbox,
+        splittable=3,
         width=min,
         line-numbers,
         line-numbers =
@@ -2600,129 +3024,110 @@ Cet exemple requiert que la librairie \pkg{skins} de TikZ soit chargée :
            sep = 2.5mm
          }
       }%
-    \begin{lrbox}{\PitonBox}%
-    \begin{varwidth}{\linewidth}%
+    \tcbset
+      {
+        enhanced,
+        title=#1,
+        fonttitle=\sffamily,
+        left = 6mm,
+        top = 0mm,
+        bottom = 0mm,
+        overlay=
+         {%
+            \begin{tcbclipinterior}%
+                \fill[gray!80]
+                    (frame.south west) rectangle
+                    ([xshift=6mm]frame.north west); 
+            \end{tcbclipinterior}%
+         }
+      } 
   } 
-  {%
-    \end{varwidth}%
-    \end{lrbox}%
-    \begin{BoxForPiton}{#1}%
-    \usebox{\PitonBox}%
-    \end{BoxForPiton}%
-  }
+  { }
+  
 
-\bigskip
-
-\begin{BVerbatim}[boxwidth=8cm,baseline=c]
-~emphase#\begin{Python}@{Mon exemple}
-def carré(x):
-    """Calcule le carré de x"""
-    return x*x
-
-def cube(x):
-    """Calcule le cube de x"""
-    return x*x*x
-~emphase#\end{Python}@
-\end{BVerbatim}
-%
 \begin{Python}{Mon exemple}
 def carré(x):
     """Calcule le carré de x"""
     return x*x
-
-def cube(x):
-    """Calcule le cube de x"""
-    return x*x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x \newpage{}
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
 \end{Python}
-
-\bigskip
-
-On rappelle qu'une telle boîte ne peut pas être coupée par un saut de page
-(même en utilisant la bibliothèque \pkg{breakable} de \pkg{tcolorbox}).
-
-\subsection{Un exemple de réglage des styles}
-
-Les styles graphiques ont été présentés à la partie \ref{styles}, p.~\pageref{styles}.
-
-\smallskip
-On présente ici un réglage de ces styles adapté pour les documents en noir et blanc.
-
-Ce réglage utilise la commande |\highLight| de \pkg{lua-ul} (cette extension nécessite
-elle-même l'extension \pkg{luacolor}).
-
-
-\begin{Verbatim}
-\SetPitonStyle
-  {
-    Number = ,
-    String = \itshape , 
-    String.Doc = \color{gray} \itshape ,
-    Operator = , 
-    Operator.Word = \bfseries ,
-    Name.Builtin = ,
-    Name.Function = \bfseries \highLight[gray!20] ,
-    Comment = \color{gray} ,
-    Comment.LaTeX = \normalfont \color{gray},
-    Keyword = \bfseries ,
-    Name.Namespace = ,
-    Name.Class = , 
-    Name.Type = ,
-    InitialValues = \color{gray}
-  }
-\end{Verbatim}
-
-
-Dans ce réglage, de nombreuses valeurs fournies aux clés sont vides, ce qui signifie que
-le style correspondant n'insèrera aucune instruction de formatage (l'élément sera composé
-dans la couleur standard, le plus souvent, en noir, etc.). Ces entrées avec valeurs nulles
-sont néanmoins nécessaires car la valeur initiale de ces styles dans \pkg{piton} n'est
-\emph{pas} vide.
-
-\begingroup
-
-\SetPitonStyle
-  {
-    Number = ,
-    String = \itshape , 
-    String.Doc = \color{gray} \itshape ,
-    Operator = , 
-    Operator.Word = \bfseries ,
-    Name.Builtin = ,
-    Name.Function = \bfseries \highLight[gray!20] ,
-    Comment = \color{gray} ,
-    Comment.LaTeX = \normalfont \color{gray},
-    Keyword = \bfseries ,
-    Name.Namespace = ,
-    Name.Class = , 
-    Name.Type = ,
-    InitialValues = \color{gray}
-  }
-
-
-\bigskip 
-
-\begin{Piton}
-from math import pi
-
-def arctan(x,n=10):
-    """Compute the mathematical value of arctan(x)
-
-    n is the number of terms in the sum
-    """
-    if x < 0:
-        return -arctan(-x) # appel récursif
-    elif x > 1: 
-        return pi/2 - arctan(1/x) 
-        #> (on a utilisé le fait que $\arctan(x)+\arctan(1/x)=\pi/2$ pour $x>0$)
-    else: 
-        s = 0
-        for k in range(n):
-            s += (-1)**k/(2*k+1)*x**(2*k+1)
-        return s 
-\end{Piton}
-
-
-\endgroup
 
 \subsection{Utilisation avec pyluatex}
 
