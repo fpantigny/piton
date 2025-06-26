@@ -88,12 +88,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.6}
-\def\PitonFileDate{2025/06/16}
+\def\PitonFileVersion{4.6a}
+\def\PitonFileDate{2025/06/26}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.6" -- 2025/06/16
+piton_version = "4.6a" -- 2025/06/26
 %</LUA>
 %\fi
 %
@@ -253,7 +253,7 @@ piton_version = "4.6" -- 2025/06/16
 % In fact, the command |\piton| is provided with a double syntax. It may be used
 % as a standard command of LaTeX taking its argument between curly braces
 % (|\piton{...}|) but it may also be used with a syntax similar to the syntax of
-% the command |\verb|, that is to say with the argument delimited by two identical
+% the LaTeX command |\verb|, that is to say with the argument delimited by two identical
 % characters (e.g.: \verb!\piton|...|! or \verb!\piton+...+!). 
 % 
 % \begin{itemize}
@@ -264,7 +264,7 @@ piton_version = "4.6" -- 2025/06/16
 % take its argument in verbatim mode. In particular:
 % \begin{itemize}
 % \item several consecutive spaces will be replaced by only one space (and also
-% the character of end on line),
+% the character of end of line),
 % 
 % {\color{cyan} but the command |\|␣ is provided to force the insertion of a space};
 %
@@ -1390,9 +1390,9 @@ piton_version = "4.6" -- 2025/06/16
 %
 % \bigskip
 % If we want an output composed in a LaTeX box (despites its name, an environment
-% of \pkg{tcolorbox} does not always create a LaTeX box), we only have to use
-% key |box| provided by \pkg{piton} (cf. p.~\pageref{box}). Of course, such LaTeX 
-% box can't be broken by a change of page.
+% of \pkg{tcolorbox} does not always create a LaTeX box), we only have to use,
+% in conjunction with the key |tcolorbox|, the key |box| provided by \pkg{piton}
+% (cf. p.~\pageref{box}). Of course, such LaTeX box can't be broken by a change of page.
 %
 % We recall that, when the key |box| is used, |width=min| is activated (except,
 % when the key |width| or the key |max-width| is explicitely used).
@@ -1743,14 +1743,76 @@ piton_version = "4.6" -- 2025/06/16
 % \end{itemize} 
 %
 % \medskip
+% \begin{tcolorbox}[breakable]
 % Even with a background color (set by the key |background-color|), the pages
 % breaks are allowed, as soon as the key |split-on-empty-lines| or the key
-% |splittable| is in force.\footnote{With the key |splittable|, the environments
+% |splittable| is in force.
+%
+% \medskip
+% With the key |splittable|, the environments
 % \texttt{\{Piton\}} are breakable, even within a (breakable) environment of
 % \pkg{tcolorbox}. Remind that an environment of \pkg{tcolorbox} included in
 % another environment of \pkg{tcolorbox} is \emph{not} breakable, even when both
-% environments use the key |breakable| of \pkg{tcolorbox}.}
+% environments use the key |breakable| of \pkg{tcolorbox}.
 %
+% \medskip
+% We illustrate that point with the following code (the current environment
+% |{tcolorbox}| uses the key |breakable|).
+%
+% \begin{Verbatim}
+% ~emphase#\begin{Piton}[background-color=gray!30,width=min,splittable=4]@
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% ...
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% ~emphase#\end{Piton}@
+% \end{Verbatim}
+% 
+% \bigskip
+% \begin{Piton}[background-color=gray!30,width=min,splittable=4]
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x 
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% def square(x):
+%     """Computes the square of x"""
+%     return x*x
+% \end{Piton}
+% 
+% \end{tcolorbox}
+% 
 % \subsection{Splitting of a listing in sub-listings}
 %
 % \index{split-on-empty-lines}
@@ -2096,10 +2158,6 @@ piton_version = "4.6" -- 2025/06/16
 % \end{Piton}
 %
 % \bigskip
-% \colorbox{yellow!50}{\textbf{New 4.3}}
-%
-% \nobreak
-% \smallskip 
 % The key \Definition{raw-detected-commands} is similar to the key
 % |detected-commands| but \pkg{piton} won't do any syntactic analysis of the
 % arguments of the LaTeX commands which are detected.
@@ -3947,16 +4005,21 @@ piton_version = "4.6" -- 2025/06/16
 % \bigskip
 % \subsubsection{Parameters and technical definitions}
 %
+% The listing that we have to format will be stored in |\l_@@_listing_tl|.
+% That applies both for the command |\PitonInputFile| and the environment |{Piton}|
+% (or another environment defined by |\NewPitonEnvironment|).
 %    \begin{macrocode}
-\tl_new:N \l_@@_body_tl
+\tl_new:N \l_@@_listing_tl
 % \end{macrocode}
 %
+% \medskip
 % The content of an environment such as |{Piton}| will be composed first in the
 % following box, but that box be \emph{unvboxed} at the end.
 %    \begin{macrocode}
 \box_new:N \g_@@_output_box
 %    \end{macrocode}
 %
+% \medskip
 %    \begin{macrocode}
 \box_new:N \l_@@_line_box
 %    \end{macrocode}
@@ -4858,7 +4921,7 @@ piton_version = "4.6" -- 2025/06/16
               ) 
           } 
       }
-      { 1 { \penalty 100 } 2 \nobreak }
+      { 1 { \penalty 100 } 2 \nobreak } % hfill added
 %    \end{macrocode}
 % 
 %     \begin{macrocode}
@@ -5776,7 +5839,7 @@ piton_version = "4.6" -- 2025/06/16
 %
 % \bigskip
 %    \begin{macrocode}
-            \tl_set:Nn \l_@@_body_tl { ##1 }
+            \tl_set:Nn \l_@@_listing_tl { ##1 }
             \@@_composition:
 % \end{macrocode}
 % 
@@ -5831,7 +5894,7 @@ piton_version = "4.6" -- 2025/06/16
 \IfFormatAtLeastTF { 2025-06-01 }
   {
 %    \end{macrocode}
-% We will retreive the body of the environment in |\l_@@_body_tl|.
+% We will retreive the body of the environment in |\l_@@_listing_tl|.
 %    \begin{macrocode}
     \cs_new_protected:Npn \@@_store_body:n #1 
       {
@@ -5840,8 +5903,8 @@ piton_version = "4.6" -- 2025/06/16
 % end of line (|\r| in the strings of Lua).
 %    \begin{macrocode}
         \tl_set:Ne \obeyedline { \char_generate:nn { 13 } { 11 } }
-        \tl_set:Ne \l_@@_body_tl { #1 }
-        \tl_set_eq:NN \ProcessedArgument \l_@@_body_tl
+        \tl_set:Ne \l_@@_listing_tl { #1 }
+        \tl_set_eq:NN \ProcessedArgument \l_@@_listing_tl
       }
 %    \end{macrocode}      
 % The first argument of the following macro is one of the four strings:
@@ -5876,18 +5939,24 @@ piton_version = "4.6" -- 2025/06/16
 \cs_new_protected:Npn \@@_composition:
   {
      \str_if_empty:NT \l_@@_box_str
-       { \mode_if_vertical:TF { \noindent } { \newline } }
+       {
+         \mode_if_vertical:F
+           {
+             \bool_if:NF \l_@@_in_PitonInputFile_bool
+               { \newline }
+           }
+       }
 %    \end{macrocode}
 % The following line is only to compute |\l_@@_lines_int| which will be used
 % only when both |left-margin=auto| and |skip-empty-lines = false| are in force.
 % We should change that.
 %    \begin{macrocode}
-    \lua_now:e { piton.CountLines ( '\lua_escape:n{\l_@@_body_tl}' ) }
+    \lua_now:e { piton.CountLines ( '\lua_escape:n{\l_@@_listing_tl}' ) }
 %    \end{macrocode}
 % The first argument of the following function is the name of the Lua function
 % that will be applied to the second argument in order to count the number of lines.
 %    \begin{macrocode}
-    \@@_compute_left_margin:no { CountNonEmptyLines } { \l_@@_body_tl }
+    \@@_compute_left_margin:no { CountNonEmptyLines } { \l_@@_listing_tl }
     \lua_now:e
       {
         piton.join = "\l_@@_join_str"
@@ -5904,7 +5973,7 @@ piton_version = "4.6" -- 2025/06/16
 % |split-on-empty-line| will have been set to |false|).
 %    \begin{macrocode}
         \bool_if:NTF \l_@@_split_on_empty_lines_bool
-          { \@@_retrieve_gobble_split_parse:o \l_@@_body_tl }
+          { \par \@@_retrieve_gobble_split_parse:o \l_@@_listing_tl }
           {
             \@@_create_output_box:
 %    \end{macrocode}
@@ -5951,7 +6020,11 @@ piton_version = "4.6" -- 2025/06/16
                 \str_if_empty:NTF \l_@@_box_str
                   { \vbox_unpack:N \g_@@_output_box }
                   {
-                    \use:e { \begin { minipage } [ \l_@@_box_str ] }
+%    \end{macrocode}
+% It will be possible to delete the |\exp_not:N| in TeXLive 2025
+% because |\begin| is now protected by |\protected| (and not by |\protect|).
+%    \begin{macrocode}
+                    \use:e { \exp_not:N \begin { minipage } [ \l_@@_box_str ] }
                       { \g_@@_width_dim }
                     \vbox_unpack:N \g_@@_output_box
                     \end { minipage }
@@ -5959,7 +6032,7 @@ piton_version = "4.6" -- 2025/06/16
               }
          }
       }
-      { \@@_gobble_parse_no_print:o \l_@@_body_tl }
+      { \@@_gobble_parse_no_print:o \l_@@_listing_tl }
   }
 %    \end{macrocode}
 %
@@ -5970,7 +6043,7 @@ piton_version = "4.6" -- 2025/06/16
     \@@_compute_code_width:
     \dim_gset_eq:NN \g_@@_width_dim \l_@@_width_dim
     \vbox_gset:Nn \g_@@_output_box
-      { \@@_retrieve_gobble_parse:o \l_@@_body_tl }
+      { \@@_retrieve_gobble_parse:o \l_@@_listing_tl }
     \bool_if:NT \l_@@_minimize_width_bool
       {
         \@@_compute_width: 
@@ -6234,7 +6307,6 @@ piton_version = "4.6" -- 2025/06/16
 %    \begin{macrocode}
       \int_compare:nNnT \g_@@_visual_line_int < \c_zero_int 
         { \int_gzero:N \g_@@_visual_line_int }
-      \mode_if_vertical:TF { \mode_leave_vertical: } { \newline }
 %    \end{macrocode}
 % We count with Lua the number of lines of the argument. The result will be
 % stored by Lua in |\l_@@_nb_lines_int|. 
@@ -6247,31 +6319,18 @@ piton_version = "4.6" -- 2025/06/16
       \@@_compute_left_margin:no 
         { CountNonEmptyLinesFile } 
         { \l_@@_file_name_str }
-      \bool_if:NT \l_@@_split_on_empty_lines_bool
+      \lua_now:e
         {
-          \lua_now:e
-            { 
-              piton.ParseFile(
-               '\l_piton_language_str' ,
-               '\l_@@_file_name_str' ,
-               \int_use:N \l_@@_first_line_int , 
-               \int_use:N \l_@@_last_line_int ,
-               \bool_if:NTF \l_@@_splittable_on_empty_lines_bool
-                 { \int_eval:n { - \l_@@_splittable_int } } 
-                 { \int_use:N \l_@@_splittable_int } ,
-               \bool_if:NTF \l_@@_split_on_empty_lines_bool { 1 } { 0 } ) 
-            } 
+%    \end{macrocode}
+% The following command will store the content of the file (or only a part of that file)
+% in |\l_@@_listing_tl|.
+%    \begin{macrocode}
+          piton.ReadFile(
+           '\l_@@_file_name_str' ,
+           \int_use:N \l_@@_first_line_int , 
+           \int_use:N \l_@@_last_line_int )
         }
-        {
-          \lua_now:e
-            { 
-              piton.ReadFile(
-               '\l_@@_file_name_str' ,
-               \int_use:N \l_@@_first_line_int , 
-               \int_use:N \l_@@_last_line_int )
-            }
-          \@@_composition:
-        }
+      \@@_composition:
     \group_end:
 %    \end{macrocode}
 %
@@ -9796,12 +9855,8 @@ end
 % 
 %
 % \bigskip
-% The function |ParseFile| will be used by the LaTeX command |\PitonInputFile|.
-% That function merely reads the file (between |first_line| and |last_line|) and
-% then apply the function~|Parse| to the resulting Lua string.
 %    \begin{macrocode}
-function piton.ParseFile 
-  ( lang , name , first_line , last_line , splittable , split )
+function piton.ReadFile ( name , first_line , last_line )
   local s = ''
   local i = 0 
   for line in cr_file_lines ( name ) do 
@@ -9824,36 +9879,7 @@ function piton.ParseFile
       end
     end
   end
-  if split == 1 then
-    piton.RetrieveGobbleSplitParse ( lang , 0 , splittable , s ) 
-  else
-    piton.RetrieveGobbleParse ( lang , 0 , splittable , s )    
-  end
-end
-%    \end{macrocode}
-%
-% \bigskip
-%    \begin{macrocode}
-function piton.ReadFile ( name , first_line , last_line )
-  local s = ''
-  local i = 0 
-  for line in cr_file_lines ( name ) do 
-    i = i + 1 
-    if i >= first_line then 
-      s = s .. '\r' .. line 
-    end
-    if i >= last_line then break end 
-  end
-  if string.byte ( s , 1 ) == 13 then 
-    if string.byte ( s , 2 ) == 239 then 
-      if string.byte ( s , 3 ) == 187 then 
-        if string.byte ( s , 4 ) == 191 then 
-          s = string.sub ( s , 5 , -1 )
-        end 
-      end
-    end
-  end
-  sprintL3 ( [[ \tl_set:Nn \l_@@_body_tl { ]]) 
+  sprintL3 ( [[ \tl_set:Nn \l_@@_listing_tl { ]]) 
   tex.sprint ( luatexbase.catcodetables.CatcodeTableOther , s ) 
   sprintL3 ( [[ } ]] ) 
 end

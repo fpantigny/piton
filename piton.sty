@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.6}
-\def\PitonFileDate{2025/06/16}
+\def\PitonFileVersion{4.6a}
+\def\PitonFileDate{2025/06/26}
 
 
 
@@ -180,7 +180,7 @@
         \bool_gset_true:N \g__piton_footnote_bool
       }
   }
-\tl_new:N \l__piton_body_tl
+\tl_new:N \l__piton_listing_tl
 \box_new:N \g__piton_output_box
 \box_new:N \l__piton_line_box
 \str_new:N \l_piton_language_str
@@ -509,7 +509,7 @@
               )
           }
       }
-      { 1 { \penalty 100 } 2 \nobreak }
+      { 1 { \penalty 100 } 2 \nobreak } % hfill added
    \bool_if:NT \g__piton_footnote_bool \savenotes
   }
 \cs_set_protected:Npn \__piton_breakable_space:
@@ -1085,7 +1085,7 @@
       }
           {
             \group_end:
-            \tl_set:Nn \l__piton_body_tl { ##1 }
+            \tl_set:Nn \l__piton_listing_tl { ##1 }
             \__piton_composition:
             \end { #2 }
           }
@@ -1113,8 +1113,8 @@
     \cs_new_protected:Npn \__piton_store_body:n #1
       {
         \tl_set:Ne \obeyedline { \char_generate:nn { 13 } { 11 } }
-        \tl_set:Ne \l__piton_body_tl { #1 }
-        \tl_set_eq:NN \ProcessedArgument \l__piton_body_tl
+        \tl_set:Ne \l__piton_listing_tl { #1 }
+        \tl_set_eq:NN \ProcessedArgument \l__piton_listing_tl
       }
     \cs_set_protected:Npn \__piton_DefinePitonEnvironment:nnnnn #1 #2 #3 #4 #5
       {
@@ -1138,9 +1138,15 @@
 \cs_new_protected:Npn \__piton_composition:
   {
      \str_if_empty:NT \l__piton_box_str
-       { \mode_if_vertical:TF { \noindent } { \newline } }
-    \lua_now:e { piton.CountLines ( '\lua_escape:n{\l__piton_body_tl}' ) }
-    \__piton_compute_left_margin:no { CountNonEmptyLines } { \l__piton_body_tl }
+       {
+         \mode_if_vertical:F
+           {
+             \bool_if:NF \l__piton_in_PitonInputFile_bool
+               { \newline }
+           }
+       }
+    \lua_now:e { piton.CountLines ( '\lua_escape:n{\l__piton_listing_tl}' ) }
+    \__piton_compute_left_margin:no { CountNonEmptyLines } { \l__piton_listing_tl }
     \lua_now:e
       {
         piton.join = "\l__piton_join_str"
@@ -1151,7 +1157,7 @@
     \bool_if:NTF \l__piton_print_bool
       {
         \bool_if:NTF \l__piton_split_on_empty_lines_bool
-          { \__piton_retrieve_gobble_split_parse:o \l__piton_body_tl }
+          { \par \__piton_retrieve_gobble_split_parse:o \l__piton_listing_tl }
           {
             \__piton_create_output_box:
             \bool_if:NTF \l__piton_tcolorbox_bool
@@ -1190,7 +1196,7 @@
                 \str_if_empty:NTF \l__piton_box_str
                   { \vbox_unpack:N \g__piton_output_box }
                   {
-                    \use:e { \begin { minipage } [ \l__piton_box_str ] }
+                    \use:e { \exp_not:N \begin { minipage } [ \l__piton_box_str ] }
                       { \g__piton_width_dim }
                     \vbox_unpack:N \g__piton_output_box
                     \end { minipage }
@@ -1198,14 +1204,14 @@
               }
          }
       }
-      { \__piton_gobble_parse_no_print:o \l__piton_body_tl }
+      { \__piton_gobble_parse_no_print:o \l__piton_listing_tl }
   }
 \cs_new_protected:Npn \__piton_create_output_box:
   {
     \__piton_compute_code_width:
     \dim_gset_eq:NN \g__piton_width_dim \l__piton_width_dim
     \vbox_gset:Nn \g__piton_output_box
-      { \__piton_retrieve_gobble_parse:o \l__piton_body_tl }
+      { \__piton_retrieve_gobble_parse:o \l__piton_listing_tl }
     \bool_if:NT \l__piton_minimize_width_bool
       {
         \__piton_compute_width:
@@ -1377,36 +1383,18 @@
         }
       \int_compare:nNnT \g__piton_visual_line_int < \c_zero_int
         { \int_gzero:N \g__piton_visual_line_int }
-      \mode_if_vertical:TF { \mode_leave_vertical: } { \newline }
       \lua_now:e { piton.CountLinesFile ( '\l__piton_file_name_str' ) }
       \__piton_compute_left_margin:no
         { CountNonEmptyLinesFile }
         { \l__piton_file_name_str }
-      \bool_if:NT \l__piton_split_on_empty_lines_bool
+      \lua_now:e
         {
-          \lua_now:e
-            {
-              piton.ParseFile(
-               '\l_piton_language_str' ,
-               '\l__piton_file_name_str' ,
-               \int_use:N \l__piton_first_line_int ,
-               \int_use:N \l__piton_last_line_int ,
-               \bool_if:NTF \l__piton_splittable_on_empty_lines_bool
-                 { \int_eval:n { - \l__piton_splittable_int } }
-                 { \int_use:N \l__piton_splittable_int } ,
-               \bool_if:NTF \l__piton_split_on_empty_lines_bool { 1 } { 0 } )
-            }
+          piton.ReadFile(
+           '\l__piton_file_name_str' ,
+           \int_use:N \l__piton_first_line_int ,
+           \int_use:N \l__piton_last_line_int )
         }
-        {
-          \lua_now:e
-            {
-              piton.ReadFile(
-               '\l__piton_file_name_str' ,
-               \int_use:N \l__piton_first_line_int ,
-               \int_use:N \l__piton_last_line_int )
-            }
-          \__piton_composition:
-        }
+      \__piton_composition:
     \group_end:
     \tl_if_novalue:nF { #1 }
       { \bool_if:NT \g__piton_beamer_bool { \end { uncoverenv } } }

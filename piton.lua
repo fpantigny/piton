@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.6" -- 2025/06/16
+piton_version = "4.6a" -- 2025/06/26
 
 
 
@@ -1431,32 +1431,6 @@ function cr_file_lines ( filename )
     f : close ( )
     return ( s .. '\n' ) : gsub( '\r\n?' , '\n') : gmatch ( '(.-)\n' )
 end
-function piton.ParseFile
-  ( lang , name , first_line , last_line , splittable , split )
-  local s = ''
-  local i = 0
-  for line in cr_file_lines ( name ) do
-    i = i + 1
-    if i >= first_line then
-      s = s .. '\r' .. line
-    end
-    if i >= last_line then break end
-  end
-  if string.byte ( s , 1 ) == 13 then
-    if string.byte ( s , 2 ) == 239 then
-      if string.byte ( s , 3 ) == 187 then
-        if string.byte ( s , 4 ) == 191 then
-          s = string.sub ( s , 5 , -1 )
-        end
-      end
-    end
-  end
-  if split == 1 then
-    piton.RetrieveGobbleSplitParse ( lang , 0 , splittable , s )
-  else
-    piton.RetrieveGobbleParse ( lang , 0 , splittable , s )
-  end
-end
 function piton.ReadFile ( name , first_line , last_line )
   local s = ''
   local i = 0
@@ -1476,7 +1450,7 @@ function piton.ReadFile ( name , first_line , last_line )
       end
     end
   end
-  sprintL3 ( [[ \tl_set:Nn \l__piton_body_tl { ]])
+  sprintL3 ( [[ \tl_set:Nn \l__piton_listing_tl { ]])
   tex.sprint ( luatexbase.catcodetables.CatcodeTableOther , s )
   sprintL3 ( [[ } ]] )
 end

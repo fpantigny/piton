@@ -270,7 +270,7 @@ p.~\pageref{PitonInputFile}.
 La commande |\piton| possède en fait une double syntaxe. Elle est peut être utilisée comme
 une commande standard de LaTeX prenant son argument entre accolades (|\piton{...}|), ou
 bien selon la syntaxe de la commande
-\texttt{\textbackslash verb} où l'argument est délimité entre deux caractères 
+\texttt{\textbackslash verb} de LaTeX où l'argument est délimité entre deux caractères 
 identiques (par ex. : \verb!\piton|...|! ou \verb!\piton+...+!).
 On détaille maintenant ces deux syntaxes.
 
@@ -1385,11 +1385,11 @@ def carré(x):
 
 
 \bigskip
-Si on souhaite que le résultat soit produit dans une boîte LaTeX (en dépit de
-son nom, un environnement de \pkg{tcolorbox} n'est pas nécessairement une boîte
-LaTeX), il suffit d'utiliser la clé |box| fournie par \pkg{piton} (cf.
-p.~\pageref{box}). Bien sûr, la boîte ainsi créée ne sera \emph{pas} sécable par
-un saut de page.
+Si on souhaite que le résultat soit produit dans une boîte LaTeX (en dépit de son nom,
+un environnement de \pkg{tcolorbox} n'est pas nécessairement une boîte LaTeX),
+il suffit d'utiliser, conjointement avec la clé |tcolorbox|, la clé |box| fournie
+par \pkg{piton} (cf. p.~\pageref{box}). Bien sûr, la boîte ainsi créée ne sera \emph{pas}
+sécable par un saut de page.
 
 On rappelle que l'emploi de la clé |box| active |width=min| (sauf si on utilise
 explicitement |width| ou |max-width|).
@@ -1731,16 +1731,88 @@ pas sécables.
 \end{itemize}
 
 \medskip
-\emph{Remarque}
-
-\nobreak
+\begin{tcolorbox}[breakable]
 Même avec une couleur de fond (fixée avec |background-color|), les sauts de page sont
 possibles, à partir du moment où |splittable-on-empty-lines| ou |splittable| est
-utilisée.\footnote{Avec la clé |splittable|, un environnement |{Piton}| est sécable même
-  dans un environnement de \pkg{tcolorbox} (à partir du moment où la clé |breakable| de
-  \pkg{tcolorbox} est utilisée). On précise cela parce que, en revanche, un environnement
-  de \pkg{tcolorbox} inclus dans un autre environnement de \pkg{tcolorbox} n'est pas
-  sécable, même quand les deux utilisent la clé |breakable|.}
+utilisée.
+
+\medskip
+Avec la clé |splittable|, un environnement |{Piton}| est sécable même dans un
+environnement de \pkg{tcolorbox} (à partir du moment où la clé |breakable| de
+\pkg{tcolorbox} est utilisée). On précise cela parce que, en revanche, un
+environnement de \pkg{tcolorbox} inclus dans un autre environnement de
+\pkg{tcolorbox} n'est pas sécable, même quand les deux utilisent la clé
+|breakable| de \pkg{tcolorbox}.
+
+\medskip
+On illustre ce point avec le code suivant (l'environnement |{tcolorbox}| dans lequel nous
+nous trouvons utilise la clé |breakable|).
+
+\begin{Verbatim}
+\begin{Piton}~emphase#[background-color=gray!30,width=min,splittable=4]@
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+...    
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+\end{Piton}
+\end{Verbatim}
+
+\bigskip
+\begin{Piton}[background-color=gray!30,width=min,splittable=4]
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x 
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+\end{Piton}
+
+\end{tcolorbox}
 
 \bigskip
 \subsection{Découpe d'un listing en sous-listings}
@@ -2103,11 +2175,6 @@ def fact(n):
 \end{Piton}
 
 \bigskip
-
-\colorbox{yellow!50}{\textbf{Nouveau 4.3}}
-
-\nobreak
-\smallskip
 La clé \Definition{raw-detected-commands} est similaire à la clé |detected-commands| mais
 \pkg{piton} ne fera pas d'analyse syntaxique des arguments des commandes LaTeX ainsi
 détectées.
