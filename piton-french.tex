@@ -540,12 +540,28 @@ Dans cette liste, la couleur spéciale \Definition{none} désigne une absence de
 
 \emph{Exemple} : |\PitonOptions{background-color = {gray!5,none}}|
 
+\item \index{rounded-corners} \colorbox{yellow!50}{\textbf{Nouveau 4.7}}
+
+\nobreak
+On peut utiliser \Definition{rounded-corners} pour demander des coins arrondis
+pour les fonds colorés spécifiés par |background-color|. La valeur initiale de
+ce paramètre est $0$~pt, ce qui fait que les coins ne sont pas arrondis. Si on
+utilise la clé |rounded-corners|, l'extension \pkg{tikz} doit être chargée car
+ces coins arrondis sont tracés avec \pkg{tikz}. Si \pkg{tikz} n'est pas chargé,
+une erreur sera levée à la première utilisation de la clé |rounded-corners|.
+
+La valeur par défaut de |rounded-corners| vaut $4$~pt.\footnote{Cette valeur par
+  défaut est la valeur initiale des \emph{rounded corners} de \pkg{tikz}.}
+
+
 \item \index{prompt-background-color} Avec la clé
 \Definition{prompt-background-color}, \pkg{piton} ajoute un fond coloré aux
 lignes débutant par le prompt «|>>>|» (et sa continuation «|...|»)
 caractéristique des consoles Python avec boucle \textsc{repl}
 (\emph{read-eval-print loop}). Pour un exemple d'utilisation de cette clé, voir
 la partie \ref{pythonrepl} p.~\pageref{pythonrepl}.
+
+
 
 \item \index{width (clé)} \label{width} La clé \Definition{width} fixe la largeur du
 listing produit. La valeur initiale de ce paramètre est la valeur courante de
@@ -606,7 +622,7 @@ sont représentées par des flèches.
 \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 \begin{Verbatim}
 ~emphase&\begin{Piton}[language=C,line-numbers,@
-~emphase&     splittable=4,gobble,background-color=gray!15,width=min]@
+~emphase&     splittable=4,gobble,background-color=gray!15,rounded-corners,width=min]@
     void bubbleSort(int arr[], int n) {
         int temp;
         int swapped;
@@ -628,7 +644,8 @@ sont représentées par des flèches.
 \endgroup
 
 
-\begin{Piton}[language=C,line-numbers,gobble,background-color = gray!15,width=min]
+\begin{Piton}[language=C,line-numbers,gobble,
+  background-color = gray!15,rounded-corners,width=min]
     void bubbleSort(int arr[], int n) {
         int temp;
         int swapped;
@@ -1749,7 +1766,7 @@ On illustre ce point avec le code suivant (l'environnement |{tcolorbox}| dans le
 nous trouvons utilise la clé |breakable|).
 
 \begin{Verbatim}
-\begin{Piton}~emphase#[background-color=gray!30,width=min,splittable=4]@
+\begin{Piton}~emphase#[background-color=gray!30,rounded-corners,width=min,splittable=4]@
 def carré(x):
     """Calcule le carré de x"""
     return x*x
@@ -1764,7 +1781,7 @@ def carré(x):
 \end{Verbatim}
 
 \bigskip
-\begin{Piton}[background-color=gray!30,width=min,splittable=4]
+\begin{Piton}[background-color=gray!30,rounded-corners,width=min,splittable=4]
 def carré(x):
     """Calcule le carré de x"""
     return x*x
@@ -2616,7 +2633,7 @@ p.~\pageref{detected-commands}).
 \medskip
 Dans ce document, l'extension \pkg{piton} a été chargée avec l'option |footnotehyper| et
 on rajouté la commande |\footnote| aux \emph{detected-commands} avec le code suivant
-dans la préambule du document LaTeX :
+dans le préambule du document LaTeX :
 
 \qquad \verb|\PitonOptions{detected-commands = footnote}|
 
@@ -2661,7 +2678,7 @@ qu'une telle |{minipage}| ne peut \emph{pas} être coupée par un saut de page.
 \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 \begin{Verbatim}
 \PitonOptions{background-color=gray!15}
-\emphase\begin{minipage}{\linewidth}
+~emphase&\begin{minipage}{\linewidth}@
 \begin{Piton}
 def arctan(x,n=10):
     if x < 0:
@@ -2671,7 +2688,7 @@ def arctan(x,n=10):
     else: 
         return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
 \end{Piton}
-\end{minipage}
+~emphase&\end{minipage}@
 \end{Verbatim}
 \endgroup
 

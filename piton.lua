@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.6a" -- 2025/06/26
+piton_version = "4.7" -- 2025/07/09
 
 
 
@@ -297,7 +297,7 @@ local EOL =
                   +
                     beamerBeginEnvironments
                   * PromptHastyDetection
-                  * Lc [[ \__piton_newline:\__piton_begin_line: ]]
+                  * Lc [[ \__piton_par:\__piton_begin_line: ]]
                   * Prompt
                 )
             )
@@ -1538,10 +1538,8 @@ function piton.GobbleParse ( lang , n , splittable , code )
   piton.last_code = piton.Gobble ( n , code )
   piton.last_language = lang
   piton.CountLines ( piton.last_code )
-  sprintL3 [[ \bool_if:NT \g__piton_footnote_bool { \savenotes } ]]
   piton.Parse ( lang , piton.last_code )
   sprintL3 [[ \vspace{2.5pt} ]]
-  sprintL3 [[ \bool_if:NT \g__piton_footnote_bool { \endsavenotes } ]]
   sprintL3 [[ \par ]]
   piton.join_and_write ( )
 end
@@ -1636,7 +1634,7 @@ function piton.CountLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  sprintL3 ( string.format ( [[ \int_set:Nn \l__piton_nb_lines_int { %i } ]] , count ) )
+  sprintL3 ( string.format ( [[ \int_gset:Nn \g__piton_nb_lines_int { %i } ]] , count ) )
 end
 function piton.CountNonEmptyLines ( code )
   local count = 0
@@ -1654,7 +1652,7 @@ function piton.CountLinesFile ( name )
   local count = 0
   for line in io.lines ( name ) do count = count + 1 end
   sprintL3
-   ( string.format ( [[ \int_set:Nn \l__piton_nb_lines_int { %i } ]], count ) )
+   ( string.format ( [[ \int_gset:Nn \g__piton_nb_lines_int { %i } ]], count ) )
 end
 function piton.CountNonEmptyLinesFile ( name )
   local count = 0
@@ -2165,5 +2163,4 @@ function piton.join_and_write_files ( )
       )
   end
 end
-
 

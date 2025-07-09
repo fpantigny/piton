@@ -88,12 +88,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.6a}
-\def\PitonFileDate{2025/06/26}
+\def\PitonFileVersion{4.7}
+\def\PitonFileDate{2025/07/09}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.6a" -- 2025/06/26
+piton_version = "4.7" -- 2025/07/09
 %</LUA>
 %\fi
 %
@@ -516,6 +516,19 @@ piton_version = "4.6a" -- 2025/06/26
 %
 % \emph{Example} : |\PitonOptions{background-color = {gray!15,none}}|
 %
+% \item \index{rounded-corners} \colorbox{yellow!50}{\textbf{New 4.7}}
+%
+% \nobreak
+% It's possible to use the key \Definition{rounded-corners} to require rounded
+% corners for the colored panels drawn by the key |background-color| The initial
+% value of that is $0$~pt, which means that the corners are not rounded. If the
+% key |rounded-corners| is used, the extension \pkg{tikz} must be loaded because
+% those rounded corners are drawn by using \pkg{tikz}. If \pkg{tikz} is not
+% loaded, an error will be raised at the first use of the key |rounded-corners|.
+%
+% The default value of the key |rounded-corners| is $4$~pt.\footnote{This value is the
+% initial value of the \emph{rounded corners} of TikZ.}
+% 
 % \item \index{prompt-background-color} With the key
 % \Definition{prompt-background-color}, \pkg{piton} adds a 
 % color background to the lines beginning with the prompt ``|>>>|'' (and its
@@ -581,7 +594,7 @@ piton_version = "4.6a" -- 2025/06/26
 % \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 % \begin{Verbatim}
 % ~emphase&\begin{Piton}[language=C,line-numbers,gobble,background-color=gray!15@
-% ~emphase&              width=min,splittable=4]@
+% ~emphase&              rounded-corners,width=min,splittable=4]@
 %     void bubbleSort(int arr[], int n) {
 %         int temp;
 %         int swapped;
@@ -603,7 +616,8 @@ piton_version = "4.6a" -- 2025/06/26
 % \endgroup
 %
 % \begingroup
-% \PitonOptions{language=C,line-numbers,gobble=6,background-color = gray!15,width=min}
+% \PitonOptions{language=C,line-numbers,gobble=6,background-color = gray!15,
+%    rounded-corners,width=min}
 %     \begin{Piton}
 %     void bubbleSort(int arr[], int n) {
 %         int temp;
@@ -1760,7 +1774,7 @@ piton_version = "4.6a" -- 2025/06/26
 % |{tcolorbox}| uses the key |breakable|).
 %
 % \begin{Verbatim}
-% ~emphase#\begin{Piton}[background-color=gray!30,width=min,splittable=4]@
+% ~emphase#\begin{Piton}[background-color=gray!30,rounded-corners,width=min,splittable=4]@
 % def square(x):
 %     """Computes the square of x"""
 %     return x*x
@@ -1772,7 +1786,7 @@ piton_version = "4.6a" -- 2025/06/26
 % \end{Verbatim}
 % 
 % \bigskip
-% \begin{Piton}[background-color=gray!30,width=min,splittable=4]
+% \begin{Piton}[background-color=gray!30,rounded-corners,width=min,splittable=4]
 % def square(x):
 %     """Computes the square of x"""
 %     return x*x
@@ -2636,7 +2650,7 @@ piton_version = "4.6a" -- 2025/06/26
 % \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
 % \begin{Verbatim}
 % \PitonOptions{background-color=gray!15}
-% \emphase\begin{minipage}{\linewidth}
+% ~emphase&\begin{minipage}{\linewidth}@
 % \begin{Piton}
 % def arctan(x,n=10):
 %     if x < 0:
@@ -2646,7 +2660,7 @@ piton_version = "4.6a" -- 2025/06/26
 %     else: 
 %         return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
 % \end{Piton}
-% \end{minipage}
+% ~emphase&\end{minipage}@
 % \end{Verbatim}
 % \endgroup
 %
@@ -4005,12 +4019,25 @@ piton_version = "4.6a" -- 2025/06/26
 % \bigskip
 % \subsubsection{Parameters and technical definitions}
 %
+%    \begin{macrocode}
+\dim_new:N \l_@@_rounded_corners_dim
+%    \end{macrocode}
+% 
+%    \begin{macrocode}
+\bool_new:N \l_@@_in_label_bool
+%    \end{macrocode}
+% 
+%    \begin{macrocode}
+\dim_new:N \l_@@_tmpc_dim
+%    \end{macrocode}
+% \medskip
+%
 % The listing that we have to format will be stored in |\l_@@_listing_tl|.
 % That applies both for the command |\PitonInputFile| and the environment |{Piton}|
 % (or another environment defined by |\NewPitonEnvironment|).
 %    \begin{macrocode}
 \tl_new:N \l_@@_listing_tl
-% \end{macrocode}
+%    \end{macrocode}
 %
 % \medskip
 % The content of an environment such as |{Piton}| will be composed first in the
@@ -4086,7 +4113,7 @@ piton_version = "4.6a" -- 2025/06/26
 % \emph{chunks} of listings when |split-on-empty-lines| is in force) and store
 % it in the following counter.
 %    \begin{macrocode}
-\int_new:N \l_@@_nb_lines_int
+\int_new:N \g_@@_nb_lines_int
 %    \end{macrocode}
 % 
 % The same for the number of non-empty lines of the listings.
@@ -4422,12 +4449,12 @@ piton_version = "4.6a" -- 2025/06/26
 % by LPEG acting between the lines of the Python code in order to add
 % instructions to be executed at the beginning of the line.
 %    \begin{macrocode} 
-\tl_new:N \g_@@_begin_line_hook_tl
+\tl_new:N \g_@@_before_line_tl
 %    \end{macrocode}
 %
 % \bigskip
 %    \begin{macrocode}
-\tl_new:N \g_@@_after_line_hook_tl
+\tl_new:N \g_@@_after_line_tl
 %    \end{macrocode}
 %
 % \smallskip
@@ -4437,7 +4464,7 @@ piton_version = "4.6a" -- 2025/06/26
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_prompt: 
   { 
-    \tl_gset:Nn \g_@@_begin_line_hook_tl
+    \tl_gset:Nn \g_@@_before_line_tl
       { 
         \tl_if_empty:NF \l_@@_prompt_bg_color_tl 
           { \clist_set:No \l_@@_bg_color_clist { \l_@@_prompt_bg_color_tl } }
@@ -4542,8 +4569,19 @@ piton_version = "4.6a" -- 2025/06/26
         \cs_set_eq:cc { @@ _ old _ ##1 : } { ##1 }
         \cs_new_protected:cn { @@ _ new _ ##1 : n }
           {
-            \tl_gput_right:Nn \g_@@_after_line_hook_tl
-              { \use:c { @@ _old _ ##1 : } { ####1 } } 
+            \bool_if:nTF
+              { \l_@@_tcolorbox_bool || ! \str_if_empty_p:N \l_@@_box_str }
+              {
+                \tl_gput_right:Nn \g_@@_after_line_tl
+                  { \use:c { @@ _old _ ##1 : } { ####1 } }
+              }
+              {
+                \cs_if_exist:cTF { g_@@_after_line _ \int_use:N \g_@@_line_int _ tl }
+                  { \tl_gput_right:cn }
+                  { \tl_gset:cn }
+                  { g_@@_after_line _ \int_eval:n { \g_@@_line_int + 1 } _ tl }
+                  { \use:c { @@ _old _ ##1 : } { ####1 } }
+              }
           }
         \tl_gput_right:Nn \g_@@_def_vertical_commands_tl
           { \cs_set_eq:cc { ##1 } { @@ _ new _ ##1 : n } }
@@ -4630,7 +4668,7 @@ piton_version = "4.6a" -- 2025/06/26
 \cs_set_protected:Npn \@@_begin_line: #1 \@@_end_line:
   { 
     \group_begin:
-    \g_@@_begin_line_hook_tl
+    \g_@@_before_line_tl
     \int_gzero:N \g_@@_indentation_int
 %    \end{macrocode}
 %
@@ -4672,7 +4710,7 @@ piton_version = "4.6a" -- 2025/06/26
             \bool_lazy_or:nnT
               { \int_compare_p:nNn \l_tmpa_int = \c_one_int }
               { ! \l_@@_skip_empty_lines_bool && \l_@@_label_empty_lines_bool }
-              \@@_print_number: 
+              { \@@_print_number: }
           }
 %    \end{macrocode}
 % If there is a background, we must remind that there is a left margin of 0.5~em
@@ -4692,47 +4730,19 @@ piton_version = "4.6a" -- 2025/06/26
 %    \begin{macrocode}
         \bool_if:NTF \l_@@_minimize_width_bool
           {
-            \hbox_set:Nn \l_@@_line_box
+            \hbox_set:Nn \l_tmpa_box
               {
                 \language = -1
                 \raggedright 
                 \strut 
                 \@@_replace_spaces:n { #1 }
                 \strut \hfil 
-              }
-             \dim_compare:nNnTF
-               { \box_wd:N \l_@@_line_box } < \l_@@_code_width_dim
-               { \box_use:N \l_@@_line_box }
-               {
-                 \vtop
-                   {
-                     \hsize = \l_@@_code_width_dim 
-                     \language = -1
-                     \raggedright 
-                     \strut 
-                     \@@_replace_spaces:n { #1 }
-                     \strut \hfil 
-                   }
-               }
+              } 
+             \dim_compare:nNnTF { \box_wd:N \l_tmpa_box } < \l_@@_code_width_dim 
+               { \box_use:N \l_tmpa_box }
+               { \@@_vtop_of_code:n { #1 } }               
           }
-          {
-%    \end{macrocode}
-%
-% Be careful: There is curryfication in the following code.
-%    \begin{macrocode}
-            \bool_if:NTF \l_@@_minimize_width_bool 
-              { \hbox }
-              { \vtop }
-              {
-                \bool_if:NF \l_@@_minimize_width_bool
-                  { \hsize = \l_@@_code_width_dim }
-                \language = -1
-                \raggedright 
-                \strut 
-                \@@_replace_spaces:n { #1 }
-                \strut \hfil 
-              }
-          }
+          { \@@_vtop_of_code:n { #1 } }
       }
 %    \end{macrocode}
 % Now, the line of code is composed in the box |\l_@@_line_box|.
@@ -4747,31 +4757,37 @@ piton_version = "4.6a" -- 2025/06/26
     \dim_gset_eq:NN \g_@@_width_dim \l_@@_width_dim
 %    \end{macrocode}
 %
-% Maybe we will have to put a colored background for that line of code.
 %    \begin{macrocode}
-    \bool_lazy_or:nnTF
-      { \clist_if_empty_p:N \l_@@_bg_color_clist }
-      { \l_@@_minimize_width_bool }
-      { \box_use_drop:N \l_@@_line_box }
-      { \@@_add_background_to_line_and_use: }
+    \box_use_drop:N \l_@@_line_box
 %    \end{macrocode}
 %
 %    \begin{macrocode}
     \group_end:
-    \g_@@_after_line_hook_tl
-    \tl_gclear:N \g_@@_after_line_hook_tl
-    \tl_gclear:N \g_@@_begin_line_hook_tl
+    \g_@@_after_line_tl
+    \tl_gclear:N \g_@@_after_line_tl
+    \tl_gclear:N \g_@@_before_line_tl
   }
 %    \end{macrocode}
 %
-%
+% \bigskip
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_vtop_of_code:n #1
+  {
+    \vbox_top:n
+      {
+        \hsize = \l_@@_code_width_dim 
+        \language = -1
+        \raggedright 
+        \strut 
+        \@@_replace_spaces:n { #1 }
+        \strut \hfil 
+      }  
+  }
+%    \end{macrocode}
+% 
 % \bigskip
 % Of course, the following command will be used when the key |background-color|
 % is used.
-%
-% However, one must remark that it will be used both in  
-% |\@@_add_backgrounds_to_output_box:| (when |max-width| or |width=min| is used) 
-% and in |\@@_begin_line:|... |\@@_end_line:| (elsewhere).
 %
 % The content of the line has been previously set in |\l_@@_line_box|.
 %    \begin{macrocode}
@@ -4784,7 +4800,8 @@ piton_version = "4.6a" -- 2025/06/26
           {
 %    \end{macrocode}
 % |\@@_color:N| sets the current color but also sets the booleans
-% |\g_@@_color_is_none_bool| and |\g_@@_next_color_is_none_bool|.
+% |\g_@@_color_is_none_bool| and |\g_@@_next_color_is_none_bool|. It uses the value of
+% |\g_@@_line_int| which is the number of the current line.
 %    \begin{macrocode}
             \@@_color:N \l_@@_bg_color_clist
 %    \end{macrocode}
@@ -4801,12 +4818,48 @@ piton_version = "4.6a" -- 2025/06/26
             \bool_if:NTF \g_@@_color_is_none_bool
               { \dim_zero:N \l_tmpb_dim }
               { \dim_set_eq:NN \l_tmpb_dim \g_@@_width_dim }
+            \dim_set:Nn \l_@@_tmpc_dim { \box_ht:N \l_@@_line_box }
 %    \end{macrocode}
 % Now, the colored panel.
 %    \begin{macrocode}
-            \vrule height \box_ht:N \l_@@_line_box 
-                   depth \l_tmpa_dim
-                   width \l_tmpb_dim
+            \dim_compare:nNnTF \l_@@_rounded_corners_dim > \c_zero_dim
+              {
+                \int_compare:nNnTF \g_@@_line_int = \c_one_int
+                  {
+                    \begin{tikzpicture}[baseline = 0cm]
+                    \fill (0,0)
+                          [rounded~corners = \l_@@_rounded_corners_dim]
+                          -- (0,\l_@@_tmpc_dim)
+                          -- (\l_tmpb_dim,\l_@@_tmpc_dim)
+                          [sharp~corners] -- (\l_tmpb_dim,-\l_tmpa_dim)
+                          -- (0,-\l_tmpa_dim)
+                          -- cycle ;
+                    \end{tikzpicture}                    
+                  }
+                  {
+                    \int_compare:nNnTF \g_@@_line_int = \g_@@_nb_lines_int
+                      {
+                        \begin{tikzpicture}[baseline = 0cm]
+                        \fill (0,0) -- (0,\l_@@_tmpc_dim)
+                              -- (\l_tmpb_dim,\l_@@_tmpc_dim)
+                              [rounded~corners = \l_@@_rounded_corners_dim]
+                              -- (\l_tmpb_dim,-\l_tmpa_dim)
+                              -- (0,-\l_tmpa_dim)
+                              -- cycle ;
+                        \end{tikzpicture}                    
+                      }
+                      {
+                        \vrule height \l_@@_tmpc_dim
+                        depth \l_tmpa_dim
+                        width \l_tmpb_dim
+                      }
+                  }
+              }
+              {
+                \vrule height \l_@@_tmpc_dim
+                depth \l_tmpa_dim
+                width \l_tmpb_dim
+              }
           }
         \bool_if:NT \g_@@_next_color_is_none_bool
           { \skip_vertical:n { 2.5 pt } }
@@ -4837,7 +4890,7 @@ piton_version = "4.6a" -- 2025/06/26
 % We are looking for the next color because we have to know whether that
 % color is the special color |none|.
 % \begin{macrocode}
-    \int_compare:nNnTF { \g_@@_line_int + 1 } = \l_@@_nb_lines_int
+    \int_compare:nNnTF { \g_@@_line_int + 1 } = \g_@@_nb_lines_int
       { \bool_gset_false:N \g_@@_next_color_is_none_bool }
       {
         \int_set:Nn \l_tmpb_int
@@ -4868,7 +4921,7 @@ piton_version = "4.6a" -- 2025/06/26
 %    \end{macrocode}
 % 
 % \bigskip
-% The command |\@@_newline:| will be inserted by Lua between two lines of the
+% The command |\@@_par:| will be inserted by Lua between two lines of the
 % informatic listing.
 % \begin{itemize}
 % \item In fact, it will be inserted between two commands
@@ -4876,13 +4929,12 @@ piton_version = "4.6a" -- 2025/06/26
 % \item When the key |break-lines-in-Piton| is in force, a line of the
 % informatic code (the \emph{input}) may result in several lines in the
 % \textsc{pdf} (the \emph{output}). 
-% \item Remind that |\@@_newline:| has a rather complex behaviour because it will
+% \item Remind that |\@@_par:| has a rather complex behaviour because it will
 % finish and start paragraphs.
 % \end{itemize}
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_newline: 
+\cs_new_protected:Npn \@@_par: 
   { 
-    \bool_if:NT \g_@@_footnote_bool \endsavenotes 
 %    \end{macrocode}
 % We recall that |\g_@@_line_int| is \emph{not} used for the number of line
 % printed in the \textsc{pdf} (when |line-numbers| is in force)...
@@ -4905,33 +4957,12 @@ piton_version = "4.6a" -- 2025/06/26
 %    \begin{macrocode}
     \kern -2.5 pt 
 %    \end{macrocode}
-% Now, we control page breaks after the paragraph. We use the Lua table
-% |piton.lines_status| which has been written by |piton.ComputeLinesStatus| for
-% this aim. Each line has a ``status`` (equal to 0, 1 or 2) and that status
-% directly says whether a break is allowed.
+% Now, we control page breaks after the paragraph. 
 %    \begin{macrocode}
-    \int_case:nn
-      { 
-        \lua_now:e 
-          { 
-            tex.sprint
-              ( 
-                luatexbase.catcodetables.expl ,
-                tostring ( piton.lines_status [ \int_use:N \g_@@_line_int ] ) 
-              ) 
-          } 
-      }
-      { 1 { \penalty 100 } 2 \nobreak } % hfill added
-%    \end{macrocode}
-% 
-%     \begin{macrocode}
-   \bool_if:NT \g_@@_footnote_bool \savenotes 
-%    \end{macrocode}
-%
-%    \begin{macrocode}
+    \@@_add_penalty_for_the_line:
   } 
 %    \end{macrocode}
-% After the command |\@@_newline:|, we will usually have a command |\@@_begin_line:|.
+% After the command |\@@_par:|, we will usually have a command |\@@_begin_line:|.
 %
 % \bigskip
 % The following command |\@@_breakable_space:| is for breakable spaces in the
@@ -5058,7 +5089,7 @@ piton_version = "4.6a" -- 2025/06/26
   }
 %    \end{macrocode}
 %
-% 
+%
 % \bigskip
 % Be careful! The name of the following set of keys must be considered as
 % public! Hence, it should \emph{not} be changed.
@@ -5066,6 +5097,11 @@ piton_version = "4.6a" -- 2025/06/26
 %    \begin{macrocode}
 \keys_define:nn { PitonOptions }
   {
+    rounded-corners .code:n = 
+      \IfPackageLoadedTF { tikz }
+        { \dim_set:Nn \l_@@_rounded_corners_dim { #1 } }
+        { \@@_err_rounded_corners_without_Tikz: } ,
+    rounded-corners .default:n = 4 pt ,
     tcolorbox .code:n =
       \IfPackageLoadedTF { tcolorbox }
         {
@@ -5314,6 +5350,15 @@ piton_version = "4.6a" -- 2025/06/26
     all-line-numbers .code:n = 
       \bool_set_true:N \l_@@_line_numbers_bool 
       \bool_set_false:N \l_@@_skip_empty_lines_bool ,
+  }
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_err_rounded_corners_without_Tikz:
+  {
+    \@@_error:n { rounded-corners~without~Tikz }
+    \cs_gset:Npn \@@_err_rounded_corners_without_Tikz: { }
   }
 %    \end{macrocode}
 %
@@ -5673,6 +5718,7 @@ piton_version = "4.6a" -- 2025/06/26
 %    \begin{macrocode}
 \cs_new:Npn \@@_pre_composition:
   {
+    \legacy_if:nT { @inlabel } { \bool_set_true:N \l_@@_in_label_bool }
     \automatichyphenmode = 1
     \int_gincr:N \g_@@_env_int
     \dim_compare:nNnT \l_@@_width_dim = \c_zero_dim
@@ -5684,6 +5730,7 @@ piton_version = "4.6a" -- 2025/06/26
     \bool_if:NF \l_@@_resume_bool { \int_gzero:N \g_@@_visual_line_int }
     \g_@@_def_vertical_commands_tl
     \int_gzero:N \g_@@_line_int
+    \int_gzero:N \g_@@_nb_lines_int
     \dim_zero:N \parindent 
     \dim_zero:N \lineskip 
     \cs_set_eq:NN \label \@@_label:n
@@ -5717,7 +5764,7 @@ piton_version = "4.6a" -- 2025/06/26
               }
               {
                 \int_to_arabic:n 
-                  { \g_@@_visual_line_int + \l_@@_nb_lines_int }  
+                  { \g_@@_visual_line_int + \g_@@_nb_lines_int }  
               }
            }
          \dim_set:Nn \l_@@_left_margin_dim 
@@ -5751,9 +5798,6 @@ piton_version = "4.6a" -- 2025/06/26
 % |width| (except when |max-width| or |width=min| is used), |\l_@@_code_width_dim|
 % is the width of the lines of code without the potential margins for the numbers
 % of lines and the background.
-%
-% The following command will be used only in |\@@_create_output_box:| when
-% |widht=min| is \emph{not} in force before the composition of |\g_@@_output_box|.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_compute_code_width:
   {
@@ -5925,7 +5969,9 @@ piton_version = "4.6a" -- 2025/06/26
 %    \end{macrocode}
 % Now, the main job.
 %    \begin{macrocode}
+            \bool_if:NT \g_@@_footnote_bool \savenotes % added
             \@@_composition:
+            \bool_if:NT \g_@@_footnote_bool \endsavenotes % added 
             #5
           }
           { \ignorespacesafterend }  
@@ -5938,14 +5984,11 @@ piton_version = "4.6a" -- 2025/06/26
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_composition:
   {
-     \str_if_empty:NT \l_@@_box_str
-       {
-         \mode_if_vertical:F
-           {
-             \bool_if:NF \l_@@_in_PitonInputFile_bool
-               { \newline }
-           }
-       }
+    \str_if_empty:NT \l_@@_box_str
+      {
+        \mode_if_vertical:F
+          { \bool_if:NF \l_@@_in_PitonInputFile_bool { \newline } }
+      }
 %    \end{macrocode}
 % The following line is only to compute |\l_@@_lines_int| which will be used
 % only when both |left-margin=auto| and |skip-empty-lines = false| are in force.
@@ -5982,57 +6025,197 @@ piton_version = "4.6a" -- 2025/06/26
 %    \begin{macrocode}
             \bool_if:NTF \l_@@_tcolorbox_bool
               {
-                \bool_if:NT \l_@@_minimize_width_bool 
-                  { \tcbset { text~width = \g_@@_width_dim } }
                 \str_if_empty:NTF \l_@@_box_str
-%    \end{macrocode}
-% Even though we use the key |breakable| of |{tcolorbox}|, our environment will be
-% breakable only when the key |splittable| of \pkg{piton} is used.
-%    \begin{macrocode}
-                  {
-                    \begin { tcolorbox } [ breakable ]
-                    \par
-                    \vbox_unpack:N \g_@@_output_box
-                    \end { tcolorbox }
-                  }
-                  {
-                    \use:e
-                      {
-                        \begin { tcolorbox }
-                          [
-                            hbox ,
-                            nobeforeafter ,
-                            box~align =
-                              \str_case:Nn \l_@@_box_str 
-                                { 
-                                  t { top }
-                                  b { bottom }
-                                  c { center }
-                                  m { center }
-                                }
-                          ]
-                      }                                              
-                    \box_use:N \g_@@_output_box
-                    \end { tcolorbox }
-                  }
+                  { \@@_composition_iii: }
+                  { \@@_composition_iv: }
               }
               {
                 \str_if_empty:NTF \l_@@_box_str
-                  { \vbox_unpack:N \g_@@_output_box }
-                  {
-%    \end{macrocode}
-% It will be possible to delete the |\exp_not:N| in TeXLive 2025
-% because |\begin| is now protected by |\protected| (and not by |\protect|).
-%    \begin{macrocode}
-                    \use:e { \exp_not:N \begin { minipage } [ \l_@@_box_str ] }
-                      { \g_@@_width_dim }
-                    \vbox_unpack:N \g_@@_output_box
-                    \end { minipage }
-                  }
+                  { \@@_composition_i: }
+                  { \@@_composition_ii: }
               }
          }
       }
       { \@@_gobble_parse_no_print:o \l_@@_listing_tl }
+  }
+%    \end{macrocode}
+%
+% \bigskip
+% |\@@_composition_i:| is for the main case: the key |tcolorbox| is not used, nor
+% the key |box|.
+%
+% We can't do a mere |\vbox_unpack:N \g_@@_output_box| because that would not work
+% inside a list of LaTeX (|{itemize}| or |{enumerate}|).
+%
+% The composition in the box |\g_@@_output_box| was mandatory to be able to deal
+% with the case of a conjunction of the keys |width=min| and |background-color=...|.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_composition_i:
+  { 
+%    \end{macrocode}
+% First, we ``reverse'' the box |\g_@@_output_box|: we put in the box
+% |\g_tmpa_box| the boxes present in |\g_@@_output_box|, but in reversed order.
+% The vertical spaces and the penalties are discarded.
+%    \begin{macrocode}
+    \box_clear:N \g_tmpa_box
+%    \end{macrocode}
+% The box |\g_@@_line_box| will be used as an auxiliary box.
+%    \begin{macrocode}
+    \box_clear_new:N \g_@@_line_box
+%    \end{macrocode}
+% We unpack |\g_@@_output_box| in |\l_tmpa_box| used as a scratched box.
+%    \begin{macrocode}
+    \vbox_set:Nn \l_tmpa_box 
+      {
+        \vbox_unpack_drop:N \g_@@_output_box
+        \bool_gset_false:N \g_tmpa_bool
+        \unskip \unskip
+        \bool_gset_false:N \g_tmpa_bool
+        \bool_do_until:nn \g_tmpa_bool
+          {
+            \unskip \unskip \unskip
+            \unpenalty \unkern
+            \box_set_to_last:N \l_@@_line_box
+            \box_if_empty:NTF \l_@@_line_box
+              { \bool_gset_true:N \g_tmpa_bool }
+              {
+                \vbox_gset:Nn \g_tmpa_box
+                  {
+                    \vbox_unpack:N \g_tmpa_box
+                    \box_use:N \l_@@_line_box
+                  }
+              }
+          }
+      }
+%    \end{macrocode}
+% Now, we will loop over the boxes in |\g_tmpa_box| and compose the
+% boxes in the TeX flow.
+%    \begin{macrocode}
+    \bool_gset_false:N \g_tmpa_bool
+    \int_zero:N \g_@@_line_int
+    \bool_do_until:nn \g_tmpa_bool
+      {
+%    \end{macrocode}
+% We retrieve the last box of |\g_tmpa_box| (and store it in |\g_@@_line_box|)
+% and keep the other boxes in |\g_tmpa_box|.
+%    \begin{macrocode}
+        \vbox_gset:Nn \g_tmpa_box
+          {
+            \vbox_unpack_drop:N \g_tmpa_box
+            \box_gset_to_last:N \g_@@_line_box
+          }
+%    \end{macrocode}
+% If the box that we have retrieved is void, that means that, in fact, there is no
+% longer boxes in |\g_tmpa_bool| and we will exit the loop.
+%    \begin{macrocode}
+        \box_if_empty:NTF \g_@@_line_box
+          { \bool_gset_true:N \g_tmpa_bool }
+          {
+            \box_use:N \g_@@_line_box
+            \int_gincr:N \g_@@_line_int
+            \par
+            \kern -2.5 pt
+%    \end{macrocode}
+% We will determine the penalty by reading the Lua table |piton.lines_status|. That
+% will use the current value of |\g_@@_line_int|.
+%    \begin{macrocode}
+            \@@_add_penalty_for_the_line:
+%    \end{macrocode}
+% We now add the instructions corresponding to the \emph{vertical detected commands}
+% that are potentially used in the corresponding line of the listing.
+%    \begin{macrocode}
+            \cs_if_exist_use:cT { g_@@_after_line _ \int_use:N \g_@@_line_int _ tl }
+              { \cs_undefine:c { g_@@_after_line _ \int_use:N \g_@@_line_int _ tl } }
+            \mode_leave_vertical: 
+          }
+      }
+  }      
+%    \end{macrocode}
+%
+% \bigskip
+% |\@@_composition_ii:| will be used when the key |box| is in force.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_composition_ii:
+  {
+%    \end{macrocode}
+% It will be possible to delete the |\exp_not:N| in TeXLive 2025
+% because |\begin| is now protected by |\protected| (and not by |\protect|).
+%    \begin{macrocode}
+    \use:e { \exp_not:N \begin { minipage } [ \l_@@_box_str ] }
+      { \g_@@_width_dim }
+    \vbox_unpack:N \g_@@_output_box
+    \end { minipage }
+  }
+%    \end{macrocode}  
+%
+% \bigskip
+% |\@@_composition_iii:| will be used when the key |tcolorbox| is in force.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_composition_iii:
+  {
+    \bool_if:NT \l_@@_minimize_width_bool 
+      { \tcbset { text~width = \g_@@_width_dim } }
+%    \end{macrocode}    
+% Even though we use the key |breakable| of |{tcolorbox}|, our environment will be
+% breakable only when the key |splittable| of \pkg{piton} is used.
+%    \begin{macrocode}
+    \begin { tcolorbox } [ breakable ]
+    \par
+    \vbox_unpack:N \g_@@_output_box
+    \end { tcolorbox }
+  }
+%    \end{macrocode}
+%
+% \bigskip
+% |\@@_composition_iv:| will be used when both keys |tcolorbox| and |box| are in force.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_composition_iv:
+  {
+    \bool_if:NT \l_@@_minimize_width_bool 
+      { \tcbset { text~width = \g_@@_width_dim } }
+    \use:e
+      {
+        \begin { tcolorbox }
+          [
+            hbox ,
+            nobeforeafter ,
+            box~align =
+              \str_case:Nn \l_@@_box_str 
+                { 
+                  t { top }
+                  b { bottom }
+                  c { center }
+                  m { center }
+                }
+          ]
+      }                                              
+    \box_use:N \g_@@_output_box
+    \end { tcolorbox }
+  }                    
+%    \end{macrocode}
+% 
+%
+% \bigskip
+% The following function will add the correct vertical penalty after
+% a line of code in order to control the breaks of the pages.  We use the Lua table
+% |piton.lines_status| which has been written by |piton.ComputeLinesStatus| for
+% this aim. Each line has a ``status`` (equal to 0, 1 or 2) and that status
+% directly says whether a break is allowed.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_add_penalty_for_the_line:
+  {
+    \int_case:nn
+      { 
+        \lua_now:e 
+          { 
+            tex.sprint
+              ( 
+                luatexbase.catcodetables.expl ,
+                tostring ( piton.lines_status [ \int_use:N \g_@@_line_int ] ) 
+              ) 
+          } 
+      }
+      { 1 { \penalty 100 } 2 \nobreak }
   }
 %    \end{macrocode}
 %
@@ -6044,28 +6227,19 @@ piton_version = "4.6a" -- 2025/06/26
     \dim_gset_eq:NN \g_@@_width_dim \l_@@_width_dim
     \vbox_gset:Nn \g_@@_output_box
       { \@@_retrieve_gobble_parse:o \l_@@_listing_tl }
-    \bool_if:NT \l_@@_minimize_width_bool
-      {
-        \@@_compute_width: 
-        \clist_if_empty:NF \l_@@_bg_color_clist
-          { \@@_add_backgrounds_to_output_box: }
-      }
+    \bool_if:NT \l_@@_minimize_width_bool { \@@_compute_width: }
+    \clist_if_empty:NF \l_@@_bg_color_clist { \@@_add_backgrounds_to_output_box: }
   }
 %    \end{macrocode}
 %
 %
 % \bigskip
-% Usually, we add the backgrounds under each line when the line is composed
-% in |\@@_begin_line:|. However, it's not possible when the width
-% of the environment must be minimized. In that case, we add the backgrounds after the
-% composition of the box |\g_@@_output_box| by a loop over the lines in that box.
-%
-% However, in fact, we could drop the first technic and always use that one for
-% the backgrounds (but it would be a bit slower...).
+% We add the backgrounds after the composition of the box |\g_@@_output_box| by a
+% loop over the lines in that box.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_add_backgrounds_to_output_box:
   {
-    \int_gzero:N \g_@@_line_int
+    \int_gset_eq:NN \g_@@_line_int \g_@@_nb_lines_int
 %    \end{macrocode}
 % |\l_tmpa_box| is only used to \emph{unpack} the vertical box |\g_@@_output_box|.
 %    \begin{macrocode}
@@ -6095,12 +6269,14 @@ piton_version = "4.6a" -- 2025/06/26
             \box_if_empty:NTF \l_@@_line_box
               { \bool_gset_true:N \g_tmpa_bool }
               {
+%    \end{macrocode}
+% |\g_@@_line_int| will be used in |\@@_add_background_to_line_and_use:|.
+%    \begin{macrocode}
                 \vbox_gset:Nn \g_@@_output_box
                   {
 %    \end{macrocode}
 % The command |\@@_add_background_to_line_and_use:| will add a background to
 % the line (in |\l_@@_line_box|) but will also put the line in the current box.
-% background. 
 %    \begin{macrocode}
                     \@@_add_background_to_line_and_use:
                     \kern -2.5 pt 
@@ -6108,7 +6284,7 @@ piton_version = "4.6a" -- 2025/06/26
                     \vbox_unpack:N \g_@@_output_box
                   }
               }
-            \int_gincr:N \g_@@_line_int
+            \int_gdecr:N \g_@@_line_int
           }
       }
   }      
@@ -6309,7 +6485,7 @@ piton_version = "4.6a" -- 2025/06/26
         { \int_gzero:N \g_@@_visual_line_int }
 %    \end{macrocode}
 % We count with Lua the number of lines of the argument. The result will be
-% stored by Lua in |\l_@@_nb_lines_int|. 
+% stored by Lua in |\g_@@_nb_lines_int|. 
 %    \begin{macrocode}
       \lua_now:e { piton.CountLinesFile ( '\l_@@_file_name_str' ) } 
 %    \end{macrocode}
@@ -6866,8 +7042,19 @@ piton_version = "4.6a" -- 2025/06/26
 % 
 % \bigskip
 % \subsubsection{The error messages of the package}
-% 
 %
+%
+%    \begin{macrocode}
+\@@_msg_new:nn { rounded-corners~without~Tikz }
+  {
+    TikZ~not~used \\
+    You~can't~use~the~key~'rounded-corners'~because~
+    you~have~not~loaded~the~package~TikZ. \\
+    If~you~go~on,~that~key~will~be~ignored. \\
+    You~won't~have~similar~error~till~the~end~of~the~document.
+  }
+%    \end{macrocode}
+% 
 %    \begin{macrocode}
 \@@_msg_new:nn { tcolorbox~not~loaded }
   {
@@ -7114,6 +7301,7 @@ piton_version = "4.6a" -- 2025/06/26
     prompt-background-color,~
     raw-detected-commands,~
     resume,~
+    rounded-corners,~
     show-spaces,~
     show-spaces-in-strings,~
     splittable,~
@@ -7837,7 +8025,7 @@ local EOL =
                   + 
                     beamerBeginEnvironments 
                   * PromptHastyDetection
-                  * Lc [[ \@@_newline:\@@_begin_line: ]]
+                  * Lc [[ \@@_par:\@@_begin_line: ]]
                   * Prompt
                 )
             )
@@ -10053,13 +10241,11 @@ function piton.GobbleParse ( lang , n , splittable , code )
   piton.last_language = lang
 %    \end{macrocode}
 % We count the number of lines of the informatic code. The result will be stored
-% by Lua in |\l_@@_nb_lines_int|. 
+% by Lua in |\g_@@_nb_lines_int|. 
 %    \begin{macrocode}
   piton.CountLines ( piton.last_code ) 
-  sprintL3 [[ \bool_if:NT \g_@@_footnote_bool { \savenotes } ]] 
   piton.Parse ( lang , piton.last_code )
   sprintL3 [[ \vspace{2.5pt} ]]
-  sprintL3 [[ \bool_if:NT \g_@@_footnote_bool { \endsavenotes } ]]
 %    \end{macrocode}
 % We finish the paragraph (each line of the listing is composed in a TeX box
 % --- with potentially several lines when |break-lines-in-Piton| is in force ---
@@ -10240,7 +10426,7 @@ function piton.CountLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  sprintL3 ( string.format ( [[ \int_set:Nn \l_@@_nb_lines_int { %i } ]] , count ) ) 
+  sprintL3 ( string.format ( [[ \int_gset:Nn \g_@@_nb_lines_int { %i } ]] , count ) ) 
 end 
 %    \end{macrocode}
 %
@@ -10270,7 +10456,7 @@ function piton.CountLinesFile ( name )
   local count = 0 
   for line in io.lines ( name ) do count = count + 1 end
   sprintL3 
-   ( string.format ( [[ \int_set:Nn \l_@@_nb_lines_int { %i } ]], count ) )
+   ( string.format ( [[ \int_gset:Nn \g_@@_nb_lines_int { %i } ]], count ) )
 end 
 %    \end{macrocode}
 %
@@ -11110,6 +11296,10 @@ end
 %
 % \verb|https://github.com/fpantigny/piton|
 %
+% \subsection*{Changes between versions 4.6 and 4.7}
+%
+% New key |rounded-corners|
+%
 % \subsection*{Changes between versions 4.5 and 4.6}
 %
 % New keys |tcolorbox|, |box|, |max-width| and |vertical-detected-commands|
@@ -11239,4 +11429,3 @@ end
 % Local Variables:
 % fill-column: 80
 % End:
-

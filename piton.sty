@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.6a}
-\def\PitonFileDate{2025/06/26}
+\def\PitonFileVersion{4.7}
+\def\PitonFileDate{2025/07/09}
 
 
 
@@ -180,6 +180,9 @@
         \bool_gset_true:N \g__piton_footnote_bool
       }
   }
+\dim_new:N \l__piton_rounded_corners_dim
+\bool_new:N \l__piton_in_label_bool
+\dim_new:N \l__piton_tmpc_dim
 \tl_new:N \l__piton_listing_tl
 \box_new:N \g__piton_output_box
 \box_new:N \l__piton_line_box
@@ -194,7 +197,7 @@
 \bool_new:N \l__piton_in_PitonInputFile_bool
 \tl_new:N \l__piton_font_command_tl
 \tl_set:Nn \l__piton_font_command_tl { \ttfamily }
-\int_new:N \l__piton_nb_lines_int
+\int_new:N \g__piton_nb_lines_int
 \int_new:N \l__piton_nb_non_empty_lines_int
 \int_new:N \g__piton_line_int
 \int_new:N \l__piton_splittable_int
@@ -273,11 +276,11 @@
   }
 \cs_new:Npn \__piton_marker_beginning:n #1 { }
 \cs_new:Npn \__piton_marker_end:n #1 { }
-\tl_new:N \g__piton_begin_line_hook_tl
-\tl_new:N \g__piton_after_line_hook_tl
+\tl_new:N \g__piton_before_line_tl
+\tl_new:N \g__piton_after_line_tl
 \cs_new_protected:Npn \__piton_prompt:
   {
-    \tl_gset:Nn \g__piton_begin_line_hook_tl
+    \tl_gset:Nn \g__piton_before_line_tl
       {
         \tl_if_empty:NF \l__piton_prompt_bg_color_tl
           { \clist_set:No \l__piton_bg_color_clist { \l__piton_prompt_bg_color_tl } }
@@ -314,8 +317,19 @@
         \cs_set_eq:cc { __piton _ old _ ##1 : } { ##1 }
         \cs_new_protected:cn { __piton _ new _ ##1 : n }
           {
-            \tl_gput_right:Nn \g__piton_after_line_hook_tl
-              { \use:c { __piton _old _ ##1 : } { ####1 } }
+            \bool_if:nTF
+              { \l__piton_tcolorbox_bool || ! \str_if_empty_p:N \l__piton_box_str }
+              {
+                \tl_gput_right:Nn \g__piton_after_line_tl
+                  { \use:c { __piton _old _ ##1 : } { ####1 } }
+              }
+              {
+                \cs_if_exist:cTF { g__piton_after_line _ \int_use:N \g__piton_line_int _ tl }
+                  { \tl_gput_right:cn }
+                  { \tl_gset:cn }
+                  { g__piton_after_line _ \int_eval:n { \g__piton_line_int + 1 } _ tl }
+                  { \use:c { __piton _old _ ##1 : } { ####1 } }
+              }
           }
         \tl_gput_right:Nn \g__piton_def_vertical_commands_tl
           { \cs_set_eq:cc { ##1 } { __piton _ new _ ##1 : n } }
@@ -347,7 +361,7 @@
 \cs_set_protected:Npn \__piton_begin_line: #1 \__piton_end_line:
   {
     \group_begin:
-    \g__piton_begin_line_hook_tl
+    \g__piton_before_line_tl
     \int_gzero:N \g__piton_indentation_int
     \hbox_set:Nn \l__piton_line_box
       {
@@ -375,7 +389,7 @@
             \bool_lazy_or:nnT
               { \int_compare_p:nNn \l_tmpa_int = \c_one_int }
               { ! \l__piton_skip_empty_lines_bool && \l__piton_label_empty_lines_bool }
-              \__piton_print_number:
+              { \__piton_print_number: }
           }
         \clist_if_empty:NF \l__piton_bg_color_clist
           {
@@ -384,7 +398,7 @@
           }
         \bool_if:NTF \l__piton_minimize_width_bool
           {
-            \hbox_set:Nn \l__piton_line_box
+            \hbox_set:Nn \l_tmpa_box
               {
                 \language = -1
                 \raggedright
@@ -392,48 +406,32 @@
                 \__piton_replace_spaces:n { #1 }
                 \strut \hfil
               }
-             \dim_compare:nNnTF
-               { \box_wd:N \l__piton_line_box } < \l__piton_code_width_dim
-               { \box_use:N \l__piton_line_box }
-               {
-                 \vtop
-                   {
-                     \hsize = \l__piton_code_width_dim
-                     \language = -1
-                     \raggedright
-                     \strut
-                     \__piton_replace_spaces:n { #1 }
-                     \strut \hfil
-                   }
-               }
+             \dim_compare:nNnTF { \box_wd:N \l_tmpa_box } < \l__piton_code_width_dim
+               { \box_use:N \l_tmpa_box }
+               { \__piton_vtop_of_code:n { #1 } }
           }
-          {
-            \bool_if:NTF \l__piton_minimize_width_bool
-              { \hbox }
-              { \vtop }
-              {
-                \bool_if:NF \l__piton_minimize_width_bool
-                  { \hsize = \l__piton_code_width_dim }
-                \language = -1
-                \raggedright
-                \strut
-                \__piton_replace_spaces:n { #1 }
-                \strut \hfil
-              }
-          }
+          { \__piton_vtop_of_code:n { #1 } }
       }
     \box_set_dp:Nn \l__piton_line_box { \box_dp:N \l__piton_line_box + 1.25 pt }
     \box_set_ht:Nn \l__piton_line_box { \box_ht:N \l__piton_line_box + 1.25 pt }
     \dim_gset_eq:NN \g__piton_width_dim \l__piton_width_dim
-    \bool_lazy_or:nnTF
-      { \clist_if_empty_p:N \l__piton_bg_color_clist }
-      { \l__piton_minimize_width_bool }
-      { \box_use_drop:N \l__piton_line_box }
-      { \__piton_add_background_to_line_and_use: }
+    \box_use_drop:N \l__piton_line_box
     \group_end:
-    \g__piton_after_line_hook_tl
-    \tl_gclear:N \g__piton_after_line_hook_tl
-    \tl_gclear:N \g__piton_begin_line_hook_tl
+    \g__piton_after_line_tl
+    \tl_gclear:N \g__piton_after_line_tl
+    \tl_gclear:N \g__piton_before_line_tl
+  }
+\cs_new_protected:Npn \__piton_vtop_of_code:n #1
+  {
+    \vbox_top:n
+      {
+        \hsize = \l__piton_code_width_dim
+        \language = -1
+        \raggedright
+        \strut
+        \__piton_replace_spaces:n { #1 }
+        \strut \hfil
+      }
   }
 \cs_new_protected:Npn \__piton_add_background_to_line_and_use:
   {
@@ -449,9 +447,45 @@
             \bool_if:NTF \g__piton_color_is_none_bool
               { \dim_zero:N \l_tmpb_dim }
               { \dim_set_eq:NN \l_tmpb_dim \g__piton_width_dim }
-            \vrule height \box_ht:N \l__piton_line_box
-                   depth \l_tmpa_dim
-                   width \l_tmpb_dim
+            \dim_set:Nn \l__piton_tmpc_dim { \box_ht:N \l__piton_line_box }
+            \dim_compare:nNnTF \l__piton_rounded_corners_dim > \c_zero_dim
+              {
+                \int_compare:nNnTF \g__piton_line_int = \c_one_int
+                  {
+                    \begin{tikzpicture}[baseline = 0cm]
+                    \fill (0,0)
+                          [rounded~corners = \l__piton_rounded_corners_dim]
+                          -- (0,\l__piton_tmpc_dim)
+                          -- (\l_tmpb_dim,\l__piton_tmpc_dim)
+                          [sharp~corners] -- (\l_tmpb_dim,-\l_tmpa_dim)
+                          -- (0,-\l_tmpa_dim)
+                          -- cycle ;
+                    \end{tikzpicture}
+                  }
+                  {
+                    \int_compare:nNnTF \g__piton_line_int = \g__piton_nb_lines_int
+                      {
+                        \begin{tikzpicture}[baseline = 0cm]
+                        \fill (0,0) -- (0,\l__piton_tmpc_dim)
+                              -- (\l_tmpb_dim,\l__piton_tmpc_dim)
+                              [rounded~corners = \l__piton_rounded_corners_dim]
+                              -- (\l_tmpb_dim,-\l_tmpa_dim)
+                              -- (0,-\l_tmpa_dim)
+                              -- cycle ;
+                        \end{tikzpicture}
+                      }
+                      {
+                        \vrule height \l__piton_tmpc_dim
+                        depth \l_tmpa_dim
+                        width \l_tmpb_dim
+                      }
+                  }
+              }
+              {
+                \vrule height \l__piton_tmpc_dim
+                depth \l_tmpa_dim
+                width \l_tmpb_dim
+              }
           }
         \bool_if:NT \g__piton_next_color_is_none_bool
           { \skip_vertical:n { 2.5 pt } }
@@ -470,7 +504,7 @@
         \bool_gset_false:N \g__piton_color_is_none_bool
         \__piton_color_i:o \l_tmpa_tl
       }
-    \int_compare:nNnTF { \g__piton_line_int + 1 } = \l__piton_nb_lines_int
+    \int_compare:nNnTF { \g__piton_line_int + 1 } = \g__piton_nb_lines_int
       { \bool_gset_false:N \g__piton_next_color_is_none_bool }
       {
         \int_set:Nn \l_tmpb_int
@@ -492,25 +526,12 @@
       { \color { #1 } }
   }
 \cs_generate_variant:Nn \__piton_color_i:n { o }
-\cs_new_protected:Npn \__piton_newline:
+\cs_new_protected:Npn \__piton_par:
   {
-    \bool_if:NT \g__piton_footnote_bool \endsavenotes
     \int_gincr:N \g__piton_line_int
     \par
     \kern -2.5 pt
-    \int_case:nn
-      {
-        \lua_now:e
-          {
-            tex.sprint
-              (
-                luatexbase.catcodetables.expl ,
-                tostring ( piton.lines_status [ \int_use:N \g__piton_line_int ] )
-              )
-          }
-      }
-      { 1 { \penalty 100 } 2 \nobreak } % hfill added
-   \bool_if:NT \g__piton_footnote_bool \savenotes
+    \__piton_add_penalty_for_the_line:
   }
 \cs_set_protected:Npn \__piton_breakable_space:
   {
@@ -614,6 +635,11 @@
   }
 \keys_define:nn { PitonOptions }
   {
+    rounded-corners .code:n =
+      \IfPackageLoadedTF { tikz }
+        { \dim_set:Nn \l__piton_rounded_corners_dim { #1 } }
+        { \__piton_err_rounded_corners_without_Tikz: } ,
+    rounded-corners .default:n = 4 pt ,
     tcolorbox .code:n =
       \IfPackageLoadedTF { tcolorbox }
         {
@@ -831,6 +857,11 @@
       \bool_set_true:N \l__piton_line_numbers_bool
       \bool_set_false:N \l__piton_skip_empty_lines_bool ,
   }
+\cs_new_protected:Npn \__piton_err_rounded_corners_without_Tikz:
+  {
+    \__piton_error:n { rounded-corners~without~Tikz }
+    \cs_gset:Npn \__piton_err_rounded_corners_without_Tikz: { }
+  }
 \cs_new_protected:Npn \__piton_in_PitonInputFile:n #1
   {
     \bool_if:NTF \l__piton_in_PitonInputFile_bool
@@ -1000,6 +1031,7 @@
   }
 \cs_new:Npn \__piton_pre_composition:
   {
+    \legacy_if:nT { @inlabel } { \bool_set_true:N \l__piton_in_label_bool }
     \automatichyphenmode = 1
     \int_gincr:N \g__piton_env_int
     \dim_compare:nNnT \l__piton_width_dim = \c_zero_dim
@@ -1011,6 +1043,7 @@
     \bool_if:NF \l__piton_resume_bool { \int_gzero:N \g__piton_visual_line_int }
     \g__piton_def_vertical_commands_tl
     \int_gzero:N \g__piton_line_int
+    \int_gzero:N \g__piton_nb_lines_int
     \dim_zero:N \parindent
     \dim_zero:N \lineskip
     \cs_set_eq:NN \label \__piton_label:n
@@ -1034,7 +1067,7 @@
               }
               {
                 \int_to_arabic:n
-                  { \g__piton_visual_line_int + \l__piton_nb_lines_int }
+                  { \g__piton_visual_line_int + \g__piton_nb_lines_int }
               }
            }
          \dim_set:Nn \l__piton_left_margin_dim
@@ -1128,7 +1161,9 @@
                 \int_gset:Nn \g__piton_visual_line_int
                   { \l__piton_number_lines_start_int - 1 }
               }
+            \bool_if:NT \g__piton_footnote_bool \savenotes % added
             \__piton_composition:
+            \bool_if:NT \g__piton_footnote_bool \endsavenotes % added
             #5
           }
           { \ignorespacesafterend }
@@ -1137,14 +1172,11 @@
   { }
 \cs_new_protected:Npn \__piton_composition:
   {
-     \str_if_empty:NT \l__piton_box_str
-       {
-         \mode_if_vertical:F
-           {
-             \bool_if:NF \l__piton_in_PitonInputFile_bool
-               { \newline }
-           }
-       }
+    \str_if_empty:NT \l__piton_box_str
+      {
+        \mode_if_vertical:F
+          { \bool_if:NF \l__piton_in_PitonInputFile_bool { \newline } }
+      }
     \lua_now:e { piton.CountLines ( '\lua_escape:n{\l__piton_listing_tl}' ) }
     \__piton_compute_left_margin:no { CountNonEmptyLines } { \l__piton_listing_tl }
     \lua_now:e
@@ -1162,49 +1194,121 @@
             \__piton_create_output_box:
             \bool_if:NTF \l__piton_tcolorbox_bool
               {
-                \bool_if:NT \l__piton_minimize_width_bool
-                  { \tcbset { text~width = \g__piton_width_dim } }
                 \str_if_empty:NTF \l__piton_box_str
-                  {
-                    \begin { tcolorbox } [ breakable ]
-                    \par
-                    \vbox_unpack:N \g__piton_output_box
-                    \end { tcolorbox }
-                  }
-                  {
-                    \use:e
-                      {
-                        \begin { tcolorbox }
-                          [
-                            hbox ,
-                            nobeforeafter ,
-                            box~align =
-                              \str_case:Nn \l__piton_box_str
-                                {
-                                  t { top }
-                                  b { bottom }
-                                  c { center }
-                                  m { center }
-                                }
-                          ]
-                      }
-                    \box_use:N \g__piton_output_box
-                    \end { tcolorbox }
-                  }
+                  { \__piton_composition_iii: }
+                  { \__piton_composition_iv: }
               }
               {
                 \str_if_empty:NTF \l__piton_box_str
-                  { \vbox_unpack:N \g__piton_output_box }
-                  {
-                    \use:e { \exp_not:N \begin { minipage } [ \l__piton_box_str ] }
-                      { \g__piton_width_dim }
-                    \vbox_unpack:N \g__piton_output_box
-                    \end { minipage }
-                  }
+                  { \__piton_composition_i: }
+                  { \__piton_composition_ii: }
               }
          }
       }
       { \__piton_gobble_parse_no_print:o \l__piton_listing_tl }
+  }
+\cs_new_protected:Npn \__piton_composition_i:
+  {
+    \box_clear:N \g_tmpa_box
+    \box_clear_new:N \g__piton_line_box
+    \vbox_set:Nn \l_tmpa_box
+      {
+        \vbox_unpack_drop:N \g__piton_output_box
+        \bool_gset_false:N \g_tmpa_bool
+        \unskip \unskip
+        \bool_gset_false:N \g_tmpa_bool
+        \bool_do_until:nn \g_tmpa_bool
+          {
+            \unskip \unskip \unskip
+            \unpenalty \unkern
+            \box_set_to_last:N \l__piton_line_box
+            \box_if_empty:NTF \l__piton_line_box
+              { \bool_gset_true:N \g_tmpa_bool }
+              {
+                \vbox_gset:Nn \g_tmpa_box
+                  {
+                    \vbox_unpack:N \g_tmpa_box
+                    \box_use:N \l__piton_line_box
+                  }
+              }
+          }
+      }
+    \bool_gset_false:N \g_tmpa_bool
+    \int_zero:N \g__piton_line_int
+    \bool_do_until:nn \g_tmpa_bool
+      {
+        \vbox_gset:Nn \g_tmpa_box
+          {
+            \vbox_unpack_drop:N \g_tmpa_box
+            \box_gset_to_last:N \g__piton_line_box
+          }
+        \box_if_empty:NTF \g__piton_line_box
+          { \bool_gset_true:N \g_tmpa_bool }
+          {
+            \box_use:N \g__piton_line_box
+            \int_gincr:N \g__piton_line_int
+            \par
+            \kern -2.5 pt
+            \__piton_add_penalty_for_the_line:
+            \cs_if_exist_use:cT { g__piton_after_line _ \int_use:N \g__piton_line_int _ tl }
+              { \cs_undefine:c { g__piton_after_line _ \int_use:N \g__piton_line_int _ tl } }
+            \mode_leave_vertical:
+          }
+      }
+  }
+\cs_new_protected:Npn \__piton_composition_ii:
+  {
+    \use:e { \exp_not:N \begin { minipage } [ \l__piton_box_str ] }
+      { \g__piton_width_dim }
+    \vbox_unpack:N \g__piton_output_box
+    \end { minipage }
+  }
+\cs_new_protected:Npn \__piton_composition_iii:
+  {
+    \bool_if:NT \l__piton_minimize_width_bool
+      { \tcbset { text~width = \g__piton_width_dim } }
+    \begin { tcolorbox } [ breakable ]
+    \par
+    \vbox_unpack:N \g__piton_output_box
+    \end { tcolorbox }
+  }
+\cs_new_protected:Npn \__piton_composition_iv:
+  {
+    \bool_if:NT \l__piton_minimize_width_bool
+      { \tcbset { text~width = \g__piton_width_dim } }
+    \use:e
+      {
+        \begin { tcolorbox }
+          [
+            hbox ,
+            nobeforeafter ,
+            box~align =
+              \str_case:Nn \l__piton_box_str
+                {
+                  t { top }
+                  b { bottom }
+                  c { center }
+                  m { center }
+                }
+          ]
+      }
+    \box_use:N \g__piton_output_box
+    \end { tcolorbox }
+  }
+\cs_new_protected:Npn \__piton_add_penalty_for_the_line:
+  {
+    \int_case:nn
+      {
+        \lua_now:e
+          {
+            tex.sprint
+              (
+                luatexbase.catcodetables.expl ,
+                tostring ( piton.lines_status [ \int_use:N \g__piton_line_int ] )
+              )
+          }
+      }
+      { 1 { \penalty 100 } 2 \nobreak }
   }
 \cs_new_protected:Npn \__piton_create_output_box:
   {
@@ -1212,16 +1316,12 @@
     \dim_gset_eq:NN \g__piton_width_dim \l__piton_width_dim
     \vbox_gset:Nn \g__piton_output_box
       { \__piton_retrieve_gobble_parse:o \l__piton_listing_tl }
-    \bool_if:NT \l__piton_minimize_width_bool
-      {
-        \__piton_compute_width:
-        \clist_if_empty:NF \l__piton_bg_color_clist
-          { \__piton_add_backgrounds_to_output_box: }
-      }
+    \bool_if:NT \l__piton_minimize_width_bool { \__piton_compute_width: }
+    \clist_if_empty:NF \l__piton_bg_color_clist { \__piton_add_backgrounds_to_output_box: }
   }
 \cs_new_protected:Npn \__piton_add_backgrounds_to_output_box:
   {
-    \int_gzero:N \g__piton_line_int
+    \int_gset_eq:NN \g__piton_line_int \g__piton_nb_lines_int
     \vbox_set:Nn \l_tmpa_box
       {
         \vbox_unpack_drop:N \g__piton_output_box
@@ -1244,7 +1344,7 @@
                     \vbox_unpack:N \g__piton_output_box
                   }
               }
-            \int_gincr:N \g__piton_line_int
+            \int_gdecr:N \g__piton_line_int
           }
       }
   }
@@ -1727,6 +1827,14 @@
     \token_to_str:N \piton\ but~there~is~no~environment~
     {piton}.~This~error~is~fatal.
   }
+\__piton_msg_new:nn { rounded-corners~without~Tikz }
+  {
+    TikZ~not~used \\
+    You~can't~use~the~key~'rounded-corners'~because~
+    you~have~not~loaded~the~package~TikZ. \\
+    If~you~go~on,~that~key~will~be~ignored. \\
+    You~won't~have~similar~error~till~the~end~of~the~document.
+  }
 \__piton_msg_new:nn { tcolorbox~not~loaded }
   {
     tcolorbox~not~loaded \\
@@ -1908,6 +2016,7 @@
     prompt-background-color,~
     raw-detected-commands,~
     resume,~
+    rounded-corners,~
     show-spaces,~
     show-spaces-in-strings,~
     splittable,~
@@ -1948,7 +2057,6 @@
                      [[\__piton_test_version:n {]] .. piton_version ..  "}" )
       }
   }
-
 \endinput
 %%
 %% End of file `piton.sty'.
