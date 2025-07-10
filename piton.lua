@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.7" -- 2025/07/09
+piton_version = "4.7x" -- 2025/07/10
 
 
 
@@ -1050,6 +1050,9 @@ do
     * # P "("
   local DefClass =
     K ( 'Keyword' , "class" ) * Space * K ( 'Name.Class' , identifier )
+  local Character =
+    K ( 'String.Short' ,
+        P [['\'']] + P "'" * ( 1 - P "'" ) ^ 0 * P "'" )
   String =
     WithStyle ( 'String.Long.Internal' ,
         Q "\""
@@ -1094,6 +1097,7 @@ do
        + Comment + LongComment
        + Delim
        + Operator
+       + Character
        + String
        + Punct
        + DefFunction

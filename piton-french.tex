@@ -428,18 +428,14 @@ L'écriture du fichier ne se fait en fait qu'à la fin de la compilation avec Lu
 \item \index{path-write} La clé \Definition{path-write} indique un chemin où
 seront écrits les fichiers écrits par l'emploi de la clé |write| précédente.
 
-\item \index{join (clé)} \colorbox{yellow!50}{\textbf{Nouveau 4.4}}
-
-\nobreak
+\item \index{join (clé)} 
 La clé \Definition{join} est similaire à la clé |write| mais les fichiers créés sont
 \emph{joints} (comme «pièces jointes») dans le \textsc{pdf}. Attention :
 certains lecteurs de \textsc{pdf} ne proposent pas d'outil permettant d'accéder à
 ces fichiers joints. Parmi les lecteurs qui le proposent, on peut citer le
 logiciel gratuit Foxit PDF Reader, disponible sur toutes les plateformes.
 
-\item \index{print (clé)} \colorbox{yellow!50}{\textbf{Nouveau 4.5}}
-
-\nobreak
+\item \index{print (clé)}
 La clé \Definition{print} contrôle l'affichage effectif du contenu des
 environnements |{Piton}| dans le \textsc{pdf}. Bien entendu, la valeur initiale de cette
 clé est |true|. Néanmoins, dans certains circonstances, il peut être utile
@@ -881,13 +877,9 @@ Cette commande a la même syntaxe que la commande classique
   (bien entendu).}
 
 \medskip
-\colorbox{yellow!50}{\textbf{Nouveau 4.5}}
-
-\nobreak
-\smallskip
-La version 4.5 définit aussi les commandes \DefinitionCommand{RenewPitonEnvironment},
-\DefinitionCommand{DeclarePitonEnvironment}  et \DefinitionCommand{ProvidePitonEnvironment}
-(similaires aux commandes correspondantes de L3).
+Il existe aussi les commandes \DefinitionCommand{RenewPitonEnvironment},
+\DefinitionCommand{DeclarePitonEnvironment}  et \DefinitionCommand{ProvidePitonEnvironment},
+similaires aux commandes correspondantes de L3.
 
 
 \bigskip
@@ -901,7 +893,7 @@ avec le même comportement que l'environnement |{Piton}|:
 \bigskip
 Si on souhaite un environnement |{Python}| qui compose le code inclus dans une boîte de
 \pkg{mdframed}, on peut écrire (à condition, bien entendu, d'avoir chargé l'extension
-\pkg{mdframed} et, dans ce document, il a été chargé avec la clé |framemethod=tikz|):
+\pkg{mdframed} et, dans ce document, elle a été chargée avec la clé |framemethod=tikz|):
 
 \begin{Verbatim}
 ~emphase#\NewPitonEnvironment@{Python}{}
@@ -3585,6 +3577,7 @@ On peut basculer vers le langage |C| avec la clé |language| : |language = C|
 \normalfont Style  & Usage \\
 \midrule
 Number & les nombres \\
+String.Short & les caractères (entre \texttt{'}) \\  
 String.Long & les chaînes de caractères (entre \texttt{"}) \\
 String.Interpol & les éléments \texttt{\%d}, \texttt{\%i}, \texttt{\%f}, \texttt{\%c},
                   etc. dans les chaînes de caractères ; ce style hérite du style

@@ -88,12 +88,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.7}
-\def\PitonFileDate{2025/07/09}
+\def\PitonFileVersion{4.7x}
+\def\PitonFileDate{2025/07/10}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.7" -- 2025/07/09
+piton_version = "4.7x" -- 2025/07/10
 %</LUA>
 %\fi
 %
@@ -409,20 +409,15 @@ piton_version = "4.7" -- 2025/07/09
 % \item \index{path-write} The key \Definition{path-write} specifies a path
 % where the files written by the key |write| will be written.
 %
-% \item \index{join} \colorbox{yellow!50}{\textbf{New 4.4}}
-%
-% \nobreak
-% The key \Definition{join} is similar to the key |write| but the files which
+% \item The key \Definition{join} is similar to the key |write| but the files which
 % are created are joined (as \emph{joined files}) in the \textsc{pdf}. Be
 % careful: Some \textsc{pdf} readers don't provide any tool to access to these
 % joined files. Among the applications wich provide an access to those joined
 % files, we will mention the free application Foxit~PDF~Reader, which is
 % available on all the platforms.
 %
-% \item \index{print} \colorbox{yellow!50}{\textbf{New 4.5}}
-%
-% \nobreak
-% The key \Definition{print} controls whether the content of the environment is
+% \item \index{print}
+% The key \Definition{print} controls whether the content of the environment is 
 % actually printed (with the syntactic formating) in the \textsc{pdf}. Of
 % course, the initial value of |print| is |true|. However, it may be useful to
 % use |print=false| in some circonstancies (for example, when the key |write| or
@@ -855,14 +850,10 @@ piton_version = "4.7" -- 2025/07/09
 % not allowed (of course)}
 %
 % \medskip
-% \colorbox{yellow!50}{\textbf{New 4.5}}
-%
-% \nobreak
-% \smallskip
-% The version 4.5 provides the commands \DefinitionCommand{RenewPitonEnvironment},
+% There also exist the commands \DefinitionCommand{RenewPitonEnvironment},
 % \DefinitionCommand{DeclarePitonEnvironment} and
-% \DefinitionCommand{ProvidePitonEnvironment} (similar to the corresponding
-% commands of L3).
+% \DefinitionCommand{ProvidePitonEnvironment}, similar to the corresponding
+% commands of L3.
 % 
 % \bigskip
 % With the following instruction, a new environment |{Python}| will be
@@ -3372,6 +3363,7 @@ piton_version = "4.7" -- 2025/07/09
 % \normalfont Style  & Use \\
 % \midrule
 % Number & the numbers \\
+% String.Short & the characters (between \texttt{'}) \\
 % String.Long & the strings (between \texttt{"}) \\
 % String.Interpol &  the elements \texttt{\%d}, \texttt{\%i}, \texttt{\%f},
 % \texttt{\%c}, etc. in the strings; that style inherits from the style |String.Long| \\
@@ -9380,6 +9372,13 @@ do
 % list of keywords).
 %
 % \bigskip
+%    \begin{macrocode}
+  local Character =
+    K ( 'String.Short' ,
+        P [['\'']] + P "'" * ( 1 - P "'" ) ^ 0 * P "'" )  
+%    \end{macrocode}
+% 
+% \bigskip
 % \paragraph{The strings of C}
 %
 %    \begin{macrocode}
@@ -9469,6 +9468,7 @@ do
        + Comment + LongComment
        + Delim
        + Operator
+       + Character
        + String
        + Punct
        + DefFunction
