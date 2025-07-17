@@ -815,6 +815,14 @@ local DotNotation =
     * SkipSpace
     * Q "}"
   local Record = RecordType + RecordVal
+  local ConstructorWithType =
+    K('Name.Constructor', cap_identifier) * SkipSpace
+    * (Q "of" * SkipSpace * K('TypeExpression', expression_for_fields_type))^-1
+  local VariantType =
+      (Q "|" * SkipSpace)^-1  -- Allow an optional leading |
+      * ConstructorWithType
+      * (Q "|" * SkipSpace * ConstructorWithType)^0
+
   local DotNotation =
     (
         K ( 'Name.Module' , cap_identifier )
@@ -925,6 +933,8 @@ local DotNotation =
     * SkipSpace
     * (
         RecordType
+        +
+        VariantType
         +
         WithStyle
          (
