@@ -8988,6 +8988,19 @@ local DotNotation =
   local Record = RecordType + RecordVal
 %    \end{macrocode}
 %
+% \bigskip
+% \paragraph{The variant types}
+%    \begin{macrocode}
+  local ConstructorWithType =
+    K('Name.Constructor', cap_identifier) * SkipSpace
+    * (Q "of" * SkipSpace * K('TypeExpression', expression_for_fields_type))^-1
+  local VariantType =
+      (Q "|" * SkipSpace)^-1  -- Allow an optional leading |
+      * ConstructorWithType
+      * (Q "|" * SkipSpace * ConstructorWithType)^0
+
+%    \end{macrocode}
+%
 % \paragraph{DotNotation}
 %
 % Now, we deal with the notations with points (eg: |List.length|). In OCaml,
@@ -9170,6 +9183,8 @@ local DotNotation =
     * SkipSpace
     * (
         RecordType
+        +
+        VariantType
         +
 %    \end{macrocode}
 % The following lines are a suggestion of Y. Salmon. 
