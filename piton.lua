@@ -310,6 +310,7 @@ local CommentLaTeX =
   * L ( ( 1 - P "\r" ) ^ 0 )
   * Lc "}}"
   * ( EOL + -1 )
+--python Python
 do
   local Operator =
     K ( 'Operator' ,
@@ -607,6 +608,7 @@ do
          * Lc [[ \__piton_end_line: ]]
        )
 end
+--ocaml Ocaml OCaml
 do
   local SkipSpace = ( Q " " + EOL ) ^ 0
   local Space = ( Q " " + EOL ) ^ 1
@@ -1011,6 +1013,7 @@ end)
         * Lc [[ \__piton_end_line: ]]
       )
 end
+--c C c++ C++
 do
   local Delim = Q ( S "{[()]}" )
   local Punct = Q ( S ",:;!" )
@@ -1121,6 +1124,7 @@ do
          * Lc [[ \__piton_end_line: ]]
        )
 end
+--sql SQL
 do
   local LuaKeyword
   function LuaKeyword ( name ) return
@@ -1285,6 +1289,7 @@ do
          * Lc [[ \__piton_end_line: ]]
        )
 end
+--minimal Minimal
 do
   local Punct = Q ( S ",:;!\\" )
 
@@ -1347,6 +1352,7 @@ do
          * Lc [[ \__piton_end_line: ]]
        )
 end
+--verbatim Verbatim
 do
 
   local braces =

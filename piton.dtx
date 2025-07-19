@@ -6382,7 +6382,7 @@ piton_version = "4.7x" -- 2025/07/10
       \l_@@_path_seq
       \l_file_search_path_seq  
     \file_get_full_name:nNTF { #3 } \l_@@_file_name_str
-      {  
+      {
         \@@_input_file:nn { #1 } { #2 }
         #4
       }
@@ -6399,9 +6399,27 @@ piton_version = "4.7x" -- 2025/07/10
 % 
 %    \begin{macrocode}
 \NewDocumentCommand { \PitonInputFile } { d < > O { } m }
-  { \PitonInputFileTF < #1 >  [ #2 ] { #3 } { } { \@@_unknown_file:n { #3 } } }
+  {
+    \PitonInputFileTF < #1 > [ #2 ] { #3 } { }
+      {
+%    \end{macrocode}
+% The following line is for |latexmk| (suggestion of Y. Salmon).
+%    \begin{macrocode}
+        \iow_log:n { No~file~#3 }
+        \@@_unknown_file:n { #3 }
+      }
+  }
 \NewDocumentCommand { \PitonInputFileT } { d < > O { } m m }
-  { \PitonInputFileTF < #1 >  [ #2 ] { #3 } { #4 } { \@@_unknown_file:n { #3 } } }
+  {
+    \PitonInputFileTF < #1 >  [ #2 ] { #3 } { #4 }
+      {
+%    \end{macrocode}
+% The following line is for |latexmk| (suggestion of Y. Salmon).
+%    \begin{macrocode}
+        \iow_log:n { No~file~#3 }
+        \@@_unknown_file:n { #3 }
+      }
+  }
 \NewDocumentCommand { \PitonInputFileF } { d < > O { } m m }
   { \PitonInputFileTF < #1 >  [ #2 ] { #3 } { } { #4 } }
 %    \end{macrocode}
@@ -6423,7 +6441,7 @@ piton_version = "4.7x" -- 2025/07/10
           { \@@_error_or_warning:n { overlay~without~beamer } }
       }
     \group_begin:
-% The following line is to allow programs such as |latexmk| to be aware that the
+% The following line is to allow tools such as |latexmk| to be aware that the
 % file (read by |\PitonInputFile|) is loaded during the compilation of the LaTeX
 % document. 
 %    \begin{macrocode}
@@ -8048,6 +8066,7 @@ local CommentLaTeX =
 % We open a Lua local scope for the language Python (of course, there will be
 % also global definitions).
 %    \begin{macrocode}
+--python Python
 do 
 %    \end{macrocode}
 %
@@ -8605,6 +8624,7 @@ end
 % We open a Lua local scope for the language OCaml (of course, there will be also
 % global definitions).
 %    \begin{macrocode}
+--ocaml Ocaml OCaml
 do 
 %    \end{macrocode}
 %
@@ -9301,6 +9321,7 @@ end
 % We open a Lua local scope for the language C (of course, there will be also
 % global definitions).
 %    \begin{macrocode}
+--c C c++ C++
 do 
 %    \end{macrocode}
 %
@@ -9519,6 +9540,7 @@ end
 % We open a Lua local scope for the language SQL (of course, there will be also
 % global definitions).
 %    \begin{macrocode}
+--sql SQL
 do 
 %    \end{macrocode}
 %
@@ -9804,6 +9826,7 @@ end
 % We open a Lua local scope for the language ``Minimal'' (of course, there
 % will be also global definitions).
 %    \begin{macrocode}
+--minimal Minimal
 do 
 %    \end{macrocode}
 %
@@ -9893,6 +9916,7 @@ end
 % We open a Lua local scope for the language ``Verbatim'' (of course, there
 % will be also global definitions).
 %    \begin{macrocode}
+--verbatim Verbatim
 do 
 %    \end{macrocode}
 
