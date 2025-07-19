@@ -935,12 +935,13 @@ local DotNotation =
                + comment
                +  Q ( 1
                       - P ";;"
+                      - P "type"
                       - ( ( Space + EOL ) * governing_keyword * EndKeyword )
                     )
              ) ^ 0
              *
              (
-               # ( ( Space + EOL ) * governing_keyword * EndKeyword )
+               # ( P "type" + ( Space + EOL ) * governing_keyword * EndKeyword )
                + Q ";;"
                + -1
              )
