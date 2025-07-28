@@ -1041,9 +1041,10 @@ do
 
   local Type =
     K ( 'Name.Type' ,
-        P "bool" + "char" + "char16_t" + "char32_t" + "double" + "float" + "int" +
-        "int8_t" + "int16_t" + "int32_t" + "int64_t" + "long" + "short" + "signed"
-        + "unsigned" + "void" + "wchar_t" ) * Q "*" ^ 0
+        P "bool" + "char" + "char16_t" + "char32_t" + "double" + "float" +
+        "int8_t" + "int16_t" + "int32_t" + "int64_t" + "uint8_t" + "uint16_t" +
+        "uint32_t" + "uint64_t" + "int" + "long" + "short" + "signed" + "unsigned" +
+        "void" + "wchar_t" ) * Q "*" ^ 0
 
   local DefFunction =
     Type
