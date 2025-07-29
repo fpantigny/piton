@@ -3770,11 +3770,11 @@ piton_version = "4.7x" -- 2025/07/10
 \cs_new_protected:Npn \@@_msg_new:nn { \msg_new:nnn { piton } }
 %    \end{macrocode}
 %
-% With Overleaf, by default, a document is compiled in non-stop mode. When there
-% is an error, there is no way to the user to use the key H in order to have
-% more information. That's why we decide to put that piece of information (for
-% the messages with such information) in the main part of the message when the
-% key |messages-for-Overleaf| is used (at load-time).
+% With Overleaf (and also TeXPage), by default, a document is compiled in
+% non-stop mode. When there is an error, there is no way to the user to use the
+% key H in order to have more information. That's why we decide to put that
+% piece of information (for the messages with such information) in the main part
+% of the message when the key |messages-for-Overleaf| is used (at load-time).
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_msg_new:nnn #1 #2 #3
   {
@@ -3813,16 +3813,17 @@ piton_version = "4.7x" -- 2025/07/10
     LuaLaTeX~is~mandatory.\\
     The~package~'piton'~requires~the~engine~LuaLaTeX.\\
     \str_if_eq:onT \c_sys_jobname_str { output }
-      { If~you~use~Overleaf,~you~can~switch~to~LuaLaTeX~in~the~"Menu". \\}
+      { If~you~use~Overleaf,~you~can~switch~to~LuaLaTeX~in~the~"Menu"~and~
+        if~you~use~TeXPage,~you~should~go~in~"Settings". \\ }
     \IfClassLoadedTF { beamer }
       {
         Since~you~use~Beamer,~don't~forget~to~use~piton~in~frames~with~
         the~key~'fragile'.\\
       }
       { }
-    If~you~go~on,~the~package~'piton'~won't~be~loaded.
+    That~error~is~fatal.
   }
-\sys_if_engine_luatex:F { \msg_critical:nn { piton } { LuaLaTeX~mandatory } }
+\sys_if_engine_luatex:F { \@@_fatal:n { LuaLaTeX~mandatory } }
 %    \end{macrocode}
 % 
 % \bigskip

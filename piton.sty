@@ -73,16 +73,17 @@
     LuaLaTeX~is~mandatory.\\
     The~package~'piton'~requires~the~engine~LuaLaTeX.\\
     \str_if_eq:onT \c_sys_jobname_str { output }
-      { If~you~use~Overleaf,~you~can~switch~to~LuaLaTeX~in~the~"Menu". \\}
+      { If~you~use~Overleaf,~you~can~switch~to~LuaLaTeX~in~the~"Menu"~and~
+        if~you~use~TeXPage,~you~should~go~in~"Settings". \\ }
     \IfClassLoadedTF { beamer }
       {
         Since~you~use~Beamer,~don't~forget~to~use~piton~in~frames~with~
         the~key~'fragile'.\\
       }
       { }
-    If~you~go~on,~the~package~'piton'~won't~be~loaded.
+    That~error~is~fatal.
   }
-\sys_if_engine_luatex:F { \msg_critical:nn { piton } { LuaLaTeX~mandatory } }
+\sys_if_engine_luatex:F { \__piton_fatal:n { LuaLaTeX~mandatory } }
 \RequirePackage { luacode }
 \__piton_msg_new:nnn { piton.lua~not~found }
   {
