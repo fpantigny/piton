@@ -4406,11 +4406,7 @@ piton_version = "4.7x" -- 2025/07/10
           { 
             \string \newlabel { #1 } 
             { 
-%    \end{macrocode}
-% Remember that the content of a line is typeset in a box \emph{before} the
-% composition of the potential number of line.
-%    \begin{macrocode}
-              { \int_eval:n { \g_@@_visual_line_int + 1 } } 
+              { \int_use:N \g_@@_visual_line_int } 
               { \thepage } 
             } 
           } 
