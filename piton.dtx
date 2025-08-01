@@ -7596,7 +7596,10 @@ local Identifier = K ( 'Identifier.Internal' , identifier )
 %    \begin{macrocode}
 local Number =
   K ( 'Number.Internal' ,
-      ( digit ^ 1 * P "." * # ( 1 - P "." ) * digit ^ 0 
+      (P "0x" + P "0X") * (R "af" + R "AF" + digit) ^ 1
+      + (P "0o" + P "0O") * R "07" ^ 1
+      + (P "0b" + P "0B") * R "01" ^ 1
+      + ( digit ^ 1 * P "." * # ( 1 - P "." ) * digit ^ 0 
         + digit ^ 0 * P "." * digit ^ 1 
         + digit ^ 1 )
       * ( S "eE" * S "+-" ^ -1 * digit ^ 1 ) ^ -1
