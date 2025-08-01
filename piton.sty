@@ -269,9 +269,13 @@
             {
               { \int_use:N \g__piton_visual_line_int }
               { \thepage }
+              { }
+              { line.#1 }
+              { }
             }
           }
         \@esphack
+        \@ifpackageloaded{hyperref}{\Hy@raisedlink{\hyper@anchorstart{line.#1}\hyper@anchorend}}{}
       }
       { \__piton_error:n { label~with~lines~numbers } }
   }
