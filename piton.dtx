@@ -4408,9 +4408,13 @@ piton_version = "4.7x" -- 2025/07/10
             { 
               { \int_use:N \g_@@_visual_line_int } 
               { \thepage } 
+              { } 
+              { line.#1 } 
+              { } 
             } 
           } 
         \@esphack
+        \@ifpackageloaded{hyperref}{\Hy@raisedlink{\hyper@anchorstart{line.#1}\hyper@anchorend}}{}
       }
       { \@@_error:n { label~with~lines~numbers } }
   }
