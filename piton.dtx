@@ -3882,7 +3882,7 @@ piton_version = "4.7x" -- 2025/07/10
 % inside |Piton| environments to be replaced by a |\zlabel|-compatible command
 % (which is the default behavior of \pkg{zref} outside of such environments).
 %    \begin{macrocode}
-\bool_new:N \g__piton_zlabel_as_label_bool
+\bool_new:N \g_@@_zlabel_as_label_bool
 %    \end{macrocode}
 % 
 % \bigskip
@@ -3899,7 +3899,7 @@ piton_version = "4.7x" -- 2025/07/10
     beamer .default:n = true , 
     beamer .usage:n = load ,
 
-    label-as-zlabel .bool_gset:N = \g__@@_zlabel_as_label_bool ,
+    label-as-zlabel .bool_gset:N = \g_@@_zlabel_as_label_bool ,
     label-as-zlabel .default:n = true ,
     label-as-zlabel .initial:n = false ,
     label-as-zlabel .usage:n = load ,
@@ -3909,7 +3909,7 @@ piton_version = "4.7x" -- 2025/07/10
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
-\__piton_msg_new:nn { Unknown~key~for~package }
+\__@@_msg_new:nn { Unknown~key~for~package }
   {
     Unknown~key.\\
     You~have~used~the~key~'\l_keys_key_str'~when~loading~piton~
@@ -3951,7 +3951,7 @@ piton_version = "4.7x" -- 2025/07/10
   }
 \hook_gput_code:nnn { begindocument } { . }
   {
-    \bool_if:NT \g__piton_zlabel_as_label_bool
+    \bool_if:NT \g_@@_zlabel_as_label_bool
     {
       \IfPackageLoadedTF { zref-base }
       { }
@@ -4469,7 +4469,7 @@ piton_version = "4.7x" -- 2025/07/10
         \protected@write \@auxout { }
           {
             \string\zref@newlabel {#1}{%
-              \string\default{\number\g__@@_visual_line_int}%
+              \string\default{\number\g_@@_visual_line_int}%
               \string\page{\thepage}%
               \string\zc@type{line}%
               \string\anchor{line.#1}%
@@ -5789,7 +5789,7 @@ piton_version = "4.7x" -- 2025/07/10
     \dim_zero:N \parindent 
     \dim_zero:N \lineskip
     \IfPackageLoadedTF{zref-base}{%
-      \bool_if:NTF { \g__@@_zlabel_as_label_bool }
+      \bool_if:NTF { \g_@@_zlabel_as_label_bool }
         { \cs_set_eq:NN \label \__@@_zlabel:n }
         { \cs_set_eq:NN \label \__@@_label:n }%
     }{%
