@@ -7584,6 +7584,31 @@ local Identifier = K ( 'Identifier.Internal' , identifier )
 % By convention, we will use names with an initial capital for \textsc{lpeg}
 % which return captures.
 %
+% \bigskip
+% 
+% The following functions allow to recognize numbers that contains |_| among
+% their digits, for example |1_000_000|, but also floating point numbers, numbers
+% with exponents and numbers with different bases.\footnote{The edge cases such as }
+%    \begin{macrocode}
+local allow_underscores_except_first
+function allow_underscores_except_first ( p )
+    return p * (P "_" + p)^0
+end
+local allow_underscores
+function allow_underscores ( p )
+    return (P "_" + p)^0
+end
+local digits_to_number
+function digits_to_number(prefix, digits)
+    -- The edge cases of what is allowed in number litterals is modelled after
+    -- OCaml numbers, which seems to be the most permissive language
+    -- in this regard (among C, OCaml, Python & SQL).
+    return prefix
+        * allow_underscores_except_first(digits^1)
+        * (P "." * #(1 - P ".") * allow_underscores(digits))^-1
+        * (S "eE" * S "+-"^-1 * allow_underscores_except_first(digits^1))^-1
+end
+%    \end{macrocode}
 % 
 % \bigskip
 % Here is the first use of our function~|K|. That function will be used to
@@ -7596,15 +7621,11 @@ local Identifier = K ( 'Identifier.Internal' , identifier )
 %    \begin{macrocode}
 local Number =
   K ( 'Number.Internal' ,
-      (P "0x" + P "0X") * (R "af" + R "AF" + digit) ^ 1
-      + (P "0o" + P "0O") * R "07" ^ 1
-      + (P "0b" + P "0B") * R "01" ^ 1
-      + ( digit ^ 1 * P "." * # ( 1 - P "." ) * digit ^ 0 
-        + digit ^ 0 * P "." * digit ^ 1 
-        + digit ^ 1 )
-      * ( S "eE" * S "+-" ^ -1 * digit ^ 1 ) ^ -1
-      + digit ^ 1 
-    ) 
+      digits_to_number (P "0x" + P "0X", R "af" + R "AF" + digit)
+      + digits_to_number (P "0o" + P "0O", R "07")
+      + digits_to_number (P "0b" + P "0B", R "01")
+      + digits_to_number ( "" , digit )
+    )
 %    \end{macrocode}
 %
 % \bigskip
