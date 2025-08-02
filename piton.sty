@@ -100,6 +100,7 @@
 \bool_new:N \g__piton_footnotehyper_bool
 \bool_new:N \g__piton_footnote_bool
 \bool_new:N \g__piton_beamer_bool
+\bool_new:N \g__piton_zlabel_as_label_bool
 \keys_define:nn { piton }
   {
     footnote .bool_gset:N = \g__piton_footnote_bool ,
@@ -111,6 +112,11 @@
     beamer .default:n = true ,
     beamer .usage:n = load ,
 
+    label-as-zlabel .bool_gset:N = \g__piton_zlabel_as_label_bool ,
+    label-as-zlabel .default:n = true ,
+    label-as-zlabel .initial:n = false ,
+    label-as-zlabel .usage:n = load ,
+
     unknown .code:n = \__piton_error:n { Unknown~key~for~package }
   }
 \__piton_msg_new:nn { Unknown~key~for~package }
@@ -118,8 +124,9 @@
     Unknown~key.\\
     You~have~used~the~key~'\l_keys_key_str'~when~loading~piton~
     but~the~only~keys~available~here~
-    are~'beamer',~'footnote',~and~'footnotehyper'.~
-    Other~keys~are~available~in~\token_to_str:N \PitonOptions.\\
+    are~'beamer',~'footnote','footnotehyper'~and~
+    'label-as-zlabel'.~ Other~keys~are~available~in~
+    \token_to_str:N \PitonOptions.\\
     That~key~will~be~ignored.
   }
 \ProcessKeyOptions
@@ -129,6 +136,20 @@
     \IfPackageLoadedTF { beamerarticle }
     { \bool_gset_true:N \g__piton_beamer_bool }
     { }
+  }
+\__piton_msg_new:nn { label~as~zlabel~needs~zref~package }
+  {
+    The~key~'label-as-zlabel'~requires~the~package~'zref'.~
+    Please~load~the~package~'zref'.
+  }
+\hook_gput_code:nnn { begindocument } { . }
+  {
+    \bool_if:NT \g__piton_zlabel_as_label_bool
+    {
+      \IfPackageLoadedTF { zref-base }
+      { }
+      { \__piton_error:n { label~as~zlabel~needs~zref~package } }
+    }
   }
 \lua_now:e
   {
@@ -275,7 +296,26 @@
             }
           }
         \@esphack
-        \@ifpackageloaded{hyperref}{\Hy@raisedlink{\hyper@anchorstart{line.#1}\hyper@anchorend}}{}
+        \IfPackageLoadedTF{hyperref}{\Hy@raisedlink{\hyper@anchorstart{line.#1}\hyper@anchorend}}{}
+      }
+      { \__piton_error:n { label~with~lines~numbers } }
+  }
+\cs_new_protected:Npn \__piton_zlabel:n #1
+  {
+    \bool_if:NTF \l__piton_line_numbers_bool
+      {
+        \@bsphack
+        \protected@write \@auxout { }
+          {
+            \string\zref@newlabel {#1}{%
+              \string\default{\number\g__piton_visual_line_int}%
+              \string\page{\thepage}%
+              \string\zc@type{line}%
+              \string\anchor{line.#1}%
+            }%
+          }
+        \@esphack
+        \IfPackageLoadedTF{hyperref}{\Hy@raisedlink{\hyper@anchorstart{line.#1}\hyper@anchorend}}{}
       }
       { \__piton_error:n { label~with~lines~numbers } }
   }
@@ -1051,7 +1091,14 @@
     \int_gzero:N \g__piton_nb_lines_int
     \dim_zero:N \parindent
     \dim_zero:N \lineskip
-    \cs_set_eq:NN \label \__piton_label:n
+    \IfPackageLoadedTF{zref-base}{%
+      \bool_if:NTF { \g__piton_zlabel_as_label_bool }
+        { \cs_set_eq:NN \label \__piton_zlabel:n }
+        { \cs_set_eq:NN \label \__piton_label:n }%
+    }{%
+      \cs_set_eq:NN \label \__piton_label:n
+    }
+    \IfPackageLoadedTF{zref-base}{\cs_set_eq:NN \zlabel \__piton_zlabel:n}{}
     \dim_zero:N \parskip
     \l__piton_font_command_tl
   }

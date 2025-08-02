@@ -2086,9 +2086,10 @@ commentaire LaTeX.\footnote{Cette fonctionnalité est implémentée en redéfini
   les environnements |{Piton}|, la commande |\label|. Il peut donc y avoir des
   incompatibilités avec les extensions qui redéfinissent (globalement) cette commande
   |\label| (comme \pkg{varioref}, \pkg{refcheck}, \pkg{showlabels}, etc.)}
-
-
-
+De même, la commande |\zlabel| du paquetage \pkg{zref} peut être utilisée.\footnote{
+  Y compris la commande |\zcref| de \pkg{zref-clever}.}
+L'option globale |label-as-zlabel| permet d'utiliser |\label| à la place de |\zlabel| dans
+les commentaires LaTeX (ce qui est le comportement par défaut de \pkg{zref} en général).
 
 \subsubsection{La clé «math-comments»}
 
