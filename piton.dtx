@@ -3763,6 +3763,20 @@ piton_version = "4.7x" -- 2025/07/10
 \RequirePackage { amstext }
 %    \end{macrocode}
 %
+%    \begin{macrocode}
+\ProvideDocumentCommand { \IfPackageLoadedT } { m m }
+  { \IfPackageLoadedTF { #1 } { #2 } { } }
+
+\ProvideDocumentCommand { \IfPackageLoadedF } { m m }
+  { \IfPackageLoadedTF { #1 } { } { #2 } }
+
+\ProvideDocumentCommand { \IfClassLoadedF } { m m }
+  { \IfClassLoadedTF { #1 } { } { #2 } }
+
+\ProvideDocumentCommand { \IfClassLoadedF } { m m }
+  { \IfClassLoadedTF { #1 } { } { #2 } }
+%    \end{macrocode}
+%
 % \bigskip
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_error:n { \msg_error:nn { piton } }
@@ -3820,12 +3834,11 @@ piton_version = "4.7x" -- 2025/07/10
     \str_if_eq:onT \c_sys_jobname_str { output }
       { If~you~use~Overleaf,~you~can~switch~to~LuaLaTeX~in~the~"Menu"~and~
         if~you~use~TeXPage,~you~should~go~in~"Settings". \\ }
-    \IfClassLoadedTF { beamer }
+    \IfClassLoadedT { beamer }
       {
         Since~you~use~Beamer,~don't~forget~to~use~piton~in~frames~with~
         the~key~'fragile'.\\
       }
-      { }
     That~error~is~fatal.
   }
 \sys_if_engine_luatex:F { \@@_fatal:n { LuaLaTeX~mandatory } }
@@ -3882,7 +3895,7 @@ piton_version = "4.7x" -- 2025/07/10
 % inside |Piton| environments to be replaced by a |\zlabel|-compatible command
 % (which is the default behavior of \pkg{zref} outside of such environments).
 %    \begin{macrocode}
-\bool_new:N \g_@@_zlabel_as_label_bool
+\bool_new:N \g_@@_label_as_zlabel_bool
 %    \end{macrocode}
 % 
 % \bigskip
@@ -3899,9 +3912,8 @@ piton_version = "4.7x" -- 2025/07/10
     beamer .default:n = true , 
     beamer .usage:n = load ,
 
-    label-as-zlabel .bool_gset:N = \g_@@_zlabel_as_label_bool ,
+    label-as-zlabel .bool_gset:N = \g_@@_label_as_zlabel_bool ,
     label-as-zlabel .default:n = true ,
-    label-as-zlabel .initial:n = false ,
     label-as-zlabel .usage:n = load ,
 
     unknown .code:n = \@@_error:n { Unknown~key~for~package }
@@ -3909,12 +3921,12 @@ piton_version = "4.7x" -- 2025/07/10
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
-\__@@_msg_new:nn { Unknown~key~for~package }
+\@@_msg_new:nn { Unknown~key~for~package }
   {
     Unknown~key.\\
     You~have~used~the~key~'\l_keys_key_str'~when~loading~piton~
     but~the~only~keys~available~here~
-    are~'beamer',~'footnote','footnotehyper'~and~
+    are~'beamer',~'footnote',~'footnotehyper'~and~
     'label-as-zlabel'.~ Other~keys~are~available~in~
     \token_to_str:N \PitonOptions.\\
     That~key~will~be~ignored.
@@ -3934,9 +3946,8 @@ piton_version = "4.7x" -- 2025/07/10
 \IfClassLoadedTF { beamer } 
   { \bool_gset_true:N \g_@@_beamer_bool } 
   {
-    \IfPackageLoadedTF { beamerarticle } 
-    { \bool_gset_true:N \g_@@_beamer_bool } 
-    { }
+    \IfPackageLoadedT { beamerarticle } 
+      { \bool_gset_true:N \g_@@_beamer_bool } 
   }
 %    \end{macrocode}
 %
@@ -3944,19 +3955,18 @@ piton_version = "4.7x" -- 2025/07/10
 % If the |label-as-zlabel| key is set to |true| while the |zref| package is not
 % loaded, an error is raised.
 %    \begin{macrocode}
-\__@@_msg_new:nn { label~as~zlabel~needs~zref~package }
+\@@_msg_new:nn { label~as~zlabel~needs~zref~package }
   {
     The~key~'label-as-zlabel'~requires~the~package~'zref'.~
     Please~load~the~package~'zref'.
   }
 \hook_gput_code:nnn { begindocument } { . }
   {
-    \bool_if:NT \g_@@_zlabel_as_label_bool
-    {
-      \IfPackageLoadedTF { zref-base }
-      { }
-      { \__@@_error:n { label~as~zlabel~needs~zref~package } }
-    }
+    \bool_if:NT \g_@@_label_as_zlabel_bool
+      {
+        \IfPackageLoadedF { zref-base }
+          { \@@_error:n { label~as~zlabel~needs~zref~package } }
+      }
   }
 %    \end{macrocode}
 %    \begin{macrocode}
@@ -4449,7 +4459,8 @@ piton_version = "4.7x" -- 2025/07/10
             } 
           } 
         \@esphack
-        \IfPackageLoadedTF{hyperref}{\Hy@raisedlink{\hyper@anchorstart{line.#1}\hyper@anchorend}}{}
+        \IfPackageLoadedT { hyperref }
+          { \Hy@raisedlink { \hyper@anchorstart { line.#1 } \hyper@anchorend } }
       }
       { \@@_error:n { label~with~lines~numbers } }
   }
@@ -4476,7 +4487,8 @@ piton_version = "4.7x" -- 2025/07/10
             }%
           }
         \@esphack
-        \IfPackageLoadedTF{hyperref}{\Hy@raisedlink{\hyper@anchorstart{line.#1}\hyper@anchorend}}{}
+        \IfPackageLoadedT { hyperref }
+          { \Hy@raisedlink { \hyper@anchorstart { line.#1 } \hyper@anchorend } }
       }
       { \__@@_error:n { label~with~lines~numbers } }
   }
@@ -5167,7 +5179,6 @@ piton_version = "4.7x" -- 2025/07/10
                 { \bool_set_false:N \l_@@_tcolorbox_bool }
             }
             { \@@_error:n { library~breakable~not~loaded } }
-
         }
         { \@@_error:n { tcolorbox~not~loaded } } ,
     tcolorbox .default:n = true ,
@@ -5788,14 +5799,14 @@ piton_version = "4.7x" -- 2025/07/10
     \int_gzero:N \g_@@_nb_lines_int
     \dim_zero:N \parindent 
     \dim_zero:N \lineskip
-    \IfPackageLoadedTF{zref-base}{%
-      \bool_if:NTF { \g_@@_zlabel_as_label_bool }
-        { \cs_set_eq:NN \label \__@@_zlabel:n }
-        { \cs_set_eq:NN \label \__@@_label:n }%
-    }{%
-      \cs_set_eq:NN \label \__@@_label:n
-    }
-    \IfPackageLoadedTF{zref-base}{\cs_set_eq:NN \zlabel \__@@_zlabel:n}{}
+    \IfPackageLoadedTF { zref-base }
+      {
+        \bool_if:NTF \g_@@_label_as_zlabel_bool 
+          { \cs_set_eq:NN \label \@@_zlabel:n }
+          { \cs_set_eq:NN \label \@@_label:n }
+        \cs_set_eq:NN \zlabel \@@_zlabel:n
+      }
+      { \cs_set_eq:NN \label \@@_label:n }
     \dim_zero:N \parskip
     \l_@@_font_command_tl
   }
