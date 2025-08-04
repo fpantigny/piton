@@ -4472,25 +4472,26 @@ piton_version = "4.7x" -- 2025/07/10
 % Note that |\label| will also be linked to |\@@_zlabel:n| if the key
 % |label-as-zlabel| is set to |true|.
 %    \begin{macrocode}
-\cs_new_protected:Npn \__@@_zlabel:n #1
+\cs_new_protected:Npn \@@_zlabel:n #1
   {
-    \bool_if:NTF \l__@@_line_numbers_bool
+    \bool_if:NTF \l_@@_line_numbers_bool
       {
         \@bsphack
         \protected@write \@auxout { }
           {
-            \string\zref@newlabel {#1}{%
-              \string\default{\number\g_@@_visual_line_int}%
-              \string\page{\thepage}%
-              \string\zc@type{line}%
-              \string\anchor{line.#1}%
-            }%
+            \string \zref@newlabel { #1 }
+              {
+                \string \default { \int_use:N \g_@@_visual_line_int }
+                \string \page { \thepage }
+                \string \zc@type { line }
+                \string \anchor { line.#1 }
+              }
           }
         \@esphack
         \IfPackageLoadedT { hyperref }
           { \Hy@raisedlink { \hyper@anchorstart { line.#1 } \hyper@anchorend } }
       }
-      { \__@@_error:n { label~with~lines~numbers } }
+      { \@@_error:n { label~with~lines~numbers } }
   }
 %    \end{macrocode}
 % 
@@ -11552,7 +11553,8 @@ end
 %
 % \section*{Acknowledgments}
 %
-% Acknowledgments to Yann Salmon for its numerous suggestions of improvments.
+% Acknowledgments to Yann Salmon and Pierre Le Scornet for their numerous suggestions
+% of improvments.
 %
 % \tableofcontents
 %
