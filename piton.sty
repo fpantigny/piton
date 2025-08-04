@@ -44,6 +44,17 @@
   { }
   { \msg_fatal:nn { piton } { latex-too-old } }
 \RequirePackage { amstext }
+\ProvideDocumentCommand { \IfPackageLoadedT } { m m }
+  { \IfPackageLoadedTF { #1 } { #2 } { } }
+
+\ProvideDocumentCommand { \IfPackageLoadedF } { m m }
+  { \IfPackageLoadedTF { #1 } { } { #2 } }
+
+\ProvideDocumentCommand { \IfClassLoadedF } { m m }
+  { \IfClassLoadedTF { #1 } { } { #2 } }
+
+\ProvideDocumentCommand { \IfClassLoadedF } { m m }
+  { \IfClassLoadedTF { #1 } { } { #2 } }
 \cs_new_protected:Npn \__piton_error:n { \msg_error:nn { piton } }
 \cs_new_protected:Npn \__piton_warning:n { \msg_warning:nn { piton } }
 \cs_new_protected:Npn \__piton_warning:nn { \msg_warning:nnn { piton } }
@@ -75,12 +86,11 @@
     \str_if_eq:onT \c_sys_jobname_str { output }
       { If~you~use~Overleaf,~you~can~switch~to~LuaLaTeX~in~the~"Menu"~and~
         if~you~use~TeXPage,~you~should~go~in~"Settings". \\ }
-    \IfClassLoadedTF { beamer }
+    \IfClassLoadedT { beamer }
       {
         Since~you~use~Beamer,~don't~forget~to~use~piton~in~frames~with~
         the~key~'fragile'.\\
       }
-      { }
     That~error~is~fatal.
   }
 \sys_if_engine_luatex:F { \__piton_fatal:n { LuaLaTeX~mandatory } }
@@ -126,9 +136,8 @@
 \IfClassLoadedTF { beamer }
   { \bool_gset_true:N \g__piton_beamer_bool }
   {
-    \IfPackageLoadedTF { beamerarticle }
-    { \bool_gset_true:N \g__piton_beamer_bool }
-    { }
+    \IfPackageLoadedT { beamerarticle }
+      { \bool_gset_true:N \g__piton_beamer_bool }
   }
 \lua_now:e
   {
@@ -275,7 +284,8 @@
             }
           }
         \@esphack
-        \IfPackageLoadedTF{hyperref}{\Hy@raisedlink{\hyper@anchorstart{line.#1}\hyper@anchorend}}{}
+        \IfPackageLoadedT { hyperref }
+          { \Hy@raisedlink { \hyper@anchorstart { line.#1 } \hyper@anchorend } }
       }
       { \__piton_error:n { label~with~lines~numbers } }
   }
@@ -286,15 +296,17 @@
         \@bsphack
         \protected@write \@auxout { }
           {
-            \string\zref@newlabel {#1}{%
-              \string\default{\number\g__piton_visual_line_int}%
-              \string\page{\thepage}%
-              \string\zc@type{line}%
-              \string\anchor{line.#1}%
-            }%
+            \string \zref@newlabel { #1 }
+              {
+                \string \default { \int_use:N \g__piton_visual_line_int }
+                \string \page { \thepage }
+                \string \zc@type { line }
+                \string \anchor { line.#1 }
+              }
           }
         \@esphack
-        \IfPackageLoadedTF{hyperref}{\Hy@raisedlink{\hyper@anchorstart{line.#1}\hyper@anchorend}}{}
+        \IfPackageLoadedT { hyperref }
+          { \Hy@raisedlink { \hyper@anchorstart { line.#1 } \hyper@anchorend } }
       }
       { \__piton_error:n { label~with~lines~numbers } }
   }
@@ -675,7 +687,6 @@
                 { \bool_set_false:N \l__piton_tcolorbox_bool }
             }
             { \__piton_error:n { library~breakable~not~loaded } }
-
         }
         { \__piton_error:n { tcolorbox~not~loaded } } ,
     tcolorbox .default:n = true ,
@@ -1076,14 +1087,14 @@
     \int_gzero:N \g__piton_nb_lines_int
     \dim_zero:N \parindent
     \dim_zero:N \lineskip
-    \IfPackageLoadedTF{zref-base}{%
-      \bool_if:NTF { \l__piton_label_as_zlabel_bool }
-        { \cs_set_eq:NN \label \__piton_zlabel:n }
-        { \cs_set_eq:NN \label \__piton_label:n }%
-    }{%
-      \cs_set_eq:NN \label \__piton_label:n
-    }
-    \IfPackageLoadedTF{zref-base}{\cs_set_eq:NN \zlabel \__piton_zlabel:n}{}
+    \IfPackageLoadedTF { zref-base }
+      {
+        \bool_if:NTF \g__piton_label_as_zlabel_bool
+          { \cs_set_eq:NN \label \__piton_zlabel:n }
+          { \cs_set_eq:NN \label \__piton_label:n }
+        \cs_set_eq:NN \zlabel \__piton_zlabel:n
+      }
+      { \cs_set_eq:NN \label \__piton_label:n }
     \dim_zero:N \parskip
     \l__piton_font_command_tl
   }
