@@ -5787,7 +5787,7 @@ piton_version = "4.7x" -- 2025/07/10
     \dim_zero:N \lineskip
     \IfPackageLoadedTF { zref-base }
       {
-        \bool_if:NTF \g_@@_label_as_zlabel_bool 
+        \bool_if:NTF \l_@@_label_as_zlabel_bool 
           { \cs_set_eq:NN \label \@@_zlabel:n }
           { \cs_set_eq:NN \label \@@_label:n }
         \cs_set_eq:NN \zlabel \@@_zlabel:n

@@ -1089,7 +1089,7 @@
     \dim_zero:N \lineskip
     \IfPackageLoadedTF { zref-base }
       {
-        \bool_if:NTF \g__piton_label_as_zlabel_bool
+        \bool_if:NTF \l__piton_label_as_zlabel_bool
           { \cs_set_eq:NN \label \__piton_zlabel:n }
           { \cs_set_eq:NN \label \__piton_label:n }
         \cs_set_eq:NN \zlabel \__piton_zlabel:n
