@@ -2070,7 +2070,12 @@ piton_version = "4.7x" -- 2025/07/10
 % the standard command \texttt{\textbackslash label} in the environments
 % \texttt{\{Piton\}}. Therefore, incompatibilities may occur with extensions
 % which redefine (globally) that command \texttt{\textbackslash label} (for
-% example: \pkg{varioref}, \pkg{refcheck}, \pkg{showlabels}, etc.)}
+% example: \pkg{varioref}, \pkg{refcheck}, \pkg{showlabels}, etc.).} The same goes
+% for the |\zlabel| command from the \pkg{zref} package.\footnote{Using the
+% command \texttt{\textbackslash zcref} command from \pkg{zref-clever} is also 
+% supported.} The global option |label-as-zlabel| of \pkg{piton} allows to use
+% the command |\zlabel| as a synonym of |\label| in LaTeX comments of |Piton|
+% environments.
 %
 % \subsubsection{The key ``math-comments''}
 %
@@ -3873,7 +3878,12 @@ piton_version = "4.7x" -- 2025/07/10
 \bool_new:N \g_@@_beamer_bool
 %    \end{macrocode}
 %
-%
+% The key |label-as-zlabel| will be used to indicate if the user wants |\label|
+% inside |Piton| environments to be replaced by a |\zlabel|-compatible command
+% (which is the default behavior of \pkg{zref} outside of such environments).
+%    \begin{macrocode}
+\bool_new:N \g_@@_zlabel_as_label_bool
+%    \end{macrocode}
 % 
 % \bigskip
 % We define a set of keys for the options at load-time.
@@ -3889,18 +3899,24 @@ piton_version = "4.7x" -- 2025/07/10
     beamer .default:n = true , 
     beamer .usage:n = load ,
 
+    label-as-zlabel .bool_gset:N = \g_@@_zlabel_as_label_bool ,
+    label-as-zlabel .default:n = true ,
+    label-as-zlabel .initial:n = false ,
+    label-as-zlabel .usage:n = load ,
+
     unknown .code:n = \@@_error:n { Unknown~key~for~package }
   }
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
-\@@_msg_new:nn { Unknown~key~for~package }
+\__@@_msg_new:nn { Unknown~key~for~package }
   {
     Unknown~key.\\
     You~have~used~the~key~'\l_keys_key_str'~when~loading~piton~
     but~the~only~keys~available~here~
-    are~'beamer',~'footnote',~and~'footnotehyper'.~
-    Other~keys~are~available~in~\token_to_str:N \PitonOptions.\\ 
+    are~'beamer',~'footnote','footnotehyper'~and~
+    'label-as-zlabel'.~ Other~keys~are~available~in~
+    \token_to_str:N \PitonOptions.\\
     That~key~will~be~ignored.
   }
 %    \end{macrocode}
@@ -3924,6 +3940,25 @@ piton_version = "4.7x" -- 2025/07/10
   }
 %    \end{macrocode}
 %
+% \bigskip
+% If the |label-as-zlabel| key is set to |true| while the |zref| package is not
+% loaded, an error is raised.
+%    \begin{macrocode}
+\__@@_msg_new:nn { label~as~zlabel~needs~zref~package }
+  {
+    The~key~'label-as-zlabel'~requires~the~package~'zref'.~
+    Please~load~the~package~'zref'.
+  }
+\hook_gput_code:nnn { begindocument } { . }
+  {
+    \bool_if:NT \g_@@_zlabel_as_label_bool
+    {
+      \IfPackageLoadedTF { zref-base }
+      { }
+      { \__@@_error:n { label~as~zlabel~needs~zref~package } }
+    }
+  }
+%    \end{macrocode}
 %    \begin{macrocode}
 \lua_now:e
   { 
@@ -4414,12 +4449,39 @@ piton_version = "4.7x" -- 2025/07/10
             } 
           } 
         \@esphack
-        \@ifpackageloaded{hyperref}{\Hy@raisedlink{\hyper@anchorstart{line.#1}\hyper@anchorend}}{}
+        \IfPackageLoadedTF{hyperref}{\Hy@raisedlink{\hyper@anchorstart{line.#1}\hyper@anchorend}}{}
       }
       { \@@_error:n { label~with~lines~numbers } }
   }
 %    \end{macrocode}
 %
+% \bigskip
+% 
+% The same goes for the command |\zlabel| if the |zref| package is loaded.
+% Note that |\label| will also be linked to |\@@_zlabel:n| if the key
+% |label-as-zlabel| is set to |true|.
+%    \begin{macrocode}
+\cs_new_protected:Npn \__@@_zlabel:n #1
+  {
+    \bool_if:NTF \l__@@_line_numbers_bool
+      {
+        \@bsphack
+        \protected@write \@auxout { }
+          {
+            \string\zref@newlabel {#1}{%
+              \string\default{\number\g_@@_visual_line_int}%
+              \string\page{\thepage}%
+              \string\zc@type{line}%
+              \string\anchor{line.#1}%
+            }%
+          }
+        \@esphack
+        \IfPackageLoadedTF{hyperref}{\Hy@raisedlink{\hyper@anchorstart{line.#1}\hyper@anchorend}}{}
+      }
+      { \__@@_error:n { label~with~lines~numbers } }
+  }
+%    \end{macrocode}
+% 
 % \bigskip
 % The following commands corresponds to the keys |marker/beginning| and
 % |marker/end|. The values of that keys are functions that will be applied to
@@ -5725,8 +5787,15 @@ piton_version = "4.7x" -- 2025/07/10
     \int_gzero:N \g_@@_line_int
     \int_gzero:N \g_@@_nb_lines_int
     \dim_zero:N \parindent 
-    \dim_zero:N \lineskip 
-    \cs_set_eq:NN \label \@@_label:n
+    \dim_zero:N \lineskip
+    \IfPackageLoadedTF{zref-base}{%
+      \bool_if:NTF { \g_@@_zlabel_as_label_bool }
+        { \cs_set_eq:NN \label \__@@_zlabel:n }
+        { \cs_set_eq:NN \label \__@@_label:n }%
+    }{%
+      \cs_set_eq:NN \label \__@@_label:n
+    }
+    \IfPackageLoadedTF{zref-base}{\cs_set_eq:NN \zlabel \__@@_zlabel:n}{}
     \dim_zero:N \parskip
     \l_@@_font_command_tl
   }
@@ -7333,7 +7402,8 @@ piton_version = "4.7x" -- 2025/07/10
 \@@_msg_new:nn { label~with~lines~numbers } 
   {
     You~can't~use~the~command~\token_to_str:N \label\
-    because~the~key~'line-numbers'~is~not~active.\\
+    or~\token_to_str:N \zlabel\ because~the~key~'line-numbers'
+    ~is~not~active.\\
     If~you~go~on,~that~command~will~ignored.
   }
 %    \end{macrocode}
