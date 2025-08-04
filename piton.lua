@@ -94,16 +94,30 @@ local letter = alpha + "_" + "â" + "à" + "ç" + "é" + "è" + "ê" + "ë" + "�
 local alphanum = letter + digit
 local identifier = letter * alphanum ^ 0
 local Identifier = K ( 'Identifier.Internal' , identifier )
+local allow_underscores_except_first
+function allow_underscores_except_first ( p )
+    return p * (P "_" + p)^0
+end
+local allow_underscores
+function allow_underscores ( p )
+    return (P "_" + p)^0
+end
+local digits_to_number
+function digits_to_number(prefix, digits)
+    -- The edge cases of what is allowed in number litterals is modelled after
+    -- OCaml numbers, which seems to be the most permissive language
+    -- in this regard (among C, OCaml, Python & SQL).
+    return prefix
+        * allow_underscores_except_first(digits^1)
+        * (P "." * #(1 - P ".") * allow_underscores(digits))^-1
+        * (S "eE" * S "+-"^-1 * allow_underscores_except_first(digits^1))^-1
+end
 local Number =
   K ( 'Number.Internal' ,
-      (P "0x" + P "0X") * (R "af" + R "AF" + digit) ^ 1
-      + (P "0o" + P "0O") * R "07" ^ 1
-      + (P "0b" + P "0B") * R "01" ^ 1
-      + ( digit ^ 1 * P "." * # ( 1 - P "." ) * digit ^ 0
-        + digit ^ 0 * P "." * digit ^ 1
-        + digit ^ 1 )
-      * ( S "eE" * S "+-" ^ -1 * digit ^ 1 ) ^ -1
-      + digit ^ 1
+      digits_to_number (P "0x" + P "0X", R "af" + R "AF" + digit)
+      + digits_to_number (P "0o" + P "0O", R "07")
+      + digits_to_number (P "0b" + P "0B", R "01")
+      + digits_to_number ( "" , digit )
     )
 local lpeg_central = 1 - S " '\"\r[({})]" - digit
 if piton.begin_escape then
