@@ -5064,7 +5064,7 @@ piton_version = "4.7x" -- 2025/07/10
 \bool_new:N \l_@@_resume_bool 
 \bool_new:N \l_@@_split_on_empty_lines_bool
 \bool_new:N \l_@@_splittable_on_empty_lines_bool
-\bool_new:N \l_@@_label_as_zlabel_bool
+\bool_new:N \g_@@_label_as_zlabel_bool
 %    \end{macrocode}
 % 
 %
@@ -5224,9 +5224,8 @@ piton_version = "4.7x" -- 2025/07/10
     comment-latex .value_required:n = true ,
     comment-latex .usage:n = preamble ,
 
-    label-as-zlabel .bool_gset:N = \l_@@_label_as_zlabel_bool ,
+    label-as-zlabel .bool_gset:N = \g_@@_label_as_zlabel_bool ,
     label-as-zlabel .default:n = true ,
-    label-as-zlabel .initial:n = false ,
     label-as-zlabel .usage:n = preamble ,
 
     math-comments .bool_gset:N = \g_@@_math_comments_bool ,
@@ -5787,7 +5786,7 @@ piton_version = "4.7x" -- 2025/07/10
     \dim_zero:N \lineskip
     \IfPackageLoadedTF { zref-base }
       {
-        \bool_if:NTF \l_@@_label_as_zlabel_bool 
+        \bool_if:NTF \g_@@_label_as_zlabel_bool 
           { \cs_set_eq:NN \label \@@_zlabel:n }
           { \cs_set_eq:NN \label \@@_label:n }
         \cs_set_eq:NN \zlabel \@@_zlabel:n
@@ -7421,18 +7420,18 @@ piton_version = "4.7x" -- 2025/07/10
 % \bigskip
 %
 %    \begin{macrocode}
-\__@@_msg_new:nn { label~as~zlabel~needs~zref~package }
+\@@_msg_new:nn { label~as~zlabel~needs~zref~package }
   {
     The~key~'label-as-zlabel'~requires~the~package~'zref'.~
-    Please~load~the~package~'zref'~before~setting~the~key.
+    Please~load~the~package~'zref'~before~setting~the~key.\\
+    This~error~is~fatal.
   }
 \hook_gput_code:nnn { begindocument } { . }
   {
-    \bool_if:NT \l_@@_label_as_zlabel_bool
+    \bool_if:NT \g_@@_label_as_zlabel_bool
       {
-        \IfPackageLoadedTF { zref-base }
-          { }
-          { \__@@_error:n { label~as~zlabel~needs~zref~package } }
+        \IfPackageLoadedF { zref-base }
+          { \@@_fatal:n { label~as~zlabel~needs~zref~package } }
       }
   }
 %    \end{macrocode}

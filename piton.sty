@@ -608,7 +608,7 @@
 \bool_new:N \l__piton_resume_bool
 \bool_new:N \l__piton_split_on_empty_lines_bool
 \bool_new:N \l__piton_splittable_on_empty_lines_bool
-\bool_new:N \l__piton_label_as_zlabel_bool
+\bool_new:N \g__piton_label_as_zlabel_bool
 \keys_define:nn { PitonOptions / marker }
   {
     beginning .code:n = \cs_set:Nn \__piton_marker_beginning:n { #1 } ,
@@ -742,9 +742,8 @@
     comment-latex .value_required:n = true ,
     comment-latex .usage:n = preamble ,
 
-    label-as-zlabel .bool_gset:N = \l__piton_label_as_zlabel_bool ,
+    label-as-zlabel .bool_gset:N = \g__piton_label_as_zlabel_bool ,
     label-as-zlabel .default:n = true ,
-    label-as-zlabel .initial:n = false ,
     label-as-zlabel .usage:n = preamble ,
 
     math-comments .bool_gset:N = \g__piton_math_comments_bool ,
@@ -1089,7 +1088,7 @@
     \dim_zero:N \lineskip
     \IfPackageLoadedTF { zref-base }
       {
-        \bool_if:NTF \l__piton_label_as_zlabel_bool
+        \bool_if:NTF \g__piton_label_as_zlabel_bool
           { \cs_set_eq:NN \label \__piton_zlabel:n }
           { \cs_set_eq:NN \label \__piton_label:n }
         \cs_set_eq:NN \zlabel \__piton_zlabel:n
@@ -2108,15 +2107,15 @@
 \__piton_msg_new:nn { label~as~zlabel~needs~zref~package }
   {
     The~key~'label-as-zlabel'~requires~the~package~'zref'.~
-    Please~load~the~package~'zref'~before~setting~the~key.
+    Please~load~the~package~'zref'~before~setting~the~key.\\
+    This~error~is~fatal.
   }
 \hook_gput_code:nnn { begindocument } { . }
   {
-    \bool_if:NT \l__piton_label_as_zlabel_bool
+    \bool_if:NT \g__piton_label_as_zlabel_bool
       {
-        \IfPackageLoadedTF { zref-base }
-          { }
-          { \__piton_error:n { label~as~zlabel~needs~zref~package } }
+        \IfPackageLoadedF { zref-base }
+          { \__piton_fatal:n { label~as~zlabel~needs~zref~package } }
       }
   }
 \cs_new_protected:Npn \__piton_test_version:n #1
