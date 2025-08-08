@@ -17,7 +17,7 @@
     end-escape-math = \) ,
     detected-commands =  { highLight , footnote } ,
     vertical-detected-commands = newpage ,
-    raw-detected-commands = NomTable ,
+    raw-detected-commands = { NomTable , rowcolor } ,
   }
 
 
@@ -517,10 +517,11 @@ cette valeur, une marge est insérée automatiquement pour les numéros de ligne
 quand la clé |line-numbers| est utilisée. Voir un exemple à la partie
 \ref{example-numbering} p.~\pageref{example-numbering}.
 
-\item \index{background-color} La clé \Definition{background-color} fixe la
-couleur de fond des environnements |{Piton}| et des listings produits par
-|\PitonInputFile| (ce fond a une largeur que l'on peut fixer avec la clé |width| ou
-la clé |max-width| décrites ci-dessous).
+\item \index{background-color} \label{background-color} La clé
+\Definition{background-color} fixe la couleur de fond des environnements
+|{Piton}| et des listings produits par |\PitonInputFile| (ce fond a une largeur
+que l'on peut fixer avec la clé |width| ou la clé |max-width| décrites
+ci-dessous).
 
 La clé |background-color| accepte une couleur définie
 «à la volée», c'est-à-dire que l'on peut écrire par exemple
@@ -2019,11 +2020,11 @@ floor(5.4)
 L'extension \pkg{piton} propose plusieurs mécanismes d'échappement vers LaTeX :
 \begin{itemize}
 \item Il est possible d'avoir des commentaires entièrement composés en LaTeX.
-\item Il est possible d'avoir, dans les commentaires Python, les éléments entre
+\item Il est possible d'avoir, dans les commentaires, les éléments entre
 \texttt{\$} composés en mode mathématique de LaTeX.
 \item Il est possible de demander à \pkg{piton} de détecter directement certaines
 commandes LaTeX avec leur argument.
-\item Il est possible d'insérer du code LaTeX à n'importe quel endroit d'un listing Python.
+\item Il est possible d'insérer du code LaTeX à n'importe quel endroit d'un listing.
 \end{itemize}
 Ces mécanismes vont être détaillés dans les sous-parties suivantes.
 
@@ -2079,7 +2080,10 @@ p.~\pageref{example-comments}.
 \end{itemize}
 
 
-\bigskip 
+\bigskip
+\indexcommand{zlabel}
+\indexcommand{zcref}
+\index{label-as-zlabel}
 Si l'utilisateur a demandé l'affichage des numéros de ligne avec |line-numbers|, il est
 possible de faire référence à ce numéro de ligne avec la commande |\label| placée dans un
 commentaire LaTeX.\footnote{Cette fonctionnalité est implémentée en redéfinissant, dans
@@ -2095,10 +2099,9 @@ les commentaires LaTeX (ce qui est le comportement par défaut de \pkg{zref} en 
 
 \index{math-comments}
 
-Il est possible de demander que, dans les commentaires Python normaux, c'est-à-dire
-débutant par~|#| (et non par |#>|), les éléments placés entre symboles \texttt{\$} soient
-composés en mode mathématique de LaTeX (le reste du commentaire restant composé en
-verbatim).
+Il est possible de demander que, dans les commentaires, les éléments placés
+entre symboles \texttt{\$} soient composés en mode mathématique de LaTeX (le
+reste du commentaire restant composé en verbatim).
 
 La clé \Definition{math-comments} (\emph{qui ne peut être activée que dans le préambule du
   document}) active ce comportement.
@@ -2195,9 +2198,10 @@ S'il y a un retour à la ligne dans un argument d'une commande faisant l'objet d
 défaut. 
 
 \medskip
-Supposons, par exemple, que l'on souhaite, dans le texte courant, introduire des
-spécifications de tables \textsc{sql} par le nom de la table, suivi, entre parenthèses,
-par les noms de ses champs (ex. : |client (non, prénom)|).
+Supposons, par exemple, que l'on souhaite, dans le texte courant d'un document
+traitant des bases de données, introduire des spécifications de tables
+\textsc{sql} par le nom de la table, suivi, entre parenthèses, par les noms de
+ses champs (ex. : |client (non, prénom)|).
 
 Si on insère cet élément dans une commande |\piton|, le mot \emph{client} ne va pas
 être reconnu comme un nom de table mais comme un nom de champ. On peut définir
@@ -2385,6 +2389,101 @@ def arctan(x,n=10):
         return s
 \end{Piton}
 
+\subsubsection{La commande \textbackslash rowcolor}
+
+\indexcommand{rowcolor}
+
+\colorbox{yellow!50}{\textbf{Nouveau 4.8}}
+
+\nobreak
+\medskip
+L'extension \pkg{piton} propose une commande \DefinitionCommand{rowcolor} qui,
+placée dans une ligne de code, indique que cette ligne de code devra avoir un
+fond coloré (avec la couleur en argument\footnote{La commande |\rowcolor|
+  ne prend qu'un seul argument : il n'y a pas d'argument optionnel pour l'espace
+  colorimétrique. Néanmoins, il est possible d'écrire, par exemple :
+  \verb|\rowcolor{[rgb]{0.8,1,0.8}}|.} de |\rowcolor|).
+
+\medskip
+On documente cette commande dans la partie sur les échappements vers LaTeX, car
+cette commande n'est utilisable, justement, qu'à travers un échappement vers
+LaTeX, par exemple via la clé |raw-detected-commands|
+(cf.~p.~\pageref{raw-detected-commands}).
+
+\nobreak
+\begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+\PitonOptions{raw-detected-commands = rowcolor} % dans le préambule
+\end{Verbatim}
+
+\medskip
+
+\begin{BVerbatim}[boxwidth=87mm,baseline=c]
+\begin{Piton}[width=min]
+def fact(n):
+    if n==0:
+        return 1 ~emphase#\rowcolor{yellow!50}@
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+\end{BVerbatim}
+\hspace{1cm}
+\begin{Piton}[width=min,box]
+def fact(n):
+    if n==0:
+        return 1 \rowcolor{yellow!50}
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+
+
+\bigbreak
+Voici maintenant le même exemple avec utilisation conjointe de la clé
+|background-color| (cf. p.~\pageref{background-color}) :
+
+\medskip
+\begin{BVerbatim}[boxwidth=91mm,baseline=c]
+\begin{Piton}[width=min,~emphase#background-color=gray!15@]
+def fact(n):
+    if n==0:
+        return 1 ~emphase#\rowcolor{yellow!50}@
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+\end{BVerbatim}
+\hspace{6mm}
+\begin{Piton}[width=min,box,background-color=gray!15]
+def fact(n):
+    if n==0:
+        return 1 \rowcolor{yellow!50}
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+
+
+\bigbreak
+Comme on le constate, une marge a été ajoutée à gauche et à droite par la clé
+|background-color|. Pour avoir une telle marge sans couleur de fond générale, il
+convient d'utiliser |background-color| avec
+la couleur spéciale |none|.
+
+\medskip
+\begin{BVerbatim}[boxwidth=87mm,baseline=c]
+\begin{Piton}[width=min,~emphase#background-color=none@]
+def fact(n):
+    if n==0:
+        return 1 ~emphase#\rowcolor{yellow!50}@
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+\end{BVerbatim}
+\hspace{1cm}
+\begin{Piton}[width=min,box,background-color=none]
+def fact(n):
+    if n==0:
+        return 1 \rowcolor{yellow!50}
+    else:
+        return n*fact(n-1)
+\end{Piton}        
 
 
 \subsection{Comportement dans la classe Beamer}
@@ -2509,7 +2608,7 @@ clé \Definition{detected-beamer-environments}.
 
 \medskip
 Il y a néanmoins une restriction : ces environnements doivent englober des \emph{lignes
-  entières de code Python}. Les instructions |\begin{...}| et |\end{...}| doivent être
+  entières de code}. Les instructions |\begin{...}| et |\end{...}| doivent être
 seules sur leurs lignes.
 
 
@@ -2944,10 +3043,7 @@ def arctan(x,n=10):
 
 
 \vspace{1cm} On peut aussi faire afficher les commentaires dans une deuxième colonne à
-droite si on limite la largeur du code proprement dit avec la clé |width|. Dans l'exemple
-qui suit, on utilise la clé |width| avec la valeur spéciale~|min|. Plusieurs compilations
-sont nécessaires.
-
+droite si on limite la largeur du code proprement dit avec la clé |width|. 
 
 \begingroup
 \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
@@ -3292,7 +3388,7 @@ raisons techniques, le |!| est ici obligatoire dans la signature de l'environnem
 ne peut pas procéder comme précédemment (dans l'utilisation «standard» de \pkg{pyluatex})
 car, bien sûr, c'est le retour fait par |{pythonrepl}| qui doit être traité par
 \pkg{piton}. De ce fait, il ne sera pas possible de mettre des surcharges (avec
-|detected-commands| ou le mécanisme |escape|) dans le code.
+|detected-commands|, |begin-escape|, etc.) dans le code.
 
 \begin{Verbatim}
 \ExplSyntaxOn
@@ -3809,7 +3905,7 @@ On peut basculer vers le langage «|verbatim|» avec la clé |language| : |langu
 \end{center}
 
 \bigskip
-Le language «|verbatim|» ne propose aucun style et ne fait donc aucun formatage
+Le langage «|verbatim|» ne propose aucun style et ne fait donc aucun formatage
 syntaxique. On peut néanmoins y utiliser le mécanisme |detected-commands| (cf. partie
 \ref{detected-commands}, p.~\pageref{detected-commands}) ainsi que le
 mécanisme de détection des commandes et des environnements de Beamer.
@@ -3828,7 +3924,7 @@ mécanisme de détection des commandes et des environnements de Beamer.
 
 \section*{Remerciements}
 
-Remerciements à Yann Salmon pour ses nombreuses suggestions pertinentes.
+Remerciements à Yann Salmon et Pierre Le Scornet pour leurs nombreuses suggestions pertinentes.
 
 \section*{Autre documentation}
 

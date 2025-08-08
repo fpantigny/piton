@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.7x" -- 2025/07/10
+piton_version = "4.8" -- 2025/08/08
 
 
 
@@ -293,10 +293,9 @@ function Compute_Beamer ( lang , braces )
 end
 local CommentMath =
   P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$" -- $
-local PromptHastyDetection =
-  ( # ( P ">>>" + "..." ) * Lc [[ \__piton_prompt: ]] ) ^ -1
 local Prompt =
-  K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 + P ( true ) ) ) ^ -1
+  K ( 'Prompt' , ( P ">>>" + "..." ) * P " " ^ -1 )
+  *   Lc [[ \rowcolor { \l__piton_prompt_bg_color_tl } ]]
 local EOL =
   P "\r"
   *
@@ -313,9 +312,7 @@ local EOL =
                     -1
                   +
                     beamerBeginEnvironments
-                  * PromptHastyDetection
                   * Lc [[ \__piton_par:\__piton_begin_line: ]]
-                  * Prompt
                 )
             )
        )
@@ -592,6 +589,7 @@ do
        + CommentLaTeX
        + Beamer
        + DetectedCommands
+       + Prompt
        + LongString
        + Comment
        + ExceptionInConsole
@@ -616,9 +614,7 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
          * beamerBeginEnvironments
-         * PromptHastyDetection
          * Lc [[ \__piton_begin_line: ]]
-         * Prompt
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
@@ -975,8 +971,8 @@ local DotNotation =
   end
   return nil
 end)
-  local Prompt = #start_of_line * K( 'Prompt', prompt)
-  local Answer = #start_of_line * (Q"-" + Q "val" * Space * Identifier )
+  local Prompt = #start_of_line * K( 'Prompt', prompt )
+  local Answer = #start_of_line * (Q "-" + Q "val" * Space * Identifier )
                  * SkipSpace * Q ":" * #(1- P"=") * SkipSpace
                  * (K ( 'TypeExpression' , Q ( 1 - P "=") ^ 1 ) ) * SkipSpace * Q "="
   local Main =

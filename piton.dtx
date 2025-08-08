@@ -51,7 +51,7 @@
     end-escape-math = \) ,
     detected-commands = { highLight, footnote } ,
     vertical-detected-commands = newpage ,
-    raw-detected-commands = NameTable
+    raw-detected-commands = { NameTable , rowcolor } 
   }
 
 \parindent 0pt
@@ -88,12 +88,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.7x}
-\def\PitonFileDate{2025/07/10}
+\def\PitonFileVersion{4.8}
+\def\PitonFileDate{2025/08/08}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.7x" -- 2025/07/10
+piton_version = "4.8" -- 2025/08/08
 %</LUA>
 %\fi
 %
@@ -220,7 +220,7 @@ piton_version = "4.7x" -- 2025/07/10
 %
 % \indexenv{Piton}
 % 
-% The package \pkg{piton} provides several tools to typeset informatic codes: the
+% The package \pkg{piton} provides several tools to typeset computer listings: the
 % command |\piton|, the environment |{Piton}| and the command |\PitonInputFile|.
 %
 % \begin{itemize}
@@ -490,10 +490,11 @@ piton_version = "4.7x" -- 2025/07/10
 % inserted to fit the numbers of lines. See an example part
 % \ref{example-numbering} on page~\pageref{example-numbering}.
 %
-% \item \index{background-color} The key \Definition{background-color} sets the
-% background color of the environments |{Piton}| and the listings produced by
-% |\PitonInputFile| (it's possible to fix the width of that background with the
-% key |width| or the key |max-width| described below).
+% \item \index{background-color} \label{background-color} The key
+% \Definition{background-color} sets the background color of the environments
+% |{Piton}| and the listings produced by |\PitonInputFile| (it's possible to fix
+% the width of that background with the key |width| or the key |max-width|
+% described below).
 
 % The key |background-color| accepts a color
 % defined «on the fly». For example, it's possible to write
@@ -850,7 +851,7 @@ piton_version = "4.7x" -- 2025/07/10
 % not allowed (of course)}
 %
 % \medskip
-% There also exist the commands \DefinitionCommand{RenewPitonEnvironment},
+% There also exist three other commands \DefinitionCommand{RenewPitonEnvironment},
 % \DefinitionCommand{DeclarePitonEnvironment} and
 % \DefinitionCommand{ProvidePitonEnvironment}, similar to the corresponding
 % commands of L3.
@@ -2098,10 +2099,11 @@ piton_version = "4.7x" -- 2025/07/10
 % That feature is activated by the key \Definition{math-comments}, \emph{which is
 % available only in the preamble of the document}.
 %
-% \medskip
-% Here is a example, where we have assumed that the preamble of the document
-% contains the instruction |\PitonOptions{math-comment}|:
-% 
+% \nobreak
+% \begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+% \PitonOptions{math-comment} % in the preamble
+% \end{Verbatim}
+%
 % \begin{Verbatim}
 % \begin{Piton}
 % def square(x):
@@ -2186,9 +2188,10 @@ piton_version = "4.7x" -- 2025/07/10
 % LaTeX by default).
 %
 % \medskip
-% Imagine, for example, that we wisth, in the main text of a document, introduce
-% some specifications of tables of the language \textsc{sql} by the the name of the table,
-% followed, between brackets, by the names of its fields (ex. : |client(name,town)|).
+% Imagine, for example, that we wish, in the main text of a document about
+% databases, introduce some specifications of tables of the language
+% \textsc{sql} by the the name of the table, followed, between brackets, by the
+% names of its fields (ex. : |client(name,town)|).
 %
 % If we insert that element in a command |\piton|, the word \emph{client} won't be
 % recognized as a name of table but as a name of field. It's possible to define
@@ -2301,7 +2304,7 @@ piton_version = "4.7x" -- 2025/07/10
 %
 % \bigskip
 % \emph{Caution} : The mechanism ``escape'' is not active in the strings nor in
-% the Python comments (however, it's possible to have a whole Python comment
+% the comments (however, it's possible to have a whole Python comment
 % composed in LaTeX by beginning it with |#>|; such comments are merely called
 % ``LaTeX comments'' in this document).
 % 
@@ -2369,7 +2372,103 @@ piton_version = "4.7x" -- 2025/07/10
 %         for \(k\) in range(\(n\)): s += \(\smash{\frac{(-1)^k}{2k+1} x^{2k+1}}\)
 %         return s
 % \end{Piton}
-% 
+%
+%
+% \subsubsection{The command \textbackslash rowcolor}
+%
+% \indexcommand{rowcolor}
+%
+% \colorbox{yellow!50}{\textbf{New 4.8}}
+%
+% \nobreak
+% \medskip
+% The extension \pkg{piton} provides a command \DefinitionCommand{rowcolor}
+% which, when place within a line of code, specifies that this line will have a
+% colored background (with the color in the argument\footnote{The command
+% |\rowcolor| takes in only one argument. There is no optional argument between
+% square brackets for the colorimetric space. However, it's possible to write
+% something like |\rowcolor{[rgb]{0.8,1,0.8}}|.} of the command).
+%
+% \medskip
+% We documente that command in the part which deals about the escapes to LaTeX because
+% this command can only be used through an escape to LaTeX, for example with the key
+% |raw-detected-commands| (cf.~p.~\pageref{raw-detected-commands}).
+%
+% \nobreak
+% \begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+% \PitonOptions{raw-detected-commands = rowcolor} % in the preamble
+% \end{Verbatim}
+%
+% \medskip
+%
+% \begin{BVerbatim}[boxwidth=87mm,baseline=c]
+% \begin{Piton}[width=min]
+% def fact(n):
+%     if n==0:
+%         return 1 ~emphase#\rowcolor{yellow!50}@
+%     else:
+%         return n*fact(n-1)
+% \end{Piton}        
+% \end{BVerbatim}
+% \hspace{1cm}
+% \begin{Piton}[width=min,box]
+% def fact(n):
+%     if n==0:
+%         return 1 \rowcolor{yellow!50}
+%     else:
+%         return n*fact(n-1)
+% \end{Piton}        
+%
+%
+% \bigbreak
+% Here is now the same example with the join use of the key |background-color|
+% (cf. p.~\pageref{background-color}).
+%
+% \medskip
+% \begin{BVerbatim}[boxwidth=87mm,baseline=c]
+% \begin{Piton}[width=min,~emphase#background-color=gray!15@]
+% def fact(n):
+%     if n==0:
+%         return 1 ~emphase#\rowcolor{yellow!50}@
+%     else:
+%         return n*fact(n-1)
+% \end{Piton}        
+% \end{BVerbatim}
+% \hspace{1cm}
+% \begin{Piton}[width=min,box,background-color=gray!15]
+% def fact(n):
+%     if n==0:
+%         return 1 \rowcolor{yellow!50}
+%     else:
+%         return n*fact(n-1)
+% \end{Piton}        
+%
+%
+% \bigbreak
+% As you can see, a margin has been added on both sides of the code by the key
+% |background-color|. If you wish those margins without general background, you
+% should use |background-color| with the special value~|none|.
+%
+% \medskip
+% \begin{BVerbatim}[boxwidth=87mm,baseline=c]
+% \begin{Piton}[width=min,~emphase#background-color=none@]
+% def fact(n):
+%     if n==0:
+%         return 1 ~emphase#\rowcolor{yellow!50}@
+%     else:
+%         return n*fact(n-1)
+% \end{Piton}        
+% \end{BVerbatim}
+% \hspace{1cm}
+% \begin{Piton}[width=min,box,background-color=none]
+% def fact(n):
+%     if n==0:
+%         return 1 \rowcolor{yellow!50}
+%     else:
+%         return n*fact(n-1)
+% \end{Piton}        
+%
+%
 %
 % \subsection{Behaviour in the class Beamer}
 %
@@ -2430,7 +2529,7 @@ piton_version = "4.7x" -- 2025/07/10
 % \item no mandatory argument : |\pause|\footnote{One should remark that it's
 % also  possible to use the command |\pause| in a ``LaTeX
 % comment'', that is to say by writing |#> \pause|. By
-% this way, if the Python code is copied, it's still executable by Python}.  ;
+% this way, if the code is copied, it's still executable}.  ;
 % \item one mandatory argument : |\action|, |\alert|, |\invisible|, |\only|,
 % |\uncover| and |\visible| ; \newline
 % % It's possible to add new commands to that list with the key
@@ -2494,7 +2593,7 @@ piton_version = "4.7x" -- 2025/07/10
 % \smallskip
 %
 % However, there is a restriction: these environments must contain only \emph{whole
-% lines of Python code} in their body. The instructions |\begin{...}| and
+% lines of code} in their body. The instructions |\begin{...}| and
 % |\end{...}| must be alone on their lines.
 %
 %\medskip
@@ -2594,7 +2693,7 @@ piton_version = "4.7x" -- 2025/07/10
 %
 %
 % \medskip
-% \textbf{Important remark} : If you use Beamer, you should know taht Beamer has
+% \textbf{Important remark} : If you use Beamer, you should know that Beamer has
 % its own system to extract the footnotes. Therefore, \pkg{piton} must be loaded
 % in that class without the option |footnote| nor the option |footnotehyper|.
 % 
@@ -2928,7 +3027,7 @@ piton_version = "4.7x" -- 2025/07/10
 %
 % \vspace{1cm}
 % It's also possible to display these LaTeX comments in a kind of second column
-% by limiting the width of the Python code with the key |width|. 
+% by limiting the width of the listing with the key |width|. 
 %
 % \begingroup
 % \fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
@@ -4077,7 +4176,7 @@ piton_version = "4.7x" -- 2025/07/10
 %    \end{macrocode}
 % 
 % \medskip
-% Each time an environment of \pkg{piton} is used, the informatic code in the
+% Each time an environment of \pkg{piton} is used, the computer listing in the
 % body of that environment will be stored in the following global string.
 %    \begin{macrocode}
 \tl_new:N \g_piton_last_code_tl
@@ -4167,7 +4266,7 @@ piton_version = "4.7x" -- 2025/07/10
 %
 % \medskip
 % When the key |split-on-empty-lines| will be in force, then the following token
-% list will be inserted between the chunks of code (the informatic code provided
+% list will be inserted between the chunks of code (the computer listing provided
 % by the final user is split in chunks on the empty lines in the code). 
 %    \begin{macrocode}
 \tl_new:N \l_@@_split_separation_tl
@@ -4184,6 +4283,11 @@ piton_version = "4.7x" -- 2025/07/10
 \clist_new:N \l_@@_bg_color_clist
 %    \end{macrocode}
 %
+% We will also keep in memory the length of the previous |clist| (for efficiency).
+%    \begin{macrocode}
+\int_new:N \l_@@_bg_colors_int 
+%    \end{macrocode}
+% 
 % \medskip
 % The package \pkg{piton} will also detect the lines of code which correspond to
 % the user input in a Python console, that is to say the lines of code beginning
@@ -4220,12 +4324,6 @@ piton_version = "4.7x" -- 2025/07/10
 \str_new:N \l_@@_file_name_str 
 %    \end{macrocode}
 %
-% \medskip
-% We will count the environments |{Piton}| (and, in fact, also the commands
-% |\PitonInputFile|, despite the name |\g_@@_env_int|).
-%    \begin{macrocode}
-\int_new:N \g_@@_env_int 
-%    \end{macrocode}
 %
 % \medskip
 % The following flag corresponds to the key |print|. The initial value of that
@@ -4473,6 +4571,17 @@ piton_version = "4.7x" -- 2025/07/10
       { \@@_error:n { label~with~lines~numbers } }
   }
 %    \end{macrocode}
+%
+% \bigskip
+% In the environments |{Piton}| the command |\rowcolor| will be linked to the
+% following one.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_rowcolor:n #1
+  {
+    \tl_gset:ce { g_@@_color_ \int_eval:n { \g_@@_line_int + 1 }_ tl } { #1 }
+    \bool_gset_true:N \g_@@_rowcolor_inside_bool 
+  }
+%    \end{macrocode}
 % 
 % \bigskip
 % The following commands corresponds to the keys |marker/beginning| and
@@ -4504,21 +4613,6 @@ piton_version = "4.7x" -- 2025/07/10
 \tl_new:N \g_@@_after_line_tl
 %    \end{macrocode}
 %
-% \smallskip
-% For example, the LPEG |Prompt| will trigger the following command which will
-% insert an instruction in the hook |\g_@@_begin_line_hook| to specify that a
-% background must be inserted to the current line of code.
-%    \begin{macrocode}
-\cs_new_protected:Npn \@@_prompt: 
-  { 
-    \tl_gset:Nn \g_@@_before_line_tl
-      { 
-        \tl_if_empty:NF \l_@@_prompt_bg_color_tl 
-          { \clist_set:No \l_@@_bg_color_clist { \l_@@_prompt_bg_color_tl } }
-      } 
-  }
-%    \end{macrocode}
-%
 %
 % \bigskip
 % The spaces at the end of a line of code are deleted by \pkg{piton}.
@@ -4534,8 +4628,12 @@ piton_version = "4.7x" -- 2025/07/10
 \bool_new:N \g_@@_color_is_none_bool
 \bool_new:N \g_@@_next_color_is_none_bool
 %    \end{macrocode}
-% 
 %
+% \bigskip
+%    \begin{macrocode}
+\bool_new:N \g_@@_rowcolor_inside_bool
+%    \end{macrocode}
+% 
 % \bigskip
 % \subsubsection{Detected commands}
 %
@@ -4763,7 +4861,7 @@ piton_version = "4.7x" -- 2025/07/10
 % If there is a background, we must remind that there is a left margin of 0.5~em
 % for the background...
 %    \begin{macrocode}
-        \clist_if_empty:NF \l_@@_bg_color_clist 
+        \bool_if:NT \g_@@_bg_bool
           { 
 %    \end{macrocode}
 % ... but if only if the key |left-margin| is not used !
@@ -4846,11 +4944,13 @@ piton_version = "4.7x" -- 2025/07/10
         \hbox
           {
 %    \end{macrocode}
-% |\@@_color:N| sets the current color but also sets the booleans
-% |\g_@@_color_is_none_bool| and |\g_@@_next_color_is_none_bool|. It uses the value of
-% |\g_@@_line_int| which is the number of the current line.
+% The command |\@@_compute_and_set_color:| sets the current color but also sets the booleans
+% |\g_@@_color_is_none_bool| and |\g_@@_next_color_is_none_bool|. It uses the
+% current value of |\l_@@_bg_color_clist|, the value of
+% |\g_@@_line_int| (the number of the current line) but also potential token lists
+% of the form |\g_@@_color_12_tl| if the final user has used the command |\rowcolor|.
 %    \begin{macrocode}
-            \@@_color:N \l_@@_bg_color_clist
+            \@@_compute_and_set_color:
 %    \end{macrocode}
 % The colored panels are overlapping. However, if the special color |none| is used
 % we must not put such overlapping.
@@ -4918,31 +5018,58 @@ piton_version = "4.7x" -- 2025/07/10
 %
 %
 % \bigskip
-% The command |\@@_color:N| will take in as argument a reference to a
-% comma-separated list of colors. A color will be picked by using the value of
-% |\g_@@_line_int| (modulo the number of colors in the list).
+% The command |\@@_compute_and_set_color:| sets the current color but also sets the booleans
+% |\g_@@_color_is_none_bool| and |\g_@@_next_color_is_none_bool|. It uses the
+% current value of |\l_@@_bg_color_clist|, the value of
+% |\g_@@_line_int| (the number of the current line) but also potential token lists
+% of the form |\g_@@_color_12_tl| if the final user has used the command |\rowcolor|.
 %    \begin{macrocode}
-\cs_set_protected:Npn \@@_color:N #1 
+\cs_set_protected:Npn \@@_compute_and_set_color: 
   {
-    \int_set:Nn \l_tmpa_int { \clist_count:N #1 }
-    \int_set:Nn \l_tmpb_int { \int_mod:nn \g_@@_line_int \l_tmpa_int + 1 }
-    \tl_set:Ne \l_tmpa_tl { \clist_item:Nn #1 \l_tmpb_int }
+    \int_compare:nNnTF \l_@@_bg_colors_int = \c_zero_int 
+      { \tl_set:Nn \l_tmpa_tl { none } }
+      {
+        \int_set:Nn \l_tmpb_int
+          { \int_mod:nn \g_@@_line_int \l_@@_bg_colors_int + 1 }
+        \tl_set:Ne \l_tmpa_tl { \clist_item:Nn \l_@@_bg_color_clist \l_tmpb_int }
+      }
+%    \end{macrocode}
+% The row may have a color specified by the command |\rowcolor|. We check that point now.
+%    \begin{macrocode}
+    \cs_if_exist:cT { g_@@_color_ \int_use:N \g_@@_line_int _ tl }
+      {
+        \tl_set_eq:Nc \l_tmpa_tl { g_@@_color_ \int_use:N \g_@@_line_int _ tl }
+%    \end{macrocode}
+% We don't need any longer the variable and that's why we delete it (it must be free
+% for the next environment of \pkg{piton}).
+%    \begin{macrocode}
+        \cs_undefine:c { g_@@_color_ \int_use:N \g_@@_line_int _ tl }
+      }
     \tl_if_eq:NnTF \l_tmpa_tl { none }
       { \bool_gset_true:N \g_@@_color_is_none_bool }
       {
         \bool_gset_false:N \g_@@_color_is_none_bool
-        \@@_color_i:o \l_tmpa_tl
+        \@@_color:o \l_tmpa_tl
       }
-% \end{macrocode}
+%    \end{macrocode}
 % We are looking for the next color because we have to know whether that
-% color is the special color |none|.
-% \begin{macrocode}
+% color is the special color |none| (for the vertical adjustment of the background color).
+%    \begin{macrocode}
     \int_compare:nNnTF { \g_@@_line_int + 1 } = \g_@@_nb_lines_int
       { \bool_gset_false:N \g_@@_next_color_is_none_bool }
       {
-        \int_set:Nn \l_tmpb_int
-          { \int_mod:nn { \g_@@_line_int + 1 } \l_tmpa_int + 1 }
-        \tl_set:Ne \l_tmpa_tl { \clist_item:Nn #1 \l_tmpb_int }
+        \int_compare:nNnTF \l_@@_bg_colors_int = \c_zero_int
+          { \tl_set:Nn \l_tmpa_tl { none } }
+          {
+            \int_set:Nn \l_tmpb_int
+              { \int_mod:nn { \g_@@_line_int + 1 } \l_@@_bg_colors_int + 1 }
+            \tl_set:Ne \l_tmpa_tl { \clist_item:Nn \l_@@_bg_color_clist \l_tmpb_int }
+          }
+        \cs_if_exist:cT { g_@@_color_ \int_eval:n { \g_@@_line_int + 1 } _ tl }
+          {
+            \tl_set_eq:Nc \l_tmpa_tl
+              { g_@@_color_ \int_eval:n { \g_@@_line_int + 1 } _ tl }
+          }     
         \tl_if_eq:NnTF \l_tmpa_tl { none }
           { \bool_gset_true:N \g_@@_next_color_is_none_bool }
           { \bool_gset_false:N \g_@@_next_color_is_none_bool }
@@ -4954,7 +5081,7 @@ piton_version = "4.7x" -- 2025/07/10
 % The following command |\@@_color:n| will accept both the instruction
 % |\@@_color:n { red!15 }| and the instruction |\@@_color:n { [rgb]{0.9,0.9,0} }|.
 %    \begin{macrocode}
-\cs_set_protected:Npn \@@_color_i:n #1
+\cs_set_protected:Npn \@@_color:n #1
   {
     \tl_if_head_eq_meaning:nNTF { #1 } [ 
       { 
@@ -4964,7 +5091,7 @@ piton_version = "4.7x" -- 2025/07/10
       }
       { \color { #1 } }
   }
-\cs_generate_variant:Nn \@@_color_i:n { o }
+\cs_generate_variant:Nn \@@_color:n { o }
 %    \end{macrocode}
 % 
 % \bigskip
@@ -4974,7 +5101,7 @@ piton_version = "4.7x" -- 2025/07/10
 % \item In fact, it will be inserted between two commands
 % |\@@_begin_line:|...|\@@_end_of_line:|. 
 % \item When the key |break-lines-in-Piton| is in force, a line of the
-% informatic code (the \emph{input}) may result in several lines in the
+% computer listing (the \emph{input}) may result in several lines in the
 % \textsc{pdf} (the \emph{output}). 
 % \item Remind that |\@@_par:| has a rather complex behaviour because it will
 % finish and start paragraphs.
@@ -5028,8 +5155,7 @@ piton_version = "4.7x" -- 2025/07/10
               \l_@@_continuation_symbol_tl 
             } 
             \skip_horizontal:n { 0.3 em }  
-            \clist_if_empty:NF \l_@@_bg_color_clist 
-              { \skip_horizontal:n { 0.5 em } }
+            \bool_if:NT \g_@@_bg_bool { \skip_horizontal:n { 0.5 em } }
           }  
         \bool_if:NT \l_@@_indent_broken_lines_bool
           { 
@@ -5288,7 +5414,9 @@ piton_version = "4.7x" -- 2025/07/10
 
     splittable       .int_set:N         = \l_@@_splittable_int ,
     splittable       .default:n         = 1 , 
-    background-color .clist_set:N       = \l_@@_bg_color_clist ,
+    background-color .code:n =
+      \clist_set:Nn \l_@@_bg_color_clist { #1 }
+      \int_set:Nn \l_@@_bg_colors_int { \clist_count:N \l_@@_bg_color_clist } ,
     background-color .value_required:n  = true ,
     prompt-background-color .tl_set:N         = \l_@@_prompt_bg_color_tl ,
     prompt-background-color .value_required:n = true ,
@@ -5735,7 +5863,7 @@ piton_version = "4.7x" -- 2025/07/10
 %
 %  \bigskip 
 %  The following command does \emph{not} correspond to a user command. It will
-%  be used when we will have to ``rescan'' some chunks of informatic code. For
+%  be used when we will have to ``rescan'' some chunks of computer code. For
 %  example, it will be the initial value of the Piton style |InitialValues| (the
 %  default values of the arguments of a Python function).
 %    \begin{macrocode}
@@ -5771,7 +5899,6 @@ piton_version = "4.7x" -- 2025/07/10
   {
     \legacy_if:nT { @inlabel } { \bool_set_true:N \l_@@_in_label_bool }
     \automatichyphenmode = 1
-    \int_gincr:N \g_@@_env_int
     \dim_compare:nNnT \l_@@_width_dim = \c_zero_dim
       {
         \dim_set_eq:NN \l_@@_width_dim \linewidth
@@ -5784,6 +5911,13 @@ piton_version = "4.7x" -- 2025/07/10
     \int_gzero:N \g_@@_nb_lines_int
     \dim_zero:N \parindent 
     \dim_zero:N \lineskip
+    \cs_set_eq:NN \rowcolor \@@_rowcolor:n
+    \bool_gset_false:N \g_@@_bg_bool
+    \int_compare:nNnT \l_@@_bg_colors_int > { \c_zero_int }
+      { \bool_gset_true:N \g_@@_bg_bool }
+    \tl_if_empty:NF \l_@@_prompt_bg_color_tl
+      { \bool_gset_true:N \g_@@_bg_bool }
+    \bool_gset_false:N \g_@@_rowcolor_inside_bool
     \IfPackageLoadedTF { zref-base }
       {
         \bool_if:NTF \g_@@_label_as_zlabel_bool 
@@ -5840,14 +5974,14 @@ piton_version = "4.7x" -- 2025/07/10
 \cs_new_protected:Npn \@@_compute_width:
   {
     \dim_gset:Nn \g_@@_width_dim { \box_wd:N \g_@@_output_box }
-    \clist_if_empty:NTF \l_@@_bg_color_clist
-      { \dim_gadd:Nn \g_@@_width_dim \l_@@_left_margin_dim }
+    \bool_if:NTF \g_@@_bg_bool
       { 
         \dim_gadd:Nn \g_@@_width_dim { 0.5 em }
         \dim_compare:nNnTF \l_@@_left_margin_dim = \c_zero_dim 
           { \dim_gadd:Nn \g_@@_width_dim { 0.5 em } }
           { \dim_gadd:Nn \g_@@_width_dim \l_@@_left_margin_dim }
       }
+      { \dim_gadd:Nn \g_@@_width_dim \l_@@_left_margin_dim }
   }          
 %    \end{macrocode}
 %
@@ -5860,11 +5994,7 @@ piton_version = "4.7x" -- 2025/07/10
 \cs_new_protected:Npn \@@_compute_code_width:
   {
     \dim_set_eq:NN \l_@@_code_width_dim \l_@@_width_dim
-    \clist_if_empty:NTF \l_@@_bg_color_clist
-%    \end{macrocode}
-% If there is no background, we only subtract the left margin. 
-%    \begin{macrocode}
-      { \dim_sub:Nn \l_@@_code_width_dim \l_@@_left_margin_dim }
+    \bool_if:NTF \g_@@_bg_bool
 %    \end{macrocode}
 % If there is a background, we subtract 0.5~em for the margin on the right.
 %    \begin{macrocode}
@@ -5883,6 +6013,10 @@ piton_version = "4.7x" -- 2025/07/10
           { \dim_sub:Nn \l_@@_code_width_dim { 0.5 em } }
           { \dim_sub:Nn \l_@@_code_width_dim \l_@@_left_margin_dim }
       }
+%    \end{macrocode}
+% If there is no background, we only subtract the left margin. 
+%    \begin{macrocode}
+      { \dim_sub:Nn \l_@@_code_width_dim \l_@@_left_margin_dim } 
   }
 %    \end{macrocode}
 %
@@ -5996,7 +6130,7 @@ piton_version = "4.7x" -- 2025/07/10
 \IfFormatAtLeastTF { 2025-06-01 }
   {
 %    \end{macrocode}
-% We will retreive the body of the environment in |\l_@@_listing_tl|.
+% We will retrieve the body of the environment in |\l_@@_listing_tl|.
 %    \begin{macrocode}
     \cs_new_protected:Npn \@@_store_body:n #1 
       {
@@ -6027,9 +6161,9 @@ piton_version = "4.7x" -- 2025/07/10
 %    \end{macrocode}
 % Now, the main job.
 %    \begin{macrocode}
-            \bool_if:NT \g_@@_footnote_bool \savenotes % added
+            \bool_if:NT \g_@@_footnote_bool \savenotes 
             \@@_composition:
-            \bool_if:NT \g_@@_footnote_bool \endsavenotes % added 
+            \bool_if:NT \g_@@_footnote_bool \endsavenotes 
             #5
           }
           { \ignorespacesafterend }  
@@ -6286,7 +6420,10 @@ piton_version = "4.7x" -- 2025/07/10
     \vbox_gset:Nn \g_@@_output_box
       { \@@_retrieve_gobble_parse:o \l_@@_listing_tl }
     \bool_if:NT \l_@@_minimize_width_bool { \@@_compute_width: }
-    \clist_if_empty:NF \l_@@_bg_color_clist { \@@_add_backgrounds_to_output_box: }
+    \bool_lazy_or:nnT
+      \g_@@_bg_bool
+      \g_@@_rowcolor_inside_bool
+      { \@@_add_backgrounds_to_output_box: }
   }
 %    \end{macrocode}
 %
@@ -8080,35 +8217,13 @@ local CommentMath =
 % \bigskip
 % \paragraph{EOL}
 %
-% \bigskip
-% The following LPEG will detect the Python prompts when the user is typesetting
-% an interactive session of Python (directly or through |{pyconsole}| of
-% \pkg{pyluatex}). We have to detect that prompt twice. The first detection
-% (called \emph{hasty detection}) will be before the |\@@_begin_line:| because
-% you want to trigger a special background color for that row (and, after the
-% |\@@_begin_line:|, it's too late to change de background).
-%    \begin{macrocode}
-local PromptHastyDetection = 
-  ( # ( P ">>>" + "..." ) * Lc [[ \@@_prompt: ]] ) ^ -1 
-%    \end{macrocode}
-% We remind that the marker |#| of \textsc{lpeg} specifies that the pattern will be
-% detected but won't consume any character.
-%
-% \medskip
-% With the following \textsc{lpeg}, a style will actually be applied to the
-% prompt (for instance, it's possible to decide to discard these prompts).
+% There may be empty lines in the transcription of the prompt, \emph{id est} lines of
+% the form |...| without space after and that's why we need |P " " ^ -1| with the |^ -1|.
 %    \begin{macrocode}
 local Prompt = 
-  K ( 'Prompt' , ( ( P ">>>" + "..." ) * P " " ^ -1 + P ( true ) ) ) ^ -1  
+  K ( 'Prompt' , ( P ">>>" + "..." ) * P " " ^ -1 ) 
+  *   Lc [[ \rowcolor { \l_@@_prompt_bg_color_tl } ]] 
 %    \end{macrocode}
-% The |P ( true )| at the end is mandatory because we want the style to be
-% \emph{always} applied, even with an empty argument, in order, for example to
-% add a ``false'' prompt marker with the tuning:
-% 
-% \begin{Verbatim}
-% \SetPitonStyle{ Prompt = >>>\space }
-% \end{Verbatim}
-% 
 %
 %
 % \bigskip
@@ -8121,7 +8236,7 @@ local EOL =
     space ^ 0 * -1 
     + 
 %    \end{macrocode}
-% We recall that each line of the informatic code we have to parse will be sent
+% We recall that each line of the computer listing we have to parse will be sent
 % back to LaTeX between a pair |\@@_begin_line:| --
 % |\@@_end_line:|\footnote{Remember that the \texttt{\textbackslash
 % @@\_end\_line:} must be explicit because it will be used as marker in order to
@@ -8144,9 +8259,7 @@ local EOL =
                     -1 
                   + 
                     beamerBeginEnvironments 
-                  * PromptHastyDetection
                   * Lc [[ \@@_par:\@@_begin_line: ]]
-                  * Prompt
                 )
             )
        )
@@ -8673,7 +8786,8 @@ do
        + Escape + EscapeMath
        + CommentLaTeX
        + Beamer
-       + DetectedCommands 
+       + DetectedCommands
+       + Prompt
        + LongString 
        + Comment
        + ExceptionInConsole
@@ -8712,9 +8826,7 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
          * beamerBeginEnvironments 
-         * PromptHastyDetection
          * Lc [[ \@@_begin_line: ]]
-         * Prompt 
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
          * -1 
@@ -9338,8 +9450,8 @@ local DotNotation =
   end
   return nil
 end)
-  local Prompt = #start_of_line * K( 'Prompt', prompt)
-  local Answer = #start_of_line * (Q"-" + Q "val" * Space * Identifier )
+  local Prompt = #start_of_line * K( 'Prompt', prompt )
+  local Answer = #start_of_line * (Q "-" + Q "val" * Space * Identifier )
                  * SkipSpace * Q ":" * #(1- P"=") * SkipSpace
                  * (K ( 'TypeExpression' , Q ( 1 - P "=") ^ 1 ) ) * SkipSpace * Q "="
 %    \end{macrocode}
@@ -10376,7 +10488,7 @@ function piton.GobbleParse ( lang , n , splittable , code )
   piton.last_code = piton.Gobble ( n , code )
   piton.last_language = lang
 %    \end{macrocode}
-% We count the number of lines of the informatic code. The result will be stored
+% We count the number of lines of the computer listing. The result will be stored
 % by Lua in |\g_@@_nb_lines_int|. 
 %    \begin{macrocode}
   piton.CountLines ( piton.last_code ) 
@@ -10476,8 +10588,8 @@ end
 %
 % \bigskip
 % The following function will be used when the key |split-on-empty-lines| is in
-% force. With that key, the informatic code is split in chunks at the empty
-% lines (usually between the informatic functions defined in the informatic
+% force. With that key, the computer listing is split in chunks at the empty
+% lines (usually between the abstract functions defined in the computer
 % code). LaTeX will be able to change the page between the chunks. The second
 % argument |n| corresponds to the value of the key |gobble| (number of spaces to
 % gobble). 
@@ -11431,6 +11543,15 @@ end
 % repository:
 %
 % \verb|https://github.com/fpantigny/piton|
+%
+% \subsection*{Changes between versions 4.7 and 4.8}
+% 
+% New key |\rowcolor|
+%
+% The command |\label| redefined by \pkg{piton} is now compatible with \pkg{hyperref}
+% (thanks to P. Le Scornet).
+%
+% New key |label-as-zlabel|.
 %
 % \subsection*{Changes between versions 4.6 and 4.7}
 %
