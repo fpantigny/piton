@@ -775,6 +775,54 @@ Cette notion de globalité n'a pas de rapport avec la notion de liaison locale d
 \medskip
 Les styles fournis par défaut par \pkg{piton} sont tous définis globalement.
 
+
+\bigskip
+\subsubsection{La commande \textbackslash rowcolor}
+
+\label{rowcolor}
+\indexcommand{rowcolor}
+
+\colorbox{yellow!50}{\textbf{Nouveau 4.8}}
+
+\nobreak
+\medskip
+L'extension \pkg{piton} fournit la commande \DefinitionCommand{rowcolor} qui impose un
+fond coloré à la ligne courante (\emph{toute la ligne} et pas seulement la partie
+contenant du texte) et que l'on peut utiliser dans les styles.
+
+\smallskip
+La commande |\rowcolor| ne prend qu'un seul argument qui est la couleur demandée :
+il n'y a pas d'argument optionnel pour l'espace colorimétrique.\footnote{Néanmoins, il est possible
+d'écrire, par exemple : \verb|\rowcolor{[rgb]{0.8,1,0.8}}|.}
+
+\smallskip
+Voici un exemple pour le langage Python où on modifie le style |String.Doc|
+des \emph{documentation strings} pour avoir un fond coloré gris.
+
+
+\begin{Verbatim}
+~emphase#\SetPitonStyle{String.Doc = \rowcolor{gray!15}\color{black!80}}@
+\begin{Piton}[width=min]
+def square(x):
+    """Calcule le carré de x
+       Deuxième ligne de la documentation"""
+    return x*x
+\end{Piton}
+\end{Verbatim}
+
+
+\bigskip
+\begingroup
+\SetPitonStyle{String.Doc = \rowcolor{gray!15}\color{black!80}}
+\begin{Piton}[width=min]
+def square(x):
+    """Calcule le carré de x
+       Deuxième ligne de la documentation"""
+    return x*x
+\end{Piton}
+\endgroup
+
+
 \bigskip
 \subsubsection{Le style UserFunction}
 
@@ -852,6 +900,8 @@ l'utilisateur mais on peut spécifier en argument optionnel (entre crochets) une
 langages informatiques auxquels elle s'appliquera.\footnote{On rappelle que, dans
   \pkg{piton}, les noms des langages informatiques ne sont pas sensibles à la casse. }
 \end{small}
+
+
 
 
 
@@ -2389,102 +2439,6 @@ def arctan(x,n=10):
         return s
 \end{Piton}
 
-\subsubsection{La commande \textbackslash rowcolor}
-
-\indexcommand{rowcolor}
-
-\colorbox{yellow!50}{\textbf{Nouveau 4.8}}
-
-\nobreak
-\medskip
-L'extension \pkg{piton} propose une commande \DefinitionCommand{rowcolor} qui,
-placée dans une ligne de code, indique que cette ligne de code devra avoir un
-fond coloré (avec la couleur en argument\footnote{La commande |\rowcolor|
-  ne prend qu'un seul argument : il n'y a pas d'argument optionnel pour l'espace
-  colorimétrique. Néanmoins, il est possible d'écrire, par exemple :
-  \verb|\rowcolor{[rgb]{0.8,1,0.8}}|.} de |\rowcolor|).
-
-\medskip
-On documente cette commande dans la partie sur les échappements vers LaTeX, car
-cette commande n'est utilisable, justement, qu'à travers un échappement vers
-LaTeX, par exemple via la clé |raw-detected-commands|
-(cf.~p.~\pageref{raw-detected-commands}).
-
-\nobreak
-\begin{Verbatim}[formatcom=\footnotesize\color{gray}]
-\PitonOptions{raw-detected-commands = rowcolor} % dans le préambule
-\end{Verbatim}
-
-\medskip
-
-\begin{BVerbatim}[boxwidth=87mm,baseline=c]
-\begin{Piton}[width=min]
-def fact(n):
-    if n==0:
-        return 1 ~emphase#\rowcolor{yellow!50}@
-    else:
-        return n*fact(n-1)
-\end{Piton}        
-\end{BVerbatim}
-\hspace{1cm}
-\begin{Piton}[width=min,box]
-def fact(n):
-    if n==0:
-        return 1 \rowcolor{yellow!50}
-    else:
-        return n*fact(n-1)
-\end{Piton}        
-
-
-\bigbreak
-Voici maintenant le même exemple avec utilisation conjointe de la clé
-|background-color| (cf. p.~\pageref{background-color}) :
-
-\medskip
-\begin{BVerbatim}[boxwidth=91mm,baseline=c]
-\begin{Piton}[width=min,~emphase#background-color=gray!15@]
-def fact(n):
-    if n==0:
-        return 1 ~emphase#\rowcolor{yellow!50}@
-    else:
-        return n*fact(n-1)
-\end{Piton}        
-\end{BVerbatim}
-\hspace{6mm}
-\begin{Piton}[width=min,box,background-color=gray!15]
-def fact(n):
-    if n==0:
-        return 1 \rowcolor{yellow!50}
-    else:
-        return n*fact(n-1)
-\end{Piton}        
-
-
-\bigbreak
-Comme on le constate, une marge a été ajoutée à gauche et à droite par la clé
-|background-color|. Pour avoir une telle marge sans couleur de fond générale, il
-convient d'utiliser |background-color| avec
-la couleur spéciale |none|.
-
-\medskip
-\begin{BVerbatim}[boxwidth=87mm,baseline=c]
-\begin{Piton}[width=min,~emphase#background-color=none@]
-def fact(n):
-    if n==0:
-        return 1 ~emphase#\rowcolor{yellow!50}@
-    else:
-        return n*fact(n-1)
-\end{Piton}        
-\end{BVerbatim}
-\hspace{1cm}
-\begin{Piton}[width=min,box,background-color=none]
-def fact(n):
-    if n==0:
-        return 1 \rowcolor{yellow!50}
-    else:
-        return n*fact(n-1)
-\end{Piton}        
-
 
 \subsection{Comportement dans la classe Beamer}
 
@@ -3085,6 +3039,99 @@ def arctan(x,n=10):
         return s 
 \end{Piton}
 \endgroup
+
+\subsection{La commande \textbackslash rowcolor}
+
+\indexcommand{rowcolor}
+
+La commande |\rowcolor| a été décrite à la partie \ref{rowcolor},
+p.~\pageref{rowcolor}, dans la partie sur les styles. Rappelons qu'elle impose
+un fond coloré à la ligne courante (\emph{toute la ligne} et pas seulement la partie
+contenant du texte).
+
+\medskip
+Cette commande |\rowcolor| peut-être utilisée dans un style, comme illustré à la
+page~\pageref{rowcolor} mais on peut aussi envisager de l'utiliser directement
+dans un listing. Il faudra néanmoins utiliser un des mécanismes d'échappement
+vers LaTeX fournis par \pkg{piton}. Dans l'exemple suivant, on utilise la clé
+|raw-detected-commands| (cf.~p.~\pageref{raw-detected-commands}).
+
+\nobreak
+\begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+\PitonOptions{raw-detected-commands = rowcolor} % dans le préambule
+\end{Verbatim}
+
+\medskip
+
+\begin{BVerbatim}[boxwidth=87mm,baseline=c]
+\begin{Piton}[width=min]
+def fact(n):
+    if n==0:
+        return 1 ~emphase#\rowcolor{yellow!50}@
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+\end{BVerbatim}
+\hspace{1cm}
+\begin{Piton}[width=min,box]
+def fact(n):
+    if n==0:
+        return 1 \rowcolor{yellow!50}
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+
+
+\bigbreak
+Voici maintenant le même exemple avec utilisation conjointe de la clé
+|background-color| (cf. p.~\pageref{background-color}) :
+
+\medskip
+\begin{BVerbatim}[boxwidth=91mm,baseline=c]
+\begin{Piton}[width=min,~emphase#background-color=gray!15@]
+def fact(n):
+    if n==0:
+        return 1 ~emphase#\rowcolor{yellow!50}@
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+\end{BVerbatim}
+\hspace{6mm}
+\begin{Piton}[width=min,box,background-color=gray!15]
+def fact(n):
+    if n==0:
+        return 1 \rowcolor{yellow!50}
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+
+
+\bigbreak
+Comme on le constate, une marge a été ajoutée à gauche et à droite par la clé
+|background-color|. Pour avoir une telle marge sans couleur de fond générale, il
+convient d'utiliser |background-color| avec
+la couleur spéciale |none|.
+
+\medskip
+\begin{BVerbatim}[boxwidth=87mm,baseline=c]
+\begin{Piton}[width=min,~emphase#background-color=none@]
+def fact(n):
+    if n==0:
+        return 1 ~emphase#\rowcolor{yellow!50}@
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+\end{BVerbatim}
+\hspace{1cm}
+\begin{Piton}[width=min,box,background-color=none]
+def fact(n):
+    if n==0:
+        return 1 \rowcolor{yellow!50}
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+
+
 
 \subsection{Utilisation avec tcolorbox}
 

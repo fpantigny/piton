@@ -88,12 +88,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.8}
-\def\PitonFileDate{2025/08/08}
+\def\PitonFileVersion{4.8x}
+\def\PitonFileDate{2025/08/09}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.8" -- 2025/08/08
+piton_version = "4.8x" -- 2025/08/09
 %</LUA>
 %\fi
 %
@@ -752,6 +752,55 @@ piton_version = "4.8" -- 2025/08/08
 % all the styles globally. 
 %
 % \bigskip
+
+% \bigskip
+% \subsubsection{The command \textbackslash rowcolor}
+%
+% \label{rowcolor}
+% \indexcommand{rowcolor}
+%
+% \colorbox{yellow!50}{\textbf{New 4.8}}
+%
+% \nobreak
+% \medskip
+% The extension \pkg{piton} provides the command \DefinitionCommand{rowcolor} which adds
+% a colored background to the current line (the \emph{whole} line and not only the part with
+% text) which may be used in the styles.
+%
+% \smallskip
+% The command |\rowcolor| takes in only one argument which is the required color: there is no
+% optional argument between brackets for the colorimetric space.\footnote{However, it's
+% possible to write something like \verb|\rowcolor{[rgb]{0.8,1,0.8}}|.}
+%
+% \smallskip
+% Here is an example for the language Python where we modify the style |String.Doc|
+% of the ``documentation strings'' in order to have a colored background.
+
+%
+% \begin{Verbatim}
+% ~emphase#\SetPitonStyle{String.Doc = \rowcolor{gray!15}\color{black!80}}@
+% \begin{Piton}[width=min]
+% def square(x):
+%     """Computes the square of x
+%        Second line of the documentation"""
+%     return x*x
+% \end{Piton}
+% \end{Verbatim}
+%
+%
+% \bigskip
+% \begingroup
+% \SetPitonStyle{String.Doc = \rowcolor{gray!15}\color{black!80}}
+% \begin{Piton}[width=min]
+% def square(x):
+%     """Computes the square of x
+%        Second line of the documentation"""
+%     return x*x
+% \end{Piton}
+% \endgroup
+%
+%
+%
 %
 % \subsubsection{The style UserFunction}
 %
@@ -2374,101 +2423,7 @@ piton_version = "4.8" -- 2025/08/08
 % \end{Piton}
 %
 %
-% \subsubsection{The command \textbackslash rowcolor}
-%
-% \indexcommand{rowcolor}
-%
-% \colorbox{yellow!50}{\textbf{New 4.8}}
-%
-% \nobreak
-% \medskip
-% The extension \pkg{piton} provides a command \DefinitionCommand{rowcolor}
-% which, when place within a line of code, specifies that this line will have a
-% colored background (with the color in the argument\footnote{The command
-% |\rowcolor| takes in only one argument. There is no optional argument between
-% square brackets for the colorimetric space. However, it's possible to write
-% something like |\rowcolor{[rgb]{0.8,1,0.8}}|.} of the command).
-%
-% \medskip
-% We documente that command in the part which deals about the escapes to LaTeX because
-% this command can only be used through an escape to LaTeX, for example with the key
-% |raw-detected-commands| (cf.~p.~\pageref{raw-detected-commands}).
-%
-% \nobreak
-% \begin{Verbatim}[formatcom=\footnotesize\color{gray}]
-% \PitonOptions{raw-detected-commands = rowcolor} % in the preamble
-% \end{Verbatim}
-%
-% \medskip
-%
-% \begin{BVerbatim}[boxwidth=87mm,baseline=c]
-% \begin{Piton}[width=min]
-% def fact(n):
-%     if n==0:
-%         return 1 ~emphase#\rowcolor{yellow!50}@
-%     else:
-%         return n*fact(n-1)
-% \end{Piton}        
-% \end{BVerbatim}
-% \hspace{1cm}
-% \begin{Piton}[width=min,box]
-% def fact(n):
-%     if n==0:
-%         return 1 \rowcolor{yellow!50}
-%     else:
-%         return n*fact(n-1)
-% \end{Piton}        
-%
-%
-% \bigbreak
-% Here is now the same example with the join use of the key |background-color|
-% (cf. p.~\pageref{background-color}).
-%
-% \medskip
-% \begin{BVerbatim}[boxwidth=87mm,baseline=c]
-% \begin{Piton}[width=min,~emphase#background-color=gray!15@]
-% def fact(n):
-%     if n==0:
-%         return 1 ~emphase#\rowcolor{yellow!50}@
-%     else:
-%         return n*fact(n-1)
-% \end{Piton}        
-% \end{BVerbatim}
-% \hspace{1cm}
-% \begin{Piton}[width=min,box,background-color=gray!15]
-% def fact(n):
-%     if n==0:
-%         return 1 \rowcolor{yellow!50}
-%     else:
-%         return n*fact(n-1)
-% \end{Piton}        
-%
-%
-% \bigbreak
-% As you can see, a margin has been added on both sides of the code by the key
-% |background-color|. If you wish those margins without general background, you
-% should use |background-color| with the special value~|none|.
-%
-% \medskip
-% \begin{BVerbatim}[boxwidth=87mm,baseline=c]
-% \begin{Piton}[width=min,~emphase#background-color=none@]
-% def fact(n):
-%     if n==0:
-%         return 1 ~emphase#\rowcolor{yellow!50}@
-%     else:
-%         return n*fact(n-1)
-% \end{Piton}        
-% \end{BVerbatim}
-% \hspace{1cm}
-% \begin{Piton}[width=min,box,background-color=none]
-% def fact(n):
-%     if n==0:
-%         return 1 \rowcolor{yellow!50}
-%     else:
-%         return n*fact(n-1)
-% \end{Piton}        
-%
-%
+% 
 %
 % \subsection{Behaviour in the class Beamer}
 %
@@ -3069,6 +3024,95 @@ piton_version = "4.8" -- 2025/08/08
 %         return s 
 % \end{Piton}
 % \endgroup
+%
+%
+% \subsection{The command \textbackslash rowcolor}
+%
+% \indexcommand{rowcolor}
+%
+%
+% The command |\rowcolor| has been presented in the part \ref{rowcolor}, at the
+% page~\pageref{rowcolor}. We recall that this command adds a colored background
+% to the current line (the \emph{whole} line, and not only the part with text).
+%
+% It's possible to use that command in a style of \pkg{piton}, as shown in
+% p.~\pageref{rowcolor}, but maybe we wish to use it directly in a listing. In that aim,
+% it's mandatory to use one of the mechanisms to escape to LaTeX provided by \pkg{piton},
+% for example the key |raw-detected-commands| (cf.~p.~\pageref{raw-detected-commands}).
+%
+% \bigbreak
+% \begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+% \PitonOptions{raw-detected-commands = rowcolor} % in the preamble
+% \end{Verbatim}
+%
+% \medskip
+%
+% \begin{BVerbatim}[boxwidth=87mm,baseline=c]
+% \begin{Piton}[width=min]
+% def fact(n):
+%     if n==0:
+%         return 1 ~emphase#\rowcolor{yellow!50}@
+%     else:
+%         return n*fact(n-1)
+% \end{Piton}        
+% \end{BVerbatim}
+% \hspace{1cm}
+% \begin{Piton}[width=min,box]
+% def fact(n):
+%     if n==0:
+%         return 1 \rowcolor{yellow!50}
+%     else:
+%         return n*fact(n-1)
+% \end{Piton}        
+%
+%
+% \bigbreak
+% Here is now the same example with the join use of the key |background-color|
+% (cf. p.~\pageref{background-color}).
+%
+% \medskip
+% \begin{BVerbatim}[boxwidth=87mm,baseline=c]
+% \begin{Piton}[width=min,~emphase#background-color=gray!15@]
+% def fact(n):
+%     if n==0:
+%         return 1 ~emphase#\rowcolor{yellow!50}@
+%     else:
+%         return n*fact(n-1)
+% \end{Piton}        
+% \end{BVerbatim}
+% \hspace{1cm}
+% \begin{Piton}[width=min,box,background-color=gray!15]
+% def fact(n):
+%     if n==0:
+%         return 1 \rowcolor{yellow!50}
+%     else:
+%         return n*fact(n-1)
+% \end{Piton}        
+%
+%
+% \bigbreak
+% As you can see, a margin has been added on both sides of the code by the key
+% |background-color|. If you wish those margins without general background, you
+% should use |background-color| with the special value~|none|.
+%
+% \medskip
+% \begin{BVerbatim}[boxwidth=87mm,baseline=c]
+% \begin{Piton}[width=min,~emphase#background-color=none@]
+% def fact(n):
+%     if n==0:
+%         return 1 ~emphase#\rowcolor{yellow!50}@
+%     else:
+%         return n*fact(n-1)
+% \end{Piton}        
+% \end{BVerbatim}
+% \hspace{1cm}
+% \begin{Piton}[width=min,box,background-color=none]
+% def fact(n):
+%     if n==0:
+%         return 1 \rowcolor{yellow!50}
+%     else:
+%         return n*fact(n-1)
+% \end{Piton}        
 %
 %
 % 
@@ -3818,7 +3862,7 @@ piton_version = "4.8" -- 2025/08/08
 % on several lines for legibility but no character |\r| will be sent to LaTeX). The
 % characters which are greyed-out are sent to LaTeX with the catcode ``other''
 % (=12). All the others characters are sent with the regime of catcodes of L3
-% (as set by |\ExplSyntaxOn|)
+% (as set by |\ExplSyntaxOn|).
 %
 % 
 % \begingroup
@@ -4296,6 +4340,7 @@ piton_version = "4.8" -- 2025/08/08
 % will have the standard background color specified by |background-color|).
 %    \begin{macrocode}
 \tl_new:N \l_@@_prompt_bg_color_tl
+\tl_set:Nn \l_@@_prompt_bg_color_tl { gray!15 }
 %    \end{macrocode}
 %
 % \medskip
