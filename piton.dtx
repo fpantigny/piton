@@ -4924,7 +4924,7 @@ piton_version = "4.8x" -- 2025/08/09
 % If there is a background, we must remind that there is a left margin of 0.5~em
 % for the background...
 %    \begin{macrocode}
-        \bool_if:NT \g_@@_bg_bool
+        \int_compare:nNnT \l_@@_bg_colors_int > { \c_zero_int }
           { 
 %    \end{macrocode}
 % ... but if only if the key |left-margin| is not used !
@@ -5217,8 +5217,9 @@ piton_version = "4.8x" -- 2025/08/09
               \normalfont \footnotesize \color { gray } 
               \l_@@_continuation_symbol_tl 
             } 
-            \skip_horizontal:n { 0.3 em }  
-            \bool_if:NT \g_@@_bg_bool { \skip_horizontal:n { 0.5 em } }
+            \skip_horizontal:n { 0.3 em }
+            \int_compare:nNnT \l_@@_bg_colors_int > { \c_zero_int } 
+              { \skip_horizontal:n { 0.5 em } }
           }  
         \bool_if:NT \l_@@_indent_broken_lines_bool
           { 
@@ -5975,9 +5976,8 @@ piton_version = "4.8x" -- 2025/08/09
     \dim_zero:N \parindent 
     \dim_zero:N \lineskip
     \cs_set_eq:NN \rowcolor \@@_rowcolor:n
-    \bool_gset_false:N \g_@@_bg_bool
     \int_compare:nNnT \l_@@_bg_colors_int > { \c_zero_int }
-      { \bool_gset_true:N \g_@@_bg_bool }
+      { \bool_set_true:N \l_@@_bg_bool }
     \bool_gset_false:N \g_@@_rowcolor_inside_bool
     \IfPackageLoadedTF { zref-base }
       {
@@ -6035,7 +6035,7 @@ piton_version = "4.8x" -- 2025/08/09
 \cs_new_protected:Npn \@@_compute_width:
   {
     \dim_gset:Nn \g_@@_width_dim { \box_wd:N \g_@@_output_box }
-    \bool_if:NTF \g_@@_bg_bool
+    \int_compare:nNnTF \l_@@_bg_colors_int > { \c_zero_int }     
       { 
         \dim_gadd:Nn \g_@@_width_dim { 0.5 em }
         \dim_compare:nNnTF \l_@@_left_margin_dim = \c_zero_dim 
@@ -6055,7 +6055,7 @@ piton_version = "4.8x" -- 2025/08/09
 \cs_new_protected:Npn \@@_compute_code_width:
   {
     \dim_set_eq:NN \l_@@_code_width_dim \l_@@_width_dim
-    \bool_if:NTF \g_@@_bg_bool
+    \int_compare:nNnTF \l_@@_bg_colors_int > { \c_zero_int } 
 %    \end{macrocode}
 % If there is a background, we subtract 0.5~em for the margin on the right.
 %    \begin{macrocode}
@@ -6488,8 +6488,8 @@ piton_version = "4.8x" -- 2025/08/09
       { \@@_retrieve_gobble_parse:o \l_@@_listing_tl }
     \bool_if:NT \l_@@_minimize_width_bool { \@@_compute_width: }
     \bool_lazy_or:nnT
-      \g_@@_bg_bool
-      \g_@@_rowcolor_inside_bool
+      { \int_compare_p:nNn \l_@@_bg_colors_int > { \c_zero_int } }
+      { \g_@@_rowcolor_inside_bool }
       { \@@_add_backgrounds_to_output_box: }
   }
 %    \end{macrocode}

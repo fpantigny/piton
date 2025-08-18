@@ -428,7 +428,7 @@
               { ! \l__piton_skip_empty_lines_bool && \l__piton_label_empty_lines_bool }
               { \__piton_print_number: }
           }
-        \bool_if:NT \g__piton_bg_bool
+        \int_compare:nNnT \l__piton_bg_colors_int > { \c_zero_int }
           {
             \dim_compare:nNnT \l__piton_left_margin_dim = \c_zero_dim
               { \skip_horizontal:n { 0.5 em } }
@@ -599,7 +599,8 @@
               \l__piton_continuation_symbol_tl
             }
             \skip_horizontal:n { 0.3 em }
-            \bool_if:NT \g__piton_bg_bool { \skip_horizontal:n { 0.5 em } }
+            \int_compare:nNnT \l__piton_bg_colors_int > { \c_zero_int }
+              { \skip_horizontal:n { 0.5 em } }
           }
         \bool_if:NT \l__piton_indent_broken_lines_bool
           {
@@ -1105,9 +1106,8 @@
     \dim_zero:N \parindent
     \dim_zero:N \lineskip
     \cs_set_eq:NN \rowcolor \__piton_rowcolor:n
-    \bool_gset_false:N \g__piton_bg_bool
     \int_compare:nNnT \l__piton_bg_colors_int > { \c_zero_int }
-      { \bool_gset_true:N \g__piton_bg_bool }
+      { \bool_set_true:N \l__piton_bg_bool }
     \bool_gset_false:N \g__piton_rowcolor_inside_bool
     \IfPackageLoadedTF { zref-base }
       {
@@ -1148,7 +1148,7 @@
 \cs_new_protected:Npn \__piton_compute_width:
   {
     \dim_gset:Nn \g__piton_width_dim { \box_wd:N \g__piton_output_box }
-    \bool_if:NTF \g__piton_bg_bool
+    \int_compare:nNnTF \l__piton_bg_colors_int > { \c_zero_int }
       {
         \dim_gadd:Nn \g__piton_width_dim { 0.5 em }
         \dim_compare:nNnTF \l__piton_left_margin_dim = \c_zero_dim
@@ -1160,7 +1160,7 @@
 \cs_new_protected:Npn \__piton_compute_code_width:
   {
     \dim_set_eq:NN \l__piton_code_width_dim \l__piton_width_dim
-    \bool_if:NTF \g__piton_bg_bool
+    \int_compare:nNnTF \l__piton_bg_colors_int > { \c_zero_int }
       {
         \dim_sub:Nn \l__piton_code_width_dim { 0.5 em }
         \dim_compare:nNnTF \l__piton_left_margin_dim = \c_zero_dim
@@ -1392,8 +1392,8 @@
       { \__piton_retrieve_gobble_parse:o \l__piton_listing_tl }
     \bool_if:NT \l__piton_minimize_width_bool { \__piton_compute_width: }
     \bool_lazy_or:nnT
-      \g__piton_bg_bool
-      \g__piton_rowcolor_inside_bool
+      { \int_compare_p:nNn \l__piton_bg_colors_int > { \c_zero_int } }
+      { \g__piton_rowcolor_inside_bool }
       { \__piton_add_backgrounds_to_output_box: }
   }
 \cs_new_protected:Npn \__piton_add_backgrounds_to_output_box:
