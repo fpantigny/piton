@@ -130,7 +130,7 @@
     Unknown~key.\\
     You~have~used~the~key~'\l_keys_key_str'~when~loading~piton~
     but~the~only~keys~available~here~are~'beamer',~'footnote'~
-    and~'footnotehyper'.~ Other~keys~are~available~in~
+    and~'footnotehyper'.~Other~keys~are~available~in~
     \token_to_str:N \PitonOptions.\\
     That~key~will~be~ignored.
   }
@@ -313,14 +313,15 @@
       }
       { \__piton_error:n { label~with~lines~numbers } }
   }
-\cs_new_protected:Npn \__piton_rowcolor:n #1
+\NewDocumentCommand { \__piton_rowcolor:n } { o m }
   {
-    \tl_gset:ce { g__piton_color_ \int_eval:n { \g__piton_line_int + 1 }_ tl } { #1 }
+    \tl_gset:ce
+      { g__piton_color_ \int_eval:n { \g__piton_line_int + 1 }_ tl }
+      { \tl_if_novalue:nTF { #1 } { #2 } { [ #1 ] { #2 } } }
     \bool_gset_true:N \g__piton_rowcolor_inside_bool
   }
 \cs_new:Npn \__piton_marker_beginning:n #1 { }
 \cs_new:Npn \__piton_marker_end:n #1 { }
-\tl_new:N \g__piton_before_line_tl
 \tl_new:N \g__piton_after_line_tl
 \cs_new_protected:Npn \__piton_trailing_space: { }
 \bool_new:N \g__piton_color_is_none_bool
@@ -398,7 +399,6 @@
 \cs_set_protected:Npn \__piton_begin_line: #1 \__piton_end_line:
   {
     \group_begin:
-    \g__piton_before_line_tl
     \int_gzero:N \g__piton_indentation_int
     \hbox_set:Nn \l__piton_line_box
       {
@@ -456,7 +456,6 @@
     \group_end:
     \g__piton_after_line_tl
     \tl_gclear:N \g__piton_after_line_tl
-    \tl_gclear:N \g__piton_before_line_tl
   }
 \cs_new_protected:Npn \__piton_vtop_of_code:n #1
   {
@@ -1109,8 +1108,6 @@
     \bool_gset_false:N \g__piton_bg_bool
     \int_compare:nNnT \l__piton_bg_colors_int > { \c_zero_int }
       { \bool_gset_true:N \g__piton_bg_bool }
-    \tl_if_empty:NF \l__piton_prompt_bg_color_tl
-      { \bool_gset_true:N \g__piton_bg_bool }
     \bool_gset_false:N \g__piton_rowcolor_inside_bool
     \IfPackageLoadedTF { zref-base }
       {
@@ -1243,6 +1240,10 @@
       }
   }
   { }
+\cs_new_protected:Npn \__piton_detect_prompt:n #1
+  {
+
+  }
 \cs_new_protected:Npn \__piton_composition:
   {
     \str_if_empty:NT \l__piton_box_str
@@ -1715,7 +1716,7 @@
   {
     \tl_set:Nn \l_tmpa_tl { #1 }
     \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl \space
-    \seq_clear:N \l_tmpa_seq % added 2025/03/03
+    \seq_clear:N \l_tmpa_seq
     \tl_map_inline:Nn \l_tmpa_tl { \seq_put_right:Nn \l_tmpa_seq { ##1 } }
     \seq_use:Nn \l_tmpa_seq { \- }
   }

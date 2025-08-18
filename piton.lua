@@ -1636,7 +1636,7 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
       (
         [[\begin{]] .. piton.env_used_by_split .. "}\r"
         .. v
-        .. [[\end{]] .. piton.env_used_by_split .. "}\r" -- previously: }%\r
+        .. [[\end{]] .. piton.env_used_by_split .. "}\r"
       )
   end
   sprintL3 [[ \endgroup ]]
@@ -2180,7 +2180,7 @@ function piton.join_and_write_files ( )
       (
         [[ \pdfextension annot width 0pt height 0pt depth 0pt ]]
         ..
-        [[ { /Subtype /FileAttachment /F 2 /Name /Paperclip]]
+        [[ { /Subtype /FileAttachment /F 2 /Name /Paperclip ]]
         ..
         [[ /Contents (File included by the key 'join' of piton) ]]
         ..

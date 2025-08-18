@@ -768,9 +768,11 @@ piton_version = "4.8x" -- 2025/08/09
 % text) which may be used in the styles.
 %
 % \smallskip
-% The command |\rowcolor| takes in only one argument which is the required color: there is no
-% optional argument between brackets for the colorimetric space.\footnote{However, it's
-% possible to write something like \verb|\rowcolor{[rgb]{0.8,1,0.8}}|.}
+% The command |\rowcolor| has a syntax similar to the classical command |\color|. For example,
+% it's possible to write |\rowcolor[rgb]{0.9,1,0.9}|.
+%
+% \smallskip
+% The command |\rowcolor| is protected against the TeX expansions.
 %
 % \smallskip
 % Here is an example for the language Python where we modify the style |String.Doc|
@@ -915,9 +917,11 @@ piton_version = "4.8x" -- 2025/08/09
 % 
 % \bigskip
 % If one wishes to format Python code in a box of \pkg{mdframed}, it's possible
-% to define an environment |{Python}| with the following code (of course, the
-% package \pkg{mdframed} must be loaded, and, in this document, it has been loaded
-% with the key |framemethod=tikz|).
+% to define an environment |{Python}| with the following code.
+%
+% \begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+% \usepackage[framemethod=tikz]{mdframed} % in the preamble
+% \end{Verbatim}
 %
 %\begin{Verbatim}
 % ~emphase#\NewPitonEnvironment@{Python}{}
@@ -1098,12 +1102,12 @@ piton_version = "4.8x" -- 2025/08/09
 % For example, here is a language called ``LaTeX'' to format LaTeX chunks of codes:
 
 % \begin{Verbatim}
-% \NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoletter = ~@_ }
+% \NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoother = ~@_ }
 % \end{Verbatim}
 %
 % Initially, the characters |@| and |_| are considered as letters because, in
 % many computer languages, they are allowed in the keywords and the names of
-% the identifiers. With \verb|alsoletter = @_|, we retrieve them from the
+% the identifiers. With \verb|alsoother = @_|, we retrieve them from the
 % category of the letters. 
 % 
 % \section{Advanced features}
@@ -2242,12 +2246,12 @@ piton_version = "4.8x" -- 2025/08/09
 % \textsc{sql} by the the name of the table, followed, between brackets, by the
 % names of its fields (ex. : |client(name,town)|).
 %
-% If we insert that element in a command |\piton|, the word \emph{client} won't be
-% recognized as a name of table but as a name of field. It's possible to define
-% a personal command |\NomTable|
-% which we will apply by hand to the names of the tables. In that aim, we declare that
-% command with |raw-detected-commands| and, thus, its argument won't be re-analyzed
-% by \pkg{piton} (that second analysis would format it as a name of field).
+% If we insert that element in a command |\piton|, the word \emph{client} won't
+% be recognized as a name of table but as a name of field. It's possible to
+% define a personal command |\NomTable| which we will apply by hand to the names
+% of the tables. In that aim, we declare that command with
+% |raw-detected-commands| and, thus, its argument won't be re-analyzed by
+% \pkg{piton} (that second analysis would format it as a name of field).
 %
 % \medskip
 % In the preamble of the LaTeX document, we insert the following lines:
@@ -3037,8 +3041,12 @@ piton_version = "4.8x" -- 2025/08/09
 %
 % It's possible to use that command in a style of \pkg{piton}, as shown in
 % p.~\pageref{rowcolor}, but maybe we wish to use it directly in a listing. In that aim,
-% it's mandatory to use one of the mechanisms to escape to LaTeX provided by \pkg{piton},
-% for example the key |raw-detected-commands| (cf.~p.~\pageref{raw-detected-commands}).
+% it's mandatory to use one of the mechanisms to escape to LaTeX provided by \pkg{piton}.
+% In the following example, we use the key |raw-detected-commands|
+% (cf.~p.~\pageref{raw-detected-commands}). Since the ``detected commands'' are commands
+% with only one argument, it won't be possible to write (for example)
+% |\rowcolor[rgb]{0.9,1,0.9}| but the syntax |\rowcolor{[rgb]{0.9,1,0.9}}| will be
+% allowed.
 %
 % \bigbreak
 % \begin{Verbatim}[formatcom=\footnotesize\color{gray}]
@@ -3758,19 +3766,25 @@ piton_version = "4.8x" -- 2025/08/09
 %
 % \subsection{Introduction}
 % 
-% The main job of the package \pkg{piton} is to take in as input a Python
+% The main job of the package \pkg{piton} is to take in as input a computer
 % listing and to send back to LaTeX as output that code \emph{with interlaced LaTeX
 % instructions of formatting}.
 %
-% In fact, all that job is done by a \textsc{lpeg} called |python|. That
-% \textsc{lpeg}, when matched against the string of a Python listing,
-% returns as capture a Lua table containing data to send to LaTeX. 
-% The only thing to do after will be to apply |tex.tprint| to each element of
-% that table.\footnote{Recall that |tex.tprint| takes in as argument a Lua table whose
-% first component is a ``catcode table'' and the second element a string. The
-% string will be sent to LaTeX with the regime of catcodes specified by the
+% In fact, all that job is done by a \textsc{lpeg} called |LPEG1[<language>]|
+% where |<language>| is a Lua string which is the name of the computer language.
+% That \textsc{lpeg}, when matched against the string of a computer listing,
+% returns as capture a Lua table containing data to send to LaTeX. The only
+% thing to do after will be to apply |tex.tprint| to each element of that
+% table.\footnote{Recall that |tex.tprint| takes in as argument a Lua table
+% whose first component is a ``catcode table'' and the second element a string.
+% The string will be sent to LaTeX with the regime of catcodes specified by the
 % catcode table. If no catcode table is provided, the standard catcodes of LaTeX
 % will be used.}
+%
+% In fact, there is a variant of the \textsc{lpeg} |LPEG1[<language>]|, called
+% |LPEG2[<language>]|. The latter uses the first one and will be used to format
+% the whole content of an environment |{Piton}| (with, in particular, small tuning
+% for the beginning and the end).
 % 
 % \bigskip
 % Consider, for example, the following Python code:
@@ -3780,14 +3794,15 @@ piton_version = "4.8x" -- 2025/08/09
 %     return x%2
 % \end{Piton}
 %
-% The capture returned by the \pkg{lpeg} |python| against that code is the
-% Lua table containing the following elements :
+% The capture returned by the \textsc{lpeg} |LPEG1['python']| (in Lua, this may
+% also be written |LPEG1.python|) against that code is the Lua table containing
+% the following elements :
 %
 % \bigskip
 % \begin{minipage}{\linewidth}
 % \color{gray}
 % 
-% |{ "\\__piton_begin_line:" }|\footnote{Each line of the Python listings will
+% |{ "\\__piton_begin_line:" }|\footnote{Each line of the computer listings will
 % be encapsulated in a pair: \texttt{\textbackslash_@@_begin_line:} --
 % \texttt{\textbackslash@@_end_line:}. The token
 % \texttt{\textbackslash@@_end_line:} must be explicit because it will be used as
@@ -3798,7 +3813,7 @@ piton_version = "4.8x" -- 2025/08/09
 % argument of a command \texttt{\textbackslash piton}).}  
 % 
 % \texttt{\{ "\{\textbackslash PitonStyle\{Keyword\}\{" \}}\footnote{The
-% lexical elements of Python for which we have a \pkg{piton} style will be
+% lexical elements for which we have a \pkg{piton} style will be
 % formatted via the use of the command \texttt{\textbackslash PitonStyle}.
 % Such an element is typeset in LaTeX via the syntax \texttt{\{\textbackslash
 % PitonStyle\{\textsl{style}\}\{...\}\}} because the instructions inside an \texttt{\textbackslash
@@ -3827,7 +3842,7 @@ piton_version = "4.8x" -- 2025/08/09
 %
 % |{ luatexbase.catcodetables.CatcodeTableOther, ":" }|
 % 
-% |{ "\\__piton_end_line: \\__piton_newline: \\__piton_begin_line:" }|
+% |{ "\\__piton_end_line: \\__piton_par: \\__piton_begin_line:" }|
 %
 % |{ luatexbase.catcodetables.CatcodeTableOther, "    " }|
 %
@@ -3843,7 +3858,7 @@ piton_version = "4.8x" -- 2025/08/09
 %
 % |{ "{\PitonStyle{Operator}{" }|
 %
-% |{ luatexbase.catcodetables.CatcodeTableOther, "&" }|
+% |{ luatexbase.catcodetables.CatcodeTableOther, "%" }|
 %
 % |{ "}}" }|
 %
@@ -3871,7 +3886,7 @@ piton_version = "4.8x" -- 2025/08/09
 % 
 % \begin{Verbatim*}[formatcom = \color{black}]
 % \__piton_begin_line:{\PitonStyle{Keyword}{~gbox#def@}}
-% ~gbox# @{\PitonStyle{Name.Function}{~gbox#parity@}}~gbox#(x):@\__piton_end_line:\__piton_newline:
+% ~gbox# @{\PitonStyle{Name.Function}{~gbox#parity@}}~gbox#(x):@\__piton_end_line:\__piton_par:
 % \__piton_begin_line:~gbox#    @{\PitonStyle{Keyword}{~gbox#return@}}
 % ~gbox# x@{\PitonStyle{Operator}{~gbox#%@}}{\PitonStyle{Number}{~gbox#2@}}\__piton_end_line:
 % \end{Verbatim*}
@@ -3909,12 +3924,14 @@ piton_version = "4.8x" -- 2025/08/09
 %    \end{macrocode}
 % \bigskip
 % The command |\text| provided by the package \pkg{amstext} will be used to
-% allow the use of the command |\pion{...}| (with the standard syntax) in
+% allow the use of the command |\piton{...}| (with the standard syntax) in
 % mathematical mode.
 %    \begin{macrocode}
 \RequirePackage { amstext }
 %    \end{macrocode}
 %
+% \bigskip
+% It will be possible to delete the following lines in the future.
 %    \begin{macrocode}
 \ProvideDocumentCommand { \IfPackageLoadedT } { m m }
   { \IfPackageLoadedTF { #1 } { #2 } { } }
@@ -3941,6 +3958,7 @@ piton_version = "4.8x" -- 2025/08/09
 \cs_new_protected:Npn \@@_msg_new:nn { \msg_new:nnn { piton } }
 %    \end{macrocode}
 %
+% \bigskip
 % With Overleaf (and also TeXPage), by default, a document is compiled in
 % non-stop mode. When there is an error, there is no way to the user to use the
 % key H in order to have more information. That's why we decide to put that
@@ -4067,7 +4085,7 @@ piton_version = "4.8x" -- 2025/08/09
     Unknown~key.\\
     You~have~used~the~key~'\l_keys_key_str'~when~loading~piton~
     but~the~only~keys~available~here~are~'beamer',~'footnote'~
-    and~'footnotehyper'.~ Other~keys~are~available~in~
+    and~'footnotehyper'.~Other~keys~are~available~in~
     \token_to_str:N \PitonOptions.\\
     That~key~will~be~ignored.
   }
@@ -4246,13 +4264,13 @@ piton_version = "4.8x" -- 2025/08/09
 % The following parameter corresponds to the key |tcolorbox|.
 %    \begin{macrocode}
 \bool_new:N \l_@@_tcolorbox_bool
-% \end{macrocode}
+%    \end{macrocode}
 %
 % \medskip
 % The following parameter corresponds to the key |box|.
 %    \begin{macrocode}
 \str_new:N \l_@@_box_str
-% \end{macrocode}
+%    \end{macrocode}
 %
 % \medskip
 % In order to have a better control over the keys.
@@ -4287,7 +4305,8 @@ piton_version = "4.8x" -- 2025/08/09
 % It will take into account all the lines, empty or not empty. It won't be used
 % to print the numbers of the lines but will be used to allow or disallow line
 % breaks (when |splittable| is in force) and for the color of the background
-% (when |background-color| is used with a \emph{list} of colors).
+% (when |background-color| is used with a \emph{list} of colors or when
+% |\rowcolor| is used).
 %    \begin{macrocode}
 \int_new:N \g_@@_line_int
 %    \end{macrocode}
@@ -4443,7 +4462,7 @@ piton_version = "4.8x" -- 2025/08/09
 % 
 %    \begin{macrocode} 
 \dim_new:N \l_@@_width_dim
-% \end{macrocode}
+%    \end{macrocode}
 %
 % \bigskip
 % |\g_@@_width_dim| will be the width of the environment, after construction.
@@ -4454,12 +4473,13 @@ piton_version = "4.8x" -- 2025/08/09
 %    \end{macrocode}
 % 
 % \medskip
-% We will also use another dimension called |\l_@@_code_width_dim|. That
-% will the width of the actual lines of code. That dimension may be lower than
-% the whole |\l_@@_width_dim| because we have to take into account the value of
+% We will also use another dimension called |\l_@@_code_width_dim|. That will
+% the width of the actual lines of code. That dimension may be lower than the
+% whole |\l_@@_width_dim| because we have to take into account the value of
 % |\l_@@_left_margin_dim| (for the numbers of lines when |line-numbers| is in
-% force) and another small margin when a background color is used (with the key
-% |background-color|). 
+% force) and another small margin when |background-color| is in
+% force\footnote{However, the mere use of |\rowcolor| does not add those small
+% margins.}).
 %    \begin{macrocode}
 \dim_new:N \l_@@_code_width_dim
 %    \end{macrocode}
@@ -4621,15 +4641,17 @@ piton_version = "4.8x" -- 2025/08/09
 % In the environments |{Piton}| the command |\rowcolor| will be linked to the
 % following one.
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_rowcolor:n #1
+\NewDocumentCommand { \@@_rowcolor:n } { o m }
   {
-    \tl_gset:ce { g_@@_color_ \int_eval:n { \g_@@_line_int + 1 }_ tl } { #1 }
+    \tl_gset:ce
+      { g_@@_color_ \int_eval:n { \g_@@_line_int + 1 }_ tl }
+      { \tl_if_novalue:nTF { #1 } { #2 } { [ #1 ] { #2 } } }
     \bool_gset_true:N \g_@@_rowcolor_inside_bool 
   }
 %    \end{macrocode}
 % 
 % \bigskip
-% The following commands corresponds to the keys |marker/beginning| and
+% The following commands correspond to the keys |marker/beginning| and
 % |marker/end|. The values of that keys are functions that will be applied to
 % the ``\emph{range}'' specified by the final user in an individual
 % |\PitonInputFile|. They will construct the markers used to find textually in
@@ -4645,15 +4667,11 @@ piton_version = "4.8x" -- 2025/08/09
 % 
 % 
 % \bigskip
-% The following token list will be evaluated at the beginning of
+% The following token list will be evaluated at the end of
 % |\@@_begin_line:|... |\@@_end_line:| and cleared at the end. It will be used
 % by LPEG acting between the lines of the Python code in order to add
-% instructions to be executed at the beginning of the line.
-%    \begin{macrocode} 
-\tl_new:N \g_@@_before_line_tl
-%    \end{macrocode}
+% instructions to be executed in vertical mode between the lines.
 %
-% \bigskip
 %    \begin{macrocode}
 \tl_new:N \g_@@_after_line_tl
 %    \end{macrocode}
@@ -4666,7 +4684,7 @@ piton_version = "4.8x" -- 2025/08/09
 \cs_new_protected:Npn \@@_trailing_space: { }
 %    \end{macrocode}
 % When we have to rescan some pieces of code, we will use |\@@_piton:n|, which
-% we will set |\@@_trailing_space:| equal to |\space|.
+% will set |\@@_trailing_space:| equal to |\space|.
 %
 % \bigskip
 %    \begin{macrocode}
@@ -4678,6 +4696,7 @@ piton_version = "4.8x" -- 2025/08/09
 %    \begin{macrocode}
 \bool_new:N \g_@@_rowcolor_inside_bool
 %    \end{macrocode}
+%
 % 
 % \bigskip
 % \subsubsection{Detected commands}
@@ -4706,7 +4725,7 @@ piton_version = "4.8x" -- 2025/08/09
 %
 % \bigskip
 % Of course, the value of those clists may be modified during the preamble of
-% the document by using the corresponding key ('detected-commands', etc.).
+% the document by using the corresponding key (|detected-commands|, etc.).
 %
 % However, after the |\begin{document}|, it's no longer possible to modify those
 % clists because their contents will be used in the construction of the main
@@ -4858,7 +4877,6 @@ piton_version = "4.8x" -- 2025/08/09
 \cs_set_protected:Npn \@@_begin_line: #1 \@@_end_line:
   { 
     \group_begin:
-    \g_@@_before_line_tl
     \int_gzero:N \g_@@_indentation_int
 %    \end{macrocode}
 %
@@ -4955,7 +4973,6 @@ piton_version = "4.8x" -- 2025/08/09
     \group_end:
     \g_@@_after_line_tl
     \tl_gclear:N \g_@@_after_line_tl
-    \tl_gclear:N \g_@@_before_line_tl
   }
 %    \end{macrocode}
 %
@@ -5141,7 +5158,7 @@ piton_version = "4.8x" -- 2025/08/09
 % 
 % \bigskip
 % The command |\@@_par:| will be inserted by Lua between two lines of the
-% informatic listing.
+% computer listing.
 % \begin{itemize}
 % \item In fact, it will be inserted between two commands
 % |\@@_begin_line:|...|\@@_end_of_line:|. 
@@ -5160,7 +5177,8 @@ piton_version = "4.8x" -- 2025/08/09
 %    \begin{macrocode}
     \int_gincr:N \g_@@_line_int
 %    \end{macrocode}
-% ... it will be used to allow or disallow page breaks.
+% ... it will be used to allow or disallow page breaks, and also by the command
+% |\rowcolor|.
 %
 %
 % Each line in the listing is composed in a box of TeX (which may contain
@@ -5465,7 +5483,7 @@ piton_version = "4.8x" -- 2025/08/09
     background-color .value_required:n  = true ,
     prompt-background-color .tl_set:N         = \l_@@_prompt_bg_color_tl ,
     prompt-background-color .value_required:n = true ,
-% \end{macrocode}
+%    \end{macrocode}
 % With the tuning |write=false|, the content of the environment won't be parsed
 % and won't be printed on the \textsc{pdf}. However, the Lua variables |piton.last_code|
 % and |piton.last_language| will be set (and, hence, |piton.get_last_code| will be
@@ -5493,14 +5511,14 @@ piton_version = "4.8x" -- 2025/08/09
     
     write .str_set:N = \l_@@_write_str ,
     write .value_required:n = true ,
-%     \end{macrocode}
+%    \end{macrocode}
 % For the key |join|, we convert immediatly the value of the key in utf16
 % (with the \text{bom} big endian that will be automatically inserted)
 % written in hexadecimal (what L3 calls the \emph{escaping}). Indeed, we will
 % have to write that value in the key |/UF| of a |/Filespec| (between angular
 % brackets |<| and |>| since it is in hexadecimal). It's prudent to do that
 % conversion right now since that value will transit by the Lua of LuaTeX.
-%     \begin{macrocode}
+%    \begin{macrocode}
     join .code:n
       = \str_set_convert:Nnnn \l_@@_join_str { #1 } { } { utf16/hex } ,
     join .value_required:n = true ,
@@ -5960,8 +5978,6 @@ piton_version = "4.8x" -- 2025/08/09
     \bool_gset_false:N \g_@@_bg_bool
     \int_compare:nNnT \l_@@_bg_colors_int > { \c_zero_int }
       { \bool_gset_true:N \g_@@_bg_bool }
-    \tl_if_empty:NF \l_@@_prompt_bg_color_tl
-      { \bool_gset_true:N \g_@@_bg_bool }
     \bool_gset_false:N \g_@@_rowcolor_inside_bool
     \IfPackageLoadedTF { zref-base }
       {
@@ -6122,7 +6138,7 @@ piton_version = "4.8x" -- 2025/08/09
 %    \begin{macrocode}
             \tl_set:Nn \l_@@_listing_tl { ##1 }
             \@@_composition:
-% \end{macrocode}
+%    \end{macrocode}
 % 
 % The following |\end{#2}| is only for the stack of environments of LaTeX.
 %    \begin{macrocode}
@@ -6217,6 +6233,12 @@ piton_version = "4.8x" -- 2025/08/09
   { } 
 %    \end{macrocode}
 %
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_detect_prompt:n #1
+  {
+
+  }
+%    \end{macrocode}
 % 
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_composition:
@@ -6531,7 +6553,7 @@ piton_version = "4.8x" -- 2025/08/09
 %    \end{macrocode}
 % 
 % \bigskip
-% The following will be used when the final user has user |print=false|.
+% The following will be used when the final user has used |print=false|.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_gobble_parse_no_print:n
   {
@@ -6689,6 +6711,7 @@ piton_version = "4.8x" -- 2025/08/09
           { \@@_error_or_warning:n { overlay~without~beamer } }
       }
     \group_begin:
+%    \end{macrocode}    
 % The following line is to allow tools such as |latexmk| to be aware that the
 % file (read by |\PitonInputFile|) is loaded during the compilation of the LaTeX
 % document. 
@@ -6973,7 +6996,7 @@ piton_version = "4.8x" -- 2025/08/09
 % gobbled in the |\tl_map_inline:Nn|.
 %    \begin{macrocode}
     \tl_replace_all:NVn \l_tmpa_tl \c_catcode_other_space_tl \space 
-    \seq_clear:N \l_tmpa_seq % added 2025/03/03
+    \seq_clear:N \l_tmpa_seq 
     \tl_map_inline:Nn \l_tmpa_tl { \seq_put_right:Nn \l_tmpa_seq { ##1 } } 
     \seq_use:Nn \l_tmpa_seq { \- }
   }
@@ -7751,7 +7774,7 @@ end
 % Python chunk). The first argument is a Lua string corresponding to the name of
 % a \pkg{piton} style and the second element is a pattern (that is to say a
 % \textsc{lpeg} without capture)
-%    \begin{macrocode}e
+%    \begin{macrocode}
 local K
 function K ( style , pattern ) return
   Lc ( [[ {\PitonStyle{ ]] .. style .. "}{" )
@@ -7848,8 +7871,8 @@ local Identifier = K ( 'Identifier.Internal' , identifier )
 %    \end{macrocode}
 %
 % \bigskip
-% By convention, we will use names with an initial capital for \textsc{lpeg}
-% which return captures.
+% \textbf{By convention, we will use names with an initial capital for \textsc{lpeg}
+% which return captures.}
 %
 % \bigskip
 % 
@@ -7939,7 +7962,7 @@ local Delim = Q ( S "[({})]" )
 %    \end{macrocode}
 % 
 % \bigskip 
-% The following \textsc{lpeg} catches a space (U+0020) and replace it by
+% The following \textsc{lpeg} catches a space (U+0020) and replaces it by
 % |\l_@@_space_in_string_tl|. It will be used in the strings. Usually,
 % |\l_@@_space_in_string_tl| will contain a space and therefore there won't be any
 % difference. However, when the key |show-spaces-in-strings| is in force,
@@ -8902,9 +8925,9 @@ do
 %    \end{macrocode}
 %
 % \bigskip
-%     \begin{macrocode}
+%    \begin{macrocode}
   local braces = Compute_braces ( '\"' * ( 1 - S "\"" ) ^ 0 * '\"' )
-%     \end{macrocode}
+%    \end{macrocode}
 %
 % \bigskip
 %    \begin{macrocode}
@@ -10484,7 +10507,7 @@ function piton.Gobble ( n , code )
     if n == -1 then 
       n = AutoGobbleLPEG : match ( code )
 %    \end{macrocode}
-% for the cas of an empty environment (only blank lines)
+% for the case of an empty environment (only blank lines)
 %    \begin{macrocode}
       if tonumber(n) then else n = 0 end
     else 
@@ -10563,7 +10586,7 @@ function piton.join_and_write ( )
       piton.join_files [ piton.join ] .. "\r\n" .. piton.get_last_code ( )
     end
   end 
-%     \end{macrocode}
+%    \end{macrocode}
 %
 % Now, if the final user has used the key |write| to write the listing of the
 % environment on an external file (on the disk).
@@ -10669,7 +10692,7 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
       ( 
         [[\begin{]] .. piton.env_used_by_split .. "}\r" 
         .. v 
-        .. [[\end{]] .. piton.env_used_by_split .. "}\r" -- previously: }%\r
+        .. [[\end{]] .. piton.env_used_by_split .. "}\r" 
       )  
   end
   sprintL3 [[ \endgroup ]] 
@@ -10707,6 +10730,7 @@ function piton.get_last_code ( )
          : gsub('\r\n','\n') : gsub('\r','\n')
 end
 %    \end{macrocode}
+%
 % 
 % \subsubsection{To count the number of lines}
 %
@@ -11546,14 +11570,14 @@ function piton.join_and_write_files ( )
 % However, despite that bit which means \emph{Hidden}, some \textsc{pdf} readers
 % show the annotation. That's why we have used |width 0pt height 0pt depth 0pt|.
 %    \begin{macrocode}
-        [[ { /Subtype /FileAttachment /F 2 /Name /Paperclip]]
+        [[ { /Subtype /FileAttachment /F 2 /Name /Paperclip ]]
         ..
         [[ /Contents (File included by the key 'join' of piton) ]]
         ..
 %    \end{macrocode}
 % We recall that the value of |file_name| comes from the key |join|,
 % and that we have converted immediatly the value of the key in utf16
-% (with the \text{bom} big endian) written in hexadecimal.
+% (with the \textsc{bom} big endian) written in hexadecimal.
 % It's the suitable form for insertion as value of the key |/UF| between angular
 % brackets |<| and |>|.
 %    \begin{macrocode} 
