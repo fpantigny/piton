@@ -130,7 +130,7 @@ informatiques avec coloriage syntaxique. Comme elle utilise le Lua de LuaLaTeX,
 elle fonctionne uniquement avec |lualatex| (et ne va pas fonctionner avec les
 autres moteurs de compilation LaTeX, que ce soit |latex|, |pdflatex| ou
 |xelatex|). Elle n'utilise aucun programme extérieur et donc, a fortiori, elle
-ne requiert l'utilisation de |--shell-escape| lors de la compilation. La
+ne requiert pas l'utilisation de |--shell-escape| lors de la compilation. La
 compilation est très rapide puisque tout le travail du parseur est fait par la
 librairie LPEG, écrite en C.
 
@@ -573,7 +573,7 @@ mise à |false|: cf. p.~\pageref{line-breaks}) ;
 \item la largeur de la boîte LaTeX créée par la clé |box| quand celle-ci est
 utilisée (cf. p.~\pageref{box}) ;
 \item la largeur de la boîte graphique créée par la clé |tcolorbox| quand celle-ci
-est utilisée.
+est utilisée (cf. p.~\pageref{tcolorbox}).
 \end{itemize}
 
 \item \index{max-width (clé)} \colorbox{yellow!50}{\textbf{Nouveau 4.6}}
@@ -664,6 +664,8 @@ sont représentées par des flèches.
 
 
 
+
+
 \bigskip
 La commande |\PitonOptions| propose d'autres clés qui seront décrites plus loin (voir en
 particulier la coupure des pages et des lignes p.~\pageref{breakable}).
@@ -701,7 +703,7 @@ de sa définition (c'est-à-dire après le mot-clé |def|). Elle utilise la comm
 
 \begin{Verbatim}
 \SetPitonStyle
-  { Name.Function = \bfseries \hightLight[red!30] }
+  { Name.Function = \bfseries \highLight[red!30] }
 \end{Verbatim}
 
 Ici, |\highLight[red!30]| doit être considéré comme le nom d'une fonction LaTeX qui prend
@@ -731,8 +733,8 @@ on aura le mot {\PitonStyle{Keyword}{function}} formaté comme un mot-clé.
 
 \smallskip
 La syntaxe |{\PitonStyle{|\textsl{\texttt{style}}|}{...}}| est nécessaire pour pouvoir
-tenir compte à la fois des commandes semi-globales et des commandes à argument présentes
-dans la valeur courante du style \texttt{\textsl{style}}.
+tenir compte à la fois des commandes semi-globales et des commandes à argument
+potentiellement présentes dans la valeur courante du style \texttt{\textsl{style}}.
 
 
 \subsubsection{Styles locaux et globaux}
@@ -791,9 +793,11 @@ fond coloré à la ligne courante (\emph{toute la ligne} et pas seulement la par
 contenant du texte) et que l'on peut utiliser dans les styles.
 
 \smallskip
-La commande |\rowcolor| ne prend qu'un seul argument qui est la couleur demandée :
-il n'y a pas d'argument optionnel pour l'espace colorimétrique.\footnote{Néanmoins, il est possible
-d'écrire, par exemple : \verb|\rowcolor{[rgb]{0.8,1,0.8}}|.}
+La commande |\rowcolor| a une syntaxe similaire à la commande classique |\color|. Par
+exemple, il est possible d'écrire |\rowcolor[rgb]{0.8,1,0.8}|.
+
+\smallskip
+La commande |\rowcolor| est protégée contre le développement TeX.
 
 \smallskip
 Voici un exemple pour le langage Python où on modifie le style |String.Doc|
@@ -930,7 +934,7 @@ Cette commande a la même syntaxe que la commande classique
 \medskip
 Il existe aussi les commandes suivantes similaires à celles de LaTeX3 :
 \DefinitionCommand{RenewPitonEnvironment},
-\DefinitionCommand{DeclarePitonEnvironment}  et \DefinitionCommand{ProvidePitonEnvironment},
+\DefinitionCommand{DeclarePitonEnvironment} et \DefinitionCommand{ProvidePitonEnvironment}.
 
 
 
@@ -944,8 +948,11 @@ avec le même comportement que l'environnement |{Piton}|:
 
 \bigskip
 Si on souhaite un environnement |{Python}| qui compose le code inclus dans une boîte de
-\pkg{mdframed}, on peut écrire (à condition, bien entendu, d'avoir chargé l'extension
-\pkg{mdframed} et, dans ce document, elle a été chargée avec la clé |framemethod=tikz|):
+\pkg{mdframed}, on peut écrire :
+
+\begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+\usepackage[framemethod=tikz]{mdframed} % dans le préambule
+\end{Verbatim}
 
 \begin{Verbatim}
 ~emphase#\NewPitonEnvironment@{Python}{}
@@ -1123,13 +1130,13 @@ Par exemple, pour formater du code LaTeX, on pourra créer le language suivant :
 %
 {\color{gray}
 \begin{verbatim}
-\NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoletter = @_ }
+\NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoother = @_ }
 \end{verbatim}
 } 
 
 Initialement, les caractères |@| et |_| sont considérés comme des lettres car de nombreux
 langages de programmation les autorisent dans les mots-clés et les identificateurs. Avec
-\verb|alsoletter = @_|, on les retire de la catégorie des lettres.
+\verb|alsoother = @_|, on les retire de la catégorie des lettres.
 
 
 
@@ -2066,6 +2073,7 @@ floor(5.4)
 \subsection{Les échappements vers LaTeX}
 
 \index{echappements@échappements vers LaTeX}
+\label{LaTeX-escapes}
 
 L'extension \pkg{piton} propose plusieurs mécanismes d'échappement vers LaTeX :
 \begin{itemize}
@@ -2142,8 +2150,9 @@ commentaire LaTeX.\footnote{Cette fonctionnalité est implémentée en redéfini
   |\label| (comme \pkg{varioref}, \pkg{refcheck}, \pkg{showlabels}, etc.)}
 De même, la commande |\zlabel| du paquetage \pkg{zref} peut être utilisée.\footnote{
   Y compris la commande |\zcref| de \pkg{zref-clever}.}
-L'option globale |label-as-zlabel| permet d'utiliser |\label| à la place de |\zlabel| dans
-les commentaires LaTeX (ce qui est le comportement par défaut de \pkg{zref} en général).
+La clé |label-as-zlabel| qui est disponible dans |\PitonOptions| dans le préambule du document
+permet d'utiliser |\label| à la place de |\zlabel| dans les commentaires LaTeX (ce qui est
+le comportement par défaut de \pkg{zref} en général).
 
 \subsubsection{La clé «math-comments»}
 
@@ -2210,16 +2219,12 @@ analyse syntaxique).
 Dans l'exemple suivant, qui est une programmation récursive de la factorielle, on décide
 de surligner en jaune l'appel récursif. La commande |\highLight| de
 \pkg{lua-ul}\footnote{L'extension \pkg{lua-ul} requiert elle-même l'extension
-  \pkg{luacolor}.} permet de le faire facilement avec la
-syntaxe |\highLight{...}|.
+  \pkg{luacolor}.} permet de le faire facilement.
 
-\smallskip
-On suppose que l'on a mis dans le préambule du document LaTeX l'instruction suivante :
-\begin{Verbatim}
-\PitonOptions{~emphase#detected-commands@ = highLight}
+\begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+\PitonOptions{~emphase#detected-commands@ = highLight} % dans le préambule
 \end{Verbatim}
 
-On peut alors écrire directement :
 \begin{Verbatim}
 \begin{Piton}
 def fact(n):
@@ -3054,7 +3059,10 @@ Cette commande |\rowcolor| peut-être utilisée dans un style, comme illustré �
 page~\pageref{rowcolor} mais on peut aussi envisager de l'utiliser directement
 dans un listing. Il faudra néanmoins utiliser un des mécanismes d'échappement
 vers LaTeX fournis par \pkg{piton}. Dans l'exemple suivant, on utilise la clé
-|raw-detected-commands| (cf.~p.~\pageref{raw-detected-commands}).
+|raw-detected-commands| (cf.~p.~\pageref{raw-detected-commands}). On ne pourra
+pas utiliser une syntaxe comme |\rowcolor[rgb]{0.8,1,0.8}| car les «commandes
+détectées» sont des commandes à un seul argument mais on pourra utiliser
+|\rowcolor{[rgb]{0.8,1,0.8}}| (syntaxe acceptée par |\rowcolor|).
 
 \nobreak
 \begin{Verbatim}[formatcom=\footnotesize\color{gray}]
@@ -3084,7 +3092,7 @@ def fact(n):
 
 \bigbreak
 Voici maintenant le même exemple avec utilisation conjointe de la clé
-|background-color| (cf. p.~\pageref{background-color}) :
+|background-color| (cf. p.~\pageref{background-color}).
 
 \medskip
 \begin{BVerbatim}[boxwidth=91mm,baseline=c]
@@ -3409,6 +3417,35 @@ print(f'Le carré de 12 est {carré(12)}.')
 \end{PitonExecute}
 
 \bigskip
+On peut, dans cet environnement, utiliser les mécanismes d'échappement vers
+LaTeX de la même manière que précédemment (cf. p.~\pageref{LaTeX-escapes}).
+
+
+\begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+\usepackage{luacolor,lua-ul}                  % dans le préambule
+\PitonOptions{detected-commands = highLight}  % dans le préambule
+\end{Verbatim}
+
+\begin{Verbatim}
+\begin{PitonExecute}[background-color=gray!15]
+def carré(x):
+    """Calcule le carré de l'argument"""
+    ~emphase#\highLight{return x*x}@
+print(f'Le carré de 12 est {carré(12)}.')
+\end{PitonExecute}
+\end{Verbatim}
+
+\medskip
+\begin{PitonExecute}[background-color=gray!15]
+def carré(x):
+    """Calcule le carré de l'argument"""
+    \highLight{return x*x}
+print(f'Le carré de 12 est {carré(12)}.')
+\end{PitonExecute}
+
+
+
+\bigskip
 
 \subsubsection{Utilisation de l'environnement \{pythonrepl\} de pyluatex}
 
@@ -3425,8 +3462,8 @@ a été demandé d'être affiché avec des \piton{print} de Python).
 \medskip
 Il est ensuite possible de passer cela à un environnement |{Piton}| qui va faire un
 coloriage syntaxique et mettre sur fond grisé les lignes correspondant aux instructions
-fournies à l'interpréteur Python (grâce à la clé |prompt-background-color| de
-|\PitonOptions|).
+fournies à l'interpréteur Python (la couleur de ce fond est réglable avec la clé
+|prompt-background-color| dont la valuer initiale est |gray!15|).
 
 
 \medskip
@@ -3443,8 +3480,7 @@ car, bien sûr, c'est le retour fait par |{pythonrepl}| qui doit être traité p
  { 
    \PitonOptions
      { 
-       background-color=white,
-       ~emphase#prompt-background-color = gray!15@,
+       ~emphase#background-color=none@, % pour avoir des petites marges
        ~#1
      }
    \PyLTVerbatimEnv
@@ -3488,7 +3524,7 @@ Voici un exemple d'utilisation de ce nouvel environnement |{PitonREPL}|.
 \ExplSyntaxOn
 \NewDocumentEnvironment { PitonREPL } { }
  { 
-   \PitonOptions{background-color=white,prompt-background-color = gray!15}
+   \PitonOptions{background-color=none}
    \PyLTVerbatimEnv
    \begin{pythonrepl}
  }

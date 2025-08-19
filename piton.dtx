@@ -89,11 +89,11 @@
 %<*STY>
 % \fi
 \def\PitonFileVersion{4.8x}
-\def\PitonFileDate{2025/08/09}
+\def\PitonFileDate{2025/08/18}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.8x" -- 2025/08/09
+piton_version = "4.8x" -- 2025/08/18
 %</LUA>
 %\fi
 %
@@ -544,7 +544,7 @@ piton_version = "4.8x" -- 2025/08/09
 % \item the width of the LaTeX box created by the key |box| when that key is used
 % (cf. p.~\pageref{box});
 % \item the width of the graphical box created by the key |tcolorbox| when that
-% key is used.
+% key is used (cf.~p.~\pageref{tcolorbox}).
 % \end{itemize}
 %
 % \item \index{max-width} \colorbox{yellow!50}{\textbf{New 4.6}}
@@ -2204,15 +2204,13 @@ piton_version = "4.8x" -- 2025/08/09
 % In the following example, which is a recursive programmation of the factorial
 % function, we decide to highlight the recursive call. The command |\highLight|
 % of \pkg{lua-ul}\footnote{The package \pkg{lua-ul} requires itself the package
-% \pkg{luacolor}.} directly does the job with the easy syntax |\highLight{...}|.
+% \pkg{luacolor}.} directly does the job.
 %
 % \medskip 
-% We assume that the preamble of the LaTeX document contains the following line:
-% \begin{Verbatim}
-% \PitonOptions{~emphase#detected-commands@ = highLight}
+% \begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+% \PitonOptions{~emphase#detected-commands@ = highLight} % in the preamble
 % \end{Verbatim}
 %
-% Then, it's possible to write directly:
 % \begin{Verbatim}
 % \begin{Piton}
 % def fact(n):
@@ -6365,7 +6363,7 @@ piton_version = "4.8x" -- 2025/08/09
           }
 %    \end{macrocode}
 % If the box that we have retrieved is void, that means that, in fact, there is no
-% longer boxes in |\g_tmpa_bool| and we will exit the loop.
+% longer boxes in |\g_tmpa_box| and we will exit the loop.
 %    \begin{macrocode}
         \box_if_empty:NTF \g_@@_line_box
           { \bool_gset_true:N \g_tmpa_bool }
@@ -6385,7 +6383,8 @@ piton_version = "4.8x" -- 2025/08/09
 %    \begin{macrocode}
             \cs_if_exist_use:cT { g_@@_after_line _ \int_use:N \g_@@_line_int _ tl }
               { \cs_undefine:c { g_@@_after_line _ \int_use:N \g_@@_line_int _ tl } }
-            \mode_leave_vertical: 
+            \int_compare:nNnT \g_@@_line_int < \g_@@_nb_lines_int % added 25/08/18
+              { \mode_leave_vertical: }
           }
       }
   }      

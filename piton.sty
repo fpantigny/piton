@@ -20,7 +20,7 @@
 %% -------------------------------------------
 %% 
 \def\PitonFileVersion{4.8x}
-\def\PitonFileDate{2025/08/09}
+\def\PitonFileDate{2025/08/18}
 
 
 
@@ -1326,7 +1326,8 @@
             \__piton_add_penalty_for_the_line:
             \cs_if_exist_use:cT { g__piton_after_line _ \int_use:N \g__piton_line_int _ tl }
               { \cs_undefine:c { g__piton_after_line _ \int_use:N \g__piton_line_int _ tl } }
-            \mode_leave_vertical:
+            \int_compare:nNnT \g__piton_line_int < \g__piton_nb_lines_int % added 25/08/18
+              { \mode_leave_vertical: }
           }
       }
   }
