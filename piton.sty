@@ -320,6 +320,7 @@
       { \tl_if_novalue:nTF { #1 } { #2 } { [ #1 ] { #2 } } }
     \bool_gset_true:N \g__piton_rowcolor_inside_bool
   }
+\NewDocumentCommand { \__piton_noop_rowcolor } { o m } { }
 \cs_new:Npn \__piton_marker_beginning:n #1 { }
 \cs_new:Npn \__piton_marker_end:n #1 { }
 \tl_new:N \g__piton_after_line_tl
@@ -1028,7 +1029,7 @@
     \cs_set_eq:NN \$ \c_dollar_str
     \cs_set_eq:cN { ~ } \space
     \cs_set_eq:NN \__piton_begin_line: \prg_do_nothing:
-    \cs_set:Npn \rowcolor ##1 {}
+    \cs_set_eq:NN \rowcolor \__piton_noop_rowcolor
     \tl_set:Ne \l_tmpa_tl
       {
         \lua_now:e
@@ -1053,7 +1054,7 @@
     \group_begin:
     \automatichyphenmode = 1
     \cs_set_eq:NN \__piton_begin_line: \prg_do_nothing:
-    \cs_set:Npn \rowcolor ##1 {}
+    \cs_set_eq:NN \rowcolor \__piton_noop_rowcolor
     \tl_set:Ne \l_tmpa_tl
       {
         \lua_now:e

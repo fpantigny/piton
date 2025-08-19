@@ -802,6 +802,9 @@ piton_version = "4.8x" -- 2025/08/18
 % \endgroup
 %
 %
+% \bigskip
+% If the command |\rowcolor| appears (through a style of \pkg{piton}) inside a
+% command |\piton|, it is no-op (as expected).
 %
 %
 % \subsubsection{The style UserFunction}
@@ -3077,7 +3080,7 @@ piton_version = "4.8x" -- 2025/08/18
 % (cf. p.~\pageref{background-color}).
 %
 % \medskip
-% \begin{BVerbatim}[boxwidth=87mm,baseline=c]
+% \begin{BVerbatim}[boxwidth=92mm,baseline=c]
 % \begin{Piton}[width=min,~emphase#background-color=gray!15@]
 % def fact(n):
 %     if n==0:
@@ -3086,7 +3089,7 @@ piton_version = "4.8x" -- 2025/08/18
 %         return n*fact(n-1)
 % \end{Piton}        
 % \end{BVerbatim}
-% \hspace{1cm}
+% \hspace{5mm}
 % \begin{Piton}[width=min,box,background-color=gray!15]
 % def fact(n):
 %     if n==0:
@@ -4647,6 +4650,13 @@ piton_version = "4.8x" -- 2025/08/18
     \bool_gset_true:N \g_@@_rowcolor_inside_bool 
   }
 %    \end{macrocode}
+%
+% In the command |piton| (in fact in |\@@_piton_standard| and |\@@_piton_verbatim|,
+% the command |\rowcolor| will be linked to the following one (in order to nullify
+% its effect).
+%    \begin{macrocode}
+\NewDocumentCommand { \@@_noop_rowcolor } { o m } { }
+%    \end{macrocode}
 % 
 % \bigskip
 % The following commands correspond to the keys |marker/beginning| and
@@ -4681,8 +4691,8 @@ piton_version = "4.8x" -- 2025/08/18
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_trailing_space: { }
 %    \end{macrocode}
-% When we have to rescan some pieces of code, we will use |\@@_piton:n|, which
-% will set |\@@_trailing_space:| equal to |\space|.
+% When we have to rescan some pieces of code, we will use |\@@_piton:n| and that
+% command |\@@_piton:n| will set |\@@_trailing_space:| equal to |\space|.
 %
 % \bigskip
 %    \begin{macrocode}
@@ -4701,7 +4711,9 @@ piton_version = "4.8x" -- 2025/08/18
 %
 % There are four keys for ``detected commands and environments'':
 % |detected-commands|, |raw-detected-commands|, |beamer-commands| and
-% |beamer-environments|. 
+% |beamer-environments|.
+%
+% In fact, there is also |vertical-detected-commands| but has a special treatment. 
 %
 % For each of those keys, we keep a clist of the names of such detected
 % commands and environments. For the commands, the corresponding |clist| will
@@ -5870,7 +5882,7 @@ piton_version = "4.8x" -- 2025/08/18
 %    \bigskip
 %    We redefine |\rowcolor| inside of |\piton| commands to do nothing.
 %    \begin{macrocode}
-    \cs_set:Npn \rowcolor ##1 {}
+    \cs_set_eq:NN \rowcolor \@@_noop_rowcolor
 %    \end{macrocode}
 %    
 %    \begin{macrocode}
@@ -5916,7 +5928,7 @@ piton_version = "4.8x" -- 2025/08/18
 %    \bigskip
 %    We redefine |\rowcolor| inside of |\piton| commands to do nothing.
 %    \begin{macrocode}
-    \cs_set:Npn \rowcolor ##1 {}
+    \cs_set_eq:NN \rowcolor \@@_noop_rowcolor
 %    \end{macrocode}
 %    
 %    \begin{macrocode}
@@ -6730,7 +6742,7 @@ piton_version = "4.8x" -- 2025/08/18
     \group_begin:
 %    \end{macrocode}    
 % The following line is to allow tools such as |latexmk| to be aware that the
-% file (read by |\PitonInputFile|) is loaded during the compilation of the LaTeX
+% file read by |\PitonInputFile| is loaded during the compilation of the LaTeX
 % document. 
 %    \begin{macrocode}
       \iow_log:e { (\l_@@_file_name_str) }
@@ -7888,7 +7900,7 @@ local Identifier = K ( 'Identifier.Internal' , identifier )
 %    \end{macrocode}
 %
 % \bigskip
-% \textbf{By convention, we will use names with an initial capital for \textsc{lpeg}
+% \textbf{By convention, we will use names with an initial capital for LPEG
 % which return captures.}
 %
 % \bigskip
