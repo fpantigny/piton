@@ -88,12 +88,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.8x}
-\def\PitonFileDate{2025/08/18}
+\def\PitonFileVersion{4.8a}
+\def\PitonFileDate{2025/08/19}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.8x" -- 2025/08/18
+piton_version = "4.8a" -- 2025/08/19
 %</LUA>
 %\fi
 %
@@ -2842,10 +2842,11 @@ piton_version = "4.8x" -- 2025/08/18
 % \end{Verbatim}
 %
 % In that tuning, many values given to the keys are empty: that means that the
-% corresponding style won't insert any formatting instruction (the element will
-% be composed in the standard color, usually in black, etc.). Nevertheless,
-% those entries are mandatory because the initial value of those keys in
-% \pkg{piton} is \emph{not} empty.
+% corresponding style won't insert any formatting instruction, except those in
+% the value of the parameter |font-command|, whose initial value is |\ttfamily|
+% (the element will be composed in the standard color, usually in black, etc.).
+% Nevertheless, those entries are mandatory because the initial value of those
+% keys in \pkg{piton} is \emph{not} empty.
 %
 % \begingroup
 %  \PitonOptions{splittable}
@@ -6974,7 +6975,9 @@ piton_version = "4.8x" -- 2025/08/18
 \keys_define:nn { piton / Styles }
   {
     String       .meta:n = { String.Long = #1 , String.Short = #1 } ,
+    String       .value_required:n = true ,    
     Comment.Math .tl_set:c = pitonStyle _ Comment.Math  ,
+    Comment.Math .value_required:n = true ,
     unknown      .code:n = 
       \@@_error:n { Unknown~key~for~SetPitonStyle }
   }

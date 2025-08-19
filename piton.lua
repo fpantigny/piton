@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.8x" -- 2025/08/18
+piton_version = "4.8a" -- 2025/08/19
 
 
 

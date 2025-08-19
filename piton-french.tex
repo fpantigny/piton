@@ -2862,10 +2862,12 @@ elle-même l'extension \pkg{luacolor}).
 \end{Verbatim}
 
 
-Dans ce réglage, de nombreuses valeurs fournies aux clés sont vides, ce qui signifie que
-le style correspondant n'insèrera aucune instruction de formatage (l'élément sera composé
-dans la couleur standard, le plus souvent, en noir, etc.). Ces entrées avec valeurs nulles
-sont néanmoins nécessaires car la valeur initiale de ces styles dans \pkg{piton} n'est
+Dans ce réglage, de nombreuses valeurs fournies aux clés sont vides, ce qui
+signifie que le style correspondant n'insèrera aucune instruction de formatage,
+si ce n'est celles données par le paramètre |font-command|, dont la valeur
+initiale est |\ttfamily| (l'élément sera composé dans la couleur standard, le
+plus souvent, en noir, etc.). Ces entrées avec valeurs nulles sont néanmoins
+nécessaires car la valeur initiale de ces styles dans \pkg{piton} n'est
 \emph{pas} vide.
 
 \begingroup
