@@ -5865,6 +5865,15 @@ piton_version = "4.8x" -- 2025/08/18
 %
 %    \begin{macrocode}
     \cs_set_eq:NN \@@_begin_line: \prg_do_nothing:
+%    \end{macrocode}
+%    
+%    \bigskip
+%    We redefine |\rowcolor| inside of |\piton| commands to do nothing.
+%    \begin{macrocode}
+    \cs_set:Npn \rowcolor ##1 {}
+%    \end{macrocode}
+%    
+%    \begin{macrocode}
     \tl_set:Ne \l_tmpa_tl 
       { 
         \lua_now:e 
@@ -5902,6 +5911,15 @@ piton_version = "4.8x" -- 2025/08/18
     \group_begin:
     \automatichyphenmode = 1
     \cs_set_eq:NN \@@_begin_line: \prg_do_nothing:
+%    \end{macrocode}
+%    
+%    \bigskip
+%    We redefine |\rowcolor| inside of |\piton| commands to do nothing.
+%    \begin{macrocode}
+    \cs_set:Npn \rowcolor ##1 {}
+%    \end{macrocode}
+%    
+%    \begin{macrocode}
     \tl_set:Ne \l_tmpa_tl 
       { 
         \lua_now:e 

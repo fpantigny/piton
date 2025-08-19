@@ -1028,6 +1028,7 @@
     \cs_set_eq:NN \$ \c_dollar_str
     \cs_set_eq:cN { ~ } \space
     \cs_set_eq:NN \__piton_begin_line: \prg_do_nothing:
+    \cs_set:Npn \rowcolor ##1 {}
     \tl_set:Ne \l_tmpa_tl
       {
         \lua_now:e
@@ -1052,6 +1053,7 @@
     \group_begin:
     \automatichyphenmode = 1
     \cs_set_eq:NN \__piton_begin_line: \prg_do_nothing:
+    \cs_set:Npn \rowcolor ##1 {}
     \tl_set:Ne \l_tmpa_tl
       {
         \lua_now:e
