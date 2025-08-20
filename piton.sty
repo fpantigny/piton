@@ -1672,7 +1672,6 @@
     TypeExpression ,
     Directive
   }
-
 \clist_map_inline:Nn \g__piton_styles_clist
   {
     \keys_define:nn { piton / Styles }
@@ -1834,11 +1833,67 @@
     Prompt                = ,
     Discard               = \use_none:n
   }
+\clist_new:N \g__piton_expl_styles_clist
+\clist_gset:Nn \g__piton_expl_styles_clist
+  {
+    Scope.l ,
+    Scope.g ,
+    Scope.c ,
+    Type.clist ,
+    Type.fp ,
+    Type.int ,
+    Type.seq,
+    Type.str ,
+    Type.tl ,
+    Module.clist ,
+    Module.fp ,
+    Module.int ,
+    Module.seq,
+    Module.str ,
+    Module.tl
+  }
+\clist_map_inline:Nn \g__piton_expl_styles_clist
+  {
+    \keys_define:nn { piton / Styles }
+      {
+        #1 .value_required:n = true ,
+        #1 .code:n =
+          \tl_set:cn
+            {
+              pitonStyle _
+              \str_if_empty:NF \l__piton_SetPitonStyle_option_str
+                { \l__piton_SetPitonStyle_option_str _ }
+              #1
+            }
+            { ##1 }
+      }
+  }
+\SetPitonStyle [ expl ]
+  {
+    Scope.l          = ,
+    Scope.g          = \bfseries ,
+    Scope.c          = \slshape ,
+    Type.clist       = \color [ HTML ] { CC0000 } ,
+    Type.fp          = \color [ HTML ] { 006699 } ,
+    Type.int         = \color [ HTML ] { 00CCFF } ,
+    Type.seq         = \color [ HTML ] { 00AA88 } ,
+    Type.str         = \color [ HTML ] { 0060A0 } ,
+    Type.tl          = \color [ HTML ] { 555555 } ,
+    Module.clist     = \color [ HTML ] { CC0000 } ,
+    Module.fp        = \color [ HTML ] { 006699 } ,
+    Module.int       = \color [ HTML ] { 00CCFF } ,
+    Module.seq       = \color [ HTML ] { 00AA88 } ,
+    Module.str       = \color [ HTML ] { 0060A0 } ,
+    Module.tl        = \color [ HTML ] { 555555 }
+  }
 \hook_gput_code:nnn { begindocument } { . }
   {
     \bool_if:NT \g__piton_math_comments_bool
       { \SetPitonStyle { Comment.Math = \__piton_math_scantokens:n } }
   }
+\SetPitonStyle [expl] { Keyword = \__piton_expl_keyword: }
+\cs_new_protected:Npn \__piton_expl_keyword: #1
+  { \lua_now:e { piton.expl_keyword ( "\lua_escape:n{#1}" ) } }
 \NewDocumentCommand { \SetPitonIdentifier } { o m m }
   {
     \clist_set:Nn \l_tmpa_clist { #2 }

@@ -236,7 +236,7 @@ piton_version = "4.8a" -- 2025/08/19
 % typeset multi-lines code. Since it takes its argument in a verbatim mode, it
 % can't be used within the argument of a LaTeX command. For sake of
 % customization, it's possible to define new environments similar to the
-% environment |{Piton}| with the command |\NewPitonEnvironment|:
+% environment |{Piton}| with the command |\NewPitonEnvironment| or its friends:
 % cf.~\ref{NewPitonEnvironment} p.~\pageref{NewPitonEnvironment}.
 %
 % \item The command \DefinitionCommand{PitonInputFile} is used to insert and
@@ -278,7 +278,7 @@ piton_version = "4.8a" -- 2025/08/19
 %
 % \item the LaTeX commands\footnote{That concerns the commands beginning with a
 % backslash but also the active characters (with catcode equal to 13). } of the
-% argument are fully expanded and not executed,
+% argument are fully expanded (in the TeX meaning) and not executed,
 %
 % {\color{cyan} so, it's possible to use |\\| to insert a backslash}.
 % \end{itemize}
@@ -403,7 +403,7 @@ piton_version = "4.8a" -- 2025/08/19
 % which is the body without the overwritten LaTeX formatting instructions (cf.
 % the part~\ref{API}, p.~\pageref{API}).} of the current environment in
 % that file. At the first use of a file by \pkg{piton} (during a given
-% compilation done by LaTeX), it is erased. In fact, the file is written once at
+% compilation done by LuaLaTeX), it is erased. In fact, the file is written once at
 % the end of the compilation of the file by LuaLaTeX.
 %
 % \item \index{path-write} The key \Definition{path-write} specifies a path
@@ -479,6 +479,9 @@ piton_version = "4.8a" -- 2025/08/19
 %   }
 % \end{Verbatim}
 %
+% Be careful : the previous code is not enough to print the numbers of lines.
+% For that, one also has to use the key |line-numbers| is a absolute way, that
+% is to say without value.
 %
 % \item \index{left-margin} The key \Definition{left-margin} corresponds to a
 % margin on the left. That key may be useful in conjunction with the key
@@ -530,6 +533,8 @@ piton_version = "4.8a" -- 2025/08/19
 % color background to the lines beginning with the prompt ``|>>>|'' (and its
 % continuation ``|...|'') characteristic of the Python consoles with
 % \textsc{repl} (\emph{read-eval-print loop}).
+%
+% The initial value is: |gray!15|
 %
 % \item \index{width} \label{width} The key \Definition{width} fixes the width
 % of the listing in the \textsc{pdf}. The initial value of that parameter
@@ -1143,6 +1148,7 @@ piton_version = "4.8a" -- 2025/08/19
 %     return x*x
 % \end{Piton}
 % \hspace{1cm}
+% \begin{Piton}
 % def cube(x):
 %     return x*x*x
 % \end{Piton}
@@ -1176,6 +1182,7 @@ piton_version = "4.8a" -- 2025/08/19
 %     return x*x
 % \end{Piton}
 % \hspace{1cm}
+% \begin{Piton}
 % def cube(x):
 %     return x*x*x
 % \end{Piton}
@@ -1689,10 +1696,9 @@ piton_version = "4.8a" -- 2025/08/19
 % 
 % \label{line-breaks}
 % 
-% By default, the elements produced by \pkg{piton} can't be broken by an end on
-% line. However, there are keys to allow such breaks (the possible breaking
-% points are the spaces, even the spaces which appear in the strings of the
-% computer languages).
+% There are keys to control the line breaks (the possible breaking points are
+% the spaces, even the spaces which appear in the strings of the computer
+% languages).
 % \begin{itemize}
 % \item \index{break-lines!break-lines-in-piton} With the key
 % \Definition{break-lines-in-piton}, the line breaks are allowed in the command
@@ -2204,10 +2210,10 @@ piton_version = "4.8a" -- 2025/08/19
 % \end{itemize}
 %
 % \bigskip
-% In the following example, which is a recursive programmation of the factorial
-% function, we decide to highlight the recursive call. The command |\highLight|
-% of \pkg{lua-ul}\footnote{The package \pkg{lua-ul} requires itself the package
-% \pkg{luacolor}.} directly does the job.
+% In the following example, which is a recursive programmation in C of the
+% factorial function, we decide to highlight the recursive call. The command
+% |\highLight| of \pkg{lua-ul}\footnote{The package \pkg{lua-ul} requires itself
+% the package \pkg{luacolor}.} directly does the job.
 %
 % \medskip 
 % \begin{Verbatim}[formatcom=\footnotesize\color{gray}]
@@ -2215,21 +2221,21 @@ piton_version = "4.8a" -- 2025/08/19
 % \end{Verbatim}
 %
 % \begin{Verbatim}
-% \begin{Piton}
-% def fact(n):
-%     if n==0:
-%         return 1
-%     else:
-%         ~emphase#\highLight@{return n*fact(n-1)}
+% \begin{Piton}[language=C]
+% int factorielle(int n)
+%   {
+%     if (n > 0) ~emphase#\highLight{return n * factorielle(n - 1)}@ ;
+%     else return 1;
+%   }
 % \end{Piton}
 % \end{Verbatim}
 %
-% \begin{Piton}
-% def fact(n):
-%     if n==0:
-%         return 1
-%     else:
-%         \highLight{return n*fact(n-1)}
+% \begin{Piton}[language=C]
+% int factorielle(int n)
+%   {
+%     if (n > 0) \highLight{return n * factorielle(n - 1)} ;
+%     else return 1;
+%   }
 % \end{Piton}
 %
 % \bigskip
@@ -6953,8 +6959,12 @@ piton_version = "4.8a" -- 2025/08/19
 % the syntax of \pkg{listings}.
 %    \begin{macrocode}
     Directive 
-  }  
-
+  }
+%    \end{macrocode}
+%
+%
+% 
+%    \begin{macrocode}
 \clist_map_inline:Nn \g_@@_styles_clist  
   {
     \keys_define:nn { piton / Styles }
@@ -7171,7 +7181,71 @@ piton_version = "4.8a" -- 2025/08/19
     Discard               = \use_none:n 
   }
 %    \end{macrocode}
+% \bigskip
+% \subsubsection{Styles specific to the language expl}
 %
+%    \begin{macrocode}
+\clist_new:N \g_@@_expl_styles_clist
+\clist_gset:Nn \g_@@_expl_styles_clist
+  {
+    Scope.l ,
+    Scope.g ,
+    Scope.c ,
+    Type.clist ,
+    Type.fp ,     
+    Type.int ,
+    Type.seq, 
+    Type.str ,
+    Type.tl ,
+    Module.clist ,
+    Module.fp ,     
+    Module.int ,
+    Module.seq, 
+    Module.str ,
+    Module.tl 
+  }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\clist_map_inline:Nn \g_@@_expl_styles_clist  
+  {
+    \keys_define:nn { piton / Styles }
+      {
+        #1 .value_required:n = true ,
+        #1 .code:n = 
+          \tl_set:cn 
+            {
+              pitonStyle _
+              \str_if_empty:NF \l_@@_SetPitonStyle_option_str 
+                { \l_@@_SetPitonStyle_option_str _ }
+              #1
+            }
+            { ##1 }
+      }
+  }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\SetPitonStyle [ expl ]
+  {
+    Scope.l          = ,
+    Scope.g          = \bfseries ,
+    Scope.c          = \slshape ,
+    Type.clist       = \color [ HTML ] { CC0000 } ,
+    Type.fp          = \color [ HTML ] { 006699 } ,
+    Type.int         = \color [ HTML ] { 00CCFF } ,
+    Type.seq         = \color [ HTML ] { 00AA88 } ,
+    Type.str         = \color [ HTML ] { 0060A0 } ,
+    Type.tl          = \color [ HTML ] { 555555 } ,
+    Module.clist     = \color [ HTML ] { CC0000 } ,
+    Module.fp        = \color [ HTML ] { 006699 } ,
+    Module.int       = \color [ HTML ] { 00CCFF } ,
+    Module.seq       = \color [ HTML ] { 00AA88 } ,
+    Module.str       = \color [ HTML ] { 0060A0 } ,
+    Module.tl        = \color [ HTML ] { 555555 } 
+  }
+%    \end{macrocode}
+% 
 % \medskip 
 % If the key |math-comments| has been used in the preamble of the LaTeX
 % document, we change the style |Comment.Math| which should be considered only
@@ -7186,7 +7260,15 @@ piton_version = "4.8a" -- 2025/08/19
 %    \end{macrocode}
 % 
 % \bigskip
+%    \begin{macrocode}
+\SetPitonStyle [expl] { Keyword = \@@_expl_keyword: }
+%    \end{macrocode}
 %
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_expl_keyword: #1
+  { \lua_now:e { piton.expl_keyword ( "\lua_escape:n{#1}" ) } }
+%    \end{macrocode}
+% 
 % \bigskip
 % \subsubsection{Highlighting some identifiers}
 %
@@ -10306,6 +10388,92 @@ do
 % End of the Lua scope for the language ``|verbatim|''.
 %    \begin{macrocode}
 end
+%    \end{macrocode}
+% \subsubsection{The language expl}
+% 
+% We open a Lua local scope for the language |expl| of LaTeX3 (of course, there
+% will be also global definitions).
+%    \begin{macrocode}
+--EXPL expl
+do 
+%    \end{macrocode}
+
+% \bigskip
+% Here, we don't use |braces| as done with the other languages because we don't
+% have have to take into account the strings (there is no string in the langage
+% EXPL). 
+%    \begin{macrocode}
+  local braces = 
+      P { "E" ,
+           E = ( "{" * V "E" * "}" + ( 1 - S "{}" ) ) ^ 0 
+        }
+
+  if piton.beamer then Beamer = Compute_Beamer ( 'expl' , braces ) end
+
+  DetectedCommands = 
+    Compute_DetectedCommands ( 'expl' , braces ) 
+    + Compute_RawDetectedCommands ( 'expl' , braces )
+
+  LPEG_cleaner.expl = Compute_LPEG_cleaner ( 'expl' , braces ) 
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+  local Keyword =
+    K ( 'Keyword' , P "\\" * ( R "Az" + "_" + ":" + "@" ) ^ 1 ) 
+
+  local Word = Q ( ( 1 - S " \r" ) ^ 1 ) 
+
+  local Main = 
+       space ^ 0 * EOL
+       + Space 
+       + Tab
+       + Escape + EscapeMath 
+       + Beamer
+       + DetectedCommands
+       -- + Q [[\]]
+       + Keyword
+       + Word 
+%    \end{macrocode}
+%
+% \bigskip
+% Here, we must not put |local|, of course.
+%    \begin{macrocode}
+  LPEG1.expl = Main ^ 0
+
+  LPEG2.expl = 
+    Ct (
+         ( space ^ 0 * "\r" ) ^ -1 
+         * beamerBeginEnvironments 
+         * Lc [[ \@@_begin_line: ]]
+         * SpaceIndentation ^ 0 
+         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
+         * -1 
+         * Lc [[ \@@_end_line: ]]
+       )
+%    \end{macrocode}
+% 
+%
+% \bigskip
+% End of the Lua scope for the language |expl| of LaTeX3.
+%    \begin{macrocode}
+end
+
+function piton.expl_keyword ( s )
+  if s : find ( ":" ) then
+    local parts = s : explode ( ":" )
+    local subparts = parts [1] : explode ( "_" )
+    local subpart = subparts[1]
+    local type = subpart : sub (2 , #subpart) 
+    tex.sprint( [[\PitonStyle{Module.]] .. type .. [[}{]] ) 
+    tex.sprint( luatexbase.catcodetables.CatcodeTableOther , s )
+    tex.sprint( [[}]] )    
+  else
+    local parts = s : explode ( "_" )
+    tex.sprint( [[\PitonStyle{Type.]] .. parts[#parts] .. [[}{]] ) 
+    tex.sprint( luatexbase.catcodetables.CatcodeTableOther , s )
+    tex.sprint( [[}]] )
+  end 
+end 
 %    \end{macrocode}
 %
 % \bigskip

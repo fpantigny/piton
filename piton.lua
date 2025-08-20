@@ -1414,6 +1414,66 @@ do
          * Lc [[ \__piton_end_line: ]]
        )
 end
+--EXPL expl
+do
+
+  local braces =
+      P { "E" ,
+           E = ( "{" * V "E" * "}" + ( 1 - S "{}" ) ) ^ 0
+        }
+
+  if piton.beamer then Beamer = Compute_Beamer ( 'expl' , braces ) end
+
+  DetectedCommands =
+    Compute_DetectedCommands ( 'expl' , braces )
+    + Compute_RawDetectedCommands ( 'expl' , braces )
+
+  LPEG_cleaner.expl = Compute_LPEG_cleaner ( 'expl' , braces )
+  local Keyword =
+    K ( 'Keyword' , P "\\" * ( R "Az" + "_" + ":" + "@" ) ^ 1 )
+
+  local Word = Q ( ( 1 - S " \r" ) ^ 1 )
+
+  local Main =
+       space ^ 0 * EOL
+       + Space
+       + Tab
+       + Escape + EscapeMath
+       + Beamer
+       + DetectedCommands
+       -- + Q [[\]]
+       + Keyword
+       + Word
+  LPEG1.expl = Main ^ 0
+
+  LPEG2.expl =
+    Ct (
+         ( space ^ 0 * "\r" ) ^ -1
+         * beamerBeginEnvironments
+         * Lc [[ \__piton_begin_line: ]]
+         * SpaceIndentation ^ 0
+         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
+         * -1
+         * Lc [[ \__piton_end_line: ]]
+       )
+end
+
+function piton.expl_keyword ( s )
+  if s : find ( ":" ) then
+    local parts = s : explode ( ":" )
+    local subparts = parts [1] : explode ( "_" )
+    local subpart = subparts[1]
+    local type = subpart : sub (2 , #subpart)
+    tex.sprint( [[\PitonStyle{Module.]] .. type .. [[}{]] )
+    tex.sprint( luatexbase.catcodetables.CatcodeTableOther , s )
+    tex.sprint( [[}]] )
+  else
+    local parts = s : explode ( "_" )
+    tex.sprint( [[\PitonStyle{Type.]] .. parts[#parts] .. [[}{]] )
+    tex.sprint( luatexbase.catcodetables.CatcodeTableOther , s )
+    tex.sprint( [[}]] )
+  end
+end
 function piton.Parse ( language , code )
   piton.language = language
   local t = LPEG2[language] : match ( code )

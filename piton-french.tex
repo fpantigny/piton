@@ -190,7 +190,7 @@ utilisé, une erreur fatale sera levée.
 Les langages informatiques pris en charge par \pkg{piton} se classent en deux catégories :
 \begin{itemize}
 \item les langages reconnus nativement par \pkg{piton} qui sont au
-nombre de cinq : Python, OCaml, SQL, C (ou plutôt \CC) et deux
+nombre de quatre : Python, OCaml, SQL, C (ou plutôt \CC) plus deux
 langages minimalistes nommés |minimal|\footnote{Le langage |minimal|
   peut servir pour formater du pseudo-code :
   cf.~p.~\pageref{minimal}.} et |verbatim|;
@@ -237,8 +237,8 @@ extérieur.
 
 \indexenv{Piton}
 
-L'extension \pkg{piton} fournit plusieurs outils pour composer du code informatique : les
-commandes |\piton|, l'environnement |{Piton}| et la commande |\PitonInputFile|.
+L'extension \pkg{piton} fournit plusieurs outils pour composer du code informatique : la
+commande |\piton|, l'environnement |{Piton}| et la commande |\PitonInputFile|.
 
 \begin{itemize} 
 \item La commande \DefinitionCommand{piton} doit être utilisée
@@ -250,11 +250,12 @@ pour composer de petits éléments de code à l'intérieur d'un paragraphe. Par 
 La syntaxe et les particularités de la commande sont détaillées ci-après.
 
 
-\item L'environnement \Definition{\{Piton\}} doit être utilisé pour 
-composer des codes de plusieurs lignes. Comme cet environnement prend son argument selon
-un mode verbatim, il ne peut pas être utilisé dans l'argument d'une commande LaTeX. Pour
-les besoins de personnalisation, il est possible de définir de nouveaux environnements
-similaires à |{Piton}| en utilisant la commande \DefinitionCommand{NewPitonEnvironment} :
+\item L'environnement \Definition{\{Piton\}} doit être utilisé pour composer des
+codes de plusieurs lignes. Comme cet environnement prend son argument selon un
+mode verbatim, il ne peut pas être utilisé dans l'argument d'une commande LaTeX.
+Pour les besoins de personnalisation, il est possible de définir de nouveaux
+environnements similaires à |{Piton}| en utilisant la commande
+\DefinitionCommand{NewPitonEnvironment} ou ses variantes :
 cf.~partie~\ref{NewPitonEnvironment} p.~\pageref{NewPitonEnvironment}.
 
 \item La commande \DefinitionCommand{PitonInputFile} doit être utilisée pour insérer et
@@ -297,8 +298,10 @@ retours à la ligne
 {\color{cyan} mais les commandes |\{| et |\}| sont aussi fournies pour insérer des
   accolades individuelles} ;
 
-\item les commandes LaTeX\footnote{Cela s'applique aux commandes commençant par une contre-oblique |\| mais également aux caractères actifs, c'est-à-dire ceux de catcode~13.} de l'argument de |\piton| sont complètement développées
-sans être exécutées
+\item les commandes LaTeX\footnote{Cela s'applique aux commandes commençant par
+  une contre-oblique |\| mais également aux caractères actifs, c'est-à-dire ceux
+  de catcode~13.} de l'argument de |\piton| sont complètement développées (au sens de TeX)
+  sans être exécutées
 
 {\color{cyan} et on peut donc utiliser |\\| pour insérer une contre-oblique}.
 \end{itemize}
@@ -422,7 +425,7 @@ fichier (avec l'extension) et écrit le contenu\footnote{En fait, il ne s'agit
   l'instruction Lua |piton.get_last_code()| qui en est une version sans les
   surcharges de formatage LaTeX (voir la partie \ref{API}, p.~\pageref{API}).}
 de l'environnement courant dans ce fichier. À la première utilisation du fichier
-par \pkg{piton} (au cours d'une compilation avec LaTeX), celui-ci est effacé.
+par \pkg{piton} (au cours d'une compilation avec LuaLaTeX), celui-ci est effacé.
 L'écriture du fichier ne se fait en fait qu'à la fin de la compilation avec LuaLaTeX.
 
 \item \index{path-write} La clé \Definition{path-write} indique un chemin où
@@ -506,6 +509,9 @@ disponible, c'est-à-dire que l'on peut écrire :
   }
 \end{Verbatim}
 
+Attention : le code précédent ne suffit pas à activer l'affichage des numéros de
+ligne. Pour cela, il faut encore utiliser la clé |line-numbers| de manière absolue
+(c'est-à-dire sans valeur).
 
 \item \index{left-margin} La clé \Definition{left-margin} fixe une marge sur la
 gauche. Cette clé peut être utile, en particulier, en conjonction avec la clé
@@ -558,6 +564,7 @@ caractéristique des consoles Python avec boucle \textsc{repl}
 (\emph{read-eval-print loop}). Pour un exemple d'utilisation de cette clé, voir
 la partie \ref{pythonrepl} p.~\pageref{pythonrepl}.
 
+La valeurs initiale est : |gray!15|
 
 
 \item \index{width (clé)} \label{width} La clé \Definition{width} fixe la largeur du
@@ -1175,6 +1182,7 @@ def square(x):
     return x*x
 \end{Piton}
 \hspace{1cm}
+\begin{Piton}
 def cube(x):
     return x*x*x
 \end{Piton}
@@ -1205,6 +1213,7 @@ def square(x):
     return x*x
 \end{Piton}
 \hspace{1cm}
+\begin{Piton}
 def cube(x):
     return x*x*x
 \end{Piton}
@@ -1683,9 +1692,8 @@ que le fichier soit structuré correctement!):
 
 \label{line-breaks}
 
-Par défaut, les éléments produits par \pkg{piton} ne peuvent pas être coupés par une fin
-de ligne. Il existe néanmoins des clés pour autoriser de telles coupures (les points de
-coupure possibles sont les espaces, y compris les espaces qui sont dans les chaînes de
+Il existe des clés pour contrôler les coupures ligne (les points de coupure
+possibles sont les espaces, y compris les espaces qui sont dans les chaînes de
 caractères des langages informatiques).
 \begin{itemize}
 \item \index{break-lines!break-lines-in-piton} Avec la clé
@@ -2220,31 +2228,32 @@ analyse syntaxique).
 \end{itemize}
 
 \medskip
-Dans l'exemple suivant, qui est une programmation récursive de la factorielle, on décide
-de surligner en jaune l'appel récursif. La commande |\highLight| de
-\pkg{lua-ul}\footnote{L'extension \pkg{lua-ul} requiert elle-même l'extension
-  \pkg{luacolor}.} permet de le faire facilement.
+Dans l'exemple suivant, qui est une programmation récursive en C de la
+factorielle, on décide de surligner en jaune l'appel récursif. La commande
+|\highLight| de \pkg{lua-ul}\footnote{L'extension \pkg{lua-ul} requiert
+  elle-même l'extension \pkg{luacolor}.} permet de le faire facilement.
 
 \begin{Verbatim}[formatcom=\footnotesize\color{gray}]
 \PitonOptions{~emphase#detected-commands@ = highLight} % dans le préambule
 \end{Verbatim}
 
+
 \begin{Verbatim}
-\begin{Piton}
-def fact(n):
-    if n==0:
-        return 1
-    else:
-        ~emphase#\highLight@{return n*fact(n-1)}
+\begin{Piton}[language=C]
+int factorielle(int n)
+  {
+    if (n > 0) ~emphase#\highLight{return n * factorielle(n - 1)}@ ;
+    else return 1;
+  }
 \end{Piton}
 \end{Verbatim}
 
-\begin{Piton}
-def fact(n):
-    if n==0:
-        return 1
-    else:
-        \highLight{return n*fact(n-1)}
+\begin{Piton}[language=C]
+int factorielle(int n)
+  {
+    if (n > 0) \highLight{return n * factorielle(n - 1)} ;
+    else return 1;
+  }
 \end{Piton}
 
 \bigskip
