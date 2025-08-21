@@ -44,7 +44,7 @@ local B , R = lpeg.B , lpeg.R
 lpeg.locale(lpeg)
 local Q
 function Q ( pattern )
-  return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
+  return Ct ( Cc ( luatexbase.catcodetables.other ) * C ( pattern ) )
 end
 local L
 function L ( pattern ) return
@@ -635,9 +635,9 @@ do
   local Q
   function Q ( pattern, strict )
     if strict ~= nil then
-      return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
+      return Ct ( Cc ( luatexbase.catcodetables.other ) * C ( pattern ) )
     else
-      return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
+      return Ct ( Cc ( luatexbase.catcodetables.other ) * C ( pattern ) )
           + Beamer + DetectedCommands + EscapeMath + Escape
     end
   end
@@ -1416,7 +1416,37 @@ do
 end
 --EXPL expl
 do
-
+  local analyze_keyword
+  function analyze_keyword ( s )
+    local i = s : find ( ":" )
+    if i then
+      local name = s : sub ( 2 , i - 1 )
+      local parts = name : explode ( "_" )
+      local module = parts[1]
+      if module == "" then module = parts[3] end
+      return
+       { [[{\OptionalLocalPitonStyle{Module.]] .. module .. "}{" } ,
+       { luatexbase.catcodetables.other , s } ,
+       { "}}" }
+    else
+      local p = s : sub ( 1 , 3 )
+      if p == [[\l_]] or p == [[\g_]] or p == [[\c_]] then
+        local scope = s : sub(2,2)
+        local parts = s : explode ( "_" )
+        local module = parts[2]
+        if module == "" then module = parts[3] end
+        local type = parts[#parts]
+        return
+          { [[{\OptionalLocalPitonStyle{Scope.]] .. scope .. "}{" } ,
+          { [[{\OptionalLocalPitonStyle{Module.]] .. module .. "}{" } ,
+          { [[{\OptionalLocalPitonStyle{Type.]] .. type .. "}{" } ,
+          { luatexbase.catcodetables.other , s } ,
+          { "}}}}}}" }
+      else
+        return { luatexbase.catcodetables.other , s }
+      end
+    end
+  end
   local braces =
       P { "E" ,
            E = ( "{" * V "E" * "}" + ( 1 - S "{}" ) ) ^ 0
@@ -1430,7 +1460,7 @@ do
 
   LPEG_cleaner.expl = Compute_LPEG_cleaner ( 'expl' , braces )
   local Keyword =
-    K ( 'Keyword' , P "\\" * ( R "Az" + "_" + ":" + "@" ) ^ 1 )
+    C (  P "\\" * ( R "Az" + "_" + ":" + "@" ) ^ 1 ) / analyze_keyword
 
   local Word = Q ( ( 1 - S " \r" ) ^ 1 )
 
@@ -1441,7 +1471,6 @@ do
        + Escape + EscapeMath
        + Beamer
        + DetectedCommands
-       -- + Q [[\]]
        + Keyword
        + Word
   LPEG1.expl = Main ^ 0
@@ -1456,23 +1485,6 @@ do
          * -1
          * Lc [[ \__piton_end_line: ]]
        )
-end
-
-function piton.expl_keyword ( s )
-  if s : find ( ":" ) then
-    local parts = s : explode ( ":" )
-    local subparts = parts [1] : explode ( "_" )
-    local subpart = subparts[1]
-    local type = subpart : sub (2 , #subpart)
-    tex.sprint( [[\PitonStyle{Module.]] .. type .. [[}{]] )
-    tex.sprint( luatexbase.catcodetables.CatcodeTableOther , s )
-    tex.sprint( [[}]] )
-  else
-    local parts = s : explode ( "_" )
-    tex.sprint( [[\PitonStyle{Type.]] .. parts[#parts] .. [[}{]] )
-    tex.sprint( luatexbase.catcodetables.CatcodeTableOther , s )
-    tex.sprint( [[}]] )
-  end
 end
 function piton.Parse ( language , code )
   piton.language = language
@@ -1538,7 +1550,7 @@ function piton.ReadFile ( name , first_line , last_line )
     end
   end
   sprintL3 ( [[ \tl_set:Nn \l__piton_listing_tl { ]])
-  tex.sprint ( luatexbase.catcodetables.CatcodeTableOther , s )
+  tex.sprint ( luatexbase.catcodetables.other , s )
   sprintL3 ( [[ } ]] )
 end
 function piton.RetrieveGobbleParse ( lang , n , splittable , code )
@@ -1708,7 +1720,7 @@ function piton.RetrieveGobbleSplitParse ( lang , n , splittable , code )
 end
 piton.string_between_chunks =
  [[ \par \l__piton_split_separation_tl \mode_leave_vertical: ]]
- .. [[ \int_gzero:N \g__piton_line_int ]]
+ .. [[ \global \g__piton_line_int  = 0 ]]
 function piton.get_last_code ( )
   return LPEG_cleaner[piton.last_language] : match ( piton.last_code )
          : gsub('\r\n','\n') : gsub('\r','\n')
@@ -1721,7 +1733,7 @@ function piton.CountLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  sprintL3 ( string.format ( [[ \int_gset:Nn \g__piton_nb_lines_int { %i } ]] , count ) )
+  sprintL3 ( [[ \global \g__piton_nb_lines_int = ]] .. count )
 end
 function piton.CountNonEmptyLines ( code )
   local count = 0
@@ -1732,14 +1744,12 @@ function piton.CountNonEmptyLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  sprintL3
-   ( string.format ( [[ \int_set:Nn  \l__piton_nb_non_empty_lines_int { %i } ]] , count ) )
+  sprintL3 ( [[ \global \l__piton_nb_non_empty_lines_int =]] .. count )
 end
 function piton.CountLinesFile ( name )
   local count = 0
   for line in io.lines ( name ) do count = count + 1 end
-  sprintL3
-   ( string.format ( [[ \int_gset:Nn \g__piton_nb_lines_int { %i } ]], count ) )
+  sprintL3 ( [[ \global \g__piton_nb_lines_int =]] .. count )
 end
 function piton.CountNonEmptyLinesFile ( name )
   local count = 0
@@ -1748,8 +1758,7 @@ function piton.CountNonEmptyLinesFile ( name )
        count = count + 1
     end
   end
-  sprintL3
-   ( string.format ( [[ \int_set:Nn \l__piton_nb_non_empty_lines_int { % i } ]] , count ) )
+  sprintL3 ( [[ \global \l__piton_nb_non_empty_lines_int =]] .. count )
 end
 function piton.ComputeRange(s,t,file_name)
   local first_line = -1
@@ -1777,7 +1786,7 @@ function piton.ComputeRange(s,t,file_name)
   end
   sprintL3 (
       [[ \int_set:Nn \l__piton_first_line_int { ]] .. first_line .. ' + 2 }'
-      .. [[ \int_set:Nn \l__piton_last_line_int { ]] .. count .. ' }' )
+      .. [[ \global \l__piton_last_line_int = ]] .. count )
 end
 function piton.ComputeLinesStatus ( code , splittable )
   local lpeg_line_beamer
@@ -2231,7 +2240,7 @@ function piton.join_and_write_files ( )
       file : close ( )
     else
       sprintL3
-        ( [[ \__piton_error_or_warning:nn { FileError } { ]] .. file_name .. [[ } ]] )
+        ( [[ \__piton_error_or_warning:nn { FileError } { ]] .. file_name .. "}" )
     end
   end
   for file_name , file_content in pairs ( piton.join_files ) do
@@ -2246,7 +2255,7 @@ function piton.join_and_write_files ( )
         ..
         [[ /FS << /Type /Filespec /UF <]] .. file_name .. [[>]]
         ..
-        [[ /EF << /F \pdffeedback lastobj 0 R >> >> }  ]]
+        [[ /EF << /F \pdffeedback lastobj 0 R >> >> } ]]
       )
   end
 end

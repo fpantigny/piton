@@ -3830,49 +3830,49 @@ piton_version = "4.8a" -- 2025/08/19
 % \texttt{\textbackslash fbox}.}
 %
 % \texttt{\{
-% luatexbase.catcodetables.CatcodeTableOther\footnote{\texttt{luatexbase.catcodetables.CatcodeTableOther} is a mere number which corresponds to the ``catcode table'' whose all characters have the catcode ``other'' (which means that they will be typeset by LaTeX verbatim).}, "def" \} }
+% luatexbase.catcodetables.other\footnote{\texttt{luatexbase.catcodetables.other} is a mere number which corresponds to the ``catcode table'' whose all characters have the catcode ``other'' (which means that they will be typeset by LaTeX verbatim).}, "def" \} }
 %
 % |{ "}}" }|
 %
-% |{ luatexbase.catcodetables.CatcodeTableOther, " " }|
+% |{ luatexbase.catcodetables.other, " " }|
 %
 % |{ "{\PitonStyle{Name.Function}{" }|
 %
-% |{ luatexbase.catcodetables.CatcodeTableOther, "parity" }|
+% |{ luatexbase.catcodetables.other, "parity" }|
 %
 % |{ "}}" }|
 % 
-% |{ luatexbase.catcodetables.CatcodeTableOther, "(" }|
+% |{ luatexbase.catcodetables.other, "(" }|
 %
-% |{ luatexbase.catcodetables.CatcodeTableOther, "x" }|
+% |{ luatexbase.catcodetables.other, "x" }|
 %
-% |{ luatexbase.catcodetables.CatcodeTableOther, ")" }|
+% |{ luatexbase.catcodetables.other, ")" }|
 %
-% |{ luatexbase.catcodetables.CatcodeTableOther, ":" }|
+% |{ luatexbase.catcodetables.other, ":" }|
 % 
 % |{ "\\__piton_end_line: \\__piton_par: \\__piton_begin_line:" }|
 %
-% |{ luatexbase.catcodetables.CatcodeTableOther, "    " }|
+% |{ luatexbase.catcodetables.other, "    " }|
 %
 % |{ "{\PitonStyle{Keyword}{" }|
 %
-% |{ luatexbase.catcodetables.CatcodeTableOther, "return" }|
+% |{ luatexbase.catcodetables.other, "return" }|
 %
 % |{ "}}" }|
 %
-% |{ luatexbase.catcodetables.CatcodeTableOther, " " }|
+% |{ luatexbase.catcodetables.other, " " }|
 %
-% |{ luatexbase.catcodetables.CatcodeTableOther, "x" }|
+% |{ luatexbase.catcodetables.other, "x" }|
 %
 % |{ "{\PitonStyle{Operator}{" }|
 %
-% |{ luatexbase.catcodetables.CatcodeTableOther, "%" }|
+% |{ luatexbase.catcodetables.other, "%" }|
 %
 % |{ "}}" }|
 %
 % |{ "{\PitonStyle{Number}{" }|
 %
-% |{ luatexbase.catcodetables.CatcodeTableOther, "2" }|
+% |{ luatexbase.catcodetables.other, "2" }|
 %
 % |{ "}}" }|
 % 
@@ -5279,9 +5279,9 @@ piton_version = "4.8a" -- 2025/08/19
 %    \begin{macrocode}
 \keys_define:nn { PitonOptions / marker }
   {
-    beginning .code:n = \cs_set:Nn \@@_marker_beginning:n { #1 } ,   
+    beginning .cs_set:Np = \@@_marker_beginning:n #1 ,       
     beginning .value_required:n = true , 
-    end .code:n = \cs_set:Nn \@@_marker_end:n { #1 } ,   
+    end .cs_set:Np = \@@_marker_end:n #1 ,   
     end .value_required:n = true ,
     include-lines .bool_set:N = \l_@@_marker_include_lines_bool ,
     include-lines .default:n = true ,
@@ -5352,24 +5352,6 @@ piton_version = "4.8a" -- 2025/08/19
 %    \begin{macrocode}
 \keys_define:nn { PitonOptions }
   {
-    rounded-corners .code:n = 
-      \IfPackageLoadedTF { tikz }
-        { \dim_set:Nn \l_@@_rounded_corners_dim { #1 } }
-        { \@@_err_rounded_corners_without_Tikz: } ,
-    rounded-corners .default:n = 4 pt ,
-    tcolorbox .code:n =
-      \IfPackageLoadedTF { tcolorbox }
-        {
-          \pgfkeysifdefined { / tcb / libload / breakable }
-            {
-              \str_if_eq:eeTF { #1 } { true }
-                { \bool_set_true:N \l_@@_tcolorbox_bool }
-                { \bool_set_false:N \l_@@_tcolorbox_bool }
-            }
-            { \@@_error:n { library~breakable~not~loaded } }
-        }
-        { \@@_error:n { tcolorbox~not~loaded } } ,
-    tcolorbox .default:n = true ,
     box .choices:nn = { c , t , b , m }
       { \str_set_eq:NN \l_@@_box_str \l_keys_choice_tl } , 
     box .default:n = c ,
@@ -5497,6 +5479,9 @@ piton_version = "4.8a" -- 2025/08/19
     splittable       .default:n         = 1 , 
     background-color .code:n =
       \clist_set:Nn \l_@@_bg_color_clist { #1 }
+%    \end{macrocode}
+% We keep the lenght of the clist |\l_@@_bg_color_clist| in a counter for efficiency only.
+%    \begin{macrocode}
       \int_set:Nn \l_@@_bg_colors_int { \clist_count:N \l_@@_bg_color_clist } ,
     background-color .value_required:n  = true ,
     prompt-background-color .tl_set:N         = \l_@@_prompt_bg_color_tl ,
@@ -5610,6 +5595,40 @@ piton_version = "4.8a" -- 2025/08/19
     all-line-numbers .code:n = 
       \bool_set_true:N \l_@@_line_numbers_bool 
       \bool_set_false:N \l_@@_skip_empty_lines_bool ,
+  }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\hook_gput_code:nnn { begindocument } { . }
+  {
+    \keys_define:ne { PitonOptions }
+      {
+        \IfPackageLoadedTF { tikz }
+          {
+            rounded-corners .dim_set:N = \l_@@_rounded_corners_dim ,
+            rounded-corners .default:n = 4 pt 
+          }
+          { rounded-corners .code:n = \@@_err_rounded_corners_without_Tikz: } 
+      }          
+    \IfPackageLoadedTF { tcolorbox }
+      {
+        \pgfkeysifdefined { / tcb / libload / breakable }
+          {
+            \keys_define:nn { PitonOptions }
+              {
+                tcolorbox .bool_set:N = \l_@@_tcolorbox_bool ,
+                tcolorbox .default:n = true 
+              }
+          }
+          {
+             \keys_define:nn { PitonOptions }
+               { tcolorbox .code:n = \@@_error:n { library~breakable~not~loaded } }
+          }
+      }
+      {
+        \keys_define:nn { PitonOptions }
+          { tcolorbox .code:n = \@@_error:n { tcolorbox~not~loaded } }
+      } 
   }
 %    \end{macrocode}
 %
@@ -6039,24 +6058,24 @@ piton_version = "4.8a" -- 2025/08/19
   {
     \bool_lazy_and:nnT \l_@@_left_margin_auto_bool \l_@@_line_numbers_bool
        {
-        \hbox_set:Nn \l_tmpa_box
-          {
-            \l_@@_line_numbers_format_tl 
-            \bool_if:NTF \l_@@_skip_empty_lines_bool
-              {
-                \lua_now:n 
-                  { piton.#1(token.scan_argument()) }
-                  { #2 }
-                \int_to_arabic:n 
-                  { \g_@@_visual_line_int + \l_@@_nb_non_empty_lines_int }   
-              }
-              {
-                \int_to_arabic:n 
-                  { \g_@@_visual_line_int + \g_@@_nb_lines_int }  
-              }
-           }
-         \dim_set:Nn \l_@@_left_margin_dim 
-           { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
+         \hbox_set:Nn \l_tmpa_box
+           {
+             \l_@@_line_numbers_format_tl 
+             \bool_if:NTF \l_@@_skip_empty_lines_bool
+               {
+                 \lua_now:n 
+                   { piton.#1(token.scan_argument()) }
+                   { #2 }
+                 \int_to_arabic:n 
+                   { \g_@@_visual_line_int + \l_@@_nb_non_empty_lines_int }   
+               }
+               {
+                 \int_to_arabic:n 
+                   { \g_@@_visual_line_int + \g_@@_nb_lines_int }  
+               }
+            }
+          \dim_set:Nn \l_@@_left_margin_dim 
+            { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
        }
   }
 \cs_generate_variant:Nn \@@_compute_left_margin:nn { n o }
@@ -6881,6 +6900,15 @@ piton_version = "4.8a" -- 2025/08/19
 %    \end{macrocode}
 %
 % \medskip
+% The following variant will be rarely used. It applies only a local style
+% and only when that style exists (no error will be raised when the style does not
+% exist). That command will be used in particular for the language ``|expl|''.
+%    \begin{macrocode}
+\NewDocumentCommand { \OptionalLocalPitonStyle } { m } 
+  { \cs_if_exist_use:c { pitonStyle _ \l_piton_language_str  _ #1 } }
+%    \end{macrocode}
+%
+% \medskip
 %    \begin{macrocode}
 \NewDocumentCommand { \SetPitonStyle } { O { } m } 
   { 
@@ -6891,6 +6919,7 @@ piton_version = "4.8a" -- 2025/08/19
     \keys_set:nn { piton / Styles } { #2 } 
   } 
 %    \end{macrocode}
+%
 % 
 % \medskip
 %    \begin{macrocode}
@@ -6988,11 +7017,41 @@ piton_version = "4.8a" -- 2025/08/19
     String       .value_required:n = true ,    
     Comment.Math .tl_set:c = pitonStyle _ Comment.Math  ,
     Comment.Math .value_required:n = true ,
-    unknown      .code:n = 
-      \@@_error:n { Unknown~key~for~SetPitonStyle }
+    unknown      .code:n = \@@_unknown_style:
   }
 %    \end{macrocode}
 %
+% \bigskip
+% For the langage |expl|, it's possible to create ``on the fly'' some styles
+% of the form \texttt{Module.\textsl{name}} or \texttt{Type.\textsl{name}}.
+% For the other languages, it's not possible. 
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_unknown_style:
+  {
+    \str_if_eq:eeTF \l_@@_SetPitonStyle_option_str { expl } 
+      {
+        \seq_set_split:Nne \l_tmpa_seq { . } \l_keys_key_str
+        \seq_get_left:NN \l_tmpa_seq \l_tmpa_str
+%    \end{macrocode}
+% Now, the first part of the key (before the first period) is stored in |\l_tmpa_str|.
+%    \begin{macrocode}
+        \bool_lazy_and:nnTF
+          { \int_compare_p:nNn { \seq_count:N \l_tmpa_seq } > { 1 } }
+          {  
+            \str_if_eq_p:Vn \l_tmpa_str { Module }
+            ||
+            \str_if_eq_p:Vn \l_tmpa_str { Type }
+          }
+%    \end{macrocode}
+% Now, we will create a new style.
+%    \begin{macrocode}
+          { \tl_set:co { pitonStyle _ expl _ \l_keys_key_str } \l_keys_value_tl }
+          { \@@_error:n { Unknown~key~for~SetPitonStyle } } 
+      }
+      { \@@_error:n { Unknown~key~for~SetPitonStyle } }
+  }
+%    \end{macrocode}
+% 
 % \bigskip
 %    \begin{macrocode}
 \SetPitonStyle[OCaml]
@@ -7190,19 +7249,7 @@ piton_version = "4.8a" -- 2025/08/19
   {
     Scope.l ,
     Scope.g ,
-    Scope.c ,
-    Type.clist ,
-    Type.fp ,     
-    Type.int ,
-    Type.seq, 
-    Type.str ,
-    Type.tl ,
-    Module.clist ,
-    Module.fp ,     
-    Module.int ,
-    Module.seq, 
-    Module.str ,
-    Module.tl 
+    Scope.c 
   }
 %    \end{macrocode}
 %
@@ -7231,18 +7278,29 @@ piton_version = "4.8a" -- 2025/08/19
     Scope.l          = ,
     Scope.g          = \bfseries ,
     Scope.c          = \slshape ,
-    Type.clist       = \color [ HTML ] { CC0000 } ,
-    Type.fp          = \color [ HTML ] { 006699 } ,
-    Type.int         = \color [ HTML ] { 00CCFF } ,
-    Type.seq         = \color [ HTML ] { 00AA88 } ,
-    Type.str         = \color [ HTML ] { 0060A0 } ,
-    Type.tl          = \color [ HTML ] { 555555 } ,
-    Module.clist     = \color [ HTML ] { CC0000 } ,
-    Module.fp        = \color [ HTML ] { 006699 } ,
-    Module.int       = \color [ HTML ] { 00CCFF } ,
-    Module.seq       = \color [ HTML ] { 00AA88 } ,
-    Module.str       = \color [ HTML ] { 0060A0 } ,
-    Module.tl        = \color [ HTML ] { 555555 } 
+    Type.bool        = \color [ HTML ] { AA6600} ,
+    Type.box         = \color [ HTML ] { 267910 } ,
+    Type.clist       = \color [ HTML ] { 309030 } ,
+    Type.fp          = \color [ HTML ] { FF3300 } ,
+    Type.int         = \color [ HTML ] { FF6600 } ,
+    Type.seq         = \color [ HTML ] { 309030 } ,
+    Type.skip        = \color [ HTML ] { 0CC060 } ,
+    Type.str         = \color [ HTML ] { CC3300 } ,
+    Type.tl          = \color [ HTML ] { AA2200 } ,
+    Module.bool      = \color [ HTML ] { AA6600} ,
+    Module.box       = \color [ HTML ] { 267910 } ,
+    Module.cs        = \bfseries \color [ HTML ] { 006699 } ,
+    Module.exp       = \bfseries \color [ HTML ] { 404040 } ,
+    Module.hbox      = \color [ HTML ] { 267910 } ,
+    Module.prg       = \bfseries ,
+    Module.clist     = \color [ HTML ] { 309030 } ,
+    Module.fp        = \color [ HTML ] { FF3300 } ,
+    Module.int       = \color [ HTML ] { FF6600 } ,
+    Module.seq       = \color [ HTML ] { 309030 } ,
+    Module.skip      = \color [ HTML ] { 0CC060 } ,
+    Module.str       = \color [ HTML ] { CC3300 } ,
+    Module.tl        = \color [ HTML ] { AA2200 } ,
+    Module.vbox      = \color [ HTML ] { 267910 }     
   }
 %    \end{macrocode}
 % 
@@ -7259,15 +7317,6 @@ piton_version = "4.8a" -- 2025/08/19
   }
 %    \end{macrocode}
 % 
-% \bigskip
-%    \begin{macrocode}
-\SetPitonStyle [expl] { Keyword = \@@_expl_keyword: }
-%    \end{macrocode}
-%
-%    \begin{macrocode}
-\cs_new_protected:Npn \@@_expl_keyword: #1
-  { \lua_now:e { piton.expl_keyword ( "\lua_escape:n{#1}" ) } }
-%    \end{macrocode}
 % 
 % \bigskip
 % \subsubsection{Highlighting some identifiers}
@@ -7507,7 +7556,7 @@ piton_version = "4.8a" -- 2025/08/19
 \@@_msg_new:nn { Unknown~key~for~SetPitonStyle } 
   {
     The~style~'\l_keys_key_str'~is~unknown.\\
-    This~key~will~be~ignored.\\
+    This~setting~will~be~ignored.\\
     The~available~styles~are~(in~alphabetic~order):~
     \clist_use:Nnnn \g_@@_styles_clist { ~and~ } { ,~ } { ~and~ }.
   }
@@ -7843,12 +7892,12 @@ lpeg.locale(lpeg)
 % The function |Q| takes in as argument a pattern and returns a \textsc{lpeg}
 % \emph{which does a capture} of the pattern. That capture will be sent to LaTeX
 % with the catcode ``other'' for all the characters: it's suitable for elements
-% of the informatic listings that \pkg{piton} will typeset verbatim (thanks to the
+% of the computer listings that \pkg{piton} will typeset verbatim (thanks to the
 % catcode ``other''). 
 %    \begin{macrocode}
 local Q
 function Q ( pattern )
-  return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
+  return Ct ( Cc ( luatexbase.catcodetables.other ) * C ( pattern ) )
 end 
 %    \end{macrocode}
 %
@@ -8187,7 +8236,7 @@ local LPEG_cleaner = { }
 % language-dependent. That's why we write a Lua function |Compute_braces| which
 % will compute the pattern by taking in as argument a pattern for the strings of
 % the language (at least the shorts strings). The argument of |Compute_braces|
-% must be a pattern \emph{which does no catching}.
+% must be a pattern \emph{which does no captures}.
 %    \begin{macrocode}
 local Compute_braces
 function Compute_braces ( lpeg_string ) return 
@@ -9052,15 +9101,15 @@ do
   local Q
 %    \end{macrocode}
 % Usually, the following version of the function |Q| will be used without the
-% second arguemnt (|strict|), that is to say in a loosy way. However, in some
+% second argument (|strict|), that is to say in a loosy way. However, in some
 % circunstancies, we will a need the ``strict'' version, for instance in
 % |DefFunction|. 
 %    \begin{macrocode}
   function Q ( pattern, strict ) 
     if strict ~= nil then
-      return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
+      return Ct ( Cc ( luatexbase.catcodetables.other ) * C ( pattern ) )
     else
-      return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
+      return Ct ( Cc ( luatexbase.catcodetables.other ) * C ( pattern ) )
           + Beamer + DetectedCommands + EscapeMath + Escape
     end     
   end
@@ -10389,6 +10438,8 @@ do
 %    \begin{macrocode}
 end
 %    \end{macrocode}
+%
+%
 % \subsubsection{The language expl}
 % 
 % We open a Lua local scope for the language |expl| of LaTeX3 (of course, there
@@ -10397,11 +10448,65 @@ end
 --EXPL expl
 do 
 %    \end{macrocode}
-
+%
+% \medskip
+% First, we begin with a special function to analyse the ``keywords'', that is to
+% say the control sequences beginning by ``|\|''.
+%    \begin{macrocode}
+  local analyze_keyword
+  function analyze_keyword ( s )
+    local i = s : find ( ":" )
+    if i then
+%    \end{macrocode}
+% First, the case of what might be called a ``function'' in |expl|, for instance,
+% |\tl_set:Nn| or |\int_compare:nNnTF|.
+%    \begin{macrocode}
+      local name = s : sub ( 2 , i - 1 )
+      local parts = name : explode ( "_" ) 
+      local module = parts[1]
+      if module == "" then module = parts[3] end
+%    \end{macrocode}
+% Remind that, in Lua, we can return \emph{several} values.
+%    \begin{macrocode}
+      return
+       { [[{\OptionalLocalPitonStyle{Module.]] .. module .. "}{" } ,
+       { luatexbase.catcodetables.other , s } ,
+       { "}}" }
+    else
+%    \end{macrocode}
+%    \begin{macrocode}
+      local p = s : sub ( 1 , 3 )
+      if p == [[\l_]] or p == [[\g_]] or p == [[\c_]] then
+%    \end{macrocode}
+% The case of what might be called a ``variable'' in |expl|, for instance,
+% |\l_tmpa_int| or |\g__module_text_tl|.
+%    \begin{macrocode}
+        local scope = s : sub(2,2)
+        local parts = s : explode ( "_" )
+        local module = parts[2]
+        if module == "" then module = parts[3] end 
+        local type = parts[#parts]
+        return 
+          { [[{\OptionalLocalPitonStyle{Scope.]] .. scope .. "}{" } ,
+          { [[{\OptionalLocalPitonStyle{Module.]] .. module .. "}{" } ,
+          { [[{\OptionalLocalPitonStyle{Type.]] .. type .. "}{" } ,
+          { luatexbase.catcodetables.other , s } ,
+          { "}}}}}}" }
+      else
+%    \end{macrocode}
+% We have a control sequence which is neither a ``function'' neither a ``variable''
+% of |expl|. It's a control sequence of standard LaTeX and we don't format it.
+%    \begin{macrocode}
+        return { luatexbase.catcodetables.other , s }
+      end
+    end 
+  end 
+%    \end{macrocode}
+%
 % \bigskip
 % Here, we don't use |braces| as done with the other languages because we don't
 % have have to take into account the strings (there is no string in the langage
-% EXPL). 
+% |expl|). 
 %    \begin{macrocode}
   local braces = 
       P { "E" ,
@@ -10419,7 +10524,7 @@ do
 %
 %    \begin{macrocode}
   local Keyword =
-    K ( 'Keyword' , P "\\" * ( R "Az" + "_" + ":" + "@" ) ^ 1 ) 
+    C (  P "\\" * ( R "Az" + "_" + ":" + "@" ) ^ 1 ) / analyze_keyword
 
   local Word = Q ( ( 1 - S " \r" ) ^ 1 ) 
 
@@ -10430,7 +10535,6 @@ do
        + Escape + EscapeMath 
        + Beamer
        + DetectedCommands
-       -- + Q [[\]]
        + Keyword
        + Word 
 %    \end{macrocode}
@@ -10457,24 +10561,8 @@ do
 % End of the Lua scope for the language |expl| of LaTeX3.
 %    \begin{macrocode}
 end
-
-function piton.expl_keyword ( s )
-  if s : find ( ":" ) then
-    local parts = s : explode ( ":" )
-    local subparts = parts [1] : explode ( "_" )
-    local subpart = subparts[1]
-    local type = subpart : sub (2 , #subpart) 
-    tex.sprint( [[\PitonStyle{Module.]] .. type .. [[}{]] ) 
-    tex.sprint( luatexbase.catcodetables.CatcodeTableOther , s )
-    tex.sprint( [[}]] )    
-  else
-    local parts = s : explode ( "_" )
-    tex.sprint( [[\PitonStyle{Type.]] .. parts[#parts] .. [[}{]] ) 
-    tex.sprint( luatexbase.catcodetables.CatcodeTableOther , s )
-    tex.sprint( [[}]] )
-  end 
-end 
 %    \end{macrocode}
+%
 %
 % \bigskip
 % \subsubsection{The function Parse}
@@ -10584,7 +10672,7 @@ function piton.ReadFile ( name , first_line , last_line )
     end
   end
   sprintL3 ( [[ \tl_set:Nn \l_@@_listing_tl { ]]) 
-  tex.sprint ( luatexbase.catcodetables.CatcodeTableOther , s ) 
+  tex.sprint ( luatexbase.catcodetables.other , s ) 
   sprintL3 ( [[ } ]] ) 
 end
 %    \end{macrocode}
@@ -10917,7 +11005,7 @@ end
 %    \begin{macrocode}
 piton.string_between_chunks = 
  [[ \par \l_@@_split_separation_tl \mode_leave_vertical: ]]
- .. [[ \int_gzero:N \g_@@_line_int ]]
+ .. [[ \global \g_@@_line_int  = 0 ]]
 %    \end{macrocode}
 % The counter |\g_@@_line_int| will be used to control the points where the code
 % may be broken by a change of page (see the key |splittable|).
@@ -10943,7 +11031,7 @@ function piton.CountLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  sprintL3 ( string.format ( [[ \int_gset:Nn \g_@@_nb_lines_int { %i } ]] , count ) ) 
+  sprintL3 ( [[ \global \g_@@_nb_lines_int = ]] .. count )
 end 
 %    \end{macrocode}
 %
@@ -10962,8 +11050,7 @@ function piton.CountNonEmptyLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  sprintL3 
-   ( string.format ( [[ \int_set:Nn  \l_@@_nb_non_empty_lines_int { %i } ]] , count ) ) 
+  sprintL3 ( [[ \global \l_@@_nb_non_empty_lines_int =]] .. count )
 end 
 %    \end{macrocode}
 %
@@ -10972,8 +11059,7 @@ end
 function piton.CountLinesFile ( name )
   local count = 0 
   for line in io.lines ( name ) do count = count + 1 end
-  sprintL3 
-   ( string.format ( [[ \int_gset:Nn \g_@@_nb_lines_int { %i } ]], count ) )
+  sprintL3 ( [[ \global \g_@@_nb_lines_int =]] .. count )
 end 
 %    \end{macrocode}
 %
@@ -10987,8 +11073,7 @@ function piton.CountNonEmptyLinesFile ( name )
        count = count + 1 
     end
   end
-  sprintL3 
-   ( string.format ( [[ \int_set:Nn \l_@@_nb_non_empty_lines_int { % i } ]] , count ) ) 
+  sprintL3 ( [[ \global \l_@@_nb_non_empty_lines_int =]] .. count )
 end 
 %    \end{macrocode}
 %
@@ -11026,7 +11111,7 @@ function piton.ComputeRange(s,t,file_name)
   end
   sprintL3 ( 
       [[ \int_set:Nn \l_@@_first_line_int { ]] .. first_line .. ' + 2 }' 
-      .. [[ \int_set:Nn \l_@@_last_line_int { ]] .. count .. ' }' )
+      .. [[ \global \l_@@_last_line_int = ]] .. count )
 end
 %    \end{macrocode}
 %
@@ -11751,7 +11836,7 @@ function piton.join_and_write_files ( )
       file : close ( ) 
     else
       sprintL3
-        ( [[ \@@_error_or_warning:nn { FileError } { ]] .. file_name .. [[ } ]] )
+        ( [[ \@@_error_or_warning:nn { FileError } { ]] .. file_name .. "}" )
     end 
   end
 %    \end{macrocode}
@@ -11760,7 +11845,7 @@ function piton.join_and_write_files ( )
   for file_name , file_content in pairs ( piton.join_files ) do
     pdf.immediateobj("stream", file_content)
     tex.print
-      (
+      ( 
         [[ \pdfextension annot width 0pt height 0pt depth 0pt ]]
         ..
 %    \end{macrocode}
@@ -11783,7 +11868,7 @@ function piton.join_and_write_files ( )
 %    \begin{macrocode} 
         [[ /FS << /Type /Filespec /UF <]] .. file_name .. [[>]]
         ..
-        [[ /EF << /F \pdffeedback lastobj 0 R >> >> }  ]]
+        [[ /EF << /F \pdffeedback lastobj 0 R >> >> } ]] 
       )
   end
 end
