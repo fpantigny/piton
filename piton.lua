@@ -160,20 +160,6 @@ local beamerEnvironments = P ( false )
 for _ , x in ipairs ( beamer_environments ) do
   beamerEnvironments = beamerEnvironments + P ( x )
 end
-local beamerBeginEnvironments =
-    ( space ^ 0 *
-      L
-        (
-          P [[\begin{]] * beamerEnvironments * "}"
-          * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
-        )
-      * "\r"
-    ) ^ 0
-local beamerEndEnvironments =
-    ( space ^ 0 *
-      L ( P [[\end{]] * beamerEnvironments * "}" )
-      * "\r"
-    ) ^ 0
 local LPEG0 = { }
 local LPEG1 = { }
 local LPEG2 = { }
@@ -278,6 +264,7 @@ function Compute_Beamer ( lang , braces )
                       P ( [[\begin{]] .. x .. "}" )
                       * ( "<" * ( 1 - P ">") ^ 0 * ">" ) ^ -1
                     )
+               * space ^ 0 * ( P "\r" ) ^ 1 -- added 25/08/23
                * Cc ( [[\end{]] .. x ..  "}" )
               )
           * (
@@ -297,27 +284,14 @@ local CommentMath =
   P "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1  ) * P "$" -- $
 local Prompt =
   K ( 'Prompt' , ( P ">>>" + "..." ) * P " " ^ -1 )
-  *   Lc [[ \rowcolor { \l__piton_prompt_bg_color_tl } ]]
+  *  Lc [[ \rowcolor { \l__piton_prompt_bg_color_tl } ]]
 local EOL =
   P "\r"
   *
   (
     space ^ 0 * -1
     +
-    Ct (
-         Cc "EOL"
-         *
-         Ct ( Lc [[ \__piton_end_line: ]]
-              * beamerEndEnvironments
-              *
-                (
-                    -1
-                  +
-                    beamerBeginEnvironments
-                  * Lc [[ \__piton_par:\__piton_begin_line: ]]
-                )
-            )
-       )
+    Cc "EOL"
   )
   * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 local CommentLaTeX =
@@ -588,8 +562,8 @@ do
        + Space
        + Tab
        + Escape + EscapeMath
-       + CommentLaTeX
        + Beamer
+       + CommentLaTeX
        + DetectedCommands
        + Prompt
        + LongString
@@ -615,7 +589,6 @@ do
   LPEG2.python =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
-         * beamerBeginEnvironments
          * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
@@ -1017,8 +990,8 @@ end)
           * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 )
         +
         ( space ^ 0 * "\r" ) ^ -1
-        * beamerBeginEnvironments
         * Lc [[ \__piton_begin_line: ]]
+        * Beamer
         * SpaceIndentation ^ 0
         * ( ( space * Lc [[ \__piton_trailing_space: ]] ) ^ 1 * -1
               + space ^ 0 * EOL
@@ -1132,7 +1105,6 @@ do
   LPEG2.c =
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
-         * beamerBeginEnvironments
          * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
@@ -1297,7 +1269,6 @@ do
   LPEG2.sql =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
-         * beamerBeginEnvironments
          * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
@@ -1360,7 +1331,6 @@ do
   LPEG2.minimal =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
-         * beamerBeginEnvironments
          * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
@@ -1406,7 +1376,6 @@ do
   LPEG2.verbatim =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
-         * beamerBeginEnvironments
          * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
@@ -1416,8 +1385,14 @@ do
 end
 --EXPL expl
 do
-  local analyze_keyword
-  function analyze_keyword ( s )
+  local Comment =
+    WithStyle
+     ( 'Comment.Internal' ,
+       Q "%" * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0  -- $
+     )
+    * ( EOL + -1 )
+  local analyze_cs
+  function analyze_cs ( s )
     local i = s : find ( ":" )
     if i then
       local name = s : sub ( 2 , i - 1 )
@@ -1459,9 +1434,19 @@ do
     + Compute_RawDetectedCommands ( 'expl' , braces )
 
   LPEG_cleaner.expl = Compute_LPEG_cleaner ( 'expl' , braces )
-  local Keyword =
-    C (  P "\\" * ( R "Az" + "_" + ":" + "@" ) ^ 1 ) / analyze_keyword
-
+  local control_sequence = P "\\" * ( R "Az" + "_" + ":" + "@" ) ^ 1
+  local ControlSequence = C ( control_sequence ) / analyze_cs
+  local def_function
+   = P [[\cs_]]
+     * ( P "set" + "new")
+     * ( P "_protected" ) ^ -1
+     * P ":N"  * ( P "p" ) ^ -1 * "n"
+  local DefFunction =
+    C ( def_function ) / analyze_cs
+    * Space
+    * Lc ( [[ {\PitonStyle{Name.Function}{ ]] )
+    * ControlSequence -- Q ( ControlSequence )
+    * Lc "}}"
   local Word = Q ( ( 1 - S " \r" ) ^ 1 )
 
   local Main =
@@ -1470,15 +1455,16 @@ do
        + Tab
        + Escape + EscapeMath
        + Beamer
+       + Comment
        + DetectedCommands
-       + Keyword
+       + DefFunction
+       + ControlSequence
        + Word
   LPEG1.expl = Main ^ 0
 
   LPEG2.expl =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
-         * beamerBeginEnvironments
          * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
@@ -1489,23 +1475,19 @@ end
 function piton.Parse ( language , code )
   piton.language = language
   local t = LPEG2[language] : match ( code )
-  if t == nil then
+  if not t  then
     sprintL3 [[ \__piton_error_or_warning:n { SyntaxError } ]]
     return -- to exit in force the function
   end
   local left_stack = {}
   local right_stack = {}
   for _ , one_item in ipairs ( t ) do
-    if one_item[1] == "EOL" then
-      for _ , s in ipairs ( right_stack ) do
-        tex.sprint ( s )
+    if one_item == "EOL" then
+      for i = #right_stack, 1, -1 do
+        tex.sprint ( right_stack[i] )
       end
-      for _ , s in ipairs ( one_item[2] ) do
-        tex.tprint ( s )
-      end
-      for _ , s in ipairs ( left_stack ) do
-        tex.sprint ( s )
-      end
+      sprintL3 ( [[ \__piton_end_line: \__piton_par: \__piton_begin_line: ]] )
+      tex.sprint ( table.concat ( left_stack ) )
     else
       if one_item[1] == "Open" then
         tex.sprint ( one_item[2] )
@@ -1638,8 +1620,8 @@ function piton.GobbleParse ( lang , n , splittable , code )
   piton.last_language = lang
   piton.CountLines ( piton.last_code )
   piton.Parse ( lang , piton.last_code )
-  sprintL3 [[ \vspace{2.5pt} ]]
-  sprintL3 [[ \par ]]
+  -- sprintL3 [[ \vspace{2.5pt} ]]
+  -- sprintL3 [[ \par ]] -- blabla
   piton.join_and_write ( )
 end
 function piton.join_and_write ( )
@@ -1733,6 +1715,22 @@ function piton.CountLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
+  if piton.beamer then
+    local count_env_beamer
+    count_env_beamer =
+      (
+        Ct (
+             (
+               P "\\begin{" * beamerEnvironments * ( 1 - P "\r" ) ^ 0 * C "\r"
+               +
+               ( 1 - P "\r" ) ^ 0 * "\r"
+             ) ^ 0
+             * ( 1 - P "\r" ) ^ 0
+             * -1
+           )  / table.getn
+      ) : match ( code )
+    count = count - 2 * count_env_beamer
+  end
   sprintL3 ( [[ \global \g__piton_nb_lines_int = ]] .. count )
 end
 function piton.CountNonEmptyLines ( code )
@@ -1744,12 +1742,14 @@ function piton.CountNonEmptyLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  sprintL3 ( [[ \global \l__piton_nb_non_empty_lines_int =]] .. count )
+  sprintL3
+   ( [[ \int_set:Nn  \l__piton_nb_non_empty_lines_int { ]] .. tostring(count) .. "}" )
 end
 function piton.CountLinesFile ( name )
   local count = 0
   for line in io.lines ( name ) do count = count + 1 end
-  sprintL3 ( [[ \global \g__piton_nb_lines_int =]] .. count )
+  sprintL3
+   ( string.format ( [[ \int_gset:Nn \g__piton_nb_lines_int { %i } ]], count ) )
 end
 function piton.CountNonEmptyLinesFile ( name )
   local count = 0
@@ -1758,7 +1758,8 @@ function piton.CountNonEmptyLinesFile ( name )
        count = count + 1
     end
   end
-  sprintL3 ( [[ \global \l__piton_nb_non_empty_lines_int =]] .. count )
+  sprintL3
+   ( string.format ( [[ \int_set:Nn \l__piton_nb_non_empty_lines_int { % i } ]] , count ) )
 end
 function piton.ComputeRange(s,t,file_name)
   local first_line = -1
@@ -2178,7 +2179,6 @@ function piton.new_language ( lang , definition )
   LPEG2[lang] =
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
-         * beamerBeginEnvironments
          * Lc [[ \__piton_begin_line: ]]
          * SpaceIndentation ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
@@ -2223,8 +2223,8 @@ function piton.new_language ( lang , definition )
     LPEG2[lang] =
       Ct (
            ( space ^ 0 * P "\r" ) ^ -1
-           * beamerBeginEnvironments
            * Lc [[ \__piton_begin_line: ]]
+           * Beamer
            * SpaceIndentation ^ 0
            * LPEG1[lang]
            * -1

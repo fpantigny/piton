@@ -1590,9 +1590,7 @@
       \int_compare:nNnT \g__piton_visual_line_int < \c_zero_int
         { \int_gzero:N \g__piton_visual_line_int }
       \lua_now:e { piton.CountLinesFile ( '\l__piton_file_name_str' ) }
-      \__piton_compute_left_margin:no
-        { CountNonEmptyLinesFile }
-        { \l__piton_file_name_str }
+      \__piton_compute_left_margin:no { CountNonEmptyLinesFile } { \l__piton_file_name_str }
       \lua_now:e
         {
           piton.ReadFile(

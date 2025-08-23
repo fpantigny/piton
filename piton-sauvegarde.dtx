@@ -2573,9 +2573,9 @@ piton_version = "4.8a" -- 2025/08/19
 % \begin{Piton}
 % def square(x):
 %     """Compure the square of its argument"""
-% ~emphase#\begin{uncoverenv}<2>@
+%     ~emphase#\begin{uncoverenv}<2>@
 %     return x*x
-% ~emphase#\end{uncoverenv}@
+%     ~emphase#\end{uncoverenv}@
 % \end{Piton}
 % \end{frame}
 % \end{document}
@@ -5186,7 +5186,7 @@ piton_version = "4.8a" -- 2025/08/19
 % finish and start paragraphs.
 % \end{itemize}
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_par:
+\cs_new_protected:Npn \@@_par: 
   { 
 %    \end{macrocode}
 % We recall that |\g_@@_line_int| is \emph{not} used for the number of line
@@ -6828,7 +6828,9 @@ piton_version = "4.8a" -- 2025/08/19
 % The first argument of the following function is the name of the Lua function
 % that will be applied to the second argument in order to count the number of lines.
 %    \begin{macrocode}
-      \@@_compute_left_margin:no { CountNonEmptyLinesFile } { \l_@@_file_name_str }
+      \@@_compute_left_margin:no 
+        { CountNonEmptyLinesFile } 
+        { \l_@@_file_name_str }
       \lua_now:e
         {
 %    \end{macrocode}
@@ -8196,6 +8198,26 @@ for _ , x in ipairs ( beamer_environments ) do
 end 
 %    \end{macrocode}
 %
+%    \begin{macrocode}
+local beamerBeginEnvironments = 
+    ( space ^ 0 * 
+      L 
+        ( 
+          P [[\begin{]] * beamerEnvironments * "}"
+          * ( "<" * ( 1 - P ">" ) ^ 0 * ">" ) ^ -1
+        )
+      * "\r" 
+    ) ^ 0 
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+local beamerEndEnvironments = 
+    ( space ^ 0 * 
+      L ( P [[\end{]] * beamerEnvironments * "}" ) 
+      * "\r"
+    ) ^ 0 
+%    \end{macrocode}
+% 
 %
 % \bigskip
 % \paragraph{Several tools for the construction of the main LPEG}
@@ -8385,15 +8407,14 @@ function Compute_Beamer ( lang , braces )
 % Now, the environments of Beamer.
 %    \begin{macrocode}
   for _ , x in ipairs ( beamer_environments ) do
-    lpeg = lpeg +
+    lpeg = lpeg + 
           Ct ( Cc "Open" 
                * C ( 
                       P ( [[\begin{]] .. x .. "}" )
                       * ( "<" * ( 1 - P ">") ^ 0 * ">" ) ^ -1 
-                    )
-               * space ^ 0 * ( P "\r" ) ^ 1 -- added 25/08/23
+                    ) 
                * Cc ( [[\end{]] .. x ..  "}" )
-              )
+              ) 
           * ( 
               ( ( 1 - P ( [[\end{]] .. x .. "}" ) ) ^ 0 ) 
                   / ( function ( s ) 
@@ -8402,7 +8423,7 @@ function Compute_Beamer ( lang , braces )
                         end 
                       end ) 
             )
-          * P ( [[\end{]] .. x .. "}" )
+          * P ( [[\end{]] .. x .. "}" ) 
           * Ct ( Cc "Close" ) 
   end 
 %    \end{macrocode}
@@ -8432,7 +8453,7 @@ local CommentMath =
 %    \begin{macrocode}
 local Prompt = 
   K ( 'Prompt' , ( P ">>>" + "..." ) * P " " ^ -1 ) 
-  *  Lc [[ \rowcolor { \l_@@_prompt_bg_color_tl } ]] 
+  *   Lc [[ \rowcolor { \l_@@_prompt_bg_color_tl } ]] 
 %    \end{macrocode}
 %
 %
@@ -8445,15 +8466,44 @@ local EOL =
   (
     space ^ 0 * -1 
     + 
-    Cc "EOL" 
-  )
+%    \end{macrocode}
+% We recall that each line of the computer listing we have to parse will be sent
+% back to LaTeX between a pair |\@@_begin_line:| --
+% |\@@_end_line:|\footnote{Remember that the \texttt{\textbackslash
+% @@\_end\_line:} must be explicit because it will be used as marker in order to
+% delimit the argument of the command \texttt{\textbackslash @@\_begin\_line:}}.
+%    \begin{macrocode}
+    Ct ( 
+         Cc "EOL"
+         * 
+         Ct ( Lc [[ \@@_end_line: ]]
+              * beamerEndEnvironments 
+              *
+                (
+%    \end{macrocode}
+% If the last line of the listing is the end of an environment of Beamer (eg.
+% |\end{uncoverenv}|), then, we don't open a new line. A token |\@@_end_line:|
+% will be added at the end of the environment but it will be no-op since we have
+% defined the macro |\@@_end_line:| to be no-op (even though it is also used as
+% a marker for the TeX delimited macro |\@@_begin_line:|).
+%    \begin{macrocode}
+                    -1 
+                  + 
+                    beamerBeginEnvironments 
+                  * Lc [[ \@@_par:\@@_begin_line: ]]
+                )
+            )
+       )
+  ) 
   * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 %    \end{macrocode}
 %
 % 
 % \bigskip
 % The following \textsc{lpeg} |CommentLaTeX| is for what is called in that
-% document the ``LaTeX comments''.
+% document the ``LaTeX comments''. Since the elements that will be caught must
+% be sent to LaTeX with standard LaTeX catcodes, we put the capture (done by
+% the function~|C|) in a table (by using~|Ct|, which is an alias for |lpeg.Ct|).
 %    \begin{macrocode}
 local CommentLaTeX =
   P ( piton.comment_latex ) 
@@ -8846,8 +8896,8 @@ do
 % \bigskip
 % \paragraph{The comments in the Python listings}
 %
-% We define different \textsc{lpeg} dealing with comments in the Python
-% listings.
+% 
+% 
 %    \begin{macrocode}
   local Comment = 
     WithStyle 
@@ -8965,8 +9015,8 @@ do
        + Space 
        + Tab
        + Escape + EscapeMath
-       + Beamer
        + CommentLaTeX
+       + Beamer
        + DetectedCommands
        + Prompt
        + LongString 
@@ -9006,6 +9056,7 @@ do
   LPEG2.python = 
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
+         * beamerBeginEnvironments 
          * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
@@ -9698,8 +9749,8 @@ end)
           * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 )
         +
         ( space ^ 0 * "\r" ) ^ -1
+        * beamerBeginEnvironments
         * Lc [[ \@@_begin_line: ]]
-        * Beamer
         * SpaceIndentation ^ 0
         * ( ( space * Lc [[ \@@_trailing_space: ]] ) ^ 1 * -1 
               + space ^ 0 * EOL 
@@ -9922,6 +9973,7 @@ do
   LPEG2.c = 
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1 
+         * beamerBeginEnvironments 
          * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
@@ -10208,6 +10260,7 @@ do
   LPEG2.sql =
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
+         * beamerBeginEnvironments 
          * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
@@ -10296,6 +10349,7 @@ do
   LPEG2.minimal = 
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
+         * beamerBeginEnvironments 
          * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
@@ -10369,6 +10423,7 @@ do
   LPEG2.verbatim = 
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
+         * beamerBeginEnvironments 
          * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
@@ -10383,7 +10438,8 @@ do
 %    \begin{macrocode}
 end
 %    \end{macrocode}
-%
+
+
 %
 % \subsubsection{The language expl}
 % 
@@ -10404,8 +10460,8 @@ do
 %    \end{macrocode}
 %
 % \medskip
-% First, we begin with a special function to analyse the ``keywords'', that is to
-% say the control sequences beginning by ``|\|''.
+% We define a special function to analyse the \emph{control sequences}, 
+% that will be caught by |ControlSequence|.
 %    \begin{macrocode}
   local analyze_cs
   function analyze_cs ( s )
@@ -10420,7 +10476,7 @@ do
       local module = parts[1]
       if module == "" then module = parts[3] end
 %    \end{macrocode}
-% Remind that, in Lua, we can return \emph{several} values.
+% Remind that, in Lua, we can return \emph{several} values. Here, we return 3 tables.
 %    \begin{macrocode}
       return
        { [[{\OptionalLocalPitonStyle{Module.]] .. module .. "}{" } ,
@@ -10438,14 +10494,19 @@ do
         local scope = s : sub(2,2)
         local parts = s : explode ( "_" )
         local module = parts[2]
-        if module == "" then module = parts[3] end 
+        if module == "" then module = parts[3] end
         local type = parts[#parts]
+%    \end{macrocode}
+% Remind that, in Lua, we can return \emph{several} values. Here, we return 3 tables.
+%    \begin{macrocode}
         return 
-          { [[{\OptionalLocalPitonStyle{Scope.]] .. scope .. "}{" } ,
-          { [[{\OptionalLocalPitonStyle{Module.]] .. module .. "}{" } ,
-          { [[{\OptionalLocalPitonStyle{Type.]] .. type .. "}{" } ,
+          {
+            [[{\OptionalLocalPitonStyle{Scope.]] .. scope 
+            .. [[}{\OptionalLocalPitonStyle{Module.]] .. module 
+            .. [[}{\OptionalLocalPitonStyle{Type.]] .. type .. "}{"
+          }  ,
           { luatexbase.catcodetables.other , s } ,
-          { "}}}}}}" }
+          { "}}}}" }
       else
 %    \end{macrocode}
 % We have a control sequence which is neither a ``function'' neither a ``variable''
@@ -10459,7 +10520,7 @@ do
 %
 % \bigskip
 % Here, we don't use |braces| as done with the other languages because we don't
-% have have to take into account the strings (there is no string in the langage
+% have to take into account the strings (there is no string in the langage
 % |expl|). 
 %    \begin{macrocode}
   local braces = 
@@ -10475,6 +10536,8 @@ do
 
   LPEG_cleaner.expl = Compute_LPEG_cleaner ( 'expl' , braces ) 
 %    \end{macrocode}
+%
+%
 %    \begin{macrocode}
   local control_sequence = P "\\" * ( R "Az" + "_" + ":" + "@" ) ^ 1
   local ControlSequence = C ( control_sequence ) / analyze_cs
@@ -10493,7 +10556,7 @@ do
     C ( def_function ) / analyze_cs
     * Space
     * Lc ( [[ {\PitonStyle{Name.Function}{ ]] ) 
-    * ControlSequence -- Q ( ControlSequence ) ?
+    * ControlSequence -- Q ( ControlSequence )
     * Lc "}}"
 %    \end{macrocode}
 %
@@ -10506,7 +10569,7 @@ do
        + Tab
        + Escape + EscapeMath 
        + Beamer
-       + Comment       
+       + Comment
        + DetectedCommands
        + DefFunction
        + ControlSequence
@@ -10521,6 +10584,7 @@ do
   LPEG2.expl = 
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
+         * beamerBeginEnvironments 
          * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
@@ -10535,6 +10599,8 @@ do
 %    \begin{macrocode}
 end
 %    \end{macrocode}
+%
+
 %
 %
 % \bigskip
@@ -10555,48 +10621,51 @@ function piton.Parse ( language , code )
 %    \begin{macrocode}
   piton.language = language
   local t = LPEG2[language] : match ( code ) 
-  if not t  then 
+  if not t then 
     sprintL3 [[ \@@_error_or_warning:n { SyntaxError } ]] 
     return -- to exit in force the function
   end
   local left_stack = {}
   local right_stack = {}
-  for _ , one_item in ipairs ( t ) do
-    if one_item == "EOL" then
-      for i = #right_stack, 1, -1 do
-        tex.sprint ( right_stack[i] )
-      end
 %    \end{macrocode}
-% We remind that the |\@@_end_line:| must be explicit since it's the marker
-% of end of the command |\@@_begin_line:|.
+% We begin the main work.
 %    \begin{macrocode}
-      sprintL3 ( [[ \@@_end_line: \@@_par: \@@_begin_line: ]] ) 
-      tex.sprint ( table.concat ( left_stack ) )
+  for _ , one_item in ipairs ( t ) do
+    if one_item[1] == "EOL" then
+      for _ , s in ipairs ( right_stack ) do
+        tex.sprint ( s )
+      end
+      for _ , s in ipairs ( one_item[2] ) do
+        tex.tprint ( s )
+      end
+      for _ , s in ipairs ( left_stack ) do
+        tex.sprint ( s )
+      end
     else
 %    \end{macrocode}
 %
 % Here is an example of an item beginning with |"Open"|.
 %
-% |{ "Open" , "\begin{uncoverenv}<2>" , "\end{uncoverenv}" }|
+% |{ "Open" , "\begin{uncover}<2>" , "\end{uncover}" }|
 %
 % In order to deal with the ends of lines, we have to close the environment
-% (|{uncoverenv}| in this example) at the end of each line and reopen it at the
+% (|{uncover}| in this example) at the end of each line and reopen it at the
 % beginning of the new line. That's why we use two Lua stacks, called
 % |left_stack| and |right_stack|. |left_stack| will be for the elements like
-% |\begin{uncoverenv}<2>| and |right_stack| will be for the elements like
-% |\end{uncoverenv}|. 
+% |\begin{uncover}<2>| and |right_stack| will be for the elements like
+% |\end{uncover}|. 
 %    \begin{macrocode}
       if one_item[1] == "Open" then
-        tex.sprint ( one_item[2] ) 
+        tex.sprint ( one_item[2] )
         table.insert ( left_stack , one_item[2] )
         table.insert ( right_stack , one_item[3] )
-      else 
+      else
         if one_item[1] == "Close" then
-          tex.sprint ( right_stack[#right_stack] ) 
+          tex.sprint ( right_stack[#right_stack] )
           left_stack[#left_stack] = nil
           right_stack[#right_stack] = nil
-        else 
-          tex.tprint ( one_item )  
+        else
+          tex.tprint ( one_item )
         end 
       end 
     end 
@@ -10639,14 +10708,14 @@ function piton.ReadFile ( name , first_line , last_line )
     if string.byte ( s , 2 ) == 239 then 
       if string.byte ( s , 3 ) == 187 then 
         if string.byte ( s , 4 ) == 191 then 
-          s = string.sub ( s , 5 , -1 )
+          s = s : sub( 5 , -1 )
         end 
       end
     end
   end
-  sprintL3 ( [[ \tl_set:Nn \l_@@_listing_tl { ]]) 
+  sprintL3 [[ \tl_set:Nn \l_@@_listing_tl { ]]
   tex.sprint ( luatexbase.catcodetables.other , s ) 
-  sprintL3 ( [[ } ]] ) 
+  sprintL3 [[ } ]] 
 end
 %    \end{macrocode}
 %
@@ -10749,7 +10818,7 @@ local remove_before_cr
 function remove_before_cr ( input_string )
   local match_result = ( P "\r" ) : match ( input_string )
   if match_result then return 
-    string.sub ( input_string , match_result ) 
+    input_string : sub ( match_result ) 
   else return 
     input_string 
   end
@@ -10805,6 +10874,7 @@ end
 %    \end{macrocode}
 %
 % 
+% \bigskip
 %
 % \bigskip
 % In the following code, |n| is the value of |\l_@@_gobble_int|.
@@ -10821,13 +10891,13 @@ function piton.GobbleParse ( lang , n , splittable , code )
 %    \begin{macrocode}
   piton.CountLines ( piton.last_code ) 
   piton.Parse ( lang , piton.last_code )
-  -- sprintL3 [[ \vspace{2.5pt} ]]
+  sprintL3 [[ \vspace{2.5pt} ]]
 %    \end{macrocode}
 % We finish the paragraph (each line of the listing is composed in a TeX box
 % --- with potentially several lines when |break-lines-in-Piton| is in force ---
 % put alone in a paragraph.
 %    \begin{macrocode}
-  -- sprintL3 [[ \par ]] -- blabla
+  sprintL3 [[ \par ]]
   piton.join_and_write ( ) 
 end
 %    \end{macrocode}
@@ -10868,8 +10938,8 @@ function piton.join_and_write ( )
       file_name = piton.write 
     else
 %    \end{macrocode}
-% If |piton.path-write| is not empty, that means that we will not write on a
-% file in the current directory but in another directory. First, we verify that that
+% If |piton.path_write| is not empty, that means that we will not write on a
+% file in the current directory but in another directory. First, we verify that this
 % directory actually exists. 
 %    \begin{macrocode}
       local attr = lfs.attributes ( piton.path_write )
@@ -10941,12 +11011,11 @@ function piton.GobbleSplitParse ( lang , n , splittable , code )
   sprintL3 
     ( 
       [[ \PitonOptions { split-on-empty-lines = false, gobble = 0, ]]
-      .. "language = " .. lang .. "," 
-      .. "splittable = " .. splittable .. "}"
+      .. "language = " .. lang .. ", splittable = " .. splittable .. "}"
     )
   for k , v in pairs ( chunks ) do 
     if k > 1 then 
-      sprintL3 ( [[ \l_@@_split_separation_tl ]] ) 
+      sprintL3 [[ \l_@@_split_separation_tl ]] 
     end 
     tex.print
       ( 
@@ -10977,7 +11046,7 @@ end
 %    \begin{macrocode}
 piton.string_between_chunks = 
  [[ \par \l_@@_split_separation_tl \mode_leave_vertical: ]]
- .. [[ \global \g_@@_line_int  = 0 ]]
+ .. [[ \global \g_@@_line_int = 0 ]]
 %    \end{macrocode}
 % The counter |\g_@@_line_int| will be used to control the points where the code
 % may be broken by a change of page (see the key |splittable|).
@@ -11003,22 +11072,6 @@ function piton.CountLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  if piton.beamer then
-    local count_env_beamer
-    count_env_beamer =
-      (
-        Ct (
-             (
-               P "\\begin{" * beamerEnvironments * ( 1 - P "\r" ) ^ 0 * C "\r"
-               +
-               ( 1 - P "\r" ) ^ 0 * "\r"
-             ) ^ 0
-             * ( 1 - P "\r" ) ^ 0 
-             * -1
-           )  / table.getn
-      ) : match ( code )
-    count = count - 2 * count_env_beamer
-  end 
   sprintL3 ( [[ \global \g_@@_nb_lines_int = ]] .. count )
 end 
 %    \end{macrocode}
@@ -11038,8 +11091,7 @@ function piton.CountNonEmptyLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  sprintL3 
-   ( [[ \int_set:Nn  \l_@@_nb_non_empty_lines_int { ]] .. tostring(count) .. "}" )
+  sprintL3 ( [[ \l_@@_nb_non_empty_lines_int = ]] .. count )
 end 
 %    \end{macrocode}
 %
@@ -11048,8 +11100,7 @@ end
 function piton.CountLinesFile ( name )
   local count = 0 
   for line in io.lines ( name ) do count = count + 1 end
-  sprintL3 
-   ( string.format ( [[ \int_gset:Nn \g_@@_nb_lines_int { %i } ]], count ) )
+  sprintL3 ( [[ \global \g_@@_nb_lines_int = ]] .. count )
 end 
 %    \end{macrocode}
 %
@@ -11063,8 +11114,7 @@ function piton.CountNonEmptyLinesFile ( name )
        count = count + 1 
     end
   end
-  sprintL3 
-   ( string.format ( [[ \int_set:Nn \l_@@_nb_non_empty_lines_int { % i } ]] , count ) ) 
+  sprintL3 ( [[ \l_@@_nb_non_empty_lines_int = ]] .. count )
 end 
 %    \end{macrocode}
 %
@@ -11082,11 +11132,11 @@ function piton.ComputeRange(s,t,file_name)
   local last_found = false
   for line in io.lines ( file_name ) do 
     if first_line == -1 then 
-      if string.sub ( line , 1 , #s ) == s then 
+      if line : sub ( 1 , #s ) == s then 
         first_line = count 
       end 
     else 
-      if string.sub ( line , 1 , #t ) == t then 
+      if line : sub ( 1 , #t ) == t then 
         last_found = true 
         break 
       end 
@@ -11096,13 +11146,15 @@ function piton.ComputeRange(s,t,file_name)
   if first_line == -1 then 
     sprintL3 [[ \@@_error_or_warning:n { begin~marker~not~found } ]] 
   else 
-    if last_found == false then 
+    if not last_found then 
       sprintL3 [[ \@@_error_or_warning:n { end~marker~not~found } ]] 
     end
   end
   sprintL3 ( 
-      [[ \int_set:Nn \l_@@_first_line_int { ]] .. first_line .. ' + 2 }' 
-      .. [[ \global \l_@@_last_line_int = ]] .. count )
+      [[ \int_set:Nn \l_@@_first_line_int { ]] .. first_line .. ' + 2 }'
+%    *\end{macrocode}
+%    \begin{macrocode}
+      .. [[ \l_@@_last_line_int = ]] .. count )
 end
 %    \end{macrocode}
 %
@@ -11250,7 +11302,7 @@ end
 %
 %    \begin{macrocode}
 function piton.new_language ( lang , definition )
-  lang = string.lower ( lang )
+  lang = lang : lower ( ) 
 %    \end{macrocode}
 %
 % \bigskip
@@ -11755,6 +11807,7 @@ function piton.new_language ( lang , definition )
   LPEG2[lang] = 
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1 
+         * beamerBeginEnvironments 
          * Lc [[ \@@_begin_line: ]]
          * SpaceIndentation ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
@@ -11804,8 +11857,8 @@ function piton.new_language ( lang , definition )
     LPEG2[lang] = 
       Ct (
            ( space ^ 0 * P "\r" ) ^ -1 
+           * beamerBeginEnvironments 
            * Lc [[ \@@_begin_line: ]]
-           * Beamer
            * SpaceIndentation ^ 0 
            * LPEG1[lang]
            * -1 
