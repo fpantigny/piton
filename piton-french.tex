@@ -11,15 +11,43 @@
   { 
     splittable = 4 ,
     math-comments,
-    begin-escape = ! ,
-    end-escape = ! ,
+    begin-escape = ? ,
+    end-escape = ? ,
     begin-escape-math = \( , 
     end-escape-math = \) ,
-    detected-commands =  { highLight , footnote } ,
+    detected-commands =  { highLight , footnote , emph , textsl , textbackslash } ,
     vertical-detected-commands = newpage ,
     raw-detected-commands = { NomTable , rowcolor } ,
   }
 
+
+\ExplSyntaxOn
+
+\dim_new:N \l__pantigny_width_dim 
+
+\keys_define:nn { pantigny }
+  { width .dim_set:N = \l__pantigny_width_dim }
+
+\NewPitonEnvironment { Code } { O { } }
+  {
+    \SetPitonStyle{ Number = , Comment = , String = }
+    \PitonOptions{language = minimal}
+    \char_set_catcode_other:N |
+    \cs_set_eq:NN \emph \emphase
+    \dim_zero:N \l__pantigny_width_dim 
+    \keys_set:nn { pantigny } { #1 }
+    \color{gray}
+    \dim_compare:nNnT \l__pantigny_width_dim > \c_zero_dim 
+      { 
+        \PitonOptions { width = \l__pantigny_width_dim } 
+        \begin{minipage}[c]{\l__pantigny_width_dim} 
+      }
+  }
+  { \dim_compare:nNnT \l__pantigny_width_dim > \c_zero_dim 
+      { \end{minipage} }
+  }
+
+\ExplSyntaxOff  
 
 
 \usepackage[executable=python3.exe]{pyluatex}
@@ -121,6 +149,8 @@ fait en utilisant la bibliothèque Lua LPEG.
 
 
 \section{Présentation}
+
+
 
 L'extension \pkg{piton} utilise la librairie Lua nommée LPEG\footnote{LPEG est
   une librairie de capture de motifs (\emph{pattern-matching} en anglais) pour
@@ -435,14 +465,14 @@ seront écrits les fichiers écrits par l'emploi de la clé |write| précédente
 La clé \Definition{join} est similaire à la clé |write| mais les fichiers créés sont
 \emph{joints} (comme «pièces jointes») dans le \textsc{pdf}. Attention :
 certains lecteurs de \textsc{pdf} ne proposent pas d'outil permettant d'accéder à
-ces fichiers joints. Parmi les lecteurs qui le proposent, on peut citer le
-logiciel gratuit Foxit PDF Reader, disponible sur toutes les plateformes.
+ces fichiers joints. 
+
 
 \item \index{print (clé)}
 La clé \Definition{print} contrôle l'affichage effectif du contenu des
 environnements |{Piton}| dans le \textsc{pdf}. Bien entendu, la valeur initiale de cette
 clé est |true|. Néanmoins, dans certains circonstances, il peut être utile
-d'utiliser |print=false| (dans le cas, par exemple, ou la clé |write|, ou bien
+d'utiliser |print=false| (dans le cas, par exemple, où la clé |write|, ou bien
 la clé |join|, est utilisée).
 
 \item \index{line-numbers} La clé \Definition{line-numbers} active la
@@ -496,7 +526,7 @@ La valeur initiale est |\footnotesize \color{gray}|.
 Pour la commodité, un dispositif de factorisation du préfixe |line-numbers| est
 disponible, c'est-à-dire que l'on peut écrire :
 
-\begin{Verbatim}
+\begin{Code}
 \PitonOptions
   {
     line-numbers = 
@@ -507,7 +537,7 @@ disponible, c'est-à-dire que l'on peut écrire :
         format = \footnotesize \color{blue}
       }
   }
-\end{Verbatim}
+\end{Code}
 
 Attention : le code précédent ne suffit pas à activer l'affichage des numéros de
 ligne. Pour cela, il faut encore utiliser la clé |line-numbers| de manière absolue
@@ -569,7 +599,7 @@ La valeurs initiale est : |gray!15|
 
 \item \index{width (clé)} \label{width} La clé \Definition{width} fixe la largeur du
 listing produit. La valeur initiale de ce paramètre est la valeur courante de
-|\linewidth|.
+|\linewidth| (paramètre LaTeX qui indique la largeur courante des lignes de texte).
 
 Ce paramètre est utilisé pour :
 \begin{itemize}
@@ -577,10 +607,11 @@ Ce paramètre est utilisé pour :
 mise à |false|: cf. p.~\pageref{line-breaks}) ;
 \item les fonds colorés spécifiés par les clés |background-color| et
 |prompt-background-color| ;
-\item la largeur de la boîte LaTeX créée par la clé |box| quand celle-ci est
-utilisée (cf. p.~\pageref{box}) ;
-\item la largeur de la boîte graphique créée par la clé |tcolorbox| quand celle-ci
-est utilisée (cf. p.~\pageref{tcolorbox}).
+\item les fonds colorés tracés par la clé |\rowcolor|
+(cf.~p.\pageref{rowcolor});
+\item la largeur de la boîte LaTeX créée par la clé |box| (cf. p.~\pageref{box}) ;
+\item la largeur de la boîte graphique créée par la clé |tcolorbox|
+(cf. p.~\pageref{tcolorbox}).
 \end{itemize}
 
 \item \index{max-width (clé)} \colorbox{yellow!50}{\textbf{Nouveau 4.6}}
@@ -591,7 +622,7 @@ que la valeur fournie à |max-width|, la largeur (qui sera transmise au paramèt
 |width|) sera la largeur maximale des lignes du listing, c'est-à-dire la largeur naturelle
 du listing.
 
-Pour la lisibilité du code |width=min| est un raccourci pour |max-width=\linewidth|.
+Pour la lisibilité du code, |width=min| est un raccourci pour |max-width=\linewidth|.
 
 \item \index{show-spaces-in-strings} En activant la clé
 \Definition{show-spaces-in-strings}, les espaces dans les chaînes de
@@ -621,12 +652,10 @@ sont représentées par des flèches.
 \end{itemize}
 
 \bigskip
-
-\begingroup
-\fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
+\begin{small}
 \begin{Verbatim}
-~emphase&\begin{Piton}[language=C,line-numbers,@
-~emphase&     splittable=4,gobble,background-color=gray!15,rounded-corners,width=min]@
+~emphase#\begin{Piton}[language=C,line-numbers,gobble,background-color=gray!15@
+~emphase#              rounded-corners,width=min,splittable=4]@
     void bubbleSort(int arr[], int n) {
         int temp;
         int swapped;
@@ -643,9 +672,9 @@ sont représentées par des flèches.
             if (!swapped) break;
         }
     }   
-~emphase&~textbackslash&@end{Piton}@
+~emphase#~textbackslash#@end{Piton}@
 \end{Verbatim}
-\endgroup
+\end{small}
 
 
 \begin{Piton}[language=C,line-numbers,gobble,
@@ -667,10 +696,6 @@ sont représentées par des flèches.
         }
     }   
 \end{Piton}
-
-
-
-
 
 
 \bigskip
@@ -708,10 +733,11 @@ Voici un exemple qui change le style utilisé pour le nom d'une fonction Python,
 de sa définition (c'est-à-dire après le mot-clé |def|). Elle utilise la commande
 |\highLight| de \pkg{lua-ul} (qui nécessite lui-même le chargement de \pkg{luacolor}).
 
-\begin{Verbatim}
+\medskip
+\begin{Code}
 \SetPitonStyle
   { Name.Function = \bfseries \highLight[red!30] }
-\end{Verbatim}
+\end{Code}
 
 Ici, |\highLight[red!30]| doit être considéré comme le nom d'une fonction LaTeX qui prend
 exactement un argument, puisque, habituellement, elle est utilisée avec
@@ -811,6 +837,7 @@ Voici un exemple pour le langage Python où on modifie le style |String.Doc|
 des \emph{documentation strings} pour avoir un fond coloré gris.
 
 
+\medskip
 \begin{Verbatim}
 ~emphase#\SetPitonStyle{String.Doc = \rowcolor{gray!15}\color{black!80}}@
 \begin{Piton}[width=min]
@@ -873,13 +900,13 @@ programmation utilise les fonctions |\hypertarget| et |\hyperlink| de \pkg{hyper
   }
 
 \medskip
-\begin{Verbatim}
+\begin{Code}
 \NewDocumentCommand{\MyDefFunction}{m}
-   {\hypertarget{piton:~#1}{\color[HTML]{CC00FF}{~#1}}}
-\NewDocumentCommand{\MyUserFunction}{m}{\hyperlink{piton:~#1}{~#1}}
+   {\hypertarget{piton:#1}{\color[HTML]{CC00FF}{#1}}}
+\NewDocumentCommand{\MyUserFunction}{m}{\hyperlink{piton:#1}{#1}}
 
-\SetPitonStyle{Name.Function = \MyDefFunction, ~emphase#UserFunction@ = \MyUserFunction}
-\end{Verbatim}
+\SetPitonStyle{Name.Function = \MyDefFunction, \emph{UserFunction} = \MyUserFunction}
+\end{Code}
 
 \smallskip
 
@@ -953,34 +980,39 @@ Il existe aussi les commandes suivantes similaires à celles de LaTeX3 :
 Par exemple, avec l'instruction suivante, un nouvel environnement |{Python}| sera défini
 avec le même comportement que l'environnement |{Piton}|:
 
-\begin{Verbatim}
-~emphase#\NewPitonEnvironment@{Python}{O{}}{\PitonOptions{~#1}}{}
-\end{Verbatim}
+\medskip
+\begin{Code}
+\emph{\NewPitonEnvironment}{Python}{O{}}{\PitonOptions{#1}}{}
+\end{Code}
 
 \bigskip
 Si on souhaite un environnement |{Python}| qui compose le code inclus dans une boîte de
 \pkg{mdframed}, on peut écrire :
 
-\begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+\begin{footnotesize}
+\begin{Verbatim}
 \usepackage[framemethod=tikz]{mdframed} % dans le préambule
 \end{Verbatim}
+\end{footnotesize}
 
-\begin{Verbatim}
-~emphase#\NewPitonEnvironment@{Python}{}
+\medskip
+\begin{Code}
+\emph{\NewPitonEnvironment}{Python}{}
   {\begin{mdframed}[roundcorner=3mm]}
   {\end{mdframed}}
-\end{Verbatim}
+\end{Code}
 
 \bigskip
 Avec ce nouvel environnement |{Python}|, on peut écrire : 
 
-\begin{Verbatim}
-~emphase#\begin{Python}@
+\medskip
+\begin{Code}
+\emph{\begin{Python}}
 def carré(x):
     """Calcule le carré de x"""
     return x*x
-~emphase#\end{Python}@
-\end{Verbatim}
+\emph{\end{Python}}
+\end{Code}
 
 \NewPitonEnvironment{Python}{}
   {\begin{mdframed}[roundcorner=3mm]}
@@ -1049,7 +1081,9 @@ suivant, {\bfseries où le dernier argument de |\lst@definelanguage|, qui est en
   crochets, a été supprimé} (en fait, les symboles \verb+%+ pourraient être supprimés sans
 problème).
 
-\begin{Verbatim}[formatcom=\small\color{gray}]
+\medskip
+\begin{small}
+\begin{Verbatim}
 ~emphase#\NewPitonLanguage@{Java}%
   {morekeywords={abstract,boolean,break,byte,case,catch,char,class,%
       const,continue,default,do,double,else,extends,false,final,%
@@ -1064,7 +1098,7 @@ problème).
    morestring=[b]',%
   }
 \end{Verbatim}
-
+\end{small}
 
 \NewPitonLanguage{Java}
   {morekeywords={abstract,boolean,break,byte,case,catch,char,class,
@@ -1164,8 +1198,8 @@ langages de programmation les autorisent dans les mots-clés et les identificate
 \smallskip
 Si on souhaite composer un listing dans une boîte de LaTeX, on doit utiliser la clé
 \Definition{box}. Cette clé prend comme valeur |c|, |t| ou |b| correspondant
-au paramètre de position verticale (comme dans un environnement |{minipage}| de LaTeX).
-La valeur par défaut est |c| (comme pour |{minipage}|).
+au paramètre de position verticale (comme dans un environnement |{minipage}| de LaTeX, qui
+crée aussi une boîte LaTeX). La valeur par défaut est |c| (comme pour |{minipage}|).
 
 \smallskip
 L'emploi de la clé |box| active |width=min| (sauf, bien sûr, si on utilise
@@ -1235,7 +1269,7 @@ def cube(x):
 
 
 \vspace{1cm}
-Voici un exemple avec la clé |max-width|.
+Voici un exemple avec la clé |max-width|, égale à 7~cm pour les deux listings.
 
 \begin{Verbatim}
 \begin{center}
@@ -1294,10 +1328,12 @@ Dans le présent document, on a, de plus, chargé, dans le préambule du documen
 la librairie |skins| de \pkg{tcolorbox} et activé la \emph{skin} |enhanced| pour avoir
 une meilleure apparence au niveau du saut de page.
 
-\begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+\begin{footnotesize}
+\begin{Verbatim}
 \tcbuselibrary{skins,breakable} % dans le préambule
 \tcbset{enhanced}               % dans le préambule
 \end{Verbatim}
+\end{footnotesize}
 
 \smallskip
 \begin{Verbatim}
@@ -1457,7 +1493,7 @@ def carré(x):
     return x*x
 def carré(x):
     """Calcule le carré de x"""
-    return x*x
+    return x*x  
 def carré(x):
     """Calcule le carré de x"""
     return x*x
@@ -1469,8 +1505,9 @@ def carré(x):
 Si on souhaite que le résultat soit produit dans une boîte LaTeX (en dépit de son nom,
 un environnement de \pkg{tcolorbox} n'est pas nécessairement une boîte LaTeX),
 il suffit d'utiliser, conjointement avec la clé |tcolorbox|, la clé |box| fournie
-par \pkg{piton} (cf. p.~\pageref{box}). Bien sûr, la boîte ainsi créée ne sera \emph{pas}
-sécable par un saut de page.
+par \pkg{piton} (cf. p.~\pageref{box}). Bien sûr, la boîte LaTeX ainsi créée ne sera \emph{pas}
+sécable par un saut de page (comme toutes les boîtes de LaTeX), même si la clé |splittable|
+(cf.~p.~\pageref{splittable}) est active.
 
 On rappelle que l'emploi de la clé |box| active |width=min| (sauf si on utilise
 explicitement |width| ou |max-width|).
@@ -1590,7 +1627,8 @@ Prenons d'abord un exemple.
 Supposons que le fichier à inclure contienne des solutions à des exercices de
 programmation sur le modèle suivant :
 
-\begin{Verbatim}[formatcom=\small\color{gray}]
+\begin{small}
+\begin{Verbatim}
 ~#[Exercice 1] Version itérative
 def fibo(n):
     if n==0: return 0 
@@ -1604,6 +1642,7 @@ def fibo(n):
         return v
 ~#<Exercice 1>
 \end{Verbatim}
+\end{small}
 
 Les marqueurs de début de début et de fin sont les chaînes |#[Exercice 1]| et 
 |#<Exercice 1>|. La chaîne «|Exercice 1|» sera appelée le \emph{label} de l'exercice (ou
@@ -1773,6 +1812,7 @@ Avec la clé \Definition{break-numbers-anywhere}, les nombres peuvent être coup
 
 \subsubsection{Coupure des pages}
 
+\label{splittable}
 \label{coupure-de-pages}
 \index{splittable}
 \index{splittable-on-empty-lines}
@@ -1901,6 +1941,7 @@ def carré(x):
 \label{split-on-empty-lines}
 \index{split-separation}
 \index{env-used-by-split}
+\index{add-to-split-separation}
 
 L'exension \pkg{piton} fournit la clé \Definition{split-on-empty-lines}, qui ne doit pas
 être confondue avec la clé |splittable-on-empty-lines| définie précédemment. 
@@ -1922,8 +1963,13 @@ peut, par exemple, mettre la primitive TeX |\hrule|.
 
 \item La valeur initiale de ce paramètre est |\vspace{\baselineskip}\vspace{-1.25pt}|, ce qui,
 au final, correspond à une ligne vide dans le \textsc{pdf} produit (cet espace vertical
-est supprimé s'il tombe au niveau d'un saut de page). 
+est supprimé s'il tombe au niveau d'un saut de page).
+
+\item L'extension \pkg{piton} propose en fait aussi la clé
+\Definition{add-to-split-separation} qui ajoute du contenu à droite de
+|split-separation|.
 \end{itemize}
+
 
 
 Chaque morceau du code informatique est formaté (de manière autonome) dans un
@@ -1967,12 +2013,51 @@ def cube(x):
 \end{Piton}
 
 
+\vspace{5mm}
+Si on souhaite au contraire une continuité de numérotation, on peut ajouter
+|\PitonOptions{resume}| au paramètre |split-separation| :
+
+\bigskip
+\begin{Verbatim}
+\begin{Piton}[
+   split-on-empty-lines,
+   ~emphase#add-to-split-separation = \PitonOptions{resume}@ ,
+   background-color=gray!15,
+   line-numbers
+ ]
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+
+def cube(x):
+    """Calcule le cube de x"""
+    return x*x*x
+\end{Piton}
+\end{Verbatim}
+
+\begin{Piton}[
+   split-on-empty-lines,
+   add-to-split-separation = \PitonOptions{resume} ,
+   background-color=gray!15,
+   line-numbers
+ ]
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+
+def cube(x):
+    """Calcule le cube de x"""
+    return x*x*x
+\end{Piton}
+
+
 \bigskip
 \textbf{Attention} : Comme chaque morceau est traité de manière indépendante, les
 commandes spécifiées par |detected-commands| ou |raw-detected-commands|
 (cf.~p.~\pageref{detected-commands}) et les commandes et environnements de Beamer
 automatiquement détectés par \pkg{piton} ne doivent pas enjamber les lignes vides du
 listing de départ.
+
 
 
 \bigskip
@@ -2233,10 +2318,11 @@ factorielle, on décide de surligner en jaune l'appel récursif. La commande
 |\highLight| de \pkg{lua-ul}\footnote{L'extension \pkg{lua-ul} requiert
   elle-même l'extension \pkg{luacolor}.} permet de le faire facilement.
 
-\begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+\begin{footnotesize}
+\begin{Verbatim}
 \PitonOptions{~emphase#detected-commands@ = highLight} % dans le préambule
 \end{Verbatim}
-
+\end{footnotesize}
 
 \begin{Verbatim}
 \begin{Piton}[language=C]
@@ -2321,18 +2407,22 @@ On peut par exemple demander la détection de |\newpage| par
 \PitonOptions{vertical-detected-commands = newpage}
 \end{Verbatim}
 
-et demander dans un listing un saut de page obligatoire par |\newpage{}| :
+et demander dans un listing un saut de page obligatoire par |\newpage{}| (la paire
+d'accolades |{}| est obligatoire car les commandes détectées par \pkg{piton} sont censées
+être des commandes LaTeX à un seul argument obligatoire).
 
-\begin{Verbatim}
+\medskip
+\begin{Code}
 \begin{Piton}
 def carré(x):
-    return x*x   ~emphase#\newpage{}@
+    return x*x   \emph{\textbackslash{}newpage{}}
 def cube(x):
     return x*x*x
 \end{Piton}    
-\end{Verbatim}
+\end{Code}
 
-
+\medskip
+On peut aussi envisager de demander la détection de la commande |\vspace|.
 
 \subsubsection{Le mécanisme «escape»}
 
@@ -2356,29 +2446,30 @@ l'argument optionnel entre crochets, on ne peut pas utiliser la clé |detected-c
 comme précédemment mais on peut utiliser le mécanisme «escape» qui est plus général.
 
 \smallskip
-On suppose que le préambule du document contient l'instruction :
-
+\begin{small}
 \begin{Verbatim}
-\PitonOptions{~emphase#begin-escape=!,end-escape=!@}
+\PitonOptions{~emphase#begin-escape=!,end-escape=!@} % dans le préambule du document LaTeX
 \end{Verbatim}
+\end{small}
 
-On peut alors écrire :
-\begin{Verbatim}
+\medskip
+\begin{Code}
 \begin{Piton}
 def fact(n):
     if n==0:
         return 1
     else:
-        ~emphase#!\highLight[LightPink]{!@return n*fact(n-1)~emphase#!}!@
+        ?\emph{?\highLight[LightPink]{?}?return n*fact(n-1)?\emph{?}?}?
 \end{Piton}
-\end{Verbatim}
+\end{Code}
 
+\medskip
 \begin{Piton}
 def fact(n):
     if n==0:
         return 1
     else:
-        !\highLight[LightPink]{!return n*fact(n-1)!}!
+        ?\highLight[LightPink]{?return n*fact(n-1)?}?
 \end{Piton}
 
 
@@ -2427,14 +2518,13 @@ délimiteurs du mode mathématique proposés par LaTeX.
 \bigskip
 Voici un exemple d'utilisation typique :
 
-\medskip
 \begin{Verbatim}
 \begin{Piton}[line-numbers]
 def arctan(x,n=10):
-    if ~emphase#\(x < 0\)@ :
-        return ~emphase#\(-\arctan(-x)\)@ 
+    if ~emphase#\(x < 0\)@
+        return ~emphase#\(-\arctan(-x)\)@
     elif ~emphase#\(x > 1\)@ : 
-        return ~emphase#\(\pi/2 - \arctan(1/x)\)@ 
+        return ~emphase#\(\pi/2 - \arctan(1/x)\)@
     else: 
         s = ~emphase#\(0\)@
         for ~emphase#\(k\)@ in range(~emphase#\(n\)@): s += ~emphase#\(\smash{\frac{(-1)^k}{2k+1} x^{2k+1}}\)@
@@ -2485,9 +2575,10 @@ de \pkg{piton} est légèrement modifié, comme décrit maintenant.
 
 \subsubsection{\{Piton\} et \textbackslash PitonInputFile sont ``overlay-aware''}
 
-Quand \pkg{piton} est utilisé avec Beamer, l'environnement |{Piton}| et la commande
-|\PitonInputFile| acceptent l'argument optionnel |<...>| de Beamer pour indiquer les
-«\emph{overlays}» concernés.
+Quand \pkg{piton} est utilisé avec Beamer, la command |\PitonInputFile| et
+l'environnement |{Piton}| (mais pas les environnements créés par
+|\NewPitonEnvironment|) acceptent l'argument optionnel |<...>| de Beamer pour
+indiquer les «\emph{overlays}» concernés.
 
 On peut par exemple écrire :
 
@@ -2502,6 +2593,7 @@ ou aussi
 \begin{Verbatim}
 \PitonInputFile~emphase#<2-5>@{mon_fichier.py}
 \end{Verbatim}
+
 
 
 \subsubsection{Commandes de Beamer reconnues dans \{Piton\} et \textbackslash PitonInputFile}
@@ -2543,7 +2635,9 @@ dans les arguments de ces fonctions.
 \medskip
 Voici un exemple complet de fichier :
 
-\begin{Verbatim}[formatcom = \small\color{gray}]
+\medskip
+\begin{small}
+\begin{Code}
 \documentclass{beamer}
 \usepackage{piton}
 \begin{document}
@@ -2551,16 +2645,18 @@ Voici un exemple complet de fichier :
 \begin{Piton}
 def string_of_list(l):
     """Convertit une liste de nombres en chaîne"""
-~emphase#    \only<2->{s = "{" + str(l[0])}@
-~emphase#    \only<3->{for x in l[1:]: s = s + "," + str(x)}@
-~emphase#    \only<4->{s = s + "}"}@
+    \emph{\only<2->{s = "{" + str(l[0])}}
+    \emph{\only<3->{for x in l[1:]: s = s + "," + str(x)}}
+    \emph{\only<4->{s = s + "}"}}
     return s
 \end{Piton}
 \end{frame}
 \end{document}
-\end{Verbatim}
+\end{Code}
+\end{small}
 
-Dans l'exemple précédent, les accolades des deux chaînes de caractères Python |"{"| et
+\medskip
+Dans cet exemple, les accolades des deux chaînes de caractères Python |"{"| et
   |"}"| sont correctement interprétées (sans aucun caractère d'échappement).
 
 
@@ -2587,7 +2683,9 @@ seules sur leurs lignes.
 \medskip
 On peut par exemple écrire :
 
-\begin{Verbatim}[formatcom = \small\color{gray}]
+\medskip
+\begin{small}
+\begin{Code}
 \documentclass{beamer}
 \usepackage{piton}
 \begin{document}
@@ -2595,14 +2693,14 @@ On peut par exemple écrire :
 \begin{Piton}
 def carré(x):
     """Calcule le carré de l'argument"""
-~emphase#\begin{uncoverenv}<2>@
+\emph{\begin{uncoverenv}<2>}
     return x*x
-~emphase#\end{uncoverenv}@
+\emph{\end{uncoverenv}}
 \end{Piton}
 \end{frame}
 \end{document}
-\end{Verbatim}
-
+\end{Code}
+\end{small}
 
 
 \vspace{1cm} 
@@ -2937,6 +3035,40 @@ la clé |line-numbers| (utilisée sans valeur).
 Par défaut, les numéros de ligne sont composés par \pkg{piton} en débordement à
 gauche (en utilisant en interne la commande |\llap| de LaTeX).
 
+
+\begingroup
+\fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
+\begin{Verbatim}
+~emphase&\PitonOptions{background-color=gray!15, line-numbers}@
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> (appel récursif)
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> (autre appel récursif) 
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\end{Verbatim}
+\endgroup
+
+
+
+\begingroup
+\PitonOptions{background-color=gray!15,line-numbers}
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> (appel récursif)
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> (autre appel récursif) 
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\endgroup
+
+\bigskip
+
 Si on ne veut pas de débordement, on peut utiliser l'option |left-margin=auto| qui va
 insérer une marge adaptée aux numéros qui seront insérés (elle est plus large quand les
 numéros dépassent 10).
@@ -3043,7 +3175,7 @@ def arctan(x,n=10):
 
 
 \begingroup
-\PitonOptions{width = 9cm, background-color=gray!15}
+\PitonOptions{width = 9cm , background-color=gray!15} 
 \NewDocumentCommand{\MyLaTeXCommand}{m}{\hfill \normalfont\itshape\rlap{\quad #1}}
 \SetPitonStyle{Comment.LaTeX = \MyLaTeXCommand}
 \begin{Piton}
@@ -3070,7 +3202,7 @@ un fond coloré à la ligne courante (\emph{toute la ligne} et pas seulement la 
 contenant du texte).
 
 \medskip
-Cette commande |\rowcolor| peut-être utilisée dans un style, comme illustré à la
+Cette commande |\rowcolor| peut être utilisée dans un style, comme illustré à la
 page~\pageref{rowcolor} mais on peut aussi envisager de l'utiliser directement
 dans un listing. Il faudra néanmoins utiliser un des mécanismes d'échappement
 vers LaTeX fournis par \pkg{piton}. Dans l'exemple suivant, on utilise la clé
@@ -3080,9 +3212,11 @@ détectées» sont des commandes à un seul argument mais on pourra utiliser
 |\rowcolor{[rgb]{0.8,1,0.8}}| (syntaxe acceptée par |\rowcolor|).
 
 \nobreak
-\begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+\begin{footnotesize}
+\begin{Verbatim}
 \PitonOptions{raw-detected-commands = rowcolor} % dans le préambule
 \end{Verbatim}
+\end{footnotesize}
 
 \medskip
 
@@ -3224,9 +3358,11 @@ Remarquer que l'on doit bien utiliser |\newpage{}| et non |\newpage| car les
 commandes LaTeX détectées par \pkg{piton} sont censées être des commandes à un argument
 entre accolades.
 
-\begin{Verbatim}[formatcom = \footnotesize\color{gray}]
+\begin{footnotesize}
+\begin{Verbatim}
 \PitonOptions{vertical-detected-commands = newpage}  % dans le préambule
 \end{Verbatim}
+\end{footnotesize}
 
 \begin{Verbatim}
 ~emphase#\begin{Python}@{Mon exemple}
@@ -3388,23 +3524,21 @@ Voici, à titre d'exemple, un environnement |{PitonExecute}| qui formate un list
 (avec \pkg{piton}) et qui affiche également dessous le résultat de l'exécution de ce code
 avec Python.
 
-
-\begin{Verbatim}
-\NewPitonEnvironment{~emphase#PitonExecute@}{O{}}
+\medskip
+\begin{Code}
+\NewPitonEnvironment{\emph{PitonExecute}}{O{}}
   {\PitonOptions{~#1}}
   {\begin{center}
    \directlua{pyluatex.execute(piton.get_last_code(), false, true, false, true)}%
-   \end{center}
-   \ignorespacesafterend}
-\end{Verbatim}
+   \end{center}}
+\end{Code}
 
+\medskip
 \NewPitonEnvironment{PitonExecute}{O{}}
   {\PitonOptions{#1}}
   {\begin{center}
    \directlua{pyluatex.execute(piton.get_last_code(), false, true, false, true)}%
-   \end{center}
-   \ignorespacesafterend}
-
+   \end{center}}
 
  On a utilisé la fonction Lua |piton.get_last_code| fournie dans l'API de \pkg{piton} :
  cf.~partie~\ref{API}, p.~\pageref{API}.
@@ -3413,10 +3547,11 @@ avec Python.
 Cet environnement |{PitonExecute}| prend en argument optionnel (entre crochets) les
 options proposées par la commande |\PitonOptions|.
 
+\medskip
 \begin{Verbatim}
 \begin{~emphase#PitonExecute@}[background-color=gray!15]
 def carré(x):
-    """Calcule le carré de l'argument"""
+    """Calcule le carré de x"""
     return x*x
 print(f'Le carré de 12 est {carré(12)}.')
 \end{~emphase#PitonExecute@}
@@ -3426,7 +3561,7 @@ print(f'Le carré de 12 est {carré(12)}.')
 \medskip
 \begin{PitonExecute}[background-color=gray!15]
 def carré(x):
-    """Calcule le carré de l'argument"""
+    """Calcule le carré de x"""
     return x*x
 print(f'Le carré de 12 est {carré(12)}.')
 \end{PitonExecute}
@@ -3435,16 +3570,18 @@ print(f'Le carré de 12 est {carré(12)}.')
 On peut, dans cet environnement, utiliser les mécanismes d'échappement vers
 LaTeX de la même manière que précédemment (cf. p.~\pageref{LaTeX-escapes}).
 
-
-\begin{Verbatim}[formatcom=\footnotesize\color{gray}]
+\begin{footnotesize}
+\begin{Verbatim}
 \usepackage{luacolor,lua-ul}                  % dans le préambule
 \PitonOptions{detected-commands = highLight}  % dans le préambule
 \end{Verbatim}
+\end{footnotesize}
 
+\medskip
 \begin{Verbatim}
 \begin{PitonExecute}[background-color=gray!15]
 def carré(x):
-    """Calcule le carré de l'argument"""
+    """Calcule le carré de x"""
     ~emphase#\highLight{return x*x}@
 print(f'Le carré de 12 est {carré(12)}.')
 \end{PitonExecute}
@@ -3453,7 +3590,7 @@ print(f'Le carré de 12 est {carré(12)}.')
 \medskip
 \begin{PitonExecute}[background-color=gray!15]
 def carré(x):
-    """Calcule le carré de l'argument"""
+    """Calcule le carré de x"""
     \highLight{return x*x}
 print(f'Le carré de 12 est {carré(12)}.')
 \end{PitonExecute}
@@ -3598,8 +3735,8 @@ demander à ce qu'ils ne soient pas affichés.
 L'exemple précédent donne alors :
 
 \medskip
-\begin{Verbatim}
-~emphase#\begin{PitonREPL}@
+\begin{Code}
+\emph{\begin{PitonREPL}}
     def valeur_absolue(x):
         """Renvoie la valeur absolue de x"""
         if x > 0:
@@ -3610,8 +3747,8 @@ L'exemple précédent donne alors :
     valeur_absolue(-3)
     valeur_absolue(0)
     valeur_absolue(5)
-~emphase#\end{PitonREPL}@
-\end{Verbatim}
+\emph{\end{PitonREPL}}
+\end{Code}
 
 
 
@@ -3672,7 +3809,7 @@ Interpol.Inside & le contenu des interpolations dans les f-strings (c'est-à-dir
                   l'utilisateur n'a pas fixé ce style, ces éléments sont analysés et
                   formatés par \pkg{piton} au même titre que le reste du code. \\ 
 Operator & les opérateurs suivants : \texttt{!= == << >> - \~{} + / * \% = < > \& .}
-           \verb+|+ |@| \\  
+           \verb+|+ |@| \\  % |
 Operator.Word & les opérateurs suivants : |in|, |is|, |and|, |or| et |not| \\
 Name.Builtin & la plupart des fonctions prédéfinies par Python \\
 Name.Decorator & les décorateurs (instructions débutant par \verb|@|) \\
@@ -3757,6 +3894,21 @@ On peut basculer vers le langage |OCaml| avec la clé |language| : |language = O
 \end{tabularx}
 \end{center}
 
+\vspace{1cm}
+
+Voici un exemple :
+
+\medskip
+\begin{Piton}[language = OCaml]
+let rec quick_sort lst =    (* Tri par segmentation *)
+  match lst with
+  | [] -> []
+  | pivot :: rest ->
+      let left  = List.filter (fun x -> x < pivot) rest in
+      let right = List.filter (fun x -> x >= pivot) rest in
+      quick_sort left @ [pivot] @ quick_sort right
+\end{Piton}
+
 \newpage
 
 \subsection[Le langage C (et C++)]{Le langage C (et \CC)}
@@ -3778,7 +3930,7 @@ String.Long & les chaînes de caractères (entre \texttt{"}) \\
 String.Interpol & les éléments \texttt{\%d}, \texttt{\%i}, \texttt{\%f}, \texttt{\%c},
                   etc. dans les chaînes de caractères ; ce style hérite du style
                   |String.Long| \\ 
-Operator & les opérateurs suivants : \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ |@| \\
+Operator & les opérateurs suivants : \texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ |@| \\ % |
 Name.Type & les types prédéfinis suivants : |bool|, |char|, |char16_t|, |char32_t|,
             |double|, |float|, |int|, |int8_t|, |int16_t|, |int32_t|, |int64_t|, |long|,
             |short|, |signed|, |unsigned|, |void| et |wchar_t| \\  
@@ -3914,7 +4066,8 @@ Voici une possibilité de définition d'un language HTML, obtenu par une légèr
 de la définition faite par \pkg{listings} (fichier |lstlang1.sty|).
 
 \medskip
-\begin{Verbatim}[formatcom=\small]
+\begin{small}
+\begin{Verbatim}
 \NewPitonLanguage{HTML}%
   {morekeywords={A,ABBR,ACRONYM,ADDRESS,APPLET,AREA,B,BASE,BASEFONT,%
       BDO,BIG,BLOCKQUOTE,BODY,BR,BUTTON,CAPTION,CENTER,CITE,CODE,COL,%
@@ -3943,7 +4096,7 @@ de la définition faite par \pkg{listings} (fichier |lstlang1.sty|).
    morestring=[d]",
   }
 \end{Verbatim}
-
+\end{small}
 
 \newpage
 

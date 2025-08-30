@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.8a" -- 2025/08/19
+piton_version = "4.8b" -- 2025/08/30
 
 
 
@@ -136,7 +136,8 @@ local SkipSpace = Q " " ^ 0
 local Punct = Q ( S ".,:;!" )
 
 local Tab = "\t" * Lc [[ \__piton_tab: ]]
-local SpaceIndentation = Lc [[ \__piton_leading_space: ]] * Q " "
+local SpaceIndentation
+  = Lc [[ \__piton_leading_space: \__piton_space_indentation: ]] * P " "
 local Delim = Q ( S "[({})]" )
 local SpaceInString = space * Lc [[ \l__piton_space_in_string_tl ]]
 
@@ -261,11 +262,11 @@ function Compute_Beamer ( lang , braces )
     lpeg = lpeg +
           Ct ( Cc "Open"
                * C (
-                      P ( [[\begin{]] .. x .. "}" )
-                      * ( "<" * ( 1 - P ">") ^ 0 * ">" ) ^ -1
+                     P ( [[\begin{]] .. x .. "}" )
+                        * ( "<" * ( 1 - P ">") ^ 0 * ">" ) ^ -1
                     )
                * space ^ 0 * ( P "\r" ) ^ 1 -- added 25/08/23
-               * Cc ( [[\end{]] .. x ..  "}" )
+              * Cc ( [[\end{]] .. x ..  "}" )
               )
           * (
               ( ( 1 - P ( [[\end{]] .. x .. "}" ) ) ^ 0 )
@@ -608,9 +609,9 @@ do
   local Q
   function Q ( pattern, strict )
     if strict ~= nil then
-      return Ct ( Cc ( luatexbase.catcodetables.other ) * C ( pattern ) )
+      return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
     else
-      return Ct ( Cc ( luatexbase.catcodetables.other ) * C ( pattern ) )
+      return Ct ( Cc ( luatexbase.catcodetables.CatcodeTableOther ) * C ( pattern ) )
           + Beamer + DetectedCommands + EscapeMath + Escape
     end
   end
@@ -991,7 +992,6 @@ end)
         +
         ( space ^ 0 * "\r" ) ^ -1
         * Lc [[ \__piton_begin_line: ]]
-        * Beamer
         * SpaceIndentation ^ 0
         * ( ( space * Lc [[ \__piton_trailing_space: ]] ) ^ 1 * -1
               + space ^ 0 * EOL
@@ -1119,7 +1119,7 @@ do
     Lc [[ {\PitonStyle{Keyword}{ ]]
     * Q ( Cmt (
                 C ( letter * alphanum ^ 0 ) ,
-                function ( s , i , a ) return string.upper ( a ) == name end
+                function ( _ , _ , a ) return a : upper ( ) == name end
               )
         )
     * Lc "}}"
@@ -1168,12 +1168,12 @@ do
     C ( identifier ) /
     (
       function ( s )
-          if set_keywords[string.upper(s)] then return
+          if set_keywords [ s : upper ( ) ] then return
             { [[{\PitonStyle{Keyword}{]] } ,
             { luatexbase.catcodetables.other , s } ,
             { "}}" }
           else
-            if set_builtins[string.upper(s)] then return
+            if set_builtins [ s : upper ( ) ] then return
               { [[{\PitonStyle{Name.Builtin}{]] } ,
               { luatexbase.catcodetables.other , s } ,
               { "}}" }
@@ -1445,7 +1445,7 @@ do
     C ( def_function ) / analyze_cs
     * Space
     * Lc ( [[ {\PitonStyle{Name.Function}{ ]] )
-    * ControlSequence -- Q ( ControlSequence )
+    * ControlSequence -- Q ( ControlSequence ) ?
     * Lc "}}"
   local Word = Q ( ( 1 - S " \r" ) ^ 1 )
 
@@ -1505,8 +1505,8 @@ function piton.Parse ( language , code )
     end
   end
 end
-local cr_file_lines
-function cr_file_lines ( filename )
+local my_file_lines
+function my_file_lines ( filename )
     local f = io.open ( filename , 'rb' )
     local s = f : read ( '*a' )
     f : close ( )
@@ -1515,25 +1515,19 @@ end
 function piton.ReadFile ( name , first_line , last_line )
   local s = ''
   local i = 0
-  for line in cr_file_lines ( name ) do
+  for line in my_file_lines ( name ) do
     i = i + 1
     if i >= first_line then
       s = s .. '\r' .. line
     end
     if i >= last_line then break end
   end
-  if string.byte ( s , 1 ) == 13 then
-    if string.byte ( s , 2 ) == 239 then
-      if string.byte ( s , 3 ) == 187 then
-        if string.byte ( s , 4 ) == 191 then
-          s = string.sub ( s , 5 , -1 )
-        end
-      end
-    end
+  if s : sub ( 1 , 4 ) == string.char ( 13 , 239 , 187 , 191 ) then
+    s = s : sub ( 5 , -1 )
   end
   sprintL3 ( [[ \tl_set:Nn \l__piton_listing_tl { ]])
   tex.sprint ( luatexbase.catcodetables.other , s )
-  sprintL3 ( [[ } ]] )
+  sprintL3 ( "}" )
 end
 function piton.RetrieveGobbleParse ( lang , n , splittable , code )
   local s
@@ -1575,17 +1569,7 @@ local TabsAutoGobbleLPEG =
 local EnvGobbleLPEG =
       ( ( 1 - P "\r" ) ^ 0 * "\r" ) ^ 0
     * Ct ( C " " ^ 0 * -1 ) / table.getn
-local remove_before_cr
-function remove_before_cr ( input_string )
-  local match_result = ( P "\r" ) : match ( input_string )
-  if match_result then return
-    string.sub ( input_string , match_result )
-  else return
-    input_string
-  end
-end
 function piton.Gobble ( n , code )
-  code = remove_before_cr ( code )
   if n == 0 then return
     code
   else
@@ -1620,13 +1604,11 @@ function piton.GobbleParse ( lang , n , splittable , code )
   piton.last_language = lang
   piton.CountLines ( piton.last_code )
   piton.Parse ( lang , piton.last_code )
-  -- sprintL3 [[ \vspace{2.5pt} ]]
-  -- sprintL3 [[ \par ]] -- blabla
   piton.join_and_write ( )
 end
 function piton.join_and_write ( )
   if piton.join ~= '' then
-    if piton.join_files [ piton.join ] == nil then
+    if not piton.join_files [ piton.join ] then
       piton.join_files [ piton.join ] = piton.get_last_code ( )
     else
       piton.join_files [ piton.join ] =
@@ -1646,7 +1628,7 @@ function piton.join_and_write ( )
       end
     end
     if file_name ~= '' then
-      if piton.write_files [ file_name ] == nil then
+      if not piton.write_files [ file_name ] then
         piton.write_files [ file_name ] = piton.get_last_code ( )
       else
         piton.write_files [ file_name ] =
@@ -1705,33 +1687,38 @@ piton.string_between_chunks =
  .. [[ \global \g__piton_line_int  = 0 ]]
 function piton.get_last_code ( )
   return LPEG_cleaner[piton.last_language] : match ( piton.last_code )
-         : gsub('\r\n','\n') : gsub('\r','\n')
+         : gsub ( '\r\n?' , '\n' )
+end
+local CountBeamerEnvironments
+function CountBeamerEnvironments ( code ) return
+   (
+     Ct (
+          (
+            P "\\begin{" * beamerEnvironments * ( 1 - P "\r" ) ^ 0 * C "\r"
+            +
+            ( 1 - P "\r" ) ^ 0 * "\r"
+          ) ^ 0
+          * ( 1 - P "\r" ) ^ 0
+          * -1
+        )  / table.getn
+   ) : match ( code )
 end
 function piton.CountLines ( code )
-  local count = 0
+  local count
   count =
      ( Ct ( ( ( 1 - P "\r" ) ^ 0 * C "\r" ) ^ 0
-            * ( ( 1 - P "\r" ) ^ 1 * Cc "\r" ) ^ -1
+            *
+            (
+               space ^ 0 * ( 1 - P "\r" - space ) *  ( 1 - P "\r" ) ^ 0 * Cc "\r"
+               + space ^ 0
+            ) ^ -1
             * -1
           ) / table.getn
      ) : match ( code )
   if piton.beamer then
-    local count_env_beamer
-    count_env_beamer =
-      (
-        Ct (
-             (
-               P "\\begin{" * beamerEnvironments * ( 1 - P "\r" ) ^ 0 * C "\r"
-               +
-               ( 1 - P "\r" ) ^ 0 * "\r"
-             ) ^ 0
-             * ( 1 - P "\r" ) ^ 0
-             * -1
-           )  / table.getn
-      ) : match ( code )
-    count = count - 2 * count_env_beamer
+    count = count - 2 * CountBeamerEnvironments ( code )
   end
-  sprintL3 ( [[ \global \g__piton_nb_lines_int = ]] .. count )
+  sprintL3 ( [[ \int_gset:Nn \g__piton_nb_lines_int { ]] .. count .. "}" )
 end
 function piton.CountNonEmptyLines ( code )
   local count = 0
@@ -1742,36 +1729,24 @@ function piton.CountNonEmptyLines ( code )
             * -1
           ) / table.getn
      ) : match ( code )
-  sprintL3
-   ( [[ \int_set:Nn  \l__piton_nb_non_empty_lines_int { ]] .. tostring(count) .. "}" )
-end
-function piton.CountLinesFile ( name )
-  local count = 0
-  for line in io.lines ( name ) do count = count + 1 end
-  sprintL3
-   ( string.format ( [[ \int_gset:Nn \g__piton_nb_lines_int { %i } ]], count ) )
-end
-function piton.CountNonEmptyLinesFile ( name )
-  local count = 0
-  for line in io.lines ( name ) do
-    if not ( ( P " " ^ 0 * -1 ) : match ( line ) ) then
-       count = count + 1
-    end
+  count = count + 1
+  if piton.beamer then
+    count = count - 2 * CountBeamerEnvironments ( code )
   end
   sprintL3
-   ( string.format ( [[ \int_set:Nn \l__piton_nb_non_empty_lines_int { % i } ]] , count ) )
+   ( [[ \int_set:Nn  \l__piton_nb_non_empty_lines_int { ]] .. count .. "}" )
 end
-function piton.ComputeRange(s,t,file_name)
+function piton.ComputeRange ( s , t , file_name )
   local first_line = -1
   local count = 0
   local last_found = false
   for line in io.lines ( file_name ) do
     if first_line == -1 then
-      if string.sub ( line , 1 , #s ) == s then
+      if line : sub ( 1 , #s ) == s then
         first_line = count
       end
     else
-      if string.sub ( line , 1 , #t ) == t then
+      if line : sub ( 1 , #t ) == t then
         last_found = true
         break
       end
@@ -1781,7 +1756,7 @@ function piton.ComputeRange(s,t,file_name)
   if first_line == -1 then
     sprintL3 [[ \__piton_error_or_warning:n { begin~marker~not~found } ]]
   else
-    if last_found == false then
+    if not last_found then
       sprintL3 [[ \__piton_error_or_warning:n { end~marker~not~found } ]]
     end
   end
@@ -1859,18 +1834,47 @@ function piton.ComputeLinesStatus ( code , splittable )
   end
   piton.lines_status = lines_status
 end
-
+function piton.TranslateBeamerEnv ( code )
+  local s
+  s =
+  (
+    Ct (
+         (
+            space ^ 0
+            * C (
+                  ( P "\\begin{" + "\\end{" )
+                  * beamerEnvironments * "}" * ( 1 - P "\r" ) ^ 0 * "\r"
+                )
+            + C ( ( 1 - P "\r" ) ^ 0 * "\r" )
+          ) ^ 0
+          *
+          (
+            (
+              space ^ 0
+              * C (
+                    ( P "\\begin{" + "\\end{" )
+                    * beamerEnvironments * "}" * ( 1 - P "\r" ) ^ 0 * -1
+                  )
+              + C ( ( 1 - P "\r" ) ^ 1 ) * -1
+            ) ^ -1
+          )
+       ) ^ -1  / table.concat
+   ) : match ( code )
+   sprintL3 ( [[ \tl_set:Nn \l__piton_listing_tl { ]] )
+   tex.sprint ( luatexbase.catcodetables.other , s )
+   sprintL3 ( "}" )
+end
 function piton.new_language ( lang , definition )
-  lang = string.lower ( lang )
+  lang = lang : lower ( )
   local alpha , digit = lpeg.alpha , lpeg.digit
-  local extra_letters = { "@" , "_" , "$" } -- $
+  local extra_letters = { "@" , "_" , "$" } --
   function add_to_letter ( c )
     if c ~= " " then table.insert ( extra_letters , c ) end
   end
   function add_to_digit ( c )
     if c ~= " " then digit = digit + c end
   end
-  local other = S ":_@+-*/<>!?;.()[]~^=#&\"\'\\$" -- $
+  local other = S ":_@+-*/<>!?;.()[]~^=#&\"\'\\$" --
   local extra_others = { }
   function add_to_other ( c )
     if c ~= " " then
@@ -1972,8 +1976,7 @@ function piton.new_language ( lang , definition )
   function keyword_to_lpeg ( name ) return
     Q ( Cmt (
               C ( identifier ) ,
-              function ( s , i , a ) return
-                string.upper ( a ) == string.upper ( name )
+              function ( _ , _ , a ) return a : upper ( ) == name : upper ( )
               end
             )
       )
