@@ -20,7 +20,7 @@
 %% -------------------------------------------
 %% 
 \def\PitonFileVersion{4.8x}
-\def\PitonFileDate{2025/08/31}
+\def\PitonFileDate{2025/09/04}
 
 
 
@@ -691,6 +691,12 @@
   }
 \keys_define:nn { PitonOptions }
   {
+    indentations-for-Foxit .choices:nn = { true , false }
+      {
+        \tl_if_eq:VnTF \l_keys_value_tl { true }
+          { \__piton_define_space_indentation_Foxit: }
+          { \cs_set_eq:NN \__piton_space_indentation: \space }
+      } ,
     box .choices:nn = { c , t , b , m }
       { \str_set_eq:NN \l__piton_box_str \l_keys_choice_tl } ,
     box .default:n = c ,
@@ -2023,16 +2029,20 @@
     \seq_gclear:N \g__piton_languages_seq
   }
 \AtEndDocument { \lua_now:n { piton.join_and_write_files() } }
-\cs_new_protected:Npn \__piton_space_indentation:
+\cs_new_protected:Npn \__piton_define_space_indentation_Foxit:
   {
-    \pdfextension literal { /Artifact << /ActualText (\space) >> BDC }
-    {
-      \color { white }
-      \transparent { 0 }
-      . % previously : ␣ U+2423
-    }
-    \pdfextension literal { EMC }
+    \cs_set_protected:Npn \__piton_space_indentation:
+      {
+        \pdfextension literal { /Artifact << /ActualText (\space) >> BDC }
+          {
+            \color { white }
+            \transparent { 0 }
+            . % previously : ␣ U+2423
+          }
+        \pdfextension literal { EMC }
+      }
   }
+\__piton_define_space_indentation_Foxit:
 \AddToHook { env / piton / begin }
   { \__piton_fatal:n { No~environment~piton } }
 

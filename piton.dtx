@@ -88,12 +88,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.8b}
-\def\PitonFileDate{2025/08/30}
+\def\PitonFileVersion{4.8x}
+\def\PitonFileDate{2025/09/04}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.8b" -- 2025/08/30
+piton_version = "4.8x" -- 2025/09/04
 %</LUA>
 %\fi
 %
@@ -133,7 +133,7 @@ piton_version = "4.8b" -- 2025/08/30
 %    \begin{Piton}
 % from math import pi
 %
-% def arctan(x,n=10):
+% def arctan(x,n:int=10):
 %    """Compute the mathematical value of arctan(x)
 %
 %    n is the number of terms in the sum
@@ -5501,6 +5501,12 @@ piton_version = "4.8b" -- 2025/08/30
 %    \begin{macrocode}
 \keys_define:nn { PitonOptions }
   {
+    indentations-for-Foxit .choices:nn = { true , false }
+      {
+        \tl_if_eq:VnTF \l_keys_value_tl { true }
+          { \@@_define_space_indentation_Foxit: }
+          { \cs_set_eq:NN \@@_space_indentation: \space }
+      } ,
     box .choices:nn = { c , t , b , m }
       { \str_set_eq:NN \l_@@_box_str \l_keys_choice_tl } , 
     box .default:n = c ,
@@ -7686,16 +7692,20 @@ piton_version = "4.8b" -- 2025/08/30
 %
 % \bigskip
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_space_indentation:
+\cs_new_protected:Npn \@@_define_space_indentation_Foxit:
   {
-    \pdfextension literal { /Artifact << /ActualText (\space) >> BDC }
-    {
-      \color { white }
-      \transparent { 0 }
-      ␣ % U+2423
-    }
-    \pdfextension literal { EMC }
+    \cs_set_protected:Npn \@@_space_indentation:
+      {
+        \pdfextension literal { /Artifact << /ActualText (\space) >> BDC }
+          {
+            \color { white }
+            \transparent { 0 }
+            . % previously : ␣ U+2423 
+          }
+        \pdfextension literal { EMC } 
+      }
   }
+\@@_define_space_indentation_Foxit:  
 %    \end{macrocode}
 % 
 % \bigskip
