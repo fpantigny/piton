@@ -4052,14 +4052,14 @@ piton_version = "4.8x" -- 2025/09/04
 \msg_new:nnn { piton } { latex-too-old }
   { 
     Your~LaTeX~release~is~too~old. \\
-    You~need~at~least~the~version~of~2023-11-01 
+    You~need~at~least~the~version~of~2025-06-01 
   }
 %    \end{macrocode}
 %
 %    \begin{macrocode}
 \providecommand { \IfFormatAtLeastTF } { \@ifl@t@r \fmtversion }
 \IfFormatAtLeastTF
-  { 2023-11-01 } 
+  { 2025-06-01 } 
   { } 
   { \msg_fatal:nn { piton } { latex-too-old } }
 %    \end{macrocode}
@@ -4072,21 +4072,6 @@ piton_version = "4.8x" -- 2025/09/04
 \RequirePackage { transparent }
 %    \end{macrocode}
 %
-% \bigskip
-% It will be possible to delete the following lines in the future.
-%    \begin{macrocode}
-\ProvideDocumentCommand { \IfPackageLoadedT } { m m }
-  { \IfPackageLoadedTF { #1 } { #2 } { } }
-
-\ProvideDocumentCommand { \IfPackageLoadedF } { m m }
-  { \IfPackageLoadedTF { #1 } { } { #2 } }
-
-\ProvideDocumentCommand { \IfClassLoadedT } { m m }
-  { \IfClassLoadedTF { #1 } { #2 } {  } }
-
-\ProvideDocumentCommand { \IfClassLoadedF } { m m }
-  { \IfClassLoadedTF { #1 } { } { #2 } }
-%    \end{macrocode}
 %
 % \bigskip
 %    \begin{macrocode}
@@ -5005,9 +4990,9 @@ piton_version = "4.8x" -- 2025/09/04
 % within a command |\PitonStyle{String.Long}{...}|. That's why the
 % use of |\tl_replace_all:Nnn| is not enough. 
 %
-% The first implementation was using |\regex_replace_all:nnN|
+% The first implementation was using |\tl_regex_replace_all:nnN|
 %
-% |\regex_replace_all:nnN { \x20 } { \c { @@_breakable_space: } } \l_tmpa_tl|
+% |\tl_regex_replace_all:nnN { \x20 } { \c { @@_breakable_space: } } \l_tmpa_tl|
 %
 % but that programming was certainly slow.
 %
@@ -5505,7 +5490,7 @@ piton_version = "4.8x" -- 2025/09/04
       {
         \tl_if_eq:VnTF \l_keys_value_tl { true }
           { \@@_define_space_indentation_Foxit: }
-          { \cs_set_eq:NN \@@_space_indentation: \space }
+          { \@@_define_space_indentation_normal: }
       } ,
     box .choices:nn = { c , t , b , m }
       { \str_set_eq:NN \l_@@_box_str \l_keys_choice_tl } , 
@@ -6163,6 +6148,7 @@ piton_version = "4.8x" -- 2025/09/04
     \cs_set:cpn { pitonStyle _ \l_piton_language_str  _ Prompt } { }
     \cs_set:cpn { pitonStyle _ Prompt } { }
     \cs_set_eq:NN \@@_trailing_space: \space
+    \cs_set:Nn \@@_space_indentation: { \space } 
     \tl_set:Ne \l_tmpa_tl 
       { 
         \lua_now:e 
@@ -6335,94 +6321,7 @@ piton_version = "4.8x" -- 2025/09/04
 %    \end{macrocode}
 %
 %
-%    \begin{macrocode}
-\cs_new_protected:Npn \@@_define_newpitonenvironment_old:
-  {
-%    \end{macrocode}
-%
 % \bigskip
-% The first argument of the following macro is one of the four strings:
-% |New|, |Renew|, |Provide| and |Declare|.
-%    \begin{macrocode}
-    \cs_new_protected:Nn \@@_DefinePitonEnvironment:nnnnn 
-      { 
-%    \end{macrocode}
-% We construct a TeX macro which will catch as argument all the tokens until
-% |\end{|\texttt{\textsl{name_env}}|}| with, in that
-% |\end{|\texttt{\textsl{name_env}}|}|, the catcodes of |\|, |{| and |}| equal to
-% 12 (``\texttt{other}''). The latter explains why the definition of that
-% function is a bit complicated.
-%    \begin{macrocode}
-        \use:x 
-          { 
-            \cs_set_protected:Npn 
-              \use:c { _@@_collect_ ##2 :w } 
-              ########1 
-              \c_backslash_str end \c_left_brace_str ##2 \c_right_brace_str
-          }
-              { 
-                \group_end:
-%    \end{macrocode}
-% Maybe, we should deactivate all the ``shorthands'' of \pkg{babel} (when
-% \pkg{babel} is loaded) with the following instruction:
-%
-% \verb|\IfPackageLoadedT { babel } { \languageshorthands { none } }|
-%
-% But we should be sure that there is no consequence in the LaTeX comments...
-%
-% \bigskip
-%    \begin{macrocode}
-                \tl_set:Nn \l_@@_listing_tl { ####1 }
-                \@@_composition:
-%    \end{macrocode}
-% 
-% The following |\end{##2}| is only for the stack of environments of LaTeX.
-%    \begin{macrocode}
-                \end { ##2 }
-              }   
-%    \end{macrocode}
-%
-% \bigskip
-% We can now define the new environment.
-%
-% We are still in the definition of the command |\NewPitonEnvironment|...
-%    \begin{macrocode}
-        \use:c { ##1 DocumentEnvironment } { ##2 } { ##3 } 
-          {
-            \cs_set_eq:NN \PitonOptions \@@_fake_PitonOptions
-            ##4 
-            \@@_pre_composition:
-            \int_compare:nNnT { \l_@@_number_lines_start_int } > { \c_zero_int }
-              {
-                \int_gset:Nn \g_@@_visual_line_int
-                  { \l_@@_number_lines_start_int - 1 }
-              }
-            \group_begin:
-            \tl_map_function:nN 
-              { \ \\ \{ \} \$ \& \# \^ \_ \% \~ \^^I } 
-              \char_set_catcode_other:N 
-            \use:c { _@@_collect_ ##2 :w }
-          }
-          { 
-            ##5 
-            \ignorespacesafterend
-          } 
-%    \end{macrocode}
-%
-% \medskip
-% The following code is for technical reasons. We want to change the catcode of
-% |^^M| before catching the arguments of the new environment we are defining.
-% Indeed, if not, we will have problems if there is a final optional argument in
-% our environment (if that final argument is not used by the user in an
-% instance of the environment, a spurious space is inserted, probably because
-% the |^^M| is converted to space).
-%    \begin{macrocode}
-        \AddToHook { env / ##2 / begin } { \char_set_catcode_other:N \^^M }
-      }
-  }      
-%    \end{macrocode}
-%
-%
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_store_body:n #1 
   {
@@ -6436,43 +6335,32 @@ piton_version = "4.8x" -- 2025/09/04
   }
 %    \end{macrocode}      
 %
-%    \begin{macrocode}
-\cs_new_protected:Npn \@@_define_newpitonenvironment_new:
-  {
 % The first argument of the following macro is one of the four strings:
 % |New|, |Renew|, |Provide| and |Declare|.
 %    \begin{macrocode}
-    \cs_new_protected:Nn \@@_DefinePitonEnvironment:nnnnn
+\cs_new_protected:Nn \@@_DefinePitonEnvironment:nnnnn
+  {
+    \use:c { #1 DocumentEnvironment } { #2 } { #3 > { \@@_store_body:n } c } 
       {
-        \use:c { ##1 DocumentEnvironment } { ##2 } { ##3 > { \@@_store_body:n } c } 
-          {
-            \cs_set_eq:NN \PitonOptions \@@_fake_PitonOptions
-            ##4
-            \@@_pre_composition:
-            \int_compare:nNnT { \l_@@_number_lines_start_int } > { \c_zero_int }
-              { 
-                \int_gset:Nn \g_@@_visual_line_int 
-                  { \l_@@_number_lines_start_int - 1 } 
-              }
-            \bool_if:NT \g_@@_beamer_bool
-              { \@@_translate_beamer_env:o { \l_@@_listing_tl } }
-            \bool_if:NT \g_@@_footnote_bool \savenotes 
-            \@@_composition:
-            \bool_if:NT \g_@@_footnote_bool \endsavenotes 
-            ##5
+        \cs_set_eq:NN \PitonOptions \@@_fake_PitonOptions
+        #4
+        \@@_pre_composition:
+        \int_compare:nNnT { \l_@@_number_lines_start_int } > { \c_zero_int }
+          { 
+            \int_gset:Nn \g_@@_visual_line_int 
+              { \l_@@_number_lines_start_int - 1 } 
           }
-          { \ignorespacesafterend }  
-      }    
-  }
+        \bool_if:NT \g_@@_beamer_bool
+          { \@@_translate_beamer_env:o { \l_@@_listing_tl } }
+        \bool_if:NT \g_@@_footnote_bool \savenotes 
+        \@@_composition:
+        \bool_if:NT \g_@@_footnote_bool \endsavenotes 
+        #5
+      }
+      { \ignorespacesafterend }  
+  }    
 %    \end{macrocode}
 %
-% 
-% \bigskip
-%    \begin{macrocode}
-\IfFormatAtLeastTF { 2025-06-01 }
-  { \@@_define_newpitonenvironment_new: }
-  { \@@_define_newpitonenvironment_old: }
-%    \end{macrocode}
 % 
 %
 % \bigskip
@@ -6662,11 +6550,7 @@ piton_version = "4.8x" -- 2025/09/04
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_composition_ii:
   {
-%    \end{macrocode}
-% It will be possible to delete the |\exp_not:N| in TeXLive 2025
-% because |\begin| is now protected by |\protected| (and not by |\protect|).
-%    \begin{macrocode}
-    \use:e { \exp_not:N \begin { minipage } [ \l_@@_box_str ] }
+    \use:e { \begin { minipage } [ \l_@@_box_str ] }
       { \l_@@_listing_width_dim }
 %    \end{macrocode}
 % Here, |\vbox_unpack:N|, instead of |\box_use:N| is mandatory for the vertical
@@ -6689,11 +6573,7 @@ piton_version = "4.8x" -- 2025/09/04
   {
     \use:e
       {
-%    \end{macrocode}
-% It will be possible to delete the |\exp_not:N| in TeXLive 2025
-% because |\begin| is now protected by |\protected| (and not by |\protect|).
-%    \begin{macrocode}
-        \exp_not:N \begin { tcolorbox }
+        \begin { tcolorbox }
 %    \end{macrocode}    
 % Even though we use the key |breakable| of |{tcolorbox}|, our environment will be
 % breakable only when the key |splittable| of \pkg{piton} is used.
@@ -6713,11 +6593,7 @@ piton_version = "4.8x" -- 2025/09/04
   {
     \use:e
       {
-%    \end{macrocode}
-% It will be possible to delete the |\exp_not:N| in TeXLive 2025
-% because |\begin| is now protected by |\protected| (and not by |\protect|).
-%    \begin{macrocode}
-        \exp_not:N \begin { tcolorbox }
+        \begin { tcolorbox }
           [
             hbox ,
             text~width = \l_@@_listing_width_dim ,
@@ -7692,9 +7568,14 @@ piton_version = "4.8x" -- 2025/09/04
 %
 % \bigskip
 %    \begin{macrocode}
+\cs_new_protected:Npn \@@_define_space_indentation_normal:
+  { \cs_set_protected:Nn \@@_space_indentation: { \space } }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
 \cs_new_protected:Npn \@@_define_space_indentation_Foxit:
   {
-    \cs_set_protected:Npn \@@_space_indentation:
+    \cs_set_protected:Nn \@@_space_indentation:
       {
         \pdfextension literal { /Artifact << /ActualText (\space) >> BDC }
           {
@@ -8078,7 +7959,7 @@ piton_version = "4.8x" -- 2025/09/04
       { 
         tex.sprint ( luatexbase.catcodetables.expl ,
                      [[\@@_test_version:n {]] .. piton_version ..  "}" ) 
-      } 
+      }
   }
 %    \end{macrocode}
 % 
@@ -12306,3 +12187,6 @@ end
 % Local Variables:
 % fill-column: 80
 % End:
+
+
+ 

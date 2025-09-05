@@ -39,26 +39,15 @@
 \msg_new:nnn { piton } { latex-too-old }
   {
     Your~LaTeX~release~is~too~old. \\
-    You~need~at~least~the~version~of~2023-11-01
+    You~need~at~least~the~version~of~2025-06-01
   }
 \providecommand { \IfFormatAtLeastTF } { \@ifl@t@r \fmtversion }
 \IfFormatAtLeastTF
-  { 2023-11-01 }
+  { 2025-06-01 }
   { }
   { \msg_fatal:nn { piton } { latex-too-old } }
 \RequirePackage { amstext }
 \RequirePackage { transparent }
-\ProvideDocumentCommand { \IfPackageLoadedT } { m m }
-  { \IfPackageLoadedTF { #1 } { #2 } { } }
-
-\ProvideDocumentCommand { \IfPackageLoadedF } { m m }
-  { \IfPackageLoadedTF { #1 } { } { #2 } }
-
-\ProvideDocumentCommand { \IfClassLoadedT } { m m }
-  { \IfClassLoadedTF { #1 } { #2 } {  } }
-
-\ProvideDocumentCommand { \IfClassLoadedF } { m m }
-  { \IfClassLoadedTF { #1 } { } { #2 } }
 \cs_new_protected:Npn \__piton_error:n { \msg_error:nn { piton } }
 \cs_new_protected:Npn \__piton_warning:n { \msg_warning:nn { piton } }
 \cs_new_protected:Npn \__piton_warning:nn { \msg_warning:nnn { piton } }
@@ -695,7 +684,7 @@
       {
         \tl_if_eq:VnTF \l_keys_value_tl { true }
           { \__piton_define_space_indentation_Foxit: }
-          { \cs_set_eq:NN \__piton_space_indentation: \space }
+          { \__piton_define_space_indentation_normal: }
       } ,
     box .choices:nn = { c , t , b , m }
       { \str_set_eq:NN \l__piton_box_str \l_keys_choice_tl } ,
@@ -1113,6 +1102,7 @@
     \cs_set:cpn { pitonStyle _ \l_piton_language_str  _ Prompt } { }
     \cs_set:cpn { pitonStyle _ Prompt } { }
     \cs_set_eq:NN \__piton_trailing_space: \space
+    \cs_set:Nn \__piton_space_indentation: { \space }
     \tl_set:Ne \l_tmpa_tl
       {
         \lua_now:e
@@ -1216,79 +1206,33 @@
       }
       { \dim_sub:Nn \l__piton_code_width_dim \l__piton_left_margin_dim }
   }
-\cs_new_protected:Npn \__piton_define_newpitonenvironment_old:
-  {
-    \cs_new_protected:Nn \__piton_DefinePitonEnvironment:nnnnn
-      {
-        \use:x
-          {
-            \cs_set_protected:Npn
-              \use:c { __piton_collect_ ##2 :w }
-              ########1
-              \c_backslash_str end \c_left_brace_str ##2 \c_right_brace_str
-          }
-              {
-                \group_end:
-                \tl_set:Nn \l__piton_listing_tl { ####1 }
-                \__piton_composition:
-                \end { ##2 }
-              }
-        \use:c { ##1 DocumentEnvironment } { ##2 } { ##3 }
-          {
-            \cs_set_eq:NN \PitonOptions \__piton_fake_PitonOptions
-            ##4
-            \__piton_pre_composition:
-            \int_compare:nNnT { \l__piton_number_lines_start_int } > { \c_zero_int }
-              {
-                \int_gset:Nn \g__piton_visual_line_int
-                  { \l__piton_number_lines_start_int - 1 }
-              }
-            \group_begin:
-            \tl_map_function:nN
-              { \ \\ \{ \} \$ \& \# \^ \_ \% \~ \^^I }
-              \char_set_catcode_other:N
-            \use:c { __piton_collect_ ##2 :w }
-          }
-          {
-            ##5
-            \ignorespacesafterend
-          }
-        \AddToHook { env / ##2 / begin } { \char_set_catcode_other:N \^^M }
-      }
-  }
 \cs_new_protected:Npn \__piton_store_body:n #1
   {
     \tl_set:Ne \obeyedline { \char_generate:nn { 13 } { 11 } }
     \tl_set:Ne \l__piton_listing_tl { #1 }
     \tl_set_eq:NN \ProcessedArgument \l__piton_listing_tl
   }
-\cs_new_protected:Npn \__piton_define_newpitonenvironment_new:
+\cs_new_protected:Nn \__piton_DefinePitonEnvironment:nnnnn
   {
-    \cs_new_protected:Nn \__piton_DefinePitonEnvironment:nnnnn
+    \use:c { #1 DocumentEnvironment } { #2 } { #3 > { \__piton_store_body:n } c }
       {
-        \use:c { ##1 DocumentEnvironment } { ##2 } { ##3 > { \__piton_store_body:n } c }
+        \cs_set_eq:NN \PitonOptions \__piton_fake_PitonOptions
+        #4
+        \__piton_pre_composition:
+        \int_compare:nNnT { \l__piton_number_lines_start_int } > { \c_zero_int }
           {
-            \cs_set_eq:NN \PitonOptions \__piton_fake_PitonOptions
-            ##4
-            \__piton_pre_composition:
-            \int_compare:nNnT { \l__piton_number_lines_start_int } > { \c_zero_int }
-              {
-                \int_gset:Nn \g__piton_visual_line_int
-                  { \l__piton_number_lines_start_int - 1 }
-              }
-            \bool_if:NT \g__piton_beamer_bool
-              { \__piton_translate_beamer_env:o { \l__piton_listing_tl } }
-            \bool_if:NT \g__piton_footnote_bool \savenotes
-            \__piton_composition:
-            \bool_if:NT \g__piton_footnote_bool \endsavenotes
-            ##5
+            \int_gset:Nn \g__piton_visual_line_int
+              { \l__piton_number_lines_start_int - 1 }
           }
-          { \ignorespacesafterend }
+        \bool_if:NT \g__piton_beamer_bool
+          { \__piton_translate_beamer_env:o { \l__piton_listing_tl } }
+        \bool_if:NT \g__piton_footnote_bool \savenotes
+        \__piton_composition:
+        \bool_if:NT \g__piton_footnote_bool \endsavenotes
+        #5
       }
+      { \ignorespacesafterend }
   }
-\IfFormatAtLeastTF { 2025-06-01 }
-  { \__piton_define_newpitonenvironment_new: }
-  { \__piton_define_newpitonenvironment_old: }
 \NewDocumentCommand { \NewPitonEnvironment } { }
   { \__piton_DefinePitonEnvironment:nnnnn { New } }
 \NewDocumentCommand { \DeclarePitonEnvironment } { }
@@ -1390,7 +1334,7 @@
   }
 \cs_new_protected:Npn \__piton_composition_ii:
   {
-    \use:e { \exp_not:N \begin { minipage } [ \l__piton_box_str ] }
+    \use:e { \begin { minipage } [ \l__piton_box_str ] }
       { \l__piton_listing_width_dim }
     \vbox_unpack:N \g__piton_output_box
     \kern 2.5 pt
@@ -1400,7 +1344,7 @@
   {
     \use:e
       {
-        \exp_not:N \begin { tcolorbox }
+        \begin { tcolorbox }
           [ breakable , text~width = \l__piton_listing_width_dim ]
       }
     \par
@@ -1411,7 +1355,7 @@
   {
     \use:e
       {
-        \exp_not:N \begin { tcolorbox }
+        \begin { tcolorbox }
           [
             hbox ,
             text~width = \l__piton_listing_width_dim ,
@@ -2029,9 +1973,11 @@
     \seq_gclear:N \g__piton_languages_seq
   }
 \AtEndDocument { \lua_now:n { piton.join_and_write_files() } }
+\cs_new_protected:Npn \__piton_define_space_indentation_normal:
+  { \cs_set_protected:Nn \__piton_space_indentation: { \space } }
 \cs_new_protected:Npn \__piton_define_space_indentation_Foxit:
   {
-    \cs_set_protected:Npn \__piton_space_indentation:
+    \cs_set_protected:Nn \__piton_space_indentation:
       {
         \pdfextension literal { /Artifact << /ActualText (\space) >> BDC }
           {
@@ -2307,6 +2253,7 @@
                      [[\__piton_test_version:n {]] .. piton_version ..  "}" )
       }
   }
+
 \endinput
 %%
 %% End of file `piton.sty'.
