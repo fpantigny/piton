@@ -136,8 +136,7 @@ local SkipSpace = Q " " ^ 0
 local Punct = Q ( S ".,:;!" )
 
 local Tab = "\t" * Lc [[ \__piton_tab: ]]
-local SpaceIndentation
-  = Lc [[ \__piton_leading_space: \__piton_space_indentation: ]] * P " "
+local LeadingSpace = Lc [[ \__piton_leading_space: ]] * P " "
 local Delim = Q ( S "[({})]" )
 local SpaceInString = space * Lc [[ \l__piton_space_in_string_tl ]]
 
@@ -294,7 +293,7 @@ local EOL =
     +
     Cc "EOL"
   )
-  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
+  * ( LeadingSpace ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 local CommentLaTeX =
   P ( piton.comment_latex )
   * Lc [[{\PitonStyle{Comment.LaTeX}{\ignorespaces]]
@@ -591,7 +590,7 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
          * Lc [[ \__piton_begin_line: ]]
-         * SpaceIndentation ^ 0
+         * LeadingSpace ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
          * Lc [[ \__piton_end_line: ]]
@@ -992,7 +991,7 @@ end)
         +
         ( space ^ 0 * "\r" ) ^ -1
         * Lc [[ \__piton_begin_line: ]]
-        * SpaceIndentation ^ 0
+        * LeadingSpace ^ 0
         * ( ( space * Lc [[ \__piton_trailing_space: ]] ) ^ 1 * -1
               + space ^ 0 * EOL
               + Main
@@ -1106,7 +1105,7 @@ do
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
          * Lc [[ \__piton_begin_line: ]]
-         * SpaceIndentation ^ 0
+         * LeadingSpace ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
          * Lc [[ \__piton_end_line: ]]
@@ -1270,7 +1269,7 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
          * Lc [[ \__piton_begin_line: ]]
-         * SpaceIndentation ^ 0
+         * LeadingSpace ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
          * Lc [[ \__piton_end_line: ]]
@@ -1332,7 +1331,7 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
          * Lc [[ \__piton_begin_line: ]]
-         * SpaceIndentation ^ 0
+         * LeadingSpace ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
          * Lc [[ \__piton_end_line: ]]
@@ -1377,7 +1376,7 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
          * Lc [[ \__piton_begin_line: ]]
-         * SpaceIndentation ^ 0
+         * LeadingSpace ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
          * Lc [[ \__piton_end_line: ]]
@@ -1466,7 +1465,7 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1
          * Lc [[ \__piton_begin_line: ]]
-         * SpaceIndentation ^ 0
+         * LeadingSpace ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
          * Lc [[ \__piton_end_line: ]]
@@ -1542,7 +1541,6 @@ function piton.ParseTer ( lang , code )
           (
             lang ,
             code : gsub ( [[\__piton_breakable_space: ]] , ' ' )
-                 : gsub ( [[\__piton_leading_space: ]] , '' )
           )
 end
 local AutoGobbleLPEG =
@@ -2183,7 +2181,7 @@ function piton.new_language ( lang , definition )
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
          * Lc [[ \__piton_begin_line: ]]
-         * SpaceIndentation ^ 0
+         * LeadingSpace ^ 0
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
          * -1
          * Lc [[ \__piton_end_line: ]]
@@ -2228,7 +2226,7 @@ function piton.new_language ( lang , definition )
            ( space ^ 0 * P "\r" ) ^ -1
            * Lc [[ \__piton_begin_line: ]]
            * Beamer
-           * SpaceIndentation ^ 0
+           * LeadingSpace ^ 0
            * LPEG1[lang]
            * -1
            * Lc [[ \__piton_end_line: ]]

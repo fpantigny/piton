@@ -4052,7 +4052,9 @@ piton_version = "4.8x" -- 2025/09/04
 \msg_new:nnn { piton } { latex-too-old }
   { 
     Your~LaTeX~release~is~too~old. \\
-    You~need~at~least~the~version~of~2025-06-01 
+    You~need~at~least~the~version~of~2025-06-01. \\
+    If~you~use~Overleaf,~you~need~at~least~"TeXLive~2025".\\
+    The~package~'piton'~won't~be~loaded.
   }
 %    \end{macrocode}
 %
@@ -4061,7 +4063,7 @@ piton_version = "4.8x" -- 2025/09/04
 \IfFormatAtLeastTF
   { 2025-06-01 } 
   { } 
-  { \msg_fatal:nn { piton } { latex-too-old } }
+  { \msg_critical:nn { piton } { latex-too-old } }
 %    \end{macrocode}
 % \bigskip
 % The command |\text| provided by the package \pkg{amstext} will be used to
@@ -4719,13 +4721,6 @@ piton_version = "4.8x" -- 2025/09/04
 \int_new:N \g_@@_indentation_int
 %    \end{macrocode}
 % 
-% \medskip
-% Be careful: when executed, the following command does \emph{not} create a
-% space (only an incrementation of the counter).
-%    \begin{macrocode}
-\cs_new_protected:Npn \@@_leading_space:
-  { \int_gincr:N \g_@@_indentation_int }
-%    \end{macrocode}
 %
 % 
 % \bigskip
@@ -5489,8 +5484,8 @@ piton_version = "4.8x" -- 2025/09/04
     indentations-for-Foxit .choices:nn = { true , false }
       {
         \tl_if_eq:VnTF \l_keys_value_tl { true }
-          { \@@_define_space_indentation_Foxit: }
-          { \@@_define_space_indentation_normal: }
+          { \@@_define_leading_space_Foxit: }
+          { \@@_define_leading_space_normal: }
       } ,
     box .choices:nn = { c , t , b , m }
       { \str_set_eq:NN \l_@@_box_str \l_keys_choice_tl } , 
@@ -6147,8 +6142,8 @@ piton_version = "4.8x" -- 2025/09/04
     \cs_set_eq:NN \@@_begin_line: \prg_do_nothing:
     \cs_set:cpn { pitonStyle _ \l_piton_language_str  _ Prompt } { }
     \cs_set:cpn { pitonStyle _ Prompt } { }
+    \cs_set_eq:NN \@@_leading_space: \space 
     \cs_set_eq:NN \@@_trailing_space: \space
-    \cs_set:Nn \@@_space_indentation: { \space } 
     \tl_set:Ne \l_tmpa_tl 
       { 
         \lua_now:e 
@@ -7568,15 +7563,25 @@ piton_version = "4.8x" -- 2025/09/04
 %
 % \bigskip
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_define_space_indentation_normal:
-  { \cs_set_protected:Nn \@@_space_indentation: { \space } }
+\cs_new_protected:Npn \@@_define_leading_space_normal:
+  {
+    \cs_set_protected:Npn \@@_leading_space:
+      {
+        \int_gincr:N \g_@@_indentation_int
+%    \end{macrocode}
+% Be careful: the |\hbox:n| is mandatory. 
+%    \begin{macrocode}
+        \hbox:n { ~ }
+      }
+  }
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_define_space_indentation_Foxit:
+\cs_new_protected:Npn \@@_define_leading_space_Foxit:
   {
-    \cs_set_protected:Nn \@@_space_indentation:
+    \cs_set_protected:Npn \@@_leading_space: 
       {
+        \int_gincr:N \g_@@_indentation_int
         \pdfextension literal { /Artifact << /ActualText (\space) >> BDC }
           {
             \color { white }
@@ -7586,17 +7591,23 @@ piton_version = "4.8x" -- 2025/09/04
         \pdfextension literal { EMC } 
       }
   }
-\@@_define_space_indentation_Foxit:  
+\@@_define_leading_space_Foxit:  
 %    \end{macrocode}
 % 
 % \bigskip
 % \subsubsection{Security}
 %
 %     \begin{macrocode}
-\AddToHook { env / piton / begin } 
+\AddToHook { env / piton / before } 
   { \@@_fatal:n { No~environment~piton } }
-
-\msg_new:nnn { piton } { No~environment~piton }
+%    \end{macrocode}
+%
+% 
+% \bigskip
+% \subsubsection{The error messages of the package}
+%
+%    \begin{macrocode}
+\@@_msg_new:nn { No~environment~piton }
   { 
     There~is~no~environment~piton!\\
     There~is~an~environment~{Piton}~and~a~command~
@@ -7604,11 +7615,6 @@ piton_version = "4.8x" -- 2025/09/04
     {piton}.~This~error~is~fatal.
   }
 %    \end{macrocode}
-%
-% 
-% \bigskip
-% \subsubsection{The error messages of the package}
-%
 %
 %    \begin{macrocode}
 \@@_msg_new:nn { rounded-corners~without~Tikz }
@@ -8246,11 +8252,8 @@ local Tab = "\t" * Lc [[ \@@_tab: ]]
 %    \end{macrocode}
 % 
 % \bigskip
-% Remember that |\@@_leading_space:| does \emph{not} create a space, only an
-% incrementation of the counter |\g_@@_indentation_int|.
 %    \begin{macrocode}
-local SpaceIndentation
-  = Lc [[ \@@_leading_space: \@@_space_indentation: ]] * P " "
+local LeadingSpace = Lc [[ \@@_leading_space: ]] * P " "
 %    \end{macrocode}
 %
 % \bigskip
@@ -8583,7 +8586,7 @@ local EOL =
     + 
     Cc "EOL" 
   )
-  * ( SpaceIndentation ^ 0 * # ( 1 - S " \r" ) ) ^ -1
+  * ( LeadingSpace ^ 0 * # ( 1 - S " \r" ) ) ^ -1
 %    \end{macrocode}
 %
 % 
@@ -9143,7 +9146,7 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
          * Lc [[ \@@_begin_line: ]]
-         * SpaceIndentation ^ 0 
+         * LeadingSpace ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
          * -1 
          * Lc [[ \@@_end_line: ]] 
@@ -9835,7 +9838,7 @@ end)
         +
         ( space ^ 0 * "\r" ) ^ -1
         * Lc [[ \@@_begin_line: ]]
-        * SpaceIndentation ^ 0
+        * LeadingSpace ^ 0
         * ( ( space * Lc [[ \@@_trailing_space: ]] ) ^ 1 * -1 
               + space ^ 0 * EOL 
               + Main 
@@ -10058,7 +10061,7 @@ do
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1 
          * Lc [[ \@@_begin_line: ]]
-         * SpaceIndentation ^ 0 
+         * LeadingSpace ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
          * -1 
          * Lc [[ \@@_end_line: ]] 
@@ -10344,7 +10347,7 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
          * Lc [[ \@@_begin_line: ]]
-         * SpaceIndentation ^ 0 
+         * LeadingSpace ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
          * -1 
          * Lc [[ \@@_end_line: ]]
@@ -10432,7 +10435,7 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
          * Lc [[ \@@_begin_line: ]]
-         * SpaceIndentation ^ 0 
+         * LeadingSpace ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
          * -1 
          * Lc [[ \@@_end_line: ]]
@@ -10505,7 +10508,7 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
          * Lc [[ \@@_begin_line: ]]
-         * SpaceIndentation ^ 0 
+         * LeadingSpace ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
          * -1 
          * Lc [[ \@@_end_line: ]]
@@ -10657,7 +10660,7 @@ do
     Ct (
          ( space ^ 0 * "\r" ) ^ -1 
          * Lc [[ \@@_begin_line: ]]
-         * SpaceIndentation ^ 0 
+         * LeadingSpace ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
          * -1 
          * Lc [[ \@@_end_line: ]]
@@ -10820,15 +10823,12 @@ end
 function piton.ParseTer ( lang , code )
 %    \end{macrocode}
 % Be careful: we have to write |[[\@@_breakable_space: ]]| with a space after
-% the name of the LaTeX command |\@@_breakable_space:|. Remember that
-% |\@@_leading_space:| does not create a space, only an incrementation of the
-% counter |\g_@@_indentation_int|. That's why we don't replace it by a space...
+% the name of the LaTeX command |\@@_breakable_space:|.
 %    \begin{macrocode}
   return piton.Parse 
           ( 
             lang , 
             code : gsub ( [[\@@_breakable_space: ]] , ' ' )
-                 : gsub ( [[\@@_leading_space: ]] , '' )
           )
 end
 %    \end{macrocode}
@@ -11911,7 +11911,7 @@ function piton.new_language ( lang , definition )
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1 
          * Lc [[ \@@_begin_line: ]]
-         * SpaceIndentation ^ 0 
+         * LeadingSpace ^ 0 
          * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0 
          * -1 
          * Lc [[ \@@_end_line: ]]
@@ -11961,7 +11961,7 @@ function piton.new_language ( lang , definition )
            ( space ^ 0 * P "\r" ) ^ -1 
            * Lc [[ \@@_begin_line: ]]
            * Beamer
-           * SpaceIndentation ^ 0 
+           * LeadingSpace ^ 0 
            * LPEG1[lang]
            * -1 
            * Lc [[ \@@_end_line: ]]

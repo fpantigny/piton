@@ -39,13 +39,15 @@
 \msg_new:nnn { piton } { latex-too-old }
   {
     Your~LaTeX~release~is~too~old. \\
-    You~need~at~least~the~version~of~2025-06-01
+    You~need~at~least~the~version~of~2025-06-01. \\
+    If~you~use~Overleaf,~you~need~at~least~"TeXLive~2025".\\
+    The~package~'piton'~won't~be~loaded.
   }
 \providecommand { \IfFormatAtLeastTF } { \@ifl@t@r \fmtversion }
 \IfFormatAtLeastTF
   { 2025-06-01 }
   { }
-  { \msg_fatal:nn { piton } { latex-too-old } }
+  { \msg_critical:nn { piton } { latex-too-old } }
 \RequirePackage { amstext }
 \RequirePackage { transparent }
 \cs_new_protected:Npn \__piton_error:n { \msg_error:nn { piton } }
@@ -262,8 +264,6 @@
 \int_new:N \l__piton_gobble_int
 \tl_set_eq:NN \l__piton_space_in_string_tl \nobreakspace
 \int_new:N \g__piton_indentation_int
-\cs_new_protected:Npn \__piton_leading_space:
-  { \int_gincr:N \g__piton_indentation_int }
 \cs_new_protected:Npn \__piton_label:n #1
   {
     \bool_if:NTF \l__piton_line_numbers_bool
@@ -683,8 +683,8 @@
     indentations-for-Foxit .choices:nn = { true , false }
       {
         \tl_if_eq:VnTF \l_keys_value_tl { true }
-          { \__piton_define_space_indentation_Foxit: }
-          { \__piton_define_space_indentation_normal: }
+          { \__piton_define_leading_space_Foxit: }
+          { \__piton_define_leading_space_normal: }
       } ,
     box .choices:nn = { c , t , b , m }
       { \str_set_eq:NN \l__piton_box_str \l_keys_choice_tl } ,
@@ -1101,8 +1101,8 @@
     \cs_set_eq:NN \__piton_begin_line: \prg_do_nothing:
     \cs_set:cpn { pitonStyle _ \l_piton_language_str  _ Prompt } { }
     \cs_set:cpn { pitonStyle _ Prompt } { }
+    \cs_set_eq:NN \__piton_leading_space: \space
     \cs_set_eq:NN \__piton_trailing_space: \space
-    \cs_set:Nn \__piton_space_indentation: { \space }
     \tl_set:Ne \l_tmpa_tl
       {
         \lua_now:e
@@ -1973,12 +1973,19 @@
     \seq_gclear:N \g__piton_languages_seq
   }
 \AtEndDocument { \lua_now:n { piton.join_and_write_files() } }
-\cs_new_protected:Npn \__piton_define_space_indentation_normal:
-  { \cs_set_protected:Nn \__piton_space_indentation: { \space } }
-\cs_new_protected:Npn \__piton_define_space_indentation_Foxit:
+\cs_new_protected:Npn \__piton_define_leading_space_normal:
   {
-    \cs_set_protected:Nn \__piton_space_indentation:
+    \cs_set_protected:Npn \__piton_leading_space:
       {
+        \int_gincr:N \g__piton_indentation_int
+        \hbox:n { ~ }
+      }
+  }
+\cs_new_protected:Npn \__piton_define_leading_space_Foxit:
+  {
+    \cs_set_protected:Npn \__piton_leading_space:
+      {
+        \int_gincr:N \g__piton_indentation_int
         \pdfextension literal { /Artifact << /ActualText (\space) >> BDC }
           {
             \color { white }
@@ -1988,11 +1995,10 @@
         \pdfextension literal { EMC }
       }
   }
-\__piton_define_space_indentation_Foxit:
-\AddToHook { env / piton / begin }
+\__piton_define_leading_space_Foxit:
+\AddToHook { env / piton / before }
   { \__piton_fatal:n { No~environment~piton } }
-
-\msg_new:nnn { piton } { No~environment~piton }
+\__piton_msg_new:nn { No~environment~piton }
   {
     There~is~no~environment~piton!\\
     There~is~an~environment~{Piton}~and~a~command~
