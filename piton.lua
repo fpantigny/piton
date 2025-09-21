@@ -2233,7 +2233,7 @@ function piton.new_language ( lang , definition )
          )
   end
 end
-function piton.join_and_write_files ( )
+function piton.write_files_now ( )
   for file_name , file_content in pairs ( piton.write_files ) do
     local file = io.open ( file_name , "w" )
     if file then
@@ -2244,21 +2244,5 @@ function piton.join_and_write_files ( )
         ( [[ \__piton_error_or_warning:nn { FileError } { ]] .. file_name .. "}" )
     end
   end
-  for file_name , file_content in pairs ( piton.join_files ) do
-    pdf.immediateobj("stream", file_content)
-    tex.print
-      (
-        [[ \pdfextension annot width 0pt height 0pt depth 0pt ]]
-        ..
-        [[ { /Subtype /FileAttachment /F 2 /Name /Paperclip ]]
-        ..
-        [[ /Contents (File included by the key 'join' of piton) ]]
-        ..
-        [[ /FS << /Type /Filespec /UF <]] .. file_name .. [[>]]
-        ..
-        [[ /EF << /F \pdffeedback lastobj 0 R >> >> } ]]
-      )
-  end
 end
-
 

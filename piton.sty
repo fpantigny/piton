@@ -196,6 +196,7 @@
 \str_set:Nn \l_piton_language_str { python }
 \tl_new:N \g_piton_last_code_tl
 \seq_new:N \l__piton_path_seq
+\seq_new:N \g__piton_join_seq
 \str_new:N \l__piton_path_write_str
 \bool_new:N \l__piton_tcolorbox_bool
 \dim_new:N \l__piton_tcb_margins_dim
@@ -832,11 +833,20 @@
 
     write .str_set:N = \l__piton_write_str ,
     write .value_required:n = true ,
-    join .code:n
-      = \str_set_convert:Nnnn \l__piton_join_str { #1 } { } { utf16/hex } ,
+    no-write .code:n = \str_set_eq:NN \l__piton_write_str \c_empty_str ,
+    no-write .value_forbidden:n = true ,
+    join .code:n =
+      \str_if_empty:nTF { #1 }
+        { \str_set_eq:NN \l__piton_join_str \c_empty_str }
+        {
+          \str_set_convert:Nnnn \l__piton_join_str { #1 } { } { utf16/hex }
+          \seq_if_in:NoF \g__piton_join_seq \l__piton_join_str
+            { \seq_gput_right:No \g__piton_join_seq \l__piton_join_str }
+        },
     join .value_required:n = true ,
-
-    left-margin      .code:n =
+    no-join .code:n = \str_set_eq:NN \l__piton_join_str \c_empty_str ,
+    no-join .value_forbidden:n = true ,
+    left-margin .code:n =
       \str_if_eq:nnTF { #1 } { auto }
         {
           \dim_zero:N \l__piton_left_margin_dim
@@ -1970,7 +1980,51 @@
     \seq_map_function:NN \g__piton_languages_seq \__piton_clear_functions_i:n
     \seq_gclear:N \g__piton_languages_seq
   }
-\AtEndDocument { \lua_now:n { piton.join_and_write_files() } }
+\AtEndDocument
+  {
+    \lua_now:n { piton.write_files_now ( ) }
+    \IfPDFManagementActiveTF
+      { \__piton_join_files: }
+      { \__piton_join_files_legacy: }
+  }
+\cs_new_protected:Npn \__piton_join_files:
+  {
+    \seq_map_inline:Nn \g__piton_join_seq
+      {
+        \lua_now:n { pdf.immediateobj ( "stream" , piton.join_files["##1"] ) }
+        \pdfmanagement_add:nne { Catalog / Names } { EmbeddedFiles }
+          {
+            <<
+               /Type /Filespec
+               /UF <##1>
+               /EF << /F~\pdf_object_ref_last: >>
+               /Desc (Computer~listing)
+               /AFRelationship /Supplement
+            >>
+          }
+      }
+  }
+\cs_new_protected:Npn \__piton_join_files_legacy:
+  {
+    \seq_map_inline:Nn \g__piton_join_seq
+      {
+        \lua_now:n { pdf.immediateobj ( "stream" , piton.join_files["##1"] ) }
+        \pdfextension annot~width~0pt~height~0pt~depth~0pt
+          {
+            /Subtype /FileAttachment
+            /F~2
+            /Name /Paperclip
+            /Contents (Computer~listing)
+            /FS <<
+                    /Type /Filespec
+                    /UF <##1>
+
+                    /EF << /F~\pdf_object_ref_last: >>
+                    /AFRelationship /Supplement
+                >>
+           }
+      }
+  }
 \cs_new_protected:Npn \__piton_define_leading_space_normal:
   {
     \cs_set_protected:Npn \__piton_leading_space:
@@ -2195,6 +2249,8 @@
     line-numbers/,~
     marker/,~
     math-comments,~
+    no-join,~
+    no-write,~
     path,~
     path-write,~
     print,~

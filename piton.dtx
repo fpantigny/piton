@@ -407,13 +407,19 @@ piton_version = "4.8x" -- 2025/09/15
 % compilation done by LuaLaTeX), it is erased. In fact, the file is written once at
 % the end of the compilation of the file by LuaLaTeX.
 %
+% For legibility, \pkg{piton} provides the key \Definition{no-write} (without value)
+% as alias for |write={}|.
+%
 % \item \index{path-write} The key \Definition{path-write} specifies a path
 % where the files written by the key |write| will be written.
 %
 % \item The key \Definition{join} is similar to the key |write| but the files which
 % are created are joined (as \emph{joined files}) in the \textsc{pdf}. Be
 % careful: Some \textsc{pdf} readers don't provide any tool to access to these
-% joined files. 
+% joined files.
+%
+% For legibility, \pkg{piton} provides the key \Definition{no-join} (without value)
+% as alias for |join={}|.
 %
 % \item \index{print}
 % The key \Definition{print} controls whether the content of the environment is 
@@ -2519,6 +2525,9 @@ piton_version = "4.8x" -- 2025/09/15
 % |\end{frame}| must be alone on a single line (except
 % for any leading whitespace).}
 %
+% Note that, if the frame contains only one slide, it's recommended to write
+%
+% |\begin{frame}[fragile=singleslide]|.
 %
 % \bigskip
 % When the package \pkg{piton} is used within the class
@@ -2527,7 +2536,8 @@ piton_version = "4.8x" -- 2025/09/15
 % but, if needed, it's also possible to activate that mechanism with the key
 % |beamer| provided by \pkg{piton} at load-time:
 % |\usepackage[beamer]{piton}|}, the behaviour of \pkg{piton} is slightly 
-% modified, as described now.
+% modified, as described now. This is done via an environment |{actionenv}| of
+% Beamer.
 %
 % \subsubsection{\{Piton\} and \textbackslash PitonInputFile are
 % ``overlay-aware''}
@@ -4071,6 +4081,13 @@ piton_version = "4.8x" -- 2025/09/15
 % mathematical mode.
 %    \begin{macrocode}
 \RequirePackage { amstext }
+%    \end{macrocode}
+%
+% \bigskip
+% The package \pkg{transparent} is compatible with \pkg{pdfmanagement} (which
+% is not loaded by \pkg{piton} but which is used for the key |join| when it is
+% loaded.
+%    \begin{macrocode}
 \RequirePackage { transparent }
 %    \end{macrocode}
 %
@@ -4381,6 +4398,12 @@ piton_version = "4.8x" -- 2025/09/15
 \seq_new:N \l_@@_path_seq
 %    \end{macrocode}
 %
+% \medskip
+% The names of all the join files will be stored in the following sequence:
+%    \begin{macrocode}
+\seq_new:N \g_@@_join_seq
+%    \end{macrocode}
+% 
 % \medskip
 % The following parameter corresponds to the key |path-write| (which is the path
 % used when writing files from listings inserted in the environments of
@@ -5660,6 +5683,8 @@ piton_version = "4.8x" -- 2025/09/15
     
     write .str_set:N = \l_@@_write_str ,
     write .value_required:n = true ,
+    no-write .code:n = \str_set_eq:NN \l_@@_write_str \c_empty_str ,
+    no-write .value_forbidden:n = true ,
 %    \end{macrocode}
 % For the key |join|, we convert immediatly the value of the key in utf16
 % (with the \text{bom} big endian that will be automatically inserted)
@@ -5668,11 +5693,18 @@ piton_version = "4.8x" -- 2025/09/15
 % brackets |<| and |>| since it is in hexadecimal). It's prudent to do that
 % conversion right now since that value will transit by the Lua of LuaTeX.
 %    \begin{macrocode}
-    join .code:n
-      = \str_set_convert:Nnnn \l_@@_join_str { #1 } { } { utf16/hex } ,
+    join .code:n =
+      \str_if_empty:nTF { #1 }
+        { \str_set_eq:NN \l_@@_join_str \c_empty_str }
+        {
+          \str_set_convert:Nnnn \l_@@_join_str { #1 } { } { utf16/hex }
+          \seq_if_in:NoF \g_@@_join_seq \l_@@_join_str
+            { \seq_gput_right:No \g_@@_join_seq \l_@@_join_str }
+        },
     join .value_required:n = true ,
-
-    left-margin      .code:n =
+    no-join .code:n = \str_set_eq:NN \l_@@_join_str \c_empty_str ,
+    no-join .value_forbidden:n = true ,
+    left-margin .code:n =
       \str_if_eq:nnTF { #1 } { auto }
         { 
           \dim_zero:N \l_@@_left_margin_dim 
@@ -7552,8 +7584,105 @@ piton_version = "4.8x" -- 2025/09/15
 %
 % \bigskip
 %    \begin{macrocode}
-\AtEndDocument { \lua_now:n { piton.join_and_write_files() } }
+\AtEndDocument
+  {
 %    \end{macrocode}
+% For the files written on the disk (with the key |write|), all the job is done by
+% Lua.
+%    \begin{macrocode}
+    \lua_now:n { piton.write_files_now ( ) }
+%    \end{macrocode}
+% For the files joined in the \textsc{pdf}, we have a modern version which uses
+% the package \pkg{pdfmanagement} of LaTeX and a legacy mechanism.
+%    \begin{macrocode}
+    \IfPDFManagementActiveTF
+      { \@@_join_files: }
+      { \@@_join_files_legacy: }
+  }
+%    \end{macrocode}
+%
+%
+% \bigskip
+% If the new pakcage \pkg{pdfmanagement} is used, we insert the file directly in the
+% catalog of the \textsc{pdf} file.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_join_files:
+  {
+    \seq_map_inline:Nn \g_@@_join_seq
+      {
+%    \end{macrocode}
+% The stream of the file is created by Lua (in the Lua side of LuaLaTeX) but
+% the file itselt will be added to the catalog of the \textsc{pdf} file in the LaTeX
+% part of Lualatex by using the command |\pdfmanagement_add:nne| of \pkg{pdfmanagement}.
+%    \begin{macrocode}
+        \lua_now:n { pdf.immediateobj ( "stream" , piton.join_files["##1"] ) }
+        \pdfmanagement_add:nne { Catalog / Names } { EmbeddedFiles }
+          {
+            <<
+               /Type /Filespec 
+%    \end{macrocode}
+% We recall that the value of |##1| comes from the key |join|, and that we have
+% converted immediately the value of that key in utf16 (with the \textsc{bom} big
+% endian) written in hexadecimal. It's the suitable form for insertion as value
+% of the key |/UF| between angular brackets |<| and |>|. 
+%    \begin{macrocode}
+               /UF <##1>
+%    \end{macrocode}
+% Here, we must put |/F| and not |/UF|.
+% It would have been possible to write |\pdffeedback lastobj~0~R| instead
+% |\pdf_object_ref_last:| since LuaTeX is the only engine allowed by \pkg{piton}.
+%    \begin{macrocode}
+               /EF << /F~\pdf_object_ref_last: >>
+               /Desc (Computer~listing)
+               /AFRelationship /Supplement
+            >>
+          }
+      }
+  } 
+%    \end{macrocode}
+%
+% \bigskip
+% The legacy version of |\@@_join_files:| will be used when the new
+% package \pkg{pdfmanagement} is \emph{not} used. It that case, we can't
+% insert the file directly in the catalog of the \text{pdf} file. Therefore, we
+% insert the file linked to a annotation in a page of the \textsc{pdf} file. We
+% try to make the annotation itself invisible with several technics.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_join_files_legacy:
+  {
+    \seq_map_inline:Nn \g_@@_join_seq
+      {
+        \lua_now:n { pdf.immediateobj ( "stream" , piton.join_files["##1"] ) }
+        \pdfextension annot~width~0pt~height~0pt~depth~0pt
+%    \end{macrocode}
+% The entry |/F| in the \textsc{pdf} dictionnary of the annotation is an
+% unsigned 32-bit integer containing flags specifying various characteristics of
+% the annotation. The bit in position 2 means \emph{Hidden}.
+% However, despite that bit which means \emph{Hidden}, some \textsc{pdf} readers
+% show the annotation. That's why we have used |width 0pt height 0pt depth 0pt|.
+%    \begin{macrocode}
+          {
+            /Subtype /FileAttachment
+            /F~2
+            /Name /Paperclip
+            /Contents (Computer~listing)
+            /FS <<
+                    /Type /Filespec
+                    /UF <##1>
+%    \end{macrocode}                    
+% It would have been possible to write |\pdffeedback lastobj~0~R| instead
+% |\pdf_object_ref_last:| since LuaTeX is the only engine allowed by \pkg{piton}. Remark
+% that |\pdf_object_ref_last:| is in the LaTeX kernel (not in the package |pdfmanagement|).
+%    \begin{macrocode}
+                    
+                    /EF << /F~\pdf_object_ref_last: >> 
+                    /AFRelationship /Supplement
+                >>
+           }
+      }
+  }
+%    \end{macrocode}
+% 
 %
 % \bigskip
 %
@@ -7877,6 +8006,8 @@ piton_version = "4.8x" -- 2025/09/15
     line-numbers/,~
     marker/,~
     math-comments,~
+    no-join,~
+    no-write,~
     path,~
     path-write,~
     print,~
@@ -11971,7 +12102,7 @@ end
 % \subsubsection{We write the files (key 'write') and join the files in the PDF (key 'join')}
 %
 %    \begin{macrocode}
-function piton.join_and_write_files ( )
+function piton.write_files_now ( )
   for file_name , file_content in pairs ( piton.write_files ) do
     local file = io.open ( file_name , "w" ) 
     if file then
@@ -11982,40 +12113,7 @@ function piton.join_and_write_files ( )
         ( [[ \@@_error_or_warning:nn { FileError } { ]] .. file_name .. "}" )
     end 
   end
-%    \end{macrocode}
-%
-%    \begin{macrocode}
-  for file_name , file_content in pairs ( piton.join_files ) do
-    pdf.immediateobj("stream", file_content)
-    tex.print
-      ( 
-        [[ \pdfextension annot width 0pt height 0pt depth 0pt ]]
-        ..
-%    \end{macrocode}
-% The entry |/F| in the \textsc{pdf} dictionnary of the annotation is an
-% unsigned 32-bit integer containing flags specifying various characteristics of
-% the annotation. The bit in position 2 means \emph{Hidden}.
-% However, despite that bit which means \emph{Hidden}, some \textsc{pdf} readers
-% show the annotation. That's why we have used |width 0pt height 0pt depth 0pt|.
-%    \begin{macrocode}
-        [[ { /Subtype /FileAttachment /F 2 /Name /Paperclip ]]
-        ..
-        [[ /Contents (File included by the key 'join' of piton) ]]
-        ..
-%    \end{macrocode}
-% We recall that the value of |file_name| comes from the key |join|,
-% and that we have converted immediatly the value of the key in utf16
-% (with the \textsc{bom} big endian) written in hexadecimal.
-% It's the suitable form for insertion as value of the key |/UF| between angular
-% brackets |<| and |>|.
-%    \begin{macrocode} 
-        [[ /FS << /Type /Filespec /UF <]] .. file_name .. [[>]]
-        ..
-        [[ /EF << /F \pdffeedback lastobj 0 R >> >> } ]] 
-      )
-  end
-end
-
+end  
 %</LUA>
 %    \end{macrocode}
 %

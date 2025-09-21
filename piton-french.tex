@@ -458,6 +458,9 @@ de l'environnement courant dans ce fichier. À la première utilisation du fichi
 par \pkg{piton} (au cours d'une compilation avec LuaLaTeX), celui-ci est effacé.
 L'écriture du fichier ne se fait en fait qu'à la fin de la compilation avec LuaLaTeX.
 
+Pour la lisibilité, \pkg{piton} fournit la clé \Definition{no-write} (sans valeur) comme
+alias de |write=|.
+
 \item \index{path-write} La clé \Definition{path-write} indique un chemin où
 seront écrits les fichiers écrits par l'emploi de la clé |write| précédente.
 
@@ -466,6 +469,9 @@ La clé \Definition{join} est similaire à la clé |write| mais les fichiers cr�
 \emph{joints} (comme «pièces jointes») dans le \textsc{pdf}. Attention :
 certains lecteurs de \textsc{pdf} ne proposent pas d'outil permettant d'accéder à
 ces fichiers joints. 
+
+Pour la lisibilité, \pkg{piton} fournit la clé \Definition{no-join} (sans valeur) comme
+alias de |join=|.
 
 
 \item \index{print (clé)}
@@ -2564,6 +2570,8 @@ de Beamer protégés par la clé |fragile|, c'est-à-dire débutant par
   Beamer qui utilise la clé |fragile|, l'instruction |\end{frame}| doit être seule sur une
   ligne (à l'exception d'éventuels espaces en début de ligne).}
 
+Rappelons également que si le \emph{frame} ne contient qu'une seule diapo (\emph{slide}),
+il vaut mieux écrire : |\begin{frame}[fragile=singleslide]|
 
 \medskip
 Quand l'extension \pkg{piton} est utilisée dans la classe
@@ -2578,7 +2586,8 @@ de \pkg{piton} est légèrement modifié, comme décrit maintenant.
 Quand \pkg{piton} est utilisé avec Beamer, la command |\PitonInputFile| et
 l'environnement |{Piton}| (mais pas les environnements créés par
 |\NewPitonEnvironment|) acceptent l'argument optionnel |<...>| de Beamer pour
-indiquer les «\emph{overlays}» concernés.
+indiquer les «\emph{overlays}» concernés. Cela est fait via un environnement |{actionenv}|
+de Beamer.
 
 On peut par exemple écrire :
 
