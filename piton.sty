@@ -20,8 +20,7 @@
 %% -------------------------------------------
 %% 
 \def\PitonFileVersion{4.8x}
-\def\PitonFileDate{2025/09/15}
-
+\def\PitonFileDate{2025/09/28}
 
 
 
@@ -226,6 +225,10 @@
 \bool_set_true:N \l__piton_print_bool
 \str_new:N \l__piton_write_str
 \str_new:N \l__piton_join_str
+\bool_new:N \l__piton_paperclip_bool
+\str_new:N \l__piton_paperclip_str
+\bool_new:N \l__piton_annotation_bool
+\int_new:N \g__piton_paperclip_int
 \bool_new:N \l__piton_show_spaces_bool
 \bool_new:N \l__piton_break_lines_in_Piton_bool
 \bool_set_true:N \l__piton_break_lines_in_Piton_bool
@@ -831,18 +834,23 @@
       \dim_set:Nn \l__piton_width_dim { #1 } ,
     max-width .value_required:n = true ,
 
+    paperclip .code:n =
+      \bool_set_true:N \l__piton_paperclip_bool
+      \tl_if_novalue:nTF { #1 }
+        { \str_set:Nn \l__piton_paperclip_str { } }
+        { \str_set:Nn \l__piton_paperclip_str { #1 } } ,
+
+    annotation .bool_set:N = \l__piton_annotation_bool ,
+    annotation .default:n = true ,
+
     write .str_set:N = \l__piton_write_str ,
     write .value_required:n = true ,
     no-write .code:n = \str_set_eq:NN \l__piton_write_str \c_empty_str ,
     no-write .value_forbidden:n = true ,
     join .code:n =
-      \str_if_empty:nTF { #1 }
-        { \str_set_eq:NN \l__piton_join_str \c_empty_str }
-        {
-          \str_set_convert:Nnnn \l__piton_join_str { #1 } { } { utf16/hex }
-          \seq_if_in:NoF \g__piton_join_seq \l__piton_join_str
-            { \seq_gput_right:No \g__piton_join_seq \l__piton_join_str }
-        },
+      \str_set:Nn \l__piton_join_str { #1 }
+      \seq_if_in:NnF \g__piton_join_seq { #1 }
+        { \seq_gput_right:No \g__piton_join_seq { #1 } } ,
     join .value_required:n = true ,
     no-join .code:n = \str_set_eq:NN \l__piton_join_str \c_empty_str ,
     no-join .value_forbidden:n = true ,
@@ -915,18 +923,17 @@
     all-line-numbers .code:n =
       \bool_set_true:N \l__piton_line_numbers_bool
       \bool_set_false:N \l__piton_skip_empty_lines_bool ,
+    rounded-corners .code:n =
+      \AtBeginDocument
+        {
+          \IfPackageLoadedTF { tikz }
+            { \dim_set:Nn \l__piton_rounded_corners_dim { #1 } }
+            { \__piton_err_rounded_corners_without_Tikz: }
+        } ,
+    rounded-corners .default:n = 4 pt
   }
 \hook_gput_code:nnn { begindocument } { . }
   {
-    \keys_define:ne { PitonOptions }
-      {
-        \IfPackageLoadedTF { tikz }
-          {
-            rounded-corners .dim_set:N = \l__piton_rounded_corners_dim ,
-            rounded-corners .default:n = 4 pt
-          }
-          { rounded-corners .code:n = \__piton_err_rounded_corners_without_Tikz: }
-      }
     \IfPackageLoadedTF { tcolorbox }
       {
         \pgfkeysifdefined { / tcb / libload / breakable }
@@ -1238,10 +1245,67 @@
           { \__piton_translate_beamer_env:o { \l__piton_listing_tl } }
         \bool_if:NT \g__piton_footnote_bool \savenotes
         \__piton_composition:
+        \bool_lazy_or:nnT { \l__piton_paperclip_bool } { \l__piton_annotation_bool }
+          { \__piton_create_paperclip_annotation: }
         \bool_if:NT \g__piton_footnote_bool \endsavenotes
         #5
       }
       { \ignorespacesafterend }
+  }
+\cs_new_protected:Npn \__piton_create_paperclip_annotation:
+  {
+    \marginpar
+      {
+        \vspace* { - 0.8 em }
+        \hbox:n
+          {
+            \bool_if:NT \l__piton_annotation_bool
+              {
+                \lua_now:n { pdf.immediateobj ( "(" ..  piton.get_last_code() .. ")" ) }
+                \pdfextension annot~width~5pt~height~10pt~depth~0pt
+                  {
+                    /Subtype /Text
+                    /Contents~\pdf_object_ref_last:
+                    /Name /Note
+                    /Subj (Computer~listing)
+                    /ReplyType /Group
+                    /F~512
+                    /C [0.8~0.8~0.8]
+                  }
+                \hspace* { 7 mm }
+              }
+            \bool_if:NT \l__piton_paperclip_bool { \__piton_create_paperclip: }
+          }
+      }
+  }
+\cs_new_protected:Npn \__piton_create_paperclip:
+  {
+    \str_if_empty:NT \l__piton_paperclip_str
+      {
+        \int_gincr:N \g__piton_paperclip_int
+        \str_set:Ne \l__piton_paperclip_str { listing_\int_use:N \g__piton_paperclip_int .txt }
+      }
+    \lua_now:n { pdf.immediateobj ( "stream" , tostring ( piton.get_last_code() ) ) }
+    \box_move_down:nn
+      { 10 pt }
+      {
+        \hbox:n
+          {
+            \pdfextension annot~width~10pt~height~20pt~depth~0pt
+              {
+                /Subtype /FileAttachment
+                /Name /Paperclip
+                /F~8 % no zoom
+                /Contents (The~computer~listing)
+                /FS <<
+                       /Type /Filespec
+                       /F (\l__piton_paperclip_str)
+                       /EF << /F~\pdf_object_ref_last: >>
+                       /AFRelationship /Supplement
+                    >>
+               }
+          }
+      }
   }
 \NewDocumentCommand { \NewPitonEnvironment } { }
   { \__piton_DefinePitonEnvironment:nnnnn { New } }
@@ -1992,11 +2056,12 @@
     \seq_map_inline:Nn \g__piton_join_seq
       {
         \lua_now:n { pdf.immediateobj ( "stream" , piton.join_files["##1"] ) }
+        \str_set_convert:Nnnn \l_tmpa_str { ##1 } { } { utf16/hex }
         \pdfmanagement_add:nne { Catalog / Names } { EmbeddedFiles }
           {
             <<
                /Type /Filespec
-               /UF <##1>
+               /UF <\l_tmpa_str>
                /EF << /F~\pdf_object_ref_last: >>
                /Desc (Computer~listing)
                /AFRelationship /Supplement
@@ -2008,6 +2073,7 @@
   {
     \seq_map_inline:Nn \g__piton_join_seq
       {
+        \str_set_convert:Nnnn \l_tmpa_str { ##1 } { } { utf16/hex }
         \lua_now:n { pdf.immediateobj ( "stream" , piton.join_files["##1"] ) }
         \pdfextension annot~width~0pt~height~0pt~depth~0pt
           {
@@ -2017,8 +2083,7 @@
             /Contents (Computer~listing)
             /FS <<
                     /Type /Filespec
-                    /UF <##1>
-
+                    /UF <\l_tmpa_str>
                     /EF << /F~\pdf_object_ref_last: >>
                     /AFRelationship /Supplement
                 >>
@@ -2220,6 +2285,7 @@
   }
   {
     The~available~keys~are~(in~alphabetic~order):~
+    annotation,~
     add-to-split-separation,~
     auto-gobble,~
     background-color,~

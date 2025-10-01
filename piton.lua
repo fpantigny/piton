@@ -20,8 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.8x" -- 2025/09/15
-
+piton_version = "4.8x" -- 2025/09/28
 
 
 
@@ -130,7 +129,6 @@ if piton.begin_escape_math then
 end
 local Word = Q ( lpeg_central ^ 1 )
 local Space = Q " " ^ 1
-
 local SkipSpace = Q " " ^ 0
 
 local Punct = Q ( S ".,:;!" )
@@ -532,10 +530,8 @@ do
     P { "E" ,
          E = ( V "F" * ( Q "," * V "F" ) ^ 0 ) ^ -1 ,
          F = SkipSpace * ( Identifier + Q "*args" + Q "**kwargs" ) * SkipSpace
-             * (
-                   K ( 'InitialValues' , "=" * expression )
-                 + Q ":" * SkipSpace * K ( 'Name.Type' , identifier )
-               ) ^ -1
+             * ( Q ":" * SkipSpace * K ( 'Name.Type' , identifier ) ) ^ -1
+             * ( SkipSpace * K ( 'InitialValues' , "=" * SkipSpace * expression ) ) ^ -1
       }
   local DefFunction =
     K ( 'Keyword' , "def" )
@@ -686,9 +682,11 @@ do
   local Punct = Q ( S ",:;!" )
   local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
   local Constructor =
+    P "::" * Lc ( [[ {\PitonStyle{Name.Constructor}{\hspace{0.1em}:\hspace{-0.2em}:\hspace{0.1em}}} ]] )
+     +
+    P "[]" * Lc ( [[ {\PitonStyle{Name.Constructor}{\hspace{-0.1em}[\hspace{0.1em}]}} ]] )
     K ( 'Name.Constructor' ,
         Q "`" ^ -1 * cap_identifier
-        + Q "::"
         + Q ( "[" , true ) * SkipSpace * Q ( "]" , true) )
   local ModuleType = K ( 'Name.Type' , cap_identifier )
   local OperatorWord =
@@ -817,8 +815,10 @@ local DotNotation =
     )
     * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0
   local Operator =
+    P "||" * Lc ( [[ {\PitonStyle{Operator}{\hspace{0.1em}|\hspace{-0.2em}|\hspace{0.1em}}} ]] )
+     +
     K ( 'Operator' ,
-        P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "||" + "&&" +
+        P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "&&" +
         "//" + "**" + ";;" + "->" + "+." + "-." + "*." + "/."
         + S "-~+/*%=<>&@|" )
   local Builtin =
@@ -1474,7 +1474,7 @@ end
 function piton.Parse ( language , code )
   piton.language = language
   local t = LPEG2[language] : match ( code )
-  if not t  then
+  if not t then
     sprintL3 [[ \__piton_error_or_warning:n { SyntaxError } ]]
     return -- to exit in force the function
   end

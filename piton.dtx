@@ -89,11 +89,11 @@
 %<*STY>
 % \fi
 \def\PitonFileVersion{4.8x}
-\def\PitonFileDate{2025/09/15}
+\def\PitonFileDate{2025/09/28}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.8x" -- 2025/09/15
+piton_version = "4.8x" -- 2025/09/28
 %</LUA>
 %\fi
 %
@@ -398,35 +398,6 @@ piton_version = "4.8x" -- 2025/09/15
 % gobble is set by the position of the commands |\begin{Piton}| and
 % |\end{Piton}| which delimit the current environment.
 %
-% \item \index{write} The key \Definition{write} takes in as argument a name of
-% file (with its extension) and write the content\footnote{In fact, it's not
-% exactly the body of the environment but the value of |piton.get_last_code()|
-% which is the body without the overwritten LaTeX formatting instructions (cf.
-% the part~\ref{API}, p.~\pageref{API}).} of the current environment in
-% that file. At the first use of a file by \pkg{piton} (during a given
-% compilation done by LuaLaTeX), it is erased. In fact, the file is written once at
-% the end of the compilation of the file by LuaLaTeX.
-%
-% For legibility, \pkg{piton} provides the key \Definition{no-write} (without value)
-% as alias for |write={}|.
-%
-% \item \index{path-write} The key \Definition{path-write} specifies a path
-% where the files written by the key |write| will be written.
-%
-% \item The key \Definition{join} is similar to the key |write| but the files which
-% are created are joined (as \emph{joined files}) in the \textsc{pdf}. Be
-% careful: Some \textsc{pdf} readers don't provide any tool to access to these
-% joined files.
-%
-% For legibility, \pkg{piton} provides the key \Definition{no-join} (without value)
-% as alias for |join={}|.
-%
-% \item \index{print}
-% The key \Definition{print} controls whether the content of the environment is 
-% actually printed (with the syntactic formating) in the \textsc{pdf}. Of
-% course, the initial value of |print| is |true|. However, it may be useful to
-% use |print=false| in some circumstancies (for example, when the key |write| or
-% the key |join| is used).
 %
 % \item \index{line-numbers} The key \Definition{line-numbers} activates the
 % line numbering in the environments |{Piton}| and in the listings resulting
@@ -514,8 +485,7 @@ piton_version = "4.8x" -- 2025/09/15
 % a cyclic way.
 %
 % \smallskip
-% \colorbox{yellow!50}{\textbf{New 4.6}}\enskip
-% In that list, the special color \Definition{none} may be use to specify no
+% In that list, the special color \Definition{none} may be used to specify no
 % color at all.
 %
 % \emph{Example} : |\PitonOptions{background-color = {gray!15,none}}|
@@ -559,10 +529,8 @@ piton_version = "4.8x" -- 2025/09/15
 % (cf.~p.~\pageref{tcolorbox}).
 % \end{itemize}
 %
-% \item \index{max-width} \colorbox{yellow!50}{\textbf{New 4.6}}
+% \item \index{max-width}
 %
-% \nobreak
-
 % The key \Definition{max-width} is similar to the key |width| but it fixes the
 % \emph{maximal} width of the lines. If all the lines of the listing are shorter
 % than the value provided to |max-width|, the parameter |width| will be equal to
@@ -1130,7 +1098,246 @@ piton_version = "4.8x" -- 2025/09/15
 % many computer languages, they are allowed in the keywords and the names of
 % the identifiers. With \verb|alsoother = @_|, we retrieve them from the
 % category of the letters. 
+%
+% \section{Import and export}
+%
+%
+% \subsection{How to import a listing}
+%
+% \label{PitonInputFile}
+%
+% \subsubsection{The command \textbackslash PitonInputFile}
+%
+% \indexcommand{PitonInputFile}
+%
+% The command \DefinitionCommand{PitonInputFile} includes the content of the
+% file specified in argument (or only a part of that file: see below). The
+% extension \pkg{piton} also provides the commands
+% \DefinitionCommand{PitonInputFileT}, \DefinitionCommand{PitonInputFileF} and
+% \DefinitionCommand{PitonInputFileTF} with supplementary arguments
+% corresponding to the letters~|T| and~|F|. Those arguments will be executed if
+% the file to include has been found (letter~|T|) or not found (letter~|F|).
 % 
+% \smallskip
+% The syntax for the paths (absolute or relative) is the following one:
+% \begin{itemize}
+% \item The paths beginning by |/| are absolute.
+%
+% \emph{Example} : |\PitonInputFile{/Users/joe/Documents/program.py}|
+%
+% \item The paths which do not begin with |/| are relative to the current
+% repertory. 
+%
+% \emph{Example} : |\PitonInputFile{my_listings/program.py}|
+% \end{itemize}
+%
+% \index{path}
+% The key \Definition{path} of the command |\PitonOptions| specifies a
+% \emph{list} of paths where the files included by |\PitonInputFile| will be
+% searched. That list is comma separated.
+%
+% As previously, the absolute paths must begin with |/|.
+%
+% \bigskip
+% \subsubsection{Insertion of a part of a file}
+%
+% \label{part-of-a-file}
+% \indexcommand{PitonInputFile}
+%
+% The command |\PitonInputFile| inserts (with formatting) the content of a file.
+% In fact, it's possible to insert only \emph{a part} of that file. Two
+% mechanisms are provided in this aim.
+% \begin{itemize}
+% \item It's possible to specify the part that we want to insert by the numbers
+% of the lines (in the original file).
+% \item It's also possible to specify the part to insert with textual markers.
+% \end{itemize}
+% In both cases, if we want to number the lines with the numbers of the
+% lines in the file, we have to use the key |line-numbers/absolute|.
+%
+% \bigskip
+% \textbf{With line numbers}
+%
+% \nobreak
+% The command |\PitonInputFile| supports the keys \Definition{first-line} and
+% \Definition{last-line} in order to insert only the part of file between the
+% corresponding lines. Not to be confused with the key |line-numbers/start|
+% which fixes the first line number for the line numbering. In one sense,
+% |line-numbers/start| deals with the output whereas |first-line| and
+% |last-line| deal with the input.
+%
+% \bigskip
+% \textbf{With textual markers}
+%
+% \nobreak
+% \index{marker/beginning}
+% \index{marker/end}
+%
+% In order to use that feature, we first have to specify the format of the
+% markers (for the beginning and the end of the part to include) with the keys
+% \Definition{marker-beginning} and \Definition{marker-end} (usually with the
+% command |\PitonOptions|). 
+%
+%
+% \medskip
+% Let us take a practical example.
+%
+% \medskip
+% We assume that the file to include contains solutions to exercises of
+% programming on the following model.
+%
+% \begin{small}
+% \begin{Verbatim}
+% ~#[Exercise 1] Iterative version
+% def fibo(n):
+%     if n==0: return 0 
+%     else:
+%         u=0
+%         v=1
+%         for i in range(n-1):
+%             w = u+v
+%             u = v
+%             v = w
+%         return v
+% ~#<Exercise 1>
+% \end{Verbatim}
+% \end{small}
+%
+% The markers of the beginning and the end are the strings |#[Exercise 1]| and
+% |#<Exercise 1>|. The string ``|Exercise 1|'' will be called the \emph{label}
+% of the exercise (or of the part of the file to be included).
+%
+% In order to specify such markers in \pkg{piton}, we will use the keys
+% |marker/beginning| and |marker/end| with the following instruction (the
+% character |#| of the comments of Python must be inserted with the protected
+% form |\#|). 
+%
+% \begin{Verbatim}
+% \PitonOptions{ ~emphase#marker/beginning@ = \~#[~#1] , ~emphase#marker/end@ = \~#<~#1> } 
+% \end{Verbatim}
+%
+% As one can see, |marker/beginning| is an expression corresponding to the
+% mathematical function which transforms the label (here |Exercise 1|) into the
+% the beginning marker (in the example |#[Exercise 1]|). The string |#1|
+% corresponds to the occurrences of the argument of that function, which the
+% classical syntax in TeX. Idem for |marker/end|.\footnote{In regard to LaTeX,
+% both functions must be \emph{fully expandable}.}
+%
+% \bigskip 
+% Now, you only have to use the key \Definition{range} of |\PitonInputFile| to
+% insert a marked content of the file.
+%
+% \smallskip
+% \begin{Verbatim}
+% \PitonInputFile[~emphase#range = Exercise 1@]{~textsl#file_name@}
+% \end{Verbatim}
+%
+% \medskip
+% \begin{Piton}
+% def fibo(n):
+%     if n==0: return 0 
+%     else:
+%         u=0
+%         v=1
+%         for i in range(n-1):
+%             w = u+v
+%             u = v
+%             v = w
+%         return v
+% \end{Piton}
+%
+% \vspace{1cm}
+% \index{marker/include-lines}
+% The key \Definition{marker/include-lines} requires the insertion of the lines
+% containing the markers.
+%
+% \begin{Verbatim}
+% \PitonInputFile[~emphase#marker/include-lines@,range = Exercise 1]{~textsl#file_name@}
+% \end{Verbatim}
+%
+% \begin{Piton}
+% #[Exercise 1] Iterative version
+% def fibo(n):
+%     if n==0: return 0 
+%     else:
+%         u=0
+%         v=1
+%         for i in range(n-1):
+%             w = u+v
+%             u = v
+%             v = w
+%         return v
+% #<Exercise 1>
+% \end{Piton}
+%
+%
+% \bigskip
+% \index{begin-range}
+% \index{end-range}
+% In fact, there exist also the keys \Definition{begin-range} and
+% \Definition{end-range} to insert several marked contents at the same time.
+%
+% For example, in order to insert the solutions of the exercises~3 to~5, we will
+% write (if the file has the correct structure!):
+%
+%
+% \begin{Verbatim}
+% \PitonInputFile[~emphase#begin-range = Exercise 3, end-range = Exercise 5@]{~textsl#file_name@}
+% \end{Verbatim}
+%
+%
+% \subsection{How to export a listing}
+%
+% Alongside the command |\PitonInputFile| which allows the final user to import a
+% listing from an external file, \pkg{piton} provides tools to export some listings
+% included in the \textsc{pdf} file to an external file or as joined files embedded in
+% \textsc{pdf} generated by LuaLaTeX.
+%
+% \bigskip
+% \begin{itemize}
+% \item \index{write} The key \Definition{write} takes in as argument a name of
+% file (with its extension) and write the content\footnote{In fact, it's not
+% exactly the body of the environment but the value of |piton.get_last_code()|
+% which is the body without the overwritten LaTeX formatting instructions (cf.
+% the part~\ref{API}, p.~\pageref{API}).} of the current environment in
+% that file. At the first use of a file by \pkg{piton} (during a given
+% compilation done by LuaLaTeX), it is erased. In fact, the file is written once at
+% the end of the compilation of the file by LuaLaTeX.
+%
+% For legibility, \pkg{piton} provides the key \Definition{no-write} (without value)
+% as alias for |write={}|.
+%
+% \item \index{path-write} The key \Definition{path-write} specifies a path
+% where the files written by the key |write| will be written.
+%
+% \item The key \Definition{join} is similar to the key |write| but the files which
+% are created are joined (as \emph{joined files}) in the \textsc{pdf}. Be
+% careful: Some \textsc{pdf} readers don't provide any tool to access to these
+% joined files.
+%
+% For legibility, \pkg{piton} provides the key \Definition{no-join} (without value)
+% as alias for |join={}|.
+%
+% \item \index{print}
+% The key \Definition{print} controls whether the content of the environment is 
+% actually printed (with the syntactic formating) in the \textsc{pdf}. Of
+% course, the initial value of |print| is |true|. However, it may be useful to
+% use |print=false| in some circumstancies (for example, when the key |write| or
+% the key |join| is used).
+%
+% \item \colorbox{yellow!50}{\textbf{New 4.9}}
+%
+% \nobreak
+% The key \Definition{paperclip} will, for each environment |{Piton}|, add in the right
+% margin a \textsc{pdf} annotation linked with a file joined in the \textsc{pdf}
+% corresponding to the listing of the environment.
+%
+% The value provided to the key |paperclip| is the name that will be given to the embedded
+% file. If no value is provided, the file will have the name \texttt{listing_\textsl{i}.txt}
+% where \textsl{i} is a counter incremented by \pkg{piton} each time that a new file is
+% created by use of |paperclip| without value.
+% \end{itemize}
+%
 % \section{Advanced features}
 %
 % \subsection{The key ``box''}
@@ -1138,10 +1345,6 @@ piton_version = "4.8x" -- 2025/09/15
 % \label{box}
 % \index{box}
 % 
-% \colorbox{yellow!50}{\textbf{New 4.6}}
-%
-% \nobreak
-% \smallskip
 % If one wishes to compose a listing in a box of LaTeX, he should use the key
 % |box|. That key takes in as value |c|, |t| or |b| corresponding to the parameter
 % of vertical position (as for the envionment |{minipage}| of LaTeX which creates also
@@ -1521,189 +1724,6 @@ piton_version = "4.8x" -- 2025/09/15
 % For a more sophisticated example of use of the key |tcolorbox|, see the example
 % given at the page~\pageref{examples-tcolorbox}.
 % 
-% \subsection{Insertion of a file}
-%
-% \label{PitonInputFile}
-%
-% \subsubsection{The command \textbackslash PitonInputFile}
-%
-% \indexcommand{PitonInputFile}
-%
-% The command \DefinitionCommand{PitonInputFile} includes the content of the
-% file specified in argument (or only a part of that file: see below). The
-% extension \pkg{piton} also provides the commands
-% \DefinitionCommand{PitonInputFileT}, \DefinitionCommand{PitonInputFileF} and
-% \DefinitionCommand{PitonInputFileTF} with supplementary arguments
-% corresponding to the letters~|T| and~|F|. Those arguments will be executed if
-% the file to include has been found (letter~|T|) or not found (letter~|F|).
-% 
-% \smallskip
-% The syntax for the paths (absolute or relative) is the following one:
-% \begin{itemize}
-% \item The paths beginning by |/| are absolute.
-%
-% \emph{Example} : |\PitonInputFile{/Users/joe/Documents/program.py}|
-%
-% \item The paths which do not begin with |/| are relative to the current
-% repertory. 
-%
-% \emph{Example} : |\PitonInputFile{my_listings/program.py}|
-% \end{itemize}
-%
-% \index{path}
-% The key \Definition{path} of the command |\PitonOptions| specifies a
-% \emph{list} of paths where the files included by |\PitonInputFile| will be
-% searched. That list is comma separated.
-%
-% As previously, the absolute paths must begin with |/|.
-%
-% \bigskip
-% \subsubsection{Insertion of a part of a file}
-%
-% \label{part-of-a-file}
-% \indexcommand{PitonInputFile}
-%
-% The command |\PitonInputFile| inserts (with formatting) the content of a file.
-% In fact, it's possible to insert only \emph{a part} of that file. Two
-% mechanisms are provided in this aim.
-% \begin{itemize}
-% \item It's possible to specify the part that we want to insert by the numbers
-% of the lines (in the original file).
-% \item It's also possible to specify the part to insert with textual markers.
-% \end{itemize}
-% In both cases, if we want to number the lines with the numbers of the
-% lines in the file, we have to use the key |line-numbers/absolute|.
-%
-% \bigskip
-% \textbf{With line numbers}
-%
-% \nobreak
-% The command |\PitonInputFile| supports the keys \Definition{first-line} and
-% \Definition{last-line} in order to insert only the part of file between the
-% corresponding lines. Not to be confused with the key |line-numbers/start|
-% which fixes the first line number for the line numbering. In one sense,
-% |line-numbers/start| deals with the output whereas |first-line| and
-% |last-line| deal with the input.
-%
-% \bigskip
-% \textbf{With textual markers}
-%
-% \nobreak
-% \index{marker/beginning}
-% \index{marker/end}
-%
-% In order to use that feature, we first have to specify the format of the
-% markers (for the beginning and the end of the part to include) with the keys
-% \Definition{marker-beginning} and \Definition{marker-end} (usually with the
-% command |\PitonOptions|). 
-%
-%
-% \medskip
-% Let us take a practical example.
-%
-% \medskip
-% We assume that the file to include contains solutions to exercises of
-% programming on the following model.
-%
-% \begin{small}
-% \begin{Verbatim}
-% ~#[Exercise 1] Iterative version
-% def fibo(n):
-%     if n==0: return 0 
-%     else:
-%         u=0
-%         v=1
-%         for i in range(n-1):
-%             w = u+v
-%             u = v
-%             v = w
-%         return v
-% ~#<Exercise 1>
-% \end{Verbatim}
-% \end{small}
-%
-% The markers of the beginning and the end are the strings |#[Exercise 1]| and
-% |#<Exercise 1>|. The string ``|Exercise 1|'' will be called the \emph{label}
-% of the exercise (or of the part of the file to be included).
-%
-% In order to specify such markers in \pkg{piton}, we will use the keys
-% |marker/beginning| and |marker/end| with the following instruction (the
-% character |#| of the comments of Python must be inserted with the protected
-% form |\#|). 
-%
-% \begin{Verbatim}
-% \PitonOptions{ ~emphase#marker/beginning@ = \~#[~#1] , ~emphase#marker/end@ = \~#<~#1> } 
-% \end{Verbatim}
-%
-% As one can see, |marker/beginning| is an expression corresponding to the
-% mathematical function which transforms the label (here |Exercise 1|) into the
-% the beginning marker (in the example |#[Exercise 1]|). The string |#1|
-% corresponds to the occurrences of the argument of that function, which the
-% classical syntax in TeX. Idem for |marker/end|.\footnote{In regard to LaTeX,
-% both functions must be \emph{fully expandable}.}
-%
-% \bigskip 
-% Now, you only have to use the key \Definition{range} of |\PitonInputFile| to
-% insert a marked content of the file.
-%
-% \smallskip
-% \begin{Verbatim}
-% \PitonInputFile[~emphase#range = Exercise 1@]{~textsl#file_name@}
-% \end{Verbatim}
-%
-% \medskip
-% \begin{Piton}
-% def fibo(n):
-%     if n==0: return 0 
-%     else:
-%         u=0
-%         v=1
-%         for i in range(n-1):
-%             w = u+v
-%             u = v
-%             v = w
-%         return v
-% \end{Piton}
-%
-% \vspace{1cm}
-% \index{marker/include-lines}
-% The key \Definition{marker/include-lines} requires the insertion of the lines
-% containing the markers.
-%
-% \begin{Verbatim}
-% \PitonInputFile[~emphase#marker/include-lines@,range = Exercise 1]{~textsl#file_name@}
-% \end{Verbatim}
-%
-% \begin{Piton}
-% #[Exercise 1] Iterative version
-% def fibo(n):
-%     if n==0: return 0 
-%     else:
-%         u=0
-%         v=1
-%         for i in range(n-1):
-%             w = u+v
-%             u = v
-%             v = w
-%         return v
-% #<Exercise 1>
-% \end{Piton}
-%
-%
-% \bigskip
-% \index{begin-range}
-% \index{end-range}
-% In fact, there exist also the keys \Definition{begin-range} and
-% \Definition{end-range} to insert several marked contents at the same time.
-%
-% For example, in order to insert the solutions of the exercises~3 to~5, we will
-% write (if the file has the correct structure!):
-%
-%
-% \begin{Verbatim}
-% \PitonInputFile[~emphase#begin-range = Exercise 3, end-range = Exercise 5@]{~textsl#file_name@}
-% \end{Verbatim}
-%
 %
 %
 % \bigskip
@@ -2353,10 +2373,6 @@ piton_version = "4.8x" -- 2025/09/15
 % \endgroup
 %
 % \bigskip
-% \colorbox{yellow!50}{\textbf{New 4.6}}
-%
-% \nobreak
-% \smallskip
 % The key \Definition{vertical-detected-commands} is similar to the key |raw-detected-commands|
 % but the commands which are detected by this key must be LaTeX commands (with one argument)
 % which are executed in \emph{vertical} mode between the lines of the code.
@@ -4572,6 +4588,21 @@ piton_version = "4.8x" -- 2025/09/15
 %    \end{macrocode}
 %
 % \medskip
+% The following boolean corresponds to the keys |paperclip| and |annotation|.
+%    \begin{macrocode}
+\bool_new:N \l_@@_paperclip_bool
+\str_new:N \l_@@_paperclip_str
+\bool_new:N \l_@@_annotation_bool
+%    \end{macrocode}
+%
+% \medskip
+% The listings embedded in the \textsc{pdf} by the key |paperclip| will be numbered by
+% the following counter.
+%    \begin{macrocode}
+\int_new:N \g_@@_paperclip_int
+%    \end{macrocode}
+% 
+% \medskip
 % The following boolean corresponds to the key |show-spaces|.
 %    \begin{macrocode}
 \bool_new:N \l_@@_show_spaces_bool
@@ -5680,6 +5711,15 @@ piton_version = "4.8x" -- 2025/09/15
       \bool_set_true:N \l_@@_minimize_width_bool
       \dim_set:Nn \l_@@_width_dim { #1 } ,
     max-width .value_required:n = true ,
+
+    paperclip .code:n =
+      \bool_set_true:N \l_@@_paperclip_bool 
+      \tl_if_novalue:nTF { #1 }
+        { \str_set:Nn \l_@@_paperclip_str { } }
+        { \str_set:Nn \l_@@_paperclip_str { #1 } } ,
+
+    annotation .bool_set:N = \l_@@_annotation_bool ,
+    annotation .default:n = true ,
     
     write .str_set:N = \l_@@_write_str ,
     write .value_required:n = true ,
@@ -5694,13 +5734,9 @@ piton_version = "4.8x" -- 2025/09/15
 % conversion right now since that value will transit by the Lua of LuaTeX.
 %    \begin{macrocode}
     join .code:n =
-      \str_if_empty:nTF { #1 }
-        { \str_set_eq:NN \l_@@_join_str \c_empty_str }
-        {
-          \str_set_convert:Nnnn \l_@@_join_str { #1 } { } { utf16/hex }
-          \seq_if_in:NoF \g_@@_join_seq \l_@@_join_str
-            { \seq_gput_right:No \g_@@_join_seq \l_@@_join_str }
-        },
+      \str_set:Nn \l_@@_join_str { #1 }
+      \seq_if_in:NnF \g_@@_join_seq { #1 }
+        { \seq_gput_right:No \g_@@_join_seq { #1 } } ,
     join .value_required:n = true ,
     no-join .code:n = \str_set_eq:NN \l_@@_join_str \c_empty_str ,
     no-join .value_forbidden:n = true ,
@@ -5773,21 +5809,23 @@ piton_version = "4.8x" -- 2025/09/15
     all-line-numbers .code:n = 
       \bool_set_true:N \l_@@_line_numbers_bool 
       \bool_set_false:N \l_@@_skip_empty_lines_bool ,
-  }
 %    \end{macrocode}
 %
 %    \begin{macrocode}
+    rounded-corners .code:n =
+      \AtBeginDocument
+        {
+          \IfPackageLoadedTF { tikz }
+            { \dim_set:Nn \l_@@_rounded_corners_dim { #1 } }
+            { \@@_err_rounded_corners_without_Tikz: }
+        } ,
+    rounded-corners .default:n = 4 pt         
+  }          
+%    \end{macrocode}
+% 
+%    \begin{macrocode}
 \hook_gput_code:nnn { begindocument } { . }
   {
-    \keys_define:ne { PitonOptions }
-      {
-        \IfPackageLoadedTF { tikz }
-          {
-            rounded-corners .dim_set:N = \l_@@_rounded_corners_dim ,
-            rounded-corners .default:n = 4 pt 
-          }
-          { rounded-corners .code:n = \@@_err_rounded_corners_without_Tikz: } 
-      }          
     \IfPackageLoadedTF { tcolorbox }
       {
         \pgfkeysifdefined { / tcb / libload / breakable }
@@ -6381,6 +6419,8 @@ piton_version = "4.8x" -- 2025/09/15
           { \@@_translate_beamer_env:o { \l_@@_listing_tl } }
         \bool_if:NT \g_@@_footnote_bool \savenotes 
         \@@_composition:
+        \bool_lazy_or:nnT { \l_@@_paperclip_bool } { \l_@@_annotation_bool }
+          { \@@_create_paperclip_annotation: }
         \bool_if:NT \g_@@_footnote_bool \endsavenotes 
         #5
       }
@@ -6388,8 +6428,82 @@ piton_version = "4.8x" -- 2025/09/15
   }    
 %    \end{macrocode}
 %
-% 
 %
+% \bigskip
+%  In the following, we don't understand why |tostring| seems to be mandatory...
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_create_paperclip_annotation:
+  {
+    \marginpar
+      {
+        \vspace* { - 0.8 em }
+        \hbox:n
+          {
+            \bool_if:NT \l_@@_annotation_bool
+              {
+                \lua_now:n { pdf.immediateobj ( "(" ..  piton.get_last_code() .. ")" ) } 
+                \pdfextension annot~width~5pt~height~10pt~depth~0pt
+                  {
+                    /Subtype /Text
+                    /Contents~\pdf_object_ref_last:
+                    /Name /Note
+                    /Subj (Computer~listing)
+%    \end{macrocode}
+% The following tries to specify that the note should not receive answers (since it is meant
+% for an easy copy-past of the computer listing).
+%    \begin{macrocode}
+                    /ReplyType /Group
+%    \end{macrocode}
+% Adds the bit 10 which means |LockedContents|.
+%    \begin{macrocode}
+                    /F~512
+                    /C [0.8~0.8~0.8]
+                  }
+                \hspace* { 7 mm }
+              }
+            \bool_if:NT \l_@@_paperclip_bool { \@@_create_paperclip: }
+          }
+      }
+  }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_create_paperclip:
+  {
+    \str_if_empty:NT \l_@@_paperclip_str
+      {
+        \int_gincr:N \g_@@_paperclip_int 
+        \str_set:Ne \l_@@_paperclip_str { listing_\int_use:N \g_@@_paperclip_int .txt }
+      }      
+    \lua_now:n { pdf.immediateobj ( "stream" , tostring ( piton.get_last_code() ) ) }
+    \box_move_down:nn
+      { 10 pt }
+      {
+        \hbox:n
+          {
+            \pdfextension annot~width~10pt~height~20pt~depth~0pt
+              {
+                /Subtype /FileAttachment
+                /Name /Paperclip
+                /F~8 % no zoom
+%    \end{macrocode}
+% |/Contents| will be used as info-bulle and description of the file in the panel of the
+% embedded files.
+%    \begin{macrocode}
+                /Contents (The~computer~listing)
+                /FS <<
+                       /Type /Filespec
+                       /F (\l_@@_paperclip_str)
+                       /EF << /F~\pdf_object_ref_last: >> 
+                       /AFRelationship /Supplement
+                    >>
+               }
+          }
+      }
+  }
+%    \end{macrocode}
+% 
+% 
 % \bigskip
 % For the following commands, the arguments are provided by curryfication.
 %    \begin{macrocode}
@@ -7602,45 +7716,76 @@ piton_version = "4.8x" -- 2025/09/15
 %    \end{macrocode}
 %
 %
+% % \bigskip
+% % If the new pakcage \pkg{pdfmanagement} is used, we insert the file directly in the
+% % catalog of the \textsc{pdf} file.
+% %    \begin{macrocode}
+% \cs_new_protected:Npn \@@_join_files:
+%   {
+%     \seq_map_inline:Nn \g_@@_join_seq
+%       {
+% %    \end{macrocode}
+% % The group is for the modifications of the the dictionary |l_pdffile/Filespec|
+% %    \begin{macrocode}
+%         \group_begin:
+% %    \end{macrocode}
+% % We create a new \textsc{pdf} object but, in fact, it won't be really used.
+% %    \begin{macrocode}
+%         \pdf_object_new:n { piton / join / ##1 }
+% %    \end{macrocode}
+% % The stream of the file is created by Lua (in the Lua side of LuaLaTeX) but
+% % the file itself will be added to the catalog of the \textsc{pdf} file in the LaTeX
+% % part of Lualatex by using the command |\pdfmanagement_add:nne| of \pkg{pdfmanagement}.
+% %    \begin{macrocode}
+%         \lua_now:n { pdf.immediateobj ( "stream" , piton.join_files["##1"] ) }
+% %    \end{macrocode}
+% % The value of the key |/AFRelationship| must be a name of \textsc{pdf}
+% % (beginning with a solidus).
+% %    \begin{macrocode}
+%         \pdfdict_put:nnn { l_pdffile / Filespec } { AFRelationship } { /Supplement }
+% %    \end{macrocode}
+% % The value of the key |/Desc| must be a string of \textsc{pdf} (between parenthesis).
+% %    \begin{macrocode}
+%         \pdfdict_put:nnn { l_pdffile / Filespec } { Desc } { (Computer~listing) }
+%         \pdffile_filespec:nnn { piton / join / ##1 } { ##1 } { \pdf_object_ref_last: }
+% %    \end{macrocode}
+% % It's mandatory to use |\pdfmanagement_add:nne| to add to the catalog of the \textsc{pdf}
+% % in order to avoid clashes with other extensions writting to the catalog.
+% %    \begin{macrocode}
+%         \pdfmanagement_add:nne
+%           { Catalog / Names }
+%           { EmbeddedFiles }
+%           { \pdf_object_ref_last: }
+%         \group_end:
+%       }
+%   } 
+% %    \end{macrocode}
+%
 % \bigskip
-% If the new pakcage \pkg{pdfmanagement} is used, we insert the file directly in the
-% catalog of the \textsc{pdf} file.
+% Here is a version of the previous code with a direct code for the \textsc{pdf}
+% dictionnary |/FileSpec|.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_join_files:
   {
     \seq_map_inline:Nn \g_@@_join_seq
       {
-%    \end{macrocode}
-% The stream of the file is created by Lua (in the Lua side of LuaLaTeX) but
-% the file itselt will be added to the catalog of the \textsc{pdf} file in the LaTeX
-% part of Lualatex by using the command |\pdfmanagement_add:nne| of \pkg{pdfmanagement}.
-%    \begin{macrocode}
         \lua_now:n { pdf.immediateobj ( "stream" , piton.join_files["##1"] ) }
+        \str_set_convert:Nnnn \l_tmpa_str { ##1 } { } { utf16/hex }
         \pdfmanagement_add:nne { Catalog / Names } { EmbeddedFiles }
           {
             <<
                /Type /Filespec 
-%    \end{macrocode}
-% We recall that the value of |##1| comes from the key |join|, and that we have
-% converted immediately the value of that key in utf16 (with the \textsc{bom} big
-% endian) written in hexadecimal. It's the suitable form for insertion as value
-% of the key |/UF| between angular brackets |<| and |>|. 
-%    \begin{macrocode}
-               /UF <##1>
-%    \end{macrocode}
-% Here, we must put |/F| and not |/UF|.
-% It would have been possible to write |\pdffeedback lastobj~0~R| instead
-% |\pdf_object_ref_last:| since LuaTeX is the only engine allowed by \pkg{piton}.
-%    \begin{macrocode}
+               /UF <\l_tmpa_str>
                /EF << /F~\pdf_object_ref_last: >>
                /Desc (Computer~listing)
                /AFRelationship /Supplement
             >>
           }
       }
-  } 
+  }
 %    \end{macrocode}
 %
+% 
 % \bigskip
 % The legacy version of |\@@_join_files:| will be used when the new
 % package \pkg{pdfmanagement} is \emph{not} used. It that case, we can't
@@ -7652,6 +7797,7 @@ piton_version = "4.8x" -- 2025/09/15
   {
     \seq_map_inline:Nn \g_@@_join_seq
       {
+        \str_set_convert:Nnnn \l_tmpa_str { ##1 } { } { utf16/hex }
         \lua_now:n { pdf.immediateobj ( "stream" , piton.join_files["##1"] ) }
         \pdfextension annot~width~0pt~height~0pt~depth~0pt
 %    \end{macrocode}
@@ -7668,17 +7814,20 @@ piton_version = "4.8x" -- 2025/09/15
             /Contents (Computer~listing)
             /FS <<
                     /Type /Filespec
-                    /UF <##1>
+%    \end{macrocode}
+% We have previously converted the name of the embedded file in |utf16/hex| and
+% now we can write a \textsc{pdf} string between |<| and |>| (with that encoding).
+%    \begin{macrocode}
+                    /UF <\l_tmpa_str>
 %    \end{macrocode}                    
 % It would have been possible to write |\pdffeedback lastobj~0~R| instead
 % |\pdf_object_ref_last:| since LuaTeX is the only engine allowed by \pkg{piton}. Remark
 % that |\pdf_object_ref_last:| is in the LaTeX kernel (not in the package |pdfmanagement|).
 %    \begin{macrocode}
-                    
                     /EF << /F~\pdf_object_ref_last: >> 
                     /AFRelationship /Supplement
                 >>
-           }
+           } 
       }
   }
 %    \end{macrocode}
@@ -7720,6 +7869,7 @@ piton_version = "4.8x" -- 2025/09/15
   }
 \@@_define_leading_space_Foxit:  
 %    \end{macrocode}
+%
 % 
 % \bigskip
 % \subsubsection{Security}
@@ -7977,6 +8127,7 @@ piton_version = "4.8x" -- 2025/09/15
   }
   {
     The~available~keys~are~(in~alphabetic~order):~
+    annotation,~
     add-to-split-separation,~
     auto-gobble,~
     background-color,~
@@ -8372,8 +8523,7 @@ local Word = Q ( lpeg_central ^ 1 )
 % \bigskip
 %    \begin{macrocode}
 local Space = Q " " ^ 1
-
-local SkipSpace = Q " " ^ 0 
+local SkipSpace = Q " " ^ 0
 
 local Punct = Q ( S ".,:;!" )
 
@@ -9165,10 +9315,8 @@ do
     P { "E" , 
          E = ( V "F" * ( Q "," * V "F" ) ^ 0 ) ^ -1 ,
          F = SkipSpace * ( Identifier + Q "*args" + Q "**kwargs" ) * SkipSpace
-             * ( 
-                   K ( 'InitialValues' , "=" * expression )
-                 + Q ":" * SkipSpace * K ( 'Name.Type' , identifier ) 
-               ) ^ -1
+             * ( Q ":" * SkipSpace * K ( 'Name.Type' , identifier ) ) ^ -1
+             * ( SkipSpace * K ( 'InitialValues' , "=" * SkipSpace * expression ) ) ^ -1
       }
 %    \end{macrocode}
 % 
@@ -9289,7 +9437,7 @@ end
 %    \end{macrocode}
 %
 % 
-% \subsubsection{The language Ocaml}
+% \subsubsection{The language OCaml}
 %
 % We open a Lua local scope for the language OCaml (of course, there will be also
 % global definitions).
@@ -9474,15 +9622,15 @@ do
 %    \end{macrocode}
 %
 % \bigskip
-%    \begin{macrocode}
-  local Constructor = 
-    K ( 'Name.Constructor' , 
-        Q "`" ^ -1 * cap_identifier 
-%    \end{macrocode}
 % We consider |::|  and |[]| as constructors (of the lists) as does the Tuareg
 % mode of Emacs.
 %    \begin{macrocode}
-        + Q "::" 
+  local Constructor =
+    P "::" * Lc ( [[ {\PitonStyle{Name.Constructor}{\hspace{0.1em}:\hspace{-0.2em}:\hspace{0.1em}}} ]] )
+     +
+    P "[]" * Lc ( [[ {\PitonStyle{Name.Constructor}{\hspace{-0.1em}[\hspace{0.1em}]}} ]] )     
+    K ( 'Name.Constructor' , 
+        Q "`" ^ -1 * cap_identifier 
         + Q ( "[" , true ) * SkipSpace * Q ( "]" , true) )
 %    \end{macrocode}
 %
@@ -9699,8 +9847,10 @@ local DotNotation =
 % \bigskip
 %    \begin{macrocode}
   local Operator =
+    P "||" * Lc ( [[ {\PitonStyle{Operator}{\hspace{0.1em}|\hspace{-0.2em}|\hspace{0.1em}}} ]] )
+     + 
     K ( 'Operator' ,
-        P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "||" + "&&" +
+        P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "&&" +
         "//" + "**" + ";;" + "->" + "+." + "-." + "*." + "/."
         + S "-~+/*%=<>&@|" )
 %    \end{macrocode}
@@ -10822,7 +10972,7 @@ function piton.Parse ( language , code )
 %    \begin{macrocode}
   piton.language = language
   local t = LPEG2[language] : match ( code ) 
-  if not t  then 
+  if not t then 
     sprintL3 [[ \@@_error_or_warning:n { SyntaxError } ]] 
     return -- to exit in force the function
   end
@@ -11078,7 +11228,7 @@ function piton.GobbleParse ( lang , n , splittable , code )
 %    \begin{macrocode}
   piton.CountLines ( piton.last_code ) 
   piton.Parse ( lang , piton.last_code )
-  piton.join_and_write ( ) 
+  piton.join_and_write ( )
 end
 %    \end{macrocode}
 %
@@ -12139,6 +12289,9 @@ end
 % \nolinkurl{https://tug.org/svn/texlive/trunk/Master/texmf-dist/tex/lualatex/piton/piton.sty}
 % }
 %
+% \subsection*{Changes between versions 4.8 and 4.9}
+%
+% New key |paperclip|
 %
 % \subsection*{Changes between versions 4.7 and 4.8}
 % 

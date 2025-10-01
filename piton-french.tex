@@ -449,37 +449,6 @@ nom de cette clé vient de \emph{environment gobble}: le nombre d'espaces à
 retirer ne dépend que de la position des délimiteurs |\begin{Piton}| et
 \texttt{\textbackslash end\{Piton\}} de l'environnement.
 
-\item \index{write (clé)} La clé \Definition{write} prend en argument un nom de
-fichier (avec l'extension) et écrit le contenu\footnote{En fait, il ne s'agit
-  pas exactement du contenu de l'environnement mais de la valeur renvoyée par
-  l'instruction Lua |piton.get_last_code()| qui en est une version sans les
-  surcharges de formatage LaTeX (voir la partie \ref{API}, p.~\pageref{API}).}
-de l'environnement courant dans ce fichier. À la première utilisation du fichier
-par \pkg{piton} (au cours d'une compilation avec LuaLaTeX), celui-ci est effacé.
-L'écriture du fichier ne se fait en fait qu'à la fin de la compilation avec LuaLaTeX.
-
-Pour la lisibilité, \pkg{piton} fournit la clé \Definition{no-write} (sans valeur) comme
-alias de |write=|.
-
-\item \index{path-write} La clé \Definition{path-write} indique un chemin où
-seront écrits les fichiers écrits par l'emploi de la clé |write| précédente.
-
-\item \index{join (clé)} 
-La clé \Definition{join} est similaire à la clé |write| mais les fichiers créés sont
-\emph{joints} (comme «pièces jointes») dans le \textsc{pdf}. Attention :
-certains lecteurs de \textsc{pdf} ne proposent pas d'outil permettant d'accéder à
-ces fichiers joints. 
-
-Pour la lisibilité, \pkg{piton} fournit la clé \Definition{no-join} (sans valeur) comme
-alias de |join=|.
-
-
-\item \index{print (clé)}
-La clé \Definition{print} contrôle l'affichage effectif du contenu des
-environnements |{Piton}| dans le \textsc{pdf}. Bien entendu, la valeur initiale de cette
-clé est |true|. Néanmoins, dans certains circonstances, il peut être utile
-d'utiliser |print=false| (dans le cas, par exemple, où la clé |write|, ou bien
-la clé |join|, est utilisée).
 
 \item \index{line-numbers} La clé \Definition{line-numbers} active la
 numérotation des lignes (en débordement à gauche) dans les environnements
@@ -574,7 +543,6 @@ La clé |background-color| accepte aussi en argument une \emph{liste} de
 couleurs. Les lignes sont alors coloriées de manière cyclique avec ces couleurs.
 
 \smallskip
-\colorbox{yellow!50}{\textbf{Nouveau 4.6}}\enskip
 Dans cette liste, la couleur spéciale \Definition{none} désigne une absence de couleur.
 
 \emph{Exemple} : |\PitonOptions{background-color = {gray!5,none}}|
@@ -620,8 +588,7 @@ mise à |false|: cf. p.~\pageref{line-breaks}) ;
 (cf. p.~\pageref{tcolorbox}).
 \end{itemize}
 
-\item \index{max-width (clé)} \colorbox{yellow!50}{\textbf{Nouveau 4.6}}
-
+\item \index{max-width (clé)} 
 La clé \Definition{max-width} est similaire à la clé |width| mais elle fixe la
 largeur maximale des lignes. Si les lignes du listings sont toutes plus courtes
 que la valeur fournie à |max-width|, la largeur (qui sera transmise au paramètre
@@ -1189,7 +1156,254 @@ Initialement, les caractères |@| et |_| sont considérés comme des lettres car
 langages de programmation les autorisent dans les mots-clés et les identificateurs. Avec
 \verb|alsoother = @_|, on les retire de la catégorie des lettres.
 
+\section{Importation et exportation de listings}
 
+\subsection{Importation d'un listing fourni par un fichier externe}
+
+\label{PitonInputFile}
+
+\subsubsection{La commande \textbackslash PitonInputFile}
+
+\indexcommand{PitonInputFile}
+
+La commande \DefinitionCommand{PitonInputFile} permet d'insérer tout ou partie d'un
+fichier extérieur dont le nom est passé en argument. Il existe aussi des commandes
+\DefinitionCommand{PitonInputFileT}, \DefinitionCommand{PitonInputFileF} et
+\DefinitionCommand{PitonInputFileTF} avec des arguments correspondant aux lettres |T| et
+|F|, arguments qui seront exécutés dans le cas où le fichier a été trouvé (lettre |T|) ou
+pas (lettre |F|).
+
+\smallskip
+La syntaxe des chemins (absolus et relatifs) est la suivante : 
+\begin{itemize}
+\item Les chemins commençant par |/| sont des chemins absolus.
+
+\emph{Exemple} : |\PitonInputFile{/Users/joe/Documents/programme.py}|
+
+\item Les chemins ne commençant pas par |/| sont relatifs au répertoire courant.
+
+\emph{Exemple} : |\PitonInputFile{les_listings/programme.py}|
+\end{itemize}
+
+
+\index{path}
+La clé \Definition{path} de la commande |\PitonOptions| permet de spécifier une
+\emph{liste} de chemins où sera recherché le fichier à inclure (dans cette liste, les
+chemins sont séparés par des virgules). Comme précédemment, les chemins absolus doivent
+débuter par une oblique~|/|.
+
+
+\subsubsection{Insertion d'une partie d'un fichier}
+
+\label{part-of-a-file}
+
+En fait, il existe des mécanismes permettant de n'insérer qu'une partie du fichier en
+question.
+\begin{itemize}
+\item On peut spécifier la partie à insérer par les numéros de lignes (dans le fichier
+d'origine).
+\item On peut aussi spécifier la partie à insérer par des marqueurs textuels.
+\end{itemize}
+Dans les deux cas, si on souhaite numéroter les lignes avec les numéros des lignes du
+fichier d'origine, il convient d'utiliser la clé |line-numbers/absolute|.
+
+\bigskip
+\textbf{Avec les numéros de lignes absolus}
+
+\nobreak
+La commande |\PitonInputFile| propose les clés \Definition{first-line} et
+\Definition{last-line} qui permettent de n'insérer que la partie du fichier comprise entre
+les lignes correspondantes. Ne pas confondre avec la clé |line-numbers/start| qui demande
+un numérotage des lignes commençant à la valeur donnée à cette clé (en un sens
+|line-numbers/start| concerne la sortie alors que |first-line| et |last-line| concernent
+l'entrée).
+
+\bigskip
+\textbf{Avec des marqueurs textuels}
+
+\index{marker/beginning}
+\index{marker/end}
+
+\nobreak
+Pour utiliser cette technique, il convient d'abord de spécifier le format des marqueurs
+marquant le début et la fin de la partie du fichier à inclure. Cela se fait avec les deux
+clés \Definition{marker/beginning} et \Definition{marker/end} (usuellement dans la
+commande |\PitonOptions|).
+
+\medskip
+Prenons d'abord un exemple.
+
+\medskip
+Supposons que le fichier à inclure contienne des solutions à des exercices de
+programmation sur le modèle suivant :
+
+\begin{small}
+\begin{Verbatim}
+~#[Exercice 1] Version itérative
+def fibo(n):
+    if n==0: return 0 
+    else:
+        u=0
+        v=1
+        for i in range(n-1):
+            w = u+v
+            u = v
+            v = w
+        return v
+~#<Exercice 1>
+\end{Verbatim}
+\end{small}
+
+Les marqueurs de début de début et de fin sont les chaînes |#[Exercice 1]| et 
+|#<Exercice 1>|. La chaîne «|Exercice 1|» sera appelée le \emph{label} de l'exercice (ou
+de la partie du fichier à inclure).
+
+Pour spécifier des marqueurs de cette sorte dans \pkg{piton}, on utilisera les clés
+|marker/beginning| et |marker/end| de la manière suivante (le caractère |#| des
+commentaires de Python doit être inséré sous la forme échappée |\#|).
+
+\begin{Verbatim}
+\PitonOptions{ ~emphase#marker/beginning@ = \~#[~#1] , ~emphase#marker/end@ = \~#<~#1> } 
+\end{Verbatim}
+
+Comme on le voit, |marker/beginning| est une expression correspondant à la fonction
+mathématique qui, au nom du label (par exemple |Exercice 1|), associe le marqueur de début
+(dans l'exemple |#[Exercice 1]|). La chaîne |#1| correspond aux occurrences de l'argument
+de cette fonction (c'est la syntaxe habituelle de TeX). De même pour |marker/end|.\footnote{Du point de vue de LaTeX, les deux fonctions passées en argument doivent être \emph{fully expandable}.}
+
+
+\bigskip
+Pour insérer une partie marquée d'un fichier, il suffit alors d'utiliser la clé
+\Definition{range} de |\PitonInputFile|.
+
+\smallskip
+\begin{Verbatim}
+\PitonInputFile[~emphase#range = Exercice 1@]{~textsl#nom_du_fichier@}
+\end{Verbatim}
+
+\medskip
+\begin{Piton}
+def fibo(n):
+    if n==0: return 0 
+    else:
+        u=0
+        v=1
+        for i in range(n-1):
+            w = u+v
+            u = v
+            v = w
+        return v
+\end{Piton}
+
+\vspace{1cm} \index{marker/include-lines} La clé \Definition{marker/include-lines} demande
+que les lignes contenant les marqueurs soient également insérées.
+
+\begin{Verbatim}
+\PitonInputFile[~emphase#marker/include-lines@,range = Exercice 1]{~textsl#nom_du_fichier@}
+\end{Verbatim}
+
+\begin{Piton}
+#[Exercice 1] Version itérative
+def fibo(n):
+    if n==0: return 0 
+    else:
+        u=0
+        v=1
+        for i in range(n-1):
+            w = u+v
+            u = v
+            v = w
+        return v
+#<Exercice 1>
+\end{Piton}
+
+
+\bigskip
+\index{begin-range} \index{end-range} Il existe en fait aussi les clés
+\Definition{begin-range} et \Definition{end-range} pour insérer plusieurs contenus marqués
+simultanément.
+
+Par exemple, pour insérer les solutions des exercices 3 à 5, on pourra écrire (à condition
+que le fichier soit structuré correctement!):
+
+\begin{Verbatim}
+\PitonInputFile[~emphase#begin-range = Exercice 3, end-range = Exercice 5@]{~textsl#nom_du_fichier@}
+\end{Verbatim}
+
+
+\subsection{Exportation de listings}
+
+À côté de la commande |\PitonInputFile| qui permet d'insérer dans le \textsc{pdf} 
+tout ou partie d'un fichier extérieur, \pkg{piton} propose des outils pour exporter
+des listings inclus dans le fichier source LaTeX vers le disque ou bien en pièces jointes
+du \textsc{pdf} généré.
+
+\begin{itemize}
+\item \index{write (clé)} La clé \Definition{write} prend en argument un nom de
+fichier (avec l'extension) et écrit le contenu\footnote{En fait, il ne s'agit
+  pas exactement du contenu de l'environnement mais de la valeur renvoyée par
+  l'instruction Lua |piton.get_last_code()| qui en est une version sans les
+  surcharges de formatage LaTeX (voir la partie \ref{API}, p.~\pageref{API}).}
+de l'environnement courant dans ce fichier. À la première utilisation du fichier
+par \pkg{piton} (au cours d'une compilation avec LuaLaTeX), celui-ci est effacé.
+L'écriture du fichier ne se fait en fait qu'à la fin de la compilation avec LuaLaTeX.
+
+Pour la lisibilité, \pkg{piton} fournit la clé \Definition{no-write} (sans valeur) comme
+alias de |write=|.
+
+\item \index{path-write} La clé \Definition{path-write} indique un chemin où
+seront écrits les fichiers écrits par l'emploi de la clé |write| précédente.
+
+\item \index{join (clé)} 
+La clé \Definition{join} est similaire à la clé |write| mais les fichiers créés sont
+\emph{joints} (comme «pièces jointes») dans le \textsc{pdf}. Attention :
+certains lecteurs de \textsc{pdf} ne proposent pas d'outil permettant d'accéder à
+ces fichiers joints.
+
+
+Pour la lisibilité, \pkg{piton} fournit la clé \Definition{no-join} (sans valeur) comme
+alias de |join=|.
+
+
+\item \index{print (clé)}
+La clé \Definition{print} contrôle l'affichage effectif du contenu des
+environnements |{Piton}| dans le \textsc{pdf}. Bien entendu, la valeur initiale de cette
+clé est |true|. Néanmoins, dans certains circonstances, il peut être utile
+d'utiliser |print=false| (dans le cas, par exemple, où la clé |write|, ou bien
+la clé |join|, est utilisée).
+
+\item \index{paperclip (clé)}
+\colorbox{yellow!50}{\textbf{Nouveau 4.9}}
+
+\nobreak
+La clé \Definition{paperclip} va, pour chaque environnement |{Piton}|, ajouter dans la marge
+droite une annotation \textsc{pdf} liée à un fichier joint dans le \textsc{pdf} correspondant
+au listing de l'environnement.
+
+La valeur fournie à la clé |paperclip| est le nom qui sera donné au fichier joint. Si aucune
+valeur n'est fournie, le fichier sera nommé \texttt{listing_\textsl{i}.txt} où \textsl{i}
+est un compteur géré par \pkg{piton} incrémenté à chaque utilisation de la clé |paperclip|
+sans valeur.
+
+
+\medskip
+\begin{Code}
+\begin{Piton}[\emph{paperclip},background-color=gray!15]
+def square(x):
+    """Computes the square of x"""
+    return x*x
+\end{Piton}    
+\end{Code}
+
+\medskip
+\begin{Piton}[paperclip,background-color=gray!15]
+def square(x):
+    """Computes the square of x"""
+    return x*x
+\end{Piton}    
+
+
+\end{itemize}
 
 \section{Fonctionnalités avancées}
 
@@ -1198,7 +1412,6 @@ langages de programmation les autorisent dans les mots-clés et les identificate
 \index{box (clé)}
 \label{box}
 
-\colorbox{yellow!50}{\textbf{Nouveau 4.6}}
 
 \nobreak
 \smallskip
@@ -1552,179 +1765,6 @@ def cube(x):
 \bigskip
 Pour  un exemple plus sophistiqué d'utilisation de la clé |tcolorbox|, voir l'exemple fourni
 à la page~\pageref{examples-tcolorbox}.
-
-
-\subsection{Insertion d'un fichier}
-
-\label{PitonInputFile}
-
-\subsubsection{La commande \textbackslash PitonInputFile}
-
-\indexcommand{PitonInputFile}
-
-La commande \DefinitionCommand{PitonInputFile} permet d'insérer tout ou partie d'un
-fichier extérieur dont le nom est passé en argument. Il existe aussi des commandes
-\DefinitionCommand{PitonInputFileT}, \DefinitionCommand{PitonInputFileF} et
-\DefinitionCommand{PitonInputFileTF} avec des arguments correspondant aux lettres |T| et
-|F|, arguments qui seront exécutés dans le cas où le fichier a été trouvé (lettre |T|) ou
-pas (lettre |F|).
-
-\smallskip
-La syntaxe des chemins (absolus et relatifs) est la suivante : 
-\begin{itemize}
-\item Les chemins commençant par |/| sont des chemins absolus.
-
-\emph{Exemple} : |\PitonInputFile{/Users/joe/Documents/programme.py}|
-
-\item Les chemins ne commençant pas par |/| sont relatifs au répertoire courant.
-
-\emph{Exemple} : |\PitonInputFile{les_listings/programme.py}|
-\end{itemize}
-
-
-\index{path}
-La clé \Definition{path} de la commande |\PitonOptions| permet de spécifier une
-\emph{liste} de chemins où sera recherché le fichier à inclure (dans cette liste, les
-chemins sont séparés par des virgules). Comme précédemment, les chemins absolus doivent
-débuter par une oblique~|/|.
-
-
-\subsubsection{Insertion d'une partie d'un fichier}
-
-\label{part-of-a-file}
-
-En fait, il existe des mécanismes permettant de n'insérer qu'une partie du fichier en
-question.
-\begin{itemize}
-\item On peut spécifier la partie à insérer par les numéros de lignes (dans le fichier
-d'origine).
-\item On peut aussi spécifier la partie à insérer par des marqueurs textuels.
-\end{itemize}
-Dans les deux cas, si on souhaite numéroter les lignes avec les numéros des lignes du
-fichier d'origine, il convient d'utiliser la clé |line-numbers/absolute|.
-
-\bigskip
-\textbf{Avec les numéros de lignes absolus}
-
-\nobreak
-La commande |\PitonInputFile| propose les clés \Definition{first-line} et
-\Definition{last-line} qui permettent de n'insérer que la partie du fichier comprise entre
-les lignes correspondantes. Ne pas confondre avec la clé |line-numbers/start| qui demande
-un numérotage des lignes commençant à la valeur donnée à cette clé (en un sens
-|line-numbers/start| concerne la sortie alors que |first-line| et |last-line| concernent
-l'entrée).
-
-\bigskip
-\textbf{Avec des marqueurs textuels}
-
-\index{marker/beginning}
-\index{marker/end}
-
-\nobreak
-Pour utiliser cette technique, il convient d'abord de spécifier le format des marqueurs
-marquant le début et la fin de la partie du fichier à inclure. Cela se fait avec les deux
-clés \Definition{marker/beginning} et \Definition{marker/end} (usuellement dans la
-commande |\PitonOptions|).
-
-\medskip
-Prenons d'abord un exemple.
-
-\medskip
-Supposons que le fichier à inclure contienne des solutions à des exercices de
-programmation sur le modèle suivant :
-
-\begin{small}
-\begin{Verbatim}
-~#[Exercice 1] Version itérative
-def fibo(n):
-    if n==0: return 0 
-    else:
-        u=0
-        v=1
-        for i in range(n-1):
-            w = u+v
-            u = v
-            v = w
-        return v
-~#<Exercice 1>
-\end{Verbatim}
-\end{small}
-
-Les marqueurs de début de début et de fin sont les chaînes |#[Exercice 1]| et 
-|#<Exercice 1>|. La chaîne «|Exercice 1|» sera appelée le \emph{label} de l'exercice (ou
-de la partie du fichier à inclure).
-
-Pour spécifier des marqueurs de cette sorte dans \pkg{piton}, on utilisera les clés
-|marker/beginning| et |marker/end| de la manière suivante (le caractère |#| des
-commentaires de Python doit être inséré sous la forme échappée |\#|).
-
-\begin{Verbatim}
-\PitonOptions{ ~emphase#marker/beginning@ = \~#[~#1] , ~emphase#marker/end@ = \~#<~#1> } 
-\end{Verbatim}
-
-Comme on le voit, |marker/beginning| est une expression correspondant à la fonction
-mathématique qui, au nom du label (par exemple |Exercice 1|), associe le marqueur de début
-(dans l'exemple |#[Exercice 1]|). La chaîne |#1| correspond aux occurrences de l'argument
-de cette fonction (c'est la syntaxe habituelle de TeX). De même pour |marker/end|.\footnote{Du point de vue de LaTeX, les deux fonctions passées en argument doivent être \emph{fully expandable}.}
-
-
-\bigskip
-Pour insérer une partie marquée d'un fichier, il suffit alors d'utiliser la clé
-\Definition{range} de |\PitonInputFile|.
-
-\smallskip
-\begin{Verbatim}
-\PitonInputFile[~emphase#range = Exercice 1@]{~textsl#nom_du_fichier@}
-\end{Verbatim}
-
-\medskip
-\begin{Piton}
-def fibo(n):
-    if n==0: return 0 
-    else:
-        u=0
-        v=1
-        for i in range(n-1):
-            w = u+v
-            u = v
-            v = w
-        return v
-\end{Piton}
-
-\vspace{1cm} \index{marker/include-lines} La clé \Definition{marker/include-lines} demande
-que les lignes contenant les marqueurs soient également insérées.
-
-\begin{Verbatim}
-\PitonInputFile[~emphase#marker/include-lines@,range = Exercice 1]{~textsl#nom_du_fichier@}
-\end{Verbatim}
-
-\begin{Piton}
-#[Exercice 1] Version itérative
-def fibo(n):
-    if n==0: return 0 
-    else:
-        u=0
-        v=1
-        for i in range(n-1):
-            w = u+v
-            u = v
-            v = w
-        return v
-#<Exercice 1>
-\end{Piton}
-
-
-\bigskip
-\index{begin-range} \index{end-range} Il existe en fait aussi les clés
-\Definition{begin-range} et \Definition{end-range} pour insérer plusieurs contenus marqués
-simultanément.
-
-Par exemple, pour insérer les solutions des exercices 3 à 5, on pourra écrire (à condition
-que le fichier soit structuré correctement!):
-
-\begin{Verbatim}
-\PitonInputFile[~emphase#begin-range = Exercice 3, end-range = Exercice 5@]{~textsl#nom_du_fichier@}
-\end{Verbatim}
 
 
 
@@ -2396,11 +2436,6 @@ Exemple : \piton{\NomTable{client} (nom, prénom)}
 
 
 \bigskip
-
-\colorbox{yellow!50}{\textbf{Nouveau 4.6}}
-
-\nobreak
-\smallskip
 La clé \Definition{vertical-detected-commands} est similaire à la clé
 |raw-detected-commands| mais les commandes ainsi détectées doivent être des
 commandes LaTeX (à un argument) qui s'exécutent en mode vertical entre les lignes
@@ -2459,15 +2494,15 @@ comme précédemment mais on peut utiliser le mécanisme «escape» qui est plus
 \end{small}
 
 \medskip
-\begin{Code}
+\begin{Verbatim}
 \begin{Piton}
 def fact(n):
     if n==0:
         return 1
     else:
-        ?\emph{?\highLight[LightPink]{?}?return n*fact(n-1)?\emph{?}?}?
+        ~emphase#!\highLight[LightPink]{!@return n*fact(n-1)~emphase#!}!@
 \end{Piton}
-\end{Code}
+\end{Verbatim}
 
 \medskip
 \begin{Piton}
