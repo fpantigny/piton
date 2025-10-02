@@ -1385,20 +1385,44 @@ valeur n'est fournie, le fichier sera nommé \texttt{listing_\textsl{i}.txt} où
 est un compteur géré par \pkg{piton} incrémenté à chaque utilisation de la clé |paperclip|
 sans valeur.
 
-
 \medskip
 \begin{Code}
 \begin{Piton}[\emph{paperclip},background-color=gray!15]
-def square(x):
-    """Computes the square of x"""
+def carré(x):
+    """Calcule le carré de x"""
     return x*x
 \end{Piton}    
 \end{Code}
 
 \medskip
 \begin{Piton}[paperclip,background-color=gray!15]
-def square(x):
-    """Computes the square of x"""
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+\end{Piton}    
+
+
+\item \index{annotation (clé)}
+\colorbox{yellow!50}{\textbf{Nouveau 4.9}}
+
+\nobreak
+La clé \Definition{annotation} va, pour chaque environnement |{Piton}|, ajouter
+dans la marge droite une annotation \textsc{pdf} de type note contenant
+directement le listing de l'environnement |{Piton}|.
+
+\medskip
+\begin{Code}
+\begin{Piton}[\emph{annotation},background-color=gray!15]
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+\end{Piton}    
+\end{Code}
+
+\medskip
+\begin{Piton}[annotation,background-color=gray!15]
+def carré(x):
+    """Calcule le carré de x"""
     return x*x
 \end{Piton}    
 

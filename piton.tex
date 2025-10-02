@@ -1,0 +1,4103 @@
+% -*- coding: utf-8 ; -*- This file should be compiled with LuaLaTeX only
+\documentclass{article}
+
+\usepackage{geometry}
+\geometry{left=2.8cm,right=2.8cm,top=2.5cm,bottom=2.5cm,papersize={21cm,29.7cm}}
+\usepackage{fontspec}
+\usepackage[dvipsnames,svgnames]{xcolor}
+\usepackage{caption,tabularx,luacolor,lua-ul,upquote,varwidth}
+\usepackage[framemethod=tikz]{mdframed}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\tcbset{enhanced}
+\def\emphase{\bgroup\color{RoyalPurple}\let\next=}
+
+% We use \MakeShortVerb of shortvrb and not \DefineShortVerb of fancyvrb
+% because we don't want small elements in verbatim to be colored in gray
+\usepackage{shortvrb}
+\MakeShortVerb{\|}
+
+\usepackage{fancyvrb}
+\fvset{commandchars=\~\#\@,formatcom=\color{gray}}
+
+\usepackage{underscore}
+
+\usepackage{booktabs}
+
+\captionsetup{labelfont = bf}
+\usepackage{ragged2e}
+
+\NewDocumentCommand {\pkg} {m} {\textsf{#1}}
+\NewDocumentCommand {\cls} {m} {\textsf{#1}}
+
+\usepackage[footnotehyper]{piton} 
+\PitonOptions
+  { 
+    splittable = 4 ,
+    math-comments ,
+    begin-escape = ! ,
+    end-escape = ! ,
+    begin-escape-math = \( , 
+    end-escape-math = \) ,
+    detected-commands = { highLight, footnote } ,
+    vertical-detected-commands = newpage ,
+    raw-detected-commands = { NameTable , rowcolor } 
+  }
+
+\parindent 0pt
+\skip\footins = 2\bigskipamount
+
+\def\CC{{C\nolinebreak[4]\hspace{-.05em}\raisebox{.4ex}{\tiny\bfseries ++}}}
+
+\usepackage{makeidx}
+\makeindex
+
+\NewDocumentCommand{\indexcommand}{m}{\index{#1@\texttt{\textbackslash #1}}}
+
+\NewDocumentCommand{\indexenv}{m}{\index{#1@\texttt{\{#1\}}}}
+
+\NewDocumentCommand{\Definition}{m}
+  {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily \vphantom{gl}#1}}}
+
+\NewDocumentCommand{\DefinitionCommand}{m}
+  {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily
+        \vphantom{gl}\textbackslash #1}}}
+
+\usepackage[hyperfootnotes = false]{hyperref}
+
+\VerbatimFootnotes
+  
+\catcode`\" = 11
+
+\begin{document}
+
+\title{The package \pkg{piton}\thanks{This document corresponds to the
+version~\PitonFileVersion\space of \pkg{piton}, at the date of~\PitonFileDate.}} 
+\author{F. Pantigny \\ \texttt{fpantigny@wanadoo.fr}}
+
+\maketitle
+
+\begin{abstract}
+The package \pkg{piton} provides tools to typeset computer listings, with
+syntactic highlighting, by using the Lua library LPEG. It requires LuaLaTeX.
+\end{abstract}
+
+
+\section{Presentation}
+
+
+
+The package \pkg{piton} uses the Lua library LPEG\footnote{LPEG is a
+pattern-matching library for Lua, written in C, based on \emph{parsing
+expression grammars}:
+\url{http://www.inf.puc-rio.br/~roberto/lpeg/}} for parsing computer
+listings and typesets them with syntactic highlighting. Since it uses the Lua
+of LuaLaTeX, it works with |lualatex| only (and won't work with the other
+engines: |latex|, |pdflatex| and |xelatex|). It does not use external program
+and the compilation does not require |--shell-escape|. The compilation is very
+fast since all the parsing is done by the library LPEG, written in C. 
+
+\bigskip
+Here is an example of code typeset by \pkg{piton}, with the environment |{Piton}|.
+
+\bigskip
+
+   \begin{Piton}
+from math import pi
+
+def arctan(x,n:int=10):
+   """Compute the mathematical value of arctan(x)
+
+   n is the number of terms in the sum
+   """
+    if x < 0:
+        return -arctan(-x) # recursive call
+    elif x > 1: 
+        return pi/2 - arctan(1/x) 
+        #> (we have used that $\arctan(x)+\arctan(1/x)=\frac{\pi}{2}$ for $x>0$)\footnote{This LaTeX escape has been done by beginning the comment by \ttfamily\#>.}
+    else: 
+        s = 0
+        for k in range(n):
+            s += (-1)**k/(2*k+1)*x**(2*k+1)
+        return s 
+   \end{Piton}
+
+
+\medskip
+The main alternatives to the package \pkg{piton} are probably the packages
+\pkg{listings} and \pkg{minted}.
+
+\medskip
+The name of this extension (\pkg{piton}) has been chosen arbitrarily by
+reference to the pitons used by the climbers in mountaineering.
+
+
+\section{Installation}
+
+The package \pkg{piton} is contained in two files: |piton.sty| and |piton.lua|
+(the LaTeX file |piton.sty| loaded by |\usepackage| will load the Lua file
+|piton.lua|). Both files must be in a repertory where LaTeX will be able to
+find them, for instance in a |texmf| tree. However, the best is to install
+\pkg{piton} with a TeX distribution such as MiKTeX, TeX Live or MacTeX.
+
+\section{Use of the package}
+
+The package \pkg{piton} must be used with \textbf{LuaLaTeX exclusively}: if
+another LaTeX engine (|latex|, |pdflatex|, |xelatex|,\dots ) is used, a fatal
+error will be raised.
+
+\subsection{Loading the package}
+
+The package \pkg{piton} should be loaded by: |\usepackage{piton}|.
+
+\smallskip
+The package \pkg{piton} uses and \emph{loads} the package \pkg{xcolor}. It
+does not use any exterior program.
+
+\subsection{Choice of the computer language}
+
+The package \pkg{piton} supports two kinds of languages:
+\begin{itemize}
+\item the languages natively supported by \pkg{piton}, which are Python, OCaml,
+C~(in fact \CC), SQL and two special languages called |minimal| and |verbatim|;
+\item the languages defined by the end user by using the built-in command
+|\NewPitonLanguage| described p.~\pageref{NewPitonLanguage} (the parsers of
+those languages can't be as precise as those of the languages supported
+natively by \pkg{piton}).
+\end{itemize}
+
+
+
+\smallskip
+By default, the language used is Python.
+
+\smallskip
+\index{language (key)}
+It's possible to change the current language with the command |\PitonOptions|
+and its key \Definition{language}: |\PitonOptions{language = OCaml}|.
+
+\smallskip
+In fact, for \pkg{piton}, the names of the computer languages are always
+\textbf{case-insensitive}. In this example, we might have written |Ocaml| or
+|ocaml|. 
+
+\smallskip
+For the developers, let's say that the name of the current language is stored
+(in lower case) in the L3 public variable |\l_piton_language_str|.
+
+\smallskip
+In what follows, we will speak of Python, but the features described also
+apply to the other languages.
+
+\subsection{The tools provided to the user}
+
+\indexenv{Piton}
+
+The package \pkg{piton} provides several tools to typeset computer listings: the
+command |\piton|, the environment |{Piton}| and the command |\PitonInputFile|.
+
+\begin{itemize}
+\item The command \DefinitionCommand{piton} should be used to typeset small
+pieces of code inside a paragraph. For example:
+
+{\color{gray}\verb|\piton{def square(x): return x*x}|}\qquad 
+\piton{def square(x): return x*x}
+
+The syntax and particularities of the command |\piton| are detailed below.
+
+\item The environment \Definition{\{Piton\}} should be used to
+typeset multi-lines code. Since it takes its argument in a verbatim mode, it
+can't be used within the argument of a LaTeX command. For sake of
+customization, it's possible to define new environments similar to the
+environment |{Piton}| with the command |\NewPitonEnvironment| or its friends:
+cf.~\ref{NewPitonEnvironment} p.~\pageref{NewPitonEnvironment}.
+
+\item The command \DefinitionCommand{PitonInputFile} is used to insert and
+typeset an external file: cf.~\ref{PitonInputFile}
+p.~\pageref{PitonInputFile}.
+
+
+\end{itemize}
+
+\subsection{The double syntax of the command \textbackslash piton}
+
+\indexcommand{piton}
+
+In fact, the command |\piton| is provided with a double syntax. It may be used
+as a standard command of LaTeX taking its argument between curly braces
+(|\piton{...}|) but it may also be used with a syntax similar to the syntax of
+the LaTeX command |\verb|, that is to say with the argument delimited by two identical
+characters (e.g.: \verb!\piton|...|! or \verb!\piton+...+!). 
+
+\begin{itemize}
+\item {\color{blue} \textsf{Syntax} \verb|\piton{...}|}
+
+\nobreak
+When its argument is given between curly braces, the command |\piton| does not
+take its argument in verbatim mode. In particular:
+\begin{itemize}
+\item several consecutive spaces will be replaced by only one space (and also
+the character of end of line),
+
+{\color{cyan} but the command |\|␣ is provided to force the insertion of a space};
+
+\item it's not possible to use |%| inside the argument,
+
+{\color{cyan} but the command |\%| is provided to insert a |%|};
+
+\item the braces must be appear by pairs correctly nested
+
+{\color{cyan} but the commands |\{| and |\}| are provided for individual braces};
+
+\item the LaTeX commands\footnote{That concerns the commands beginning with a
+backslash but also the active characters (with catcode equal to 13). } of the
+argument are fully expanded (in the TeX meaning) and not executed,
+
+{\color{cyan} so, it's possible to use |\\| to insert a backslash}.
+\end{itemize}
+
+
+The other characters (including |#|, |^|, |_|, |&|, |$| and |@|) %$
+must be inserted without backslash.
+
+\bigskip
+\begin{tabular}{>{\color{gray}}w{l}{75mm}@{\hspace*{1cm}}l}
+\omit Examples : \hfil \\
+\noalign{\vskip1mm}
+\verb|\piton{MyString = '\\n'}| & 
+\piton{MyString = '\\n'} \\
+\verb|\piton{def even(n): return n\%2==0}| & 
+\piton{def even(n): return n\%2==0} \\
+\verb|\piton{c="#"    # an affectation }| & 
+\piton{c="#"     # an affectation } \\
+\verb|\piton{c="#" \ \ \ # an affectation }| & 
+\piton{c="#" \ \ \ # an affectation } \\
+\verb|\piton{MyDict = {'a': 3, 'b': 4 }}| &
+\piton{MyDict = {'a': 3, 'b': 4 }}
+\end{tabular}
+
+\bigskip
+It's possible to use the command |\piton| with that syntax in the arguments of
+a LaTeX command.\footnote{For example, it's possible to use the command
+|\piton| in a footnote. Example : \piton{s = 123}.}
+
+However, since the argument is expanded (in the TeX sens), one should take
+care not using in its argument \emph{fragile} commands (that is to say
+commands which are neither \emph{protected} nor \emph{fully expandable}).
+
+\bigskip
+\item {\color{blue} \textsf{Syntax} \verb!\piton|...|!}
+
+\nobreak
+When the argument of the command |\piton| is provided between two identical
+characters (all the characters are allowed except |%|, |\|, |#|, |{|, |}| and
+the space), that argument is taken in a \emph{verbatim mode}. Therefore, with
+that syntax, the command |\piton| can't be used within the argument of another
+command. 
+
+\medskip
+
+\begin{tabular}{>{\color{gray}}w{l}{75mm}@{\hspace*{1cm}}l}
+\omit Examples : \hfil \\
+\noalign{\vskip1mm}
+\verb!\piton|MyString = '\n'|! & 
+\piton|MyString = '\n'| \\
+\verb|\piton!def even(n): return n%2==0!| & 
+\piton!def even(n): return n%2==0! \\
+\verb|\piton+c="#"    # an affectation +| & 
+\piton+c="#"     # an affectation + \\
+\verb|\piton?MyDict = {'a': 3, 'b': 4}?| &
+\piton!MyDict = {'a': 3, 'b': 4}!
+\end{tabular}
+
+\end{itemize}
+
+\section{Customization}
+
+
+\subsection{The keys of the command \textbackslash PitonOptions}
+
+
+\indexcommand{PitonOptions}
+
+The command |\PitonOptions| takes in as argument a comma-separated list of
+\textsl{key=value} pairs. The scope of the settings done by that command is
+the current TeX group.\footnote{We remind that a LaTeX environment is, in
+particular, a TeX group.}
+
+These keys may also be applied to an individual environment |{Piton}| (between
+square brackets).
+
+\begin{itemize}
+\item The key \Definition{language} specifies which computer language is
+considered (that key is case-insensitive). It's possible to use the name of
+the six built-in languages (|Python|, |OCaml|, |C|, |SQL|, |minimal| and
+|verbatim|) or the name of a language defined by the user with
+|\NewPitonLanguage| (cf.~part~\ref{NewPitonLanguage},
+p.~\pageref{NewPitonLanguage}).   
+
+The initial value is |Python|.
+
+\item \index{font-command}
+The key \Definition{font-command} contains instructions of font which will be
+inserted at the beginning of all the elements composed by \pkg{piton} (without
+surprise, these instructions are not used for the so-called ``LaTeX comments'').
+
+The initial value is |\ttfamily| and, thus, \pkg{piton} uses by default the
+current monospace font.
+
+\item \index{gobble}\label{gobble} The key \Definition{gobble} takes in as
+value a positive integer~$n$: the first $n$ characters are discarded (before
+the process of highlighting of the code) for each line of the environment
+|{Piton}|. These characters are not necessarily spaces.
+
+When the key |gobble| is used without value, it is equivalent to the key
+|auto-gobble|, that we describe now.
+
+\item \index{auto-gobble}\index{gobble!auto-gobble} When the key
+\Definition{auto-gobble} is in force, the extension \pkg{piton} computes the
+minimal value $n$ of the number of consecutive spaces beginning each (non
+empty) line of the environment |{Piton}| and applies |gobble| with that value
+of~$n$.
+
+\item \index{env-gobble}\index{gobble!env-gobble}
+When the key \Definition{env-gobble} is in force, \pkg{piton} analyzes the last
+line of the environment |{Piton}|, that is to say the line which contains
+|\end{Piton}| and determines whether that line contains only spaces followed
+by the |\end{Piton}|. If we are in that situation, \pkg{piton} computes the
+number~$n$ of spaces on that line and applies |gobble| with that value of~$n$.
+The name of that key comes from \emph{environment gobble}: the effect of
+gobble is set by the position of the commands
+\texttt{\textbackslash begin\{Piton\}}
+and \texttt{\textbackslash end\{Piton\}} which delimit the current environment. 
+
+\item \index{line-numbers} The key \Definition{line-numbers} activates the
+line numbering in the environments |{Piton}| and in the listings resulting
+from the use of |\PitonInputFile|.
+
+In fact, the key |line-numbers| has several subkeys.
+\begin{itemize}
+\item With the key \Definition{line-numbers/skip-empty-lines}, the empty lines
+(which contains only spaces) are considered as non existent for the line
+numbering (if the key |/absolute|, described below, is in force, the key
+|/skip-empty-lines| is no-op in |\PitonInputFile|). The initial value of that
+key is |true| (and not |false|).\footnote{For the language Python, the empty
+lines in the docstrings are taken into account (by design).}
+\item With the key \Definition{line-numbers/label-empty-lines}, the labels
+(that is to say the numbers) of the empty lines are displayed. If the key
+|/skip-empty-line| is in force, the clé |/label-empty-lines| is no-op. The
+initial value of that key is~|true|.\footnote{When the key
+|split-on-empty-lines| is in force, the labels of the empty lines are never printed.}
+\item With the key \Definition{line-numbers/absolute}, in the listings
+generated in |\PitonInputFile|, the numbers of the lines displayed are
+\emph{absolute} (that is to say: they are the numbers of the lines in the
+file). That key may be useful when |\PitonInputFile| is used to insert only a
+part of the file (cf. part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}).
+The key |/absolute| is no-op in the environments |{Piton}| and those created
+by |\NewPitonEnvironment|.
+\item The key \Definition{line-numbers/start} requires that the line numbering
+begins to the value of the key. 
+\item With the key \Definition{line-numbers/resume}, the counter of lines is
+not set to zero at the beginning of each environment |{Piton}| or use of
+|\PitonInputFile| as it is otherwise. That allows a numbering of the lines
+across several environments.
+\item The key \Definition{line-numbers/sep} is the horizontal distance between
+the numbers of lines (inserted by |line-numbers|) and the beginning of the
+lines of code. The initial value is 0.7~em.
+\item The key \Definition{line-numbers/format} is a list of tokens which are inserted before
+the number of line in order to format it. It's possible to put, \emph{at the
+end} of the list, a LaTeX command with one argument, such as, for example,
+|\fbox|. 
+
+The initial value is |\footnotesize\color{gray}|. 
+\end{itemize}
+
+For convenience, a mechanism of factorisation of the prefix |line-numbers| is
+provided. That means that it is possible, for instance, to write:
+\begin{Verbatim}
+\PitonOptions
+  {
+    line-numbers = 
+      { 
+        skip-empty-lines = false ,
+        label-empty-lines = false ,
+        sep = 1 em ,
+        format = \footnotesize \color{blue}
+      }
+  }
+\end{Verbatim}
+
+Be careful : the previous code is not enough to print the numbers of lines.
+For that, one also has to use the key |line-numbers| is a absolute way, that
+is to say without value.
+
+\item \index{left-margin} The key \Definition{left-margin} corresponds to a
+margin on the left. That key may be useful in conjunction with the key
+|line-numbers| if one does not want the numbers in an overlapping position on
+the left. 
+
+It's possible to use the key |left-margin| with the special value |auto|. With that
+value, if the key |line-numbers| is in force, a margin will be automatically
+inserted to fit the numbers of lines. See an example part
+\ref{example-numbering} on page~\pageref{example-numbering}.
+
+\item \index{background-color} \label{background-color} The key
+\Definition{background-color} sets the background color of the environments
+|{Piton}| and the listings produced by |\PitonInputFile| (it's possible to fix
+the width of that background with the key |width| or the key |max-width|
+described below).
+
+The key |background-color| accepts a color
+defined «on the fly». For example, it's possible to write
+|background-color = [cmyk]{0.1,0.05,0,0}|.
+
+\smallskip
+The key |background-color| supports also as value a \emph{list} of colors. In
+this case, the successive rows are colored by using the colors of the list in
+a cyclic way.
+
+\smallskip
+In that list, the special color \Definition{none} may be used to specify no
+color at all.
+
+\emph{Example} : |\PitonOptions{background-color = {gray!15,none}}|
+
+\item \index{rounded-corners} \colorbox{yellow!50}{\textbf{New 4.7}}
+
+\nobreak
+It's possible to use the key \Definition{rounded-corners} to require rounded
+corners for the colored panels drawn by the key |background-color| The initial
+value of that is $0$~pt, which means that the corners are not rounded. If the
+key |rounded-corners| is used, the extension \pkg{tikz} must be loaded because
+those rounded corners are drawn by using \pkg{tikz}. If \pkg{tikz} is not
+loaded, an error will be raised at the first use of the key |rounded-corners|.
+
+The default value of the key |rounded-corners| is $4$~pt.\footnote{This value is the
+initial value of the \emph{rounded corners} of TikZ.}
+
+\item \index{prompt-background-color} With the key
+\Definition{prompt-background-color}, \pkg{piton} adds a 
+color background to the lines beginning with the prompt ``|>>>|'' (and its
+continuation ``|...|'') characteristic of the Python consoles with
+\textsc{repl} (\emph{read-eval-print loop}).
+
+The initial value is: |gray!15|
+
+\item \index{width} \label{width} The key \Definition{width} fixes the width
+of the listing in the \textsc{pdf}. The initial value of that parameter
+is the current value of |\linewidth| (LaTeX parameter which corresponds to the
+width of the lines of text).
+
+That parameter is used for:
+\begin{itemize}
+\item the breaking the lines which are too long (except, of course, when the key
+|break-lines| is set to false: cf.~p.~\pageref{line-breaks});
+\item the width of the backgrounds specified by the keys |background-color| and
+|prompt-background-color| described below;
+\item the width fo the colored backgrounds added by |\rowcolor|
+(cf.~p.~\pageref{rowcolor});
+\item the width of the LaTeX box created by the key |box| (cf. p.~\pageref{box});
+\item the width of the graphical box created by the key |tcolorbox|
+(cf.~p.~\pageref{tcolorbox}).
+\end{itemize}
+
+\item \index{max-width}
+
+The key \Definition{max-width} is similar to the key |width| but it fixes the
+\emph{maximal} width of the lines. If all the lines of the listing are shorter
+than the value provided to |max-width|, the parameter |width| will be equal to
+the maximal length of the lines of the listing, that is to say the natural width of
+the listing.
+
+For legibility of the code, |width=min| is a shortcut for |max-width=\linewidth|.
+
+
+\item \index{show-spaces-in-strings} When the key
+\Definition{show-spaces-in-strings} is activated, the spaces in the 
+strings of characters\footnote{With the language Python that feature applies
+only to the short strings (delimited by~\verb|'| or~\verb|"|) and, in
+particular, it does not apply for the \emph{doc strings}. In OCaml, that
+feature does not apply to the \emph{quoted strings}.} are replaced by the
+character~␣ (U+2423 : \textsc{open box}). Of course, that character~U+2423
+must be present in the monospace font which is used.\footnote{The initial
+value of |font-command| is |\ttfamily| and, thus,  by default, \pkg{piton}
+merely uses the current monospace font.}
+
+\nobreak
+\begingroup
+\PitonOptions{show-spaces-in-strings} Example : 
+\piton|my_string = 'Very good answer'| \endgroup
+
+With the key \index{show-spaces} \Definition{show-spaces}, all the spaces are
+replaced by U+2423 (and no line break can occur on those ``visible spaces'',
+even when the key |break-lines|\footnote{cf. \ref{line-breaks}
+p.~\pageref{line-breaks}} is in force). By the way, one should remark that all
+the trailing spaces (at the end of a line) are deleted by \pkg{piton} --- and,
+therefore, won't be represented by~␣. Moreover, when the key |show-spaces| is
+in force, the tabulations at the beginning of the lines are represented by arrows.
+\end{itemize}
+
+\bigskip
+\begingroup
+\small
+\fvset{commandchars=\~\&\@}
+\begin{Verbatim}
+~emphase&\begin{Piton}[language=C,line-numbers,gobble,background-color=gray!15@
+~emphase&              rounded-corners,width=min,splittable=4]@
+    void bubbleSort(int arr[], int n) {
+        int temp;
+        int swapped;
+        for (int i = 0; i < n-1; i++) {
+            swapped = 0;
+            for (int j = 0; j < n - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                    swapped = 1; 
+                }
+            }
+            if (!swapped) break;
+        }
+    }   
+~emphase&~textbackslash&@end{Piton}@
+\end{Verbatim}
+\endgroup
+
+\begingroup
+\PitonOptions{language=C,line-numbers,gobble=4,background-color = gray!15,
+   rounded-corners,width=min}
+    \begin{Piton}
+    void bubbleSort(int arr[], int n) {
+        int temp;
+        int swapped;
+        for (int i = 0; i < n-1; i++) {
+            swapped = 0;
+            for (int j = 0; j < n - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                    swapped = 1; 
+                }
+            }
+            if (!swapped) break;
+        }
+    }   
+    \end{Piton}
+\endgroup
+
+
+\bigskip
+The command |\PitonOptions| provides in fact several other keys which will be
+described further (see in particular the ``Pages breaks and line breaks''
+p.~\pageref{breakable}). 
+
+\subsection{The styles}
+
+\label{styles}
+
+\subsubsection{Notion of style}
+
+The package \pkg{piton} provides the command
+\DefinitionCommand{SetPitonStyle} to customize the different styles used to
+format the syntactic elements of the computer listings. The customizations done
+by that command are limited to the current TeX group.\footnote{We remind that
+a LaTeX environment is, in particular, a TeX group.}
+
+\bigskip
+\indexcommand{SetPitonStyle}
+The command |\SetPitonStyle| takes in as argument a comma-separated list of
+\textsl{key=value} pairs. The keys are names of styles and the value are LaTeX
+formatting instructions.
+
+\bigskip
+These LaTeX instructions must be formatting instructions such as
+|\color{ }|, |\bfseries|, |\slshape|, etc. (the commands of this kind are
+sometimes called \emph{semi-global} commands). It's also possible to put,
+\emph{at the end of the list of instructions}, a LaTeX command taking exactly
+one argument.
+
+\bigskip
+Here an example which changes the style used to highlight, in the definition
+of a Python function, the name of the function which is defined. That code
+uses the command |\highLight| of \pkg{lua-ul} (that package requires also the
+package \pkg{luacolor}).
+
+\begin{verbatim}
+\SetPitonStyle{ Name.Function = \bfseries \highLight[red!30] }
+\end{verbatim}
+
+In that example, |\highLight[red!30]| must be considered as the name of a
+LaTeX command which takes in exactly one argument, since, usually, it is used
+with |\highLight[red!30]{...}|.
+
+\medskip
+\begingroup
+\SetPitonStyle 
+  { Name.Function = \bfseries \highLight[red!30] }
+With that setting, we will have : \piton{def cube(x) : return x * x * x }
+\endgroup
+
+\bigskip
+The different styles, and their use by \pkg{piton} in the different languages
+which it supports (Python, OCaml, C, SQL, ``|minimal|'' and ``|verbatim|''),
+are described in the part \ref{Semantic}, starting at the page
+\pageref{Semantic}.  
+
+
+\bigskip
+\indexcommand{PitonStyle}
+The command \DefinitionCommand{PitonStyle} takes in as argument the name of a
+style and allows to retrieve the value (as a list of LaTeX instructions) of
+that style. That command is \emph{fully expandable} (in the TeX sens).
+
+\smallskip
+For example, it's possible to write |{\PitonStyle{Keyword}{function}}| and we
+will have the word {\PitonStyle{Keyword}{function}} formatted as a keyword.
+
+\smallskip
+The syntax |{\PitonStyle{|\textsl{\texttt{style}}|}{...}}| is mandatory in
+order to be able to deal both with the semi-global commands and the commands
+with arguments which may be present in the definition of the style
+\texttt{\textsl{style}}. 
+
+\bigskip
+\subsubsection{Global styles and local styles}
+
+A style may be defined globally with the command |\SetPitonStyle|. That means
+that it will apply to all the computer languages that use that style.
+
+\bigskip
+For example, with the command
+\begin{Verbatim}
+\SetPitonStyle{Comment = \color{gray}}
+\end{Verbatim}
+all the comments will be composed in gray in all the listings, whatever
+computer language they use (Python, C, OCaml, etc. or a language defined by
+the command |\NewPitonLanguage|).
+
+\bigskip
+But it's also possible to define a style locally for a given computer
+language by providing the name of that language as optional argument (between
+square brackets) to the command |\SetPitonStyle|.\footnote{We recall, that, in
+the package \pkg{piton}, the names of the computer languages are
+case-insensitive.}
+
+\bigskip
+For example, with the command
+\begin{Verbatim}
+\SetPitonStyle~emphase#[SQL]@{Keyword = \color[HTML]{006699} \bfseries \MakeUppercase}
+\end{Verbatim}
+the keywords in the SQL listings will be composed in capital letters, even if
+they appear in lower case in the LaTeX source (we recall that, in SQL, the
+keywords are case-insensitive).
+
+\bigskip
+As expected, if a computer language uses a given style and if that style has
+no local definition for that language, the global version is used. That notion
+of ``global style'' has no link with the notion of global definition in TeX
+(the notion of \emph{group} in TeX).\footnote{As regards the TeX groups, the
+definitions done by \texttt{\textbackslash SetPitonStyle} are always local.}
+
+\bigskip
+The package \pkg{piton} itself (that is to say the file |piton.sty|) defines
+all the styles globally. 
+
+\bigskip
+
+\bigskip
+\subsubsection{The command \textbackslash rowcolor}
+
+\label{rowcolor}
+\indexcommand{rowcolor}
+
+\colorbox{yellow!50}{\textbf{New 4.8}}
+
+\nobreak
+\medskip
+The extension \pkg{piton} provides the command \DefinitionCommand{rowcolor} which adds
+a colored background to the current line (the \emph{whole} line and not only the part with
+text) which may be used in the styles.
+
+\smallskip
+The command |\rowcolor| has a syntax similar to the classical command |\color|. For example,
+it's possible to write |\rowcolor[rgb]{0.9,1,0.9}|.
+
+\smallskip
+The command |\rowcolor| is protected against the TeX expansions.
+
+\smallskip
+Here is an example for the language Python where we modify the style |String.Doc|
+of the ``documentation strings'' in order to have a colored background.
+
+
+\begin{Verbatim}
+~emphase#\SetPitonStyle{String.Doc = \rowcolor{gray!15}\color{black!80}}@
+\begin{Piton}[width=min]
+def square(x):
+    """Computes the square of x
+       Second line of the documentation"""
+    return x*x
+\end{Piton}
+\end{Verbatim}
+
+
+\bigskip
+\begingroup
+\SetPitonStyle{String.Doc = \rowcolor{gray!15}\color{black!80}}
+\begin{Piton}[width=min]
+def square(x):
+    """Computes the square of x
+       Second line of the documentation"""
+    return x*x
+\end{Piton}
+\endgroup
+
+
+\bigskip
+If the command |\rowcolor| appears (through a style of \pkg{piton}) inside a
+command |\piton|, it is no-op (as expected).
+
+
+\subsubsection{The style UserFunction}
+
+\index{UserFunction (style)}
+
+The extension \pkg{piton} provides a special style called~|UserFunction|.
+That style applies to the names of the functions previously defined by the user
+(for example, in Python, these names are those following the keyword \piton{def}
+in a previous listing). The initial value of that style |\PitonStyle{Identifier}|
+and, therefore, the names of the functions are formatted like the other identifiers
+(that is to say, by default, with no special formatting except the features provided
+in |font-command|). However, it's possible to change the value of that style, as any
+other style, with the command |\SetPitonStyle|.
+
+\medskip
+In the following example, we tune the styles |Name.Function| and |UserFunction|
+so as to have clickable names of functions linked to the definition of the function.
+
+\begingroup
+
+\NewDocumentCommand{\MyDefFunction}{m}{\hypertarget{piton:#1}{\color[HTML]{CC00FF}{#1}}}
+\NewDocumentCommand{\MyUserFunction}{m}{\hyperlink{piton:#1}{#1}}
+
+\SetPitonStyle
+  {
+    Name.Function = \MyDefFunction ,
+    UserFunction = \MyUserFunction
+  }
+
+\medskip
+\begin{Verbatim}
+\NewDocumentCommand{\MyDefFunction}{m}
+   {\hypertarget{piton:~#1}{\color[HTML]{CC00FF}{~#1}}}
+\NewDocumentCommand{\MyUserFunction}{m}{\hyperlink{piton:~#1}{~#1}}
+
+\SetPitonStyle{Name.Function = \MyDefFunction, ~emphase#UserFunction@ = \MyUserFunction}
+\end{Verbatim}
+
+\smallskip
+
+\begin{Piton}
+def transpose(v,i,j):
+    x = v[i]
+    v[i] = v[j]
+    v[j] = x 
+
+def passe(v):
+    for in in range(0,len(v)-1):
+        if v[i] > v[i+1]:
+            transpose(v,i,i+1)
+\end{Piton}
+
+\endgroup
+
+\medskip
+The word |transpose| is in red because, in the document class \cls{l3doc} (used
+in this document) the clickable words are in red.
+
+\PitonClearUserFunctions[Python]
+
+\bigskip
+\begin{small}
+Of course, the list of the names of Python functions previously défined is
+kept in the memory of LuaLaTeX (in a global way, that is to say independently
+of the TeX groups). The extension \pkg{piton} provides a command to clear that
+list : it's the command \DefinitionCommand{PitonClearUserFunctions}. When it
+is used without argument, that command is applied to all the computer
+languages used by the user but it's also possible to use it with an optional
+argument (between square brackets) which is a list of computer languages to
+which the command will be applied.\footnote{We remind that, in \pkg{piton},
+the name of the computer languages are case-insensitive.}
+\end{small}
+
+\subsection{Creation of new environments}
+
+\label{NewPitonEnvironment}
+\indexcommand{NewPitonEnvironment}
+
+Since the environment |{Piton}| has to catch its body in a special way (more
+or less as verbatim text), it's not possible to construct new environments
+directly over the environment |{Piton}| with the classical commands
+|\newenvironment| (of standard LaTeX) or |\NewDocumentEnvironment| (of
+LaTeX3). 
+
+With a LaTeX kernel newer than 2025-06-01, it's possible to use
+|\NewEnvironmentCopy| on the environment |{Piton}| but it's not very powerful.
+
+That's why \pkg{piton} provides a command
+\DefinitionCommand{NewPitonEnvironment}. That command takes in three mandatory
+arguments.
+
+That command has the same syntax as the classical environment
+|\NewDocumentEnvironment|.\footnote{However, the specifier of argument |b|
+(used to catch the body of the environment as a LaTeX argument) is
+not allowed (of course)}
+
+\medskip
+There also exist three other commands \DefinitionCommand{RenewPitonEnvironment},
+\DefinitionCommand{DeclarePitonEnvironment} and
+\DefinitionCommand{ProvidePitonEnvironment}, similar to the corresponding
+commands of L3.
+
+\bigskip
+With the following instruction, a new environment |{Python}| will be
+constructed with the same behaviour as |{Piton}|:
+
+\begin{Verbatim}
+~emphase#\NewPitonEnvironment@{Python}{O{}}{\PitonOptions{~#1}}{} 
+\end{Verbatim}
+
+\bigskip
+If one wishes to format Python code in a box of \pkg{mdframed}, it's possible
+to define an environment |{Python}| with the following code.
+
+\begin{footnotesize}
+\begin{Verbatim}
+\usepackage[framemethod=tikz]{mdframed} % in the preamble
+\end{Verbatim}
+\end{footnotesize}
+
+\begin{Verbatim}
+~emphase#\NewPitonEnvironment@{Python}{}
+  {\begin{mdframed}[roundcorner=3mm]}
+  {\end{mdframed}}
+\end{Verbatim}
+
+\bigskip
+With this new environment |{Python}|, it's possible to write:
+
+\begin{Verbatim}
+~emphase#\begin{Python}@
+def square(x):
+    """Compute the square of x"""
+    return x*x
+~emphase#\end{Python}@
+\end{Verbatim}
+
+\NewPitonEnvironment{Python}{}
+  {\begin{mdframed}[roundcorner=3mm]}
+  {\end{mdframed}}
+
+\begin{Python}
+def square(x):
+    """Compute the square of x"""
+    return x*x
+\end{Python}
+
+\bigskip
+It's possible to a similar construction with an environment of \pkg{tcolorbox}.
+However, for a better cooperation between \pkg{piton} and \pkg{tcolorbox}, the
+extension \pkg{piton} provides a key \pkg{tcolorbox}: cf.~p.~\pageref{tcolorbox}.
+
+
+\section{Definition of new languages with the syntax of listings}
+
+\indexcommand{NewPitonLanguage}
+\label{NewPitonLanguage}
+\index{listings@\pkg{listings} (extension)}
+
+\medskip
+The package \pkg{listings} is a famous LaTeX package to format computer
+listings.
+
+That package provides a command |\lstdefinelanguage| which allows the user to
+define new languages. That command is also used by \pkg{listings} itself to
+provide the definition of the predefined languages in \pkg{listings} (in fact,
+for this task, \pkg{listings} uses a command called |\lst@definelanguage| but
+that command has the same syntax as |\lstdefinelanguage|). 
+
+\medskip
+The package \pkg{piton} provides a command
+\DefinitionCommand{NewPitonLanguage} to define new languages (available in
+|\piton|, |{Piton}|, etc.) with a syntax which is almost the same as the
+syntax of~|\lstdefinelanguage|.
+
+Let's precise that \pkg{piton} does \emph{not} use that command to define the
+languages provided natively (Python, OCaml, C, SQL, |minimal| and |verbatim|),
+which allows more powerful parsers.
+
+\medskip
+For example, in the file |lstlang1.sty|, which is one of the definition files
+of \pkg{listings}, we find the following instructions (in version 1.10a).
+
+\begin{small}
+\begin{Verbatim}
+\lst~@definelanguage{Java}%
+  {morekeywords={abstract,boolean,break,byte,case,catch,char,class,%
+      const,continue,default,do,double,else,extends,false,final,%
+      finally,float,for,goto,if,implements,import,instanceof,int,%
+      interface,label,long,native,new,null,package,private,protected,%
+      public,return,short,static,super,switch,synchronized,this,throw,%
+      throws,transient,true,try,void,volatile,while},%
+   sensitive,%
+   morecomment=[l]//,%
+   morecomment=[s]{/*}{*/},%
+   morestring=[b]",%
+   morestring=[b]',%
+  }[keywords,comments,strings]
+\end{Verbatim}
+\end{small}
+
+\medskip
+In order to define a language called |Java| for \pkg{piton}, one has only to
+write the following code {\bfseries where the last argument of
+|\lst@definelanguage|, between square brackets, has been discarded} (in fact,
+the symbols \verb+%+ may be deleted without any problem).
+
+\begin{small}
+\begin{Verbatim}
+~emphase#\NewPitonLanguage@{Java}%
+  {morekeywords={abstract,boolean,break,byte,case,catch,char,class,%
+      const,continue,default,do,double,else,extends,false,final,%
+      finally,float,for,goto,if,implements,import,instanceof,int,%
+      interface,label,long,native,new,null,package,private,protected,%
+      public,return,short,static,super,switch,synchronized,this,throw,%
+      throws,transient,true,try,void,volatile,while},%
+   sensitive,%
+   morecomment=[l]//,%
+   morecomment=[s]{/*}{*/},%
+   morestring=[b]",%
+   morestring=[b]',%
+  }
+\end{Verbatim}
+\end{small}
+
+
+\NewPitonLanguage{Java}
+  {morekeywords={abstract,boolean,break,byte,case,catch,char,class,
+      const,continue,default,do,double,else,extends,false,final,
+      finally,float,for,goto,if,implements,import,instanceof,int,
+      interface,label,long,native,new,null,package,private,protected,
+      public,return,short,static,super,switch,synchronized,this,throw,
+      throws,transient,true,try,void,volatile,while},
+   sensitive,
+   morecomment=[l]//,
+   morecomment=[s]{/*}{*/},
+   morestring=[b]",
+   morestring=[b]',
+  }
+
+\medskip
+It's possible to use the language Java like any other language defined by
+\pkg{piton}.
+
+Here is an example of code formatted in an environment |{Piton}| with
+the key |language=Java|.\footnote{We recall that, for \pkg{piton}, the names
+of the computer languages are case-insensitive. Hence, it's possible to
+write, for instance, |language=java|.}
+
+
+\bigskip
+\begingroup
+\small
+\PitonOptions{splittable-on-empty-lines}
+\begin{Piton}[language = java]
+public class Cipher {  // Caesar cipher
+    public static void main(String[] args) {
+        String str = "The quick brown fox Jumped over the lazy Dog";
+        System.out.println( Cipher.encode( str, 12 ));
+        System.out.println( Cipher.decode( Cipher.encode( str, 12), 12 ));
+    }
+
+    public static String decode(String enc, int offset) {
+        return encode(enc, 26-offset);
+    }
+
+    public static String encode(String enc, int offset) {
+        offset = offset % 26 + 26;
+        StringBuilder encoded = new StringBuilder();
+        for (char i : enc.toCharArray()) {
+            if (Character.isLetter(i)) {
+                if (Character.isUpperCase(i)) {
+                    encoded.append((char) ('A' + (i - 'A' + offset) % 26 ));
+                } else {
+                    encoded.append((char) ('a' + (i - 'a' + offset) % 26 ));
+                }
+            } else {
+                encoded.append(i);
+            }
+        }
+        return encoded.toString();
+    }
+}
+\end{Piton}
+\endgroup
+
+\bigskip
+
+The keys of the command |\lstdefinelanguage| of \pkg{listings} supported by |\NewPitonLanguage| are:
+|morekeywords|, |otherkeywords|, |sensitive|, |keywordsprefix|, |moretexcs|,
+|morestring| (with the letters |b|,
+|d|, |s| and |m|), |morecomment| (with the letters |i|, |l|, |s| and |n|),
+|moredelim| (with the letters |i|,
+|l|, |s|, |*| and |**|), |moredirectives|, |tag|, |alsodigit|, |alsoletter|
+and |alsoother|.
+
+For the description of those keys, we redirect the reader to the documentation
+of the package \pkg{listings} (type |texdoc| |listings| in a terminal). 
+
+\bigskip
+For example, here is a language called ``LaTeX'' to format LaTeX chunks of codes:
+
+\begin{Verbatim}
+\NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoother = ~@_ }
+\end{Verbatim}
+
+Initially, the characters |@| and |_| are considered as letters because, in
+many computer languages, they are allowed in the keywords and the names of
+the identifiers. With \verb|alsoother = @_|, we retrieve them from the
+category of the letters. 
+
+\section{Import and export}
+
+
+\subsection{Importation of a listing}
+
+\label{PitonInputFile}
+
+\subsubsection{The command \textbackslash PitonInputFile}
+
+\indexcommand{PitonInputFile}
+
+The command \DefinitionCommand{PitonInputFile} includes the content of the
+file specified in argument (or only a part of that file: see below). The
+extension \pkg{piton} also provides the commands
+\DefinitionCommand{PitonInputFileT}, \DefinitionCommand{PitonInputFileF} and
+\DefinitionCommand{PitonInputFileTF} with supplementary arguments
+corresponding to the letters~|T| and~|F|. Those arguments will be executed if
+the file to include has been found (letter~|T|) or not found (letter~|F|).
+
+\smallskip
+The syntax for the paths (absolute or relative) is the following one:
+\begin{itemize}
+\item The paths beginning by |/| are absolute.
+
+\emph{Example} : |\PitonInputFile{/Users/joe/Documents/program.py}|
+
+\item The paths which do not begin with |/| are relative to the current
+repertory. 
+
+\emph{Example} : |\PitonInputFile{my_listings/program.py}|
+\end{itemize}
+
+\index{path}
+The key \Definition{path} of the command |\PitonOptions| specifies a
+\emph{list} of paths where the files included by |\PitonInputFile| will be
+searched. That list is comma separated.
+
+As previously, the absolute paths must begin with |/|.
+
+\bigskip
+\subsubsection{Insertion of a part of a file}
+
+\label{part-of-a-file}
+\indexcommand{PitonInputFile}
+
+The command |\PitonInputFile| inserts (with formatting) the content of a file.
+In fact, it's possible to insert only \emph{a part} of that file. Two
+mechanisms are provided in this aim.
+\begin{itemize}
+\item It's possible to specify the part that we want to insert by the numbers
+of the lines (in the original file).
+\item It's also possible to specify the part to insert with textual markers.
+\end{itemize}
+In both cases, if we want to number the lines with the numbers of the
+lines in the file, we have to use the key |line-numbers/absolute|.
+
+\bigskip
+\textbf{With line numbers}
+
+\nobreak
+The command |\PitonInputFile| supports the keys \Definition{first-line} and
+\Definition{last-line} in order to insert only the part of file between the
+corresponding lines. Not to be confused with the key |line-numbers/start|
+which fixes the first line number for the line numbering. In one sense,
+|line-numbers/start| deals with the output whereas |first-line| and
+|last-line| deal with the input.
+
+\bigskip
+\textbf{With textual markers}
+
+\nobreak
+\index{marker/beginning}
+\index{marker/end}
+
+In order to use that feature, we first have to specify the format of the
+markers (for the beginning and the end of the part to include) with the keys
+\Definition{marker-beginning} and \Definition{marker-end} (usually with the
+command |\PitonOptions|). 
+
+
+\medskip
+Let us take a practical example.
+
+\medskip
+We assume that the file to include contains solutions to exercises of
+programming on the following model.
+
+\begin{small}
+\begin{Verbatim}
+~#[Exercise 1] Iterative version
+def fibo(n):
+    if n==0: return 0 
+    else:
+        u=0
+        v=1
+        for i in range(n-1):
+            w = u+v
+            u = v
+            v = w
+        return v
+~#<Exercise 1>
+\end{Verbatim}
+\end{small}
+
+The markers of the beginning and the end are the strings |#[Exercise 1]| and
+|#<Exercise 1>|. The string ``|Exercise 1|'' will be called the \emph{label}
+of the exercise (or of the part of the file to be included).
+
+In order to specify such markers in \pkg{piton}, we will use the keys
+|marker/beginning| and |marker/end| with the following instruction (the
+character |#| of the comments of Python must be inserted with the protected
+form |\#|). 
+
+\begin{Verbatim}
+\PitonOptions{ ~emphase#marker/beginning@ = \~#[~#1] , ~emphase#marker/end@ = \~#<~#1> } 
+\end{Verbatim}
+
+As one can see, |marker/beginning| is an expression corresponding to the
+mathematical function which transforms the label (here |Exercise 1|) into the
+the beginning marker (here |#[Exercise 1]|). The string |#1|
+corresponds to the occurrences of the argument of that function, which the
+classical syntax in TeX. Idem for |marker/end|.\footnote{In regard to LaTeX,
+both functions must be \emph{fully expandable}.}
+
+\bigskip 
+Now, you only have to use the key \Definition{range} of |\PitonInputFile| to
+insert a marked content of the file.
+
+\smallskip
+\begin{Verbatim}
+\PitonInputFile[~emphase#range = Exercise 1@]{~textsl#file_name@}
+\end{Verbatim}
+
+\medskip
+\begin{Piton}
+def fibo(n):
+    if n==0: return 0 
+    else:
+        u=0
+        v=1
+        for i in range(n-1):
+            w = u+v
+            u = v
+            v = w
+        return v
+\end{Piton}
+
+\vspace{1cm}
+\index{marker/include-lines}
+The key \Definition{marker/include-lines} requires the insertion of the lines
+containing the markers.
+
+\begin{Verbatim}
+\PitonInputFile[~emphase#marker/include-lines@,range = Exercise 1]{~textsl#file_name@}
+\end{Verbatim}
+
+\begin{Piton}
+#[Exercise 1] Iterative version
+def fibo(n):
+    if n==0: return 0 
+    else:
+        u=0
+        v=1
+        for i in range(n-1):
+            w = u+v
+            u = v
+            v = w
+        return v
+#<Exercise 1>
+\end{Piton}
+
+
+\bigskip
+\index{begin-range}
+\index{end-range}
+In fact, there exist also the keys \Definition{begin-range} and
+\Definition{end-range} to insert several marked contents at the same time.
+
+For example, in order to insert the solutions of the exercises~3 to~5, we will
+write (if the file has the correct structure!):
+
+
+\begin{Verbatim}
+\PitonInputFile[~emphase#begin-range = Exercise 3, end-range = Exercise 5@]{~textsl#file_name@}
+\end{Verbatim}
+
+
+\subsection{Exportation of a listing}
+
+Alongside the command |\PitonInputFile| which allows the final user to import a
+listing from an external file, \pkg{piton} provides tools to export some listings
+included in the \textsc{pdf} file to an external file or as joined files embedded in
+\textsc{pdf} generated by LuaLaTeX.
+
+\bigskip
+\begin{itemize}
+\item \index{write} The key \Definition{write} takes in as argument a name of
+file (with its extension) and write the content\footnote{In fact, it's not
+exactly the body of the environment but the value of |piton.get_last_code()|
+which is the body without the overwritten LaTeX formatting instructions (cf.
+the part~\ref{API}, p.~\pageref{API}).} of the current environment in
+that file. At the first use of a file by \pkg{piton} (during a given
+compilation done by LuaLaTeX), it is erased. In fact, the file is written once at
+the end of the compilation of the file by LuaLaTeX.
+
+For legibility, \pkg{piton} provides the key \Definition{no-write} (without value)
+as alias for |write={}|.
+
+\item \index{path-write} The key \Definition{path-write} specifies a path
+where the files written by the key |write| will be written.
+
+\item The key \Definition{join} is similar to the key |write| but the files which
+are created are joined (as \emph{joined files}) in the \textsc{pdf}. Be
+careful: Some \textsc{pdf} readers don't provide any tool to access to these
+joined files.
+
+For legibility, \pkg{piton} provides the key \Definition{no-join} (without value)
+as alias for |join={}|.
+
+\item \index{print}
+The key \Definition{print} controls whether the content of the environment is 
+actually printed (with the syntactic formating) in the \textsc{pdf}. Of
+course, the initial value of |print| is |true|. However, it may be useful to
+use |print=false| in some circumstancies (for example, when the key |write| or
+the key |join| is used).
+
+\item \colorbox{yellow!50}{\textbf{New 4.9}}
+
+\nobreak
+The key \Definition{paperclip} will, for each environment |{Piton}|, add in the right
+margin a \textsc{pdf} annotation linked with a file joined in the \textsc{pdf}
+corresponding to the listing of the environment.
+
+The value provided to the key |paperclip| is the name that will be given to the embedded
+file. If no value is provided, the file will have the name \texttt{listing_\textsl{i}.txt}
+where \textsl{i} is a counter incremented by \pkg{piton} each time that a new file is
+created by use of |paperclip| without value.
+
+\medskip
+\begin{Verbatim}
+\begin{Piton}[~emphase#paperclip@,background-color=gray!15]
+def square(x):
+    """Computes the square of x"""
+    return x*x
+\end{Piton}    
+\end{Verbatim}
+
+\medskip
+\begin{Piton}[paperclip,background-color=gray!15]
+def square(x):
+    """Computes the square of x"""
+    return x*x
+\end{Piton}    
+
+
+\item \colorbox{yellow!50}{\textbf{New 4.9}}
+
+\nobreak
+The key \Definition{annotation} will, for each environment |{Piton}|, add in the right
+margin a \textsc{pdf} annotation whose content is directly the body of the
+environment |{Piton}|.
+
+\medskip
+\begin{Verbatim}
+\begin{Piton}[~emphase#annotation@,background-color=gray!15]
+def square(x):
+    """Computes the square of x"""
+    return x*x
+\end{Piton}    
+\end{Verbatim}
+
+\medskip
+\begin{Piton}[annotation,background-color=gray!15]
+def square(x):
+    """Computes the square of x"""
+    return x*x
+\end{Piton}    
+
+
+\end{itemize}
+
+\section{Advanced features}
+
+\subsection{The key ``box''}
+
+\label{box}
+\index{box}
+
+If one wishes to compose a listing in a box of LaTeX, he should use the key
+|box|. That key takes in as value |c|, |t| or |b| corresponding to the parameter
+of vertical position (as for the envionment |{minipage}| of LaTeX which creates also
+a LaTeX box). The default value is |c| (as for |{minipage}|).
+
+When the  key |box| is used, |width=min| is activated (except, of course, when the
+key |width| or the key |max-width| is explicitly used). For the keys |width| and
+|max-width|, cf.~p.~\pageref{width}.
+
+
+\smallskip
+\begin{Verbatim}
+\begin{center}
+\PitonOptions{~emphase#box@,background-color=gray!15}
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+\begin{Piton}
+def cube(x):
+    return x*x*x
+\end{Piton}
+\end{center}
+\end{Verbatim}
+
+\begin{center}
+\PitonOptions{box,background-color=gray!15}
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+\begin{Piton}
+def cube(x):
+    return x*x*x
+\end{Piton}
+\end{center}
+
+\vspace{1cm}
+It's possible to use the key |box| with a numerical value for the key |width|.
+
+
+\smallskip
+
+\begin{Verbatim}
+\begin{center}
+\PitonOptions{~emphase#box,width=5cm@,background-color=gray!15}
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+\begin{Piton}
+def cube(x):
+    return x*x*x
+\end{Piton}
+\end{center}
+\end{Verbatim}
+
+\begin{center}
+\PitonOptions{box,width=5cm,background-color=gray!15}
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+\begin{Piton}
+def cube(x):
+    return x*x*x
+\end{Piton}
+\end{center}
+
+\vspace{1cm}
+Here is an exemple with the key |max-width|, equal to 7~cm for both listings.
+
+\begin{Verbatim}
+\begin{center}
+\PitonOptions{~emphase#box=t,max-width=7cm@,background-color=gray!15}
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+\begin{Piton}
+def P(x):
+    return 24*x**8 - 7*x**7 + 12*x**6 -4*x**5 + 4*x**3 + x**2 - 5*x + 2
+\end{Piton}
+\end{center}
+\end{Verbatim}
+
+\begin{center}
+\PitonOptions{box=t,max-width=7cm,background-color=gray!15}
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+\begin{Piton}
+def P(x):
+    return 24*x**8 - 7*x**7 + 12*x**6 -4*x**5 + 4*x**3 + x**2 - 5*x + 2
+\end{Piton}
+\end{center}
+
+\subsection{The key ``tcolorbox''}
+
+\label{tcolorbox}
+\index{tcolorbox (key)}
+
+The extension \pkg{piton} provides a key \Definition{tcolorbox} in order to
+ease the use of the extension \pkg{tcolorbox} in conjunction with the extension
+\pkg{piton}. However, the extension \pkg{piton} does not load \pkg{tcolorbox} and
+the end user should have loaded it. Moreover, he must load the library |breakable|
+of \pkg{tcolorbox} with |\tcbuselibrary{breakable}| in the preamble of the LaTeX document.
+If this is not the case, an error will be raised at the first use of the key
+|tcolorbox|.
+
+\bigskip
+When the key |tcolorbox| is used, the listing formated by \pkg{piton} is
+included in an environment |{tcolorbox}|. That applies both to the command
+|\PitonInputFile| and the environment |{Piton}| (or, more generally, an
+environment created by the dedicated command |\NewPitonEnvironment|:
+cf.~p.~\pageref{NewPitonEnvironment}). If the key |splittable| of \pkg{piton}
+is used (cf. p.~\pageref{page breaks}), the graphical box created by
+\pkg{tcolorbox} will be splittable by a change of page.
+
+\bigskip
+In the present document, we have loaded, besides \pkg{tcolorbox} and its library
+|breakable|, the library |skins| of \pkg{tcolorbox} and we have activated the
+``\emph{skin}'' |enhanced|, in order to have a better appearance at the page break.
+
+
+\begin{footnotesize}
+\begin{Verbatim}
+\tcbuselibrary{skins,breakable} % in the preamble
+\tcbset{enhanced}               % in the preamble 
+\end{Verbatim}
+\end{footnotesize}
+
+\begin{Verbatim}
+\begin{Piton}~emphase#[tcolorbox,splittable=3]@
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+...
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+\end{Piton}
+\end{Verbatim}
+
+\begin{Piton}[tcolorbox,splittable=3]
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+def carré(x):
+    """Computes the square of x"""
+    return x*x
+\end{Piton}
+
+Of course, if we want to change the color of the background, we won't use the key
+|background-color| of \pkg{piton} but the tools provided by \pkg{tcolorbox}
+(the key |colback| for the color of the background).
+
+\bigskip
+If we want to adjust the width of the graphical box to its content, we only
+have to use the key |width=min| provided by \pkg{piton} (cf.
+p.~\pageref{width}). It's also possible to use |width| or |max-width| with a
+numerical value. The environment is splittable if the key |splittable| is used (cf.
+p.~\pageref{page breaks}).
+
+\begin{Verbatim}
+\begin{Piton}~emphase#[tcolorbox,width=min,splittable=3]@
+def square(x):
+    """Computes the square of x"""
+    return x*x
+...
+def square(x):
+    """Computes the square of x"""
+    return x*x
+\end{Piton}
+\end{Verbatim}
+
+\begin{Piton}[tcolorbox,width=min,splittable=3]
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+\end{Piton}
+
+\bigskip
+If we want an output composed in a LaTeX box (despites its name, an environment
+of \pkg{tcolorbox} does not always create a LaTeX box), we only have to use,
+in conjunction with the key |tcolorbox|, the key |box| provided by \pkg{piton}
+(cf. p.~\pageref{box}). Of course, such LaTeX box, as all the LaTeX boxes, can't
+be broken by a change of page, even if the key |splittable| (cf.~p.~\pageref{splittable})
+is in force.
+
+We recall that, when the key |box| is used, |width=min| is activated (except,
+when the key |width| or the key |max-width| is explicitly used).
+
+
+\smallskip
+\begin{Verbatim}
+\begin{center}
+\PitonOptions{~emphase#tcolorbox,box=t@}
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+\begin{Piton}
+def cube(x):
+    """The cube of x"""
+    return x*x*x
+\end{Piton}
+\end{center}
+\end{Verbatim}
+
+\begin{center}
+\PitonOptions{tcolorbox,box=t}%
+\begin{Piton}
+def square(x):
+    return x*x
+\end{Piton}
+\hspace{1cm}
+\begin{Piton}
+def cube(x):
+    """The cube of x"""
+    return x*x*x
+\end{Piton}
+\end{center}
+
+
+
+\bigskip
+For a more sophisticated example of use of the key |tcolorbox|, see the example
+given at the page~\pageref{examples-tcolorbox}.
+
+
+
+\bigskip
+\subsection{Page breaks and line breaks}
+
+\label{breakable}
+
+\subsubsection{Line breaks}
+
+\label{line-breaks}
+
+There are keys to control the line breaks (the possible breaking points are
+the spaces, even the spaces which appear in the strings of the computer
+languages).
+\begin{itemize}
+\item \index{break-lines!break-lines-in-piton} With the key
+\Definition{break-lines-in-piton}, the line breaks are allowed in the command
+|\piton{...}| (but not in the command \verb+\piton|...|+, that is to say the
+command |\piton| in verbatim mode).
+\item \index{break-lines!break-lines-in-Piton} With the key
+\Definition{break-lines-in-Piton}, the line breaks are allowed in the
+environment |{Piton}| (hence the capital letter |P| in the name) and in the
+listings produced by |\PitonInputFile|. The initial value of that parameter is
+|true| (and not |false|).
+\item \index{break-lines} The key \Definition{break-lines} is a conjunction of
+the two previous keys. 
+\end{itemize}
+
+\bigskip 
+The package \pkg{piton} provides also several keys to control the appearance
+on the line breaks allowed by |break-lines-in-Piton|.
+
+\begin{itemize}
+\item \index{indent-broken-lines} With the key
+\Definition{indent-broken-lines}, the indentation of a 
+broken line is respected at carriage return (on the condition that the used
+font is a monospace font and this is the case by default since the initial
+value of |font-command| is |\ttfamily|).
+
+\item The key \Definition{end-of-broken-line} corresponds to the symbol placed
+at the end of a broken line. The initial value is:
+|\hspace*{0.5em}\textbackslash|.
+
+\item \index{continuation-symbol} The key \Definition{continuation-symbol}
+corresponds to the symbol placed at each carriage return. The initial value
+is: |+\;| (the command |\;| inserts a small horizontal space).
+
+\item \index{continuation-symbol-on-indentation} 
+The key \Definition{continuation-symbol-on-indentation} corresponds to
+the symbol placed at each carriage return, on the position of the indentation
+(only when the key |indent-broken-line| is in force). The initial value is:
+|$\hookrightarrow\;$|.
+\end{itemize}
+
+
+\bigskip
+The following code has been composed with the following tuning:
+
+\begin{Verbatim}
+\PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
+\end{Verbatim}
+
+\begin{center}
+\PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
+\begin{Piton}
+def dict_of_list(l):
+    """Converts a list of subrs and descriptions of glyphs in a dictionary"""
+    our_dict = {}
+    for list_letter in l:
+        if (list_letter[0][0:3] == 'dup'): # if it's a subr
+            name = list_letter[0][4:-3]
+            print("We treat the subr of number " + name)
+        else:
+            name = list_letter[0][1:-3] # if it's a glyph
+            print("We treat the glyph of number " + name)
+        our_dict[name] = [treat_Postscript_line(k) for k in list_letter[1:-1]]
+    return dict
+\end{Piton}
+\end{center}
+
+\bigskip
+With the key \Definition{break-strings-anywhere}, the strings may be broken
+anywhere (and not only on the spaces). 
+
+\bigskip
+With the key \Definition{break-numbers-anywhere}, the numbers may be broken
+anywhere.
+
+\subsubsection{Page breaks}
+\label{page breaks}
+\label{splittable}
+\index{splittable}
+\index{splittable-on-empty-lines}
+
+By default, the listings produced by the environment |{Piton}| and the command
+|\PitonInputFile| are not breakable.
+
+However, \pkg{piton} provides the keys |splittable-on-empty-lines| and
+|splittable| to allow such breaks.
+
+\begin{itemize}
+\item The key \Definition{splittable-on-empty-lines} allows breaks on the empty
+lines. The ``empty lines'' are in fact the lines which contains only spaces.
+
+\item Of course, the key |splittable-on-empty-lines| may not be sufficient and
+that's why \pkg{piton} provides the key \Definition{splittable}.
+
+When the key |splittable| is used with the numeric value~$n$ (which must be a
+positive integer) the listing, or each part of the listing delimited by empty
+lines (when |split-on-empty-lines| is in force) may be broken anywhere with
+the restriction that no break will occur within the $n$ first lines of
+the listing or within the $n$ last lines.\footnote{Remark that we speak of the
+lines of the original computer listing and such line may be composed on
+several lines in the final \textsc{pdf} when the key |break-lines-in-Piton| is
+in force.} 
+
+For example, a tuning with |splittable = 4| may be a good choice.
+
+When used without value, the key |splittable| is equivalent to 
+|splittable = 1| and the listings may be broken anywhere (it's probably 
+not recommandable).
+
+The initial value of the key |splittable| is equal to 100 (by default, the
+listings are not breakable at all).
+\end{itemize} 
+
+\medskip
+\begin{tcolorbox}[breakable]
+Even with a background color (set by the key |background-color|), the pages
+breaks are allowed, as soon as the key |split-on-empty-lines| or the key
+|splittable| is in force.
+
+\medskip
+With the key |splittable|, the environments
+\texttt{\{Piton\}} are breakable, even within a (breakable) environment of
+\pkg{tcolorbox}. Remind that an environment of \pkg{tcolorbox} included in
+another environment of \pkg{tcolorbox} is \emph{not} breakable, even when both
+environments use the key |breakable| of \pkg{tcolorbox}.
+
+\medskip
+We illustrate that point with the following code (the current environment
+|{tcolorbox}| uses the key |breakable|).
+
+\begin{Verbatim}
+~emphase#\begin{Piton}[background-color=gray!30,rounded-corners,width=min,splittable=4]@
+def square(x):
+    """Computes the square of x"""
+    return x*x
+...
+def square(x):
+    """Computes the square of x"""
+    return x*x
+~emphase#\end{Piton}@
+\end{Verbatim}
+
+\bigskip
+\begin{Piton}[background-color=gray!30,rounded-corners,width=min,splittable=4]
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x 
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+\end{Piton}
+
+\end{tcolorbox}
+
+\subsection{Splitting of a listing in sub-listings}
+
+\index{split-on-empty-lines}
+\label{split-on-empty-lines}
+\index{split-separation}
+\index{add-to-split-separation}
+
+The extension \pkg{piton} provides the key \Definition{split-on-empty-lines},
+which should not be confused with the key |splittable-on-empty-lines|
+previously defined.
+
+\smallskip
+In order to understand the behaviour of the key |split-on-empty-lines|, one
+should imagine that he has to compose an computer listing which contains
+several definitions of computer functions. Usually, in the computer
+languages, those definitions of functions are separated by empty lines.
+
+\smallskip
+The key |split-on-empty-lines| splits the listings on the empty lines. Several
+empty lines are deleted and replaced by the content of the parameter
+corresponding to the key \Definition{split-separation}.
+\begin{itemize}
+\item That parameter must contain elements allowed to be inserted in
+\emph{vertical mode} of TeX. For example, it's possible to put the TeX
+primitive |\hrule|.
+
+\item The initial value of this parameter is
+|\vspace{\baselineskip}\vspace{-1.25pt}| which corresponds eventually to an 
+empty line in the final \textsc{pdf} (this vertical space is deleted if it
+occurs on a page break). If the key |background-color| is in force, no
+background color is added to that empty line.
+
+\item In fact, the extension \pkg{piton} provides also the key
+|add-to-split-separation| to add elements on the right of the parameter
+|split-separation|.
+\end{itemize}
+
+
+Each chunk of the computer listing is composed in an environment whose name
+is given by the key \Definition{env-used-by-split}. The initial value of that
+parameter is, not surprisingly, |Piton| and, hence, the different chunks are
+composed in several environments |{Piton}|. If one decides to change the value
+of |env-used-by-split|, he should use the name of an environment created by
+|\NewPitonEnvironment| (cf.~part~\ref{NewPitonEnvironment},
+p.~\pageref{NewPitonEnvironment}).
+
+Each chunk of the computer listing is formated in its own environment.
+Therefore, it has its own line numbering (if the key
+|line-numbers| is in force) and its own colored background (when the key
+|background-color| is in force), separated from the background color of the
+other chunks. When used, the key |splittable| applies in each chunk
+(independently of the other chunks). Of course, a page break may occur between
+the chunks of code, regardless of the value of |splittable|.
+
+\bigskip
+\begin{Verbatim}
+\begin{Piton}[~emphase#split-on-empty-lines@,background-color=gray!15,line-numbers]
+def square(x):
+    """Computes the square of x"""
+    return x*x
+
+def cube(x):
+    """Calcule the cube of x"""
+    return x*x*x
+\end{Piton}
+\end{Verbatim}
+
+
+\begin{Piton}[split-on-empty-lines,background-color=gray!15,line-numbers]
+def square(x):
+    """Computes the square of x"""
+    return x*x
+
+def cube(x):
+    """Calcule the cube of x"""
+    return x*x*x
+\end{Piton}
+
+
+\bigskip
+If we wish to have a continuity of the line numbers between the sublistings
+it's possible to add |\PitonOptions{resume}| to the parameter |split-separation|.
+
+\bigskip
+\begin{Verbatim}
+\begin{Piton}[
+   split-on-empty-lines,
+   ~emphase#add-to-split-separation = \PitonOptions{resume}@ ,
+   background-color=gray!15,
+   line-numbers
+ ]
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+
+def cube(x):
+    """Calcule le cube de x"""
+    return x*x*x
+\end{Piton}
+\end{Verbatim}
+
+\begin{Piton}[
+   split-on-empty-lines,
+   add-to-split-separation = \PitonOptions{resume} ,
+   background-color=gray!15,
+   line-numbers
+ ]
+def carré(x):
+    """Calcule le carré de x"""
+    return x*x
+
+def cube(x):
+    """Calcule le cube de x"""
+    return x*x*x
+\end{Piton}
+
+
+\bigskip
+\textbf{Caution}: Since each chunk is treated independently of the others, the
+commands specified by |detected-commands| or |raw-detected-commands|
+(cf.~p.~\pageref{detected-commands}) and the commands and environments of
+Beamer automatically detected by \pkg{piton} must not cross the empty lines of
+the original listing.
+
+\subsection{Highlighting some identifiers}
+
+\label{SetPitonIdentifier}
+
+The command \DefinitionCommand{SetPitonIdentifier} allows to automatically
+change the formatting of some identifiers. That change is only based on the
+name of those indentifiers.
+
+\smallskip
+That command takes in three arguments: 
+
+\begin{itemize}
+\item The optional argument (within square brackets) specifies the computer
+language. If this argument is not present, the tunings done by
+|\SetPitonIdentifier| will apply to all the computer languages of
+\pkg{piton}.\footnote{We recall, that, in the package \pkg{piton}, the
+names of the computer languages are case-insensitive.}
+
+\item The first mandatory argument is a comma-separated list of names of
+identifiers.
+
+\item The second mandatory argument is a list of LaTeX instructions of the
+same type as \pkg{piton} ``styles'' previously presented (cf.~\ref{styles}
+p.~\pageref{styles}). 
+\end{itemize}
+
+\emph{Caution}: Only the identifiers may be concerned by that key. The
+keywords and the built-in functions won't be affected, even if their name
+appear in the first argument of |\SetPitonIdentifier|.
+
+\begin{Verbatim}
+~emphase#\SetPitonIdentifier{l1,l2}{\color{red}}@
+\begin{Piton}
+def tri(l):
+    """Segmentation sort"""
+    if len(l) <= 1:
+        return l
+    else:
+        a = l[0]
+        l1 = [ x for x in l[1:] if x < a  ]
+        l2 = [ x for x in l[1:] if x >= a ]
+        return tri(l1) + [a] + tri(l2)
+\end{Piton}
+\end{Verbatim}
+
+
+\bigskip
+
+\begingroup
+
+\SetPitonIdentifier{l1,l2}{\color{red}}
+
+\begin{Piton}
+def tri(l):
+    """Segmentation sort"""
+    if len(l) <= 1:
+        return l
+    else:
+        a = l[0]
+        l1 = [ x for x in l[1:] if x < a  ]
+        l2 = [ x for x in l[1:] if x >= a ]
+        return tri(l1) + [a] + tri(l2)
+\end{Piton}
+
+\endgroup
+
+\bigskip
+By using the command |\SetPitonIdentifier|, it's possible to add other
+built-in functions (or other new keywords, etc.) that will be detected by
+\pkg{piton}.
+
+
+\begin{Verbatim}
+~emphase#\SetPitonIdentifier[Python]@
+  {cos, sin, tan, floor, ceil, trunc, pow, exp, ln, factorial}
+  {\PitonStyle{Name.Builtin}}
+
+\begin{Piton}
+from math import *
+cos(pi/2) 
+factorial(5)
+ceil(-2.3) 
+floor(5.4) 
+\end{Piton}
+\end{Verbatim}
+
+\begingroup
+
+\SetPitonIdentifier[Python]
+  {cos, sin, tan, floor, ceil, trunc, pow, exp, ln, factorial}
+  {\PitonStyle{Name.Builtin}}
+
+\begin{Piton}
+from math import *
+cos(pi/2) 
+factorial(5)
+ceil(-2.3) 
+floor(5.4) 
+\end{Piton}
+
+
+\endgroup
+
+
+\subsection{Mechanisms to escape to LaTeX}
+
+\index{escapes to LaTeX}
+
+The package \pkg{piton} provides several mechanisms for escaping to LaTeX:
+\begin{itemize}
+\item It's possible to compose comments entirely in LaTeX.
+\item It's possible to have the elements between \texttt{\$} in the comments
+composed in LateX mathematical mode.
+\item It's possible to ask \pkg{piton} to detect automatically some LaTeX
+commands, thanks to the keys |detected-commands|, |raw-detected-commands| and
+|vertical-detected-commands|.
+\item It's also possible to insert LaTeX code almost everywhere in a Python listing.
+\end{itemize}
+
+One should also remark that, when the extension \pkg{piton} is used with the
+class \cls{beamer}, \pkg{piton} detects in |{Piton}| many commands and
+environments of Beamer: cf. \ref{beamer} p.~\pageref{beamer}.
+
+\subsubsection{The ``LaTeX comments''}
+
+\index{comment-latex}
+
+In this document, we call ``LaTeX comments'' the comments which begins by
+|#>|. The code following those characters, until the end of the line, will be
+composed as standard LaTeX code. There is two tools to customize those
+comments.
+
+\begin{itemize}
+\item It's possible to change the syntactic mark (which, by default, is |#>|).
+For this purpose, there is a key \Definition{comment-latex} available only in
+the preamble of the document, allows to choice the characters which, preceded
+by |#|, will be the syntactic marker.
+
+For example, if the preamble contains the following instruction:
+
+\quad \verb|\PitonOptions{comment-latex = LaTeX}|
+
+the LaTeX comments will begin by |#LaTeX|.
+
+If the key |comment-latex| is used with the empty value, all the Python
+comments (which begins by |#|) will, in fact, be ``LaTeX comments''.
+
+\smallskip
+\item It's possible to change the formatting of the LaTeX comment itself by
+changing the \pkg{piton} style |Comment.LaTeX|.
+
+For example, with |\SetPitonStyle{Comment.LaTeX = \normalfont\color{blue}}|,
+the LaTeX comments will be composed in blue.
+
+If you want to have a character |#| at the beginning of the LaTeX comment in
+the \textsc{pdf}, you can use set |Comment.LaTeX| as follows:
+
+\begin{Verbatim}
+\SetPitonStyle{Comment.LaTeX = \color{gray}\~#\normalfont\space }
+\end{Verbatim}
+
+For other examples of customization of the LaTeX comments, see the part
+\ref{example-comments} p.~\pageref{example-comments}
+\end{itemize}
+
+\bigskip
+If the user has required line numbers (with the key |line-numbers|), it's
+possible to refer to a number of line with the command |\label| used in a
+LaTeX comment.\footnote{That feature is implemented by using a redefinition of
+the standard command \texttt{\textbackslash label} in the environments
+\texttt{\{Piton\}}. Therefore, incompatibilities may occur with extensions
+which redefine (globally) that command \texttt{\textbackslash label} (for
+example: \pkg{varioref}, \pkg{refcheck}, \pkg{showlabels}, etc.).} The same goes
+for the |\zlabel| command from the \pkg{zref} package.\footnote{Using the
+command \texttt{\textbackslash zcref} command from \pkg{zref-clever} is also 
+supported.}
+
+\subsubsection{The key ``label-as-zlabel''}
+
+\index{label-as-zlabel}
+
+The key |label-as-zlabel| will be used to indicate if the user wants |\label|
+inside |Piton| environments to be replaced by a |\zlabel|-compatible command
+(which is the default behavior of \pkg{zref} outside of such environments).
+
+That feature is activated by the key \Definition{label-as-zlabel}, \emph{which is
+available only in the preamble of the document}.
+
+\subsubsection{The key ``math-comments''}
+
+\index{math-comments}
+
+It's possible to request that, in the standard Python comments (that is to say
+those beginning by |#| and not |#>|), the elements between \texttt{\$} be
+composed in LaTeX mathematical mode (the other elements of the comment being
+composed verbatim).
+
+That feature is activated by the key \Definition{math-comments}, \emph{which is
+available only in the preamble of the document}.
+
+\nobreak
+\begin{footnotesize}
+\begin{Verbatim}
+\PitonOptions{math-comment} % in the preamble
+\end{Verbatim}
+\end{footnotesize}
+
+\begin{Verbatim}
+\begin{Piton}
+def square(x):
+    return x*x ~# compute $x^2$
+\end{Piton}
+\end{Verbatim}
+
+\begin{Piton}
+def square(x):
+    return x*x # compute $x^2$
+\end{Piton}
+
+\subsubsection{The key ``detected-commands'' and its variants}
+
+\index{raw-detected-commands (key)}
+\label{raw-detected-commands}
+\index{vertical-detected-commands (key)}
+\label{vertical-detected-commands}
+\index{detected-commands (key)}
+\label{detected-commands}
+
+The key \Definition{detected-commands} of |\PitonOptions| allows to specify a
+(comma-separated) list of names of LaTeX commands that will be detected 
+directly by \pkg{piton}.
+
+\begin{itemize}
+\item The key |detected-commands| must be used in the preamble of the LaTeX document.
+
+\item The names of the LaTeX commands must appear without the leading
+backslash (eg. |detected-commands = { emph, textbf }|). 
+
+\item These commands must be LaTeX commands with only one (mandatory) argument
+between braces (and these braces must appear explicitly in the computer
+listing). 
+
+\item These commands must be \textbf{protected}\footnote{We recall that the
+command \texttt{\textbackslash NewDocumentCommand} creates protected commands,
+unlike the historical LaTeX command \texttt{\textbackslash newcommand} (and
+unlike the command \texttt{\textbackslash def} of TeX).} against expansion in
+the TeX sens (because the command |\piton| expands its arguments before
+throwing it to Lua for syntactic analysis).
+\end{itemize}
+
+\bigskip
+In the following example, which is a recursive programming in C of the
+factorial function, we decide to highlight the recursive call. The command
+|\highLight| of \pkg{lua-ul}\footnote{The package \pkg{lua-ul} requires itself
+the package \pkg{luacolor}.} directly does the job.
+
+\medskip
+\begin{footnotesize}
+\begin{Verbatim}
+\PitonOptions{~emphase#detected-commands@ = highLight} % in the preamble
+\end{Verbatim}
+\end{footnotesize}
+
+\begin{Verbatim}
+\begin{Piton}[language=C]
+int factorielle(int n)
+  {
+    if (n > 0) ~emphase#\highLight{return n * factorielle(n - 1)}@ ;
+    else return 1;
+  }
+\end{Piton}
+\end{Verbatim}
+
+\begin{Piton}[language=C]
+int factorielle(int n)
+  {
+    if (n > 0) \highLight{return n * factorielle(n - 1)} ;
+    else return 1;
+  }
+\end{Piton}
+
+\bigskip
+The key \Definition{raw-detected-commands} is similar to the key
+|detected-commands| but \pkg{piton} won't do any syntactic analysis of the
+arguments of the LaTeX commands which are detected.
+
+If there is a line break within the argument of a command detected by the mean
+of |raw-detected-commands|, that line break is replaced by a space (as does
+LaTeX by default).
+
+\medskip
+Imagine, for example, that we wish, in the main text of a document about
+databases, introduce some specifications of tables of the language
+\textsc{sql} by the the name of the table, followed, between brackets, by the
+names of its fields (ex. : |client(name,town)|).
+
+If we insert that element in a command |\piton|, the word \emph{client} won't
+be recognized as a name of table but as a name of field. It's possible to
+define a personal command |\NomTable| which we will apply by hand to the names
+of the tables. In that aim, we declare that command with
+|raw-detected-commands| and, thus, its argument won't be re-analyzed by
+\pkg{piton} (that second analysis would format it as a name of field).
+
+\medskip
+In the preamble of the LaTeX document, we insert the following lines:
+
+\begin{Verbatim}
+\NewDocumentCommand{\NameTable}{m}{{\PitonStyle{Name.Table}{~#1}}}
+\PitonOptions{language=SQL, ~emphase#raw-detected-commands = NameTable@}
+\end{Verbatim}
+
+In the main document, the instruction:
+
+\begin{Verbatim}
+Exemple : \piton{\NameTable{client} (name, town)}
+\end{Verbatim}
+
+\NewDocumentCommand{\NameTable}{m}{{\PitonStyle{Name.Table}{#1}}}
+
+produces the following output :
+
+\smallskip
+\begingroup
+\PitonOptions{language=SQL}%
+Exemple : \piton{\NameTable{client} (nom, prénom)}
+\endgroup
+
+\bigskip
+The key \Definition{vertical-detected-commands} is similar to the key |raw-detected-commands|
+but the commands which are detected by this key must be LaTeX commands (with one argument)
+which are executed in \emph{vertical} mode between the lines of the code.
+
+\smallskip
+For example, it's possible to detect the command |\newpage| by
+
+\begin{Verbatim}
+\PitonOptions{vertical-detected-commands = newpage}
+\end{Verbatim}
+
+and ask in a listing a mandatory break of page with |\newpage{}| (the pair of braces |{}|
+is mandatory because the commands detected by \pkg{piton} are meant to be LaTeX commands
+with one mandatory argument).
+
+\begin{Verbatim}
+\begin{Piton}
+def square(x):
+    return x*x  ~emphase#\newpage{}@
+def cube(x):
+    return x*x*x
+\end{Piton}
+\end{Verbatim}
+
+\medskip
+It would also be possible to require the detection of the command |\vspace|.
+
+\subsubsection{The mechanism ``escape''}
+
+\label{escape}
+
+It's also possible to overwrite the computer listings to insert LaTeX code
+almost everywhere (but between lexical units, of course). By default,
+\pkg{piton} does not fix any delimiters for that kind of escape.
+
+In order to use this mechanism, it's necessary to specify the delimiters which
+will delimit the escape (one for the beginning and one for the end) by using
+the keys \Definition{begin-escape} and \Definition{end-escape}, \emph{available only
+in the preamble of the document}.
+
+\medskip
+We consider once again the previous example of a recursive programming of
+the factorial. We want to highlight in pink the instruction containing the
+recursive call. With the package \pkg{lua-ul}, we can use the syntax
+|\highLight[LightPink]{...}|. Because of the optional argument between square
+brackets, it's not possible to use the key |detected-commands| but it's
+possible to achieve our goal with the more general mechanism ``escape''.
+
+\medskip
+We assume that the preamble of the document contains the following
+instruction:
+
+\begin{Verbatim}
+\PitonOptions{~emphase#begin-escape=!,end-escape=!@}
+\end{Verbatim}
+
+\medskip
+Then, it's possible to write:
+\begin{Verbatim}
+\begin{Piton}
+def fact(n):
+    if n==0:
+        return 1
+    else:
+        ~emphase#!\highLight[LightPink]{!@return n*fact(n-1)~emphase#!}!@
+\end{Piton}
+\end{Verbatim}
+
+   \begin{Piton}
+def fact(n):
+    if n==0:
+        return 1
+    else:
+        !\highLight[LightPink]{!return n*fact(n-1)!}!
+   \end{Piton}
+
+
+
+\bigskip
+\emph{Caution} : The mechanism ``escape'' is not active in the strings nor in
+the comments (however, it's possible to have a whole Python comment
+composed in LaTeX by beginning it with |#>|; such comments are merely called
+``LaTeX comments'' in this document).
+
+
+\subsubsection{The mechanism ``escape-math''}
+
+The mechanism ``escape-math'' is very similar to the mechanism ``escape''
+since the only difference is that the elements sent to LaTeX are composed in
+the math mode of LaTeX.
+
+This mechanism is activated with the keys \Definition{begin-escape-math} and
+\Definition{end-escape-math} (\emph{which are available only in the preamble of the
+document}). 
+
+Despite the technical similarity, the use of the the mechanism
+``escape-math'' is in fact rather different from that of the mechanism
+``escape''. Indeed, since the elements are composed in a mathematical mode
+of LaTeX, they are, in particular, composed within a TeX group and, therefore,
+they can't be used to change the formatting of other lexical units.
+
+In the languages where the character \verb|$| does not play a important role,
+it's possible to activate that mechanism ``escape-math'' with the character
+\verb|$|:
+\begin{Verbatim}
+\PitonOptions{~emphase#begin-escape-math=$,end-escape-math=$@}
+\end{Verbatim}
+Note: the character \verb|$| must \emph{not} be protected by a backslash.
+
+\bigskip
+However, it's probably more prudent to use |\(| et |\)|, which are delimiters
+of the mathematical mode provided by LaTeX.
+\begin{Verbatim}
+\PitonOptions{~emphase#begin-escape-math=\(,end-escape-math=\)@}
+\end{Verbatim}
+
+\bigskip
+Here is an example of use.
+
+\medskip
+\begin{Verbatim}
+\begin{Piton}[line-numbers]
+def arctan(x,n=10):
+    if ~emphase#\(x < 0\)@ :
+        return ~emphase#\(-\arctan(-x)\)@ 
+    elif ~emphase#\(x > 1\)@ : 
+        return ~emphase#\(\pi/2 - \arctan(1/x)\)@ 
+    else: 
+        s = ~emphase#\(0\)@
+        for ~emphase#\(k\)@ in range(~emphase#\(n\)@): s += ~emphase#\(\smash{\frac{(-1)^k}{2k+1} x^{2k+1}}\)@
+        return s
+\end{Piton}
+\end{Verbatim}
+
+
+\bigskip
+
+\begin{Piton}[line-numbers]
+def arctan(x,n=10):
+    if \(x < 0\) :
+        return \(-\arctan(-x)\) 
+    elif \(x > 1\) : 
+        return \(\pi/2 - \arctan(1/x)\) 
+    else: 
+        s = \(0\)
+        for \(k\) in range(\(n\)): s += \(\smash{\frac{(-1)^k}{2k+1} x^{2k+1}}\)
+        return s
+\end{Piton}
+
+
+
+
+\subsection{Behaviour in the class Beamer}
+
+\label{beamer}
+\index{Beamer@\cls{Beamer} (class)}
+
+\emph{First remark}
+
+\nobreak
+Since the environment |{Piton}| catches its body with a verbatim mode, it's
+necessary to use the environments |{Piton}| within environments |{frame}| of
+Beamer protected by the key |fragile|, i.e. beginning with
+|\begin{frame}[fragile]|.\footnote{Remind that for an environment
+|{frame}| of Beamer using the key |fragile|, the instruction
+|\end{frame}| must be alone on a single line (except
+for any leading whitespace).}
+
+Note that, if the frame contains only one slide, it's recommended to write
+
+|\begin{frame}[fragile=singleslide]|.
+
+\bigskip
+When the package \pkg{piton} is used within the class
+\cls{beamer}\footnote{The extension \pkg{piton} detects the class \cls{beamer}
+and the package \pkg{beamerarticle} if it is loaded previously
+but, if needed, it's also possible to activate that mechanism with the key
+|beamer| provided by \pkg{piton} at load-time:
+|\usepackage[beamer]{piton}|}, the behaviour of \pkg{piton} is slightly 
+modified, as described now. This is done via an environment |{actionenv}| of
+Beamer.
+
+\subsubsection{\{Piton\} and \textbackslash PitonInputFile are
+``overlay-aware''}
+
+When \pkg{piton} is used in the class \cls{beamer}, the command
+|\PitonInputFile| and the environment |{Piton}| (but not the environments
+created by |\NewPitonEnvironment|) accept the optional argument |<...>| of
+Beamer for the overlays which are involved.
+
+For example, it's possible to write:
+
+\begin{Verbatim}
+\begin{Piton}~emphase#<2-5>@
+...
+\end{Piton}
+\end{Verbatim}
+
+and 
+
+\begin{Verbatim}
+\PitonInputFile~emphase#<2-5>@{my_file.py}
+\end{Verbatim}
+
+\subsubsection{Commands of Beamer allowed in \{Piton\} and \textbackslash PitonInputFile}
+
+\index{detected-beamer-commands}
+
+When \pkg{piton} is used in the class \cls{beamer}, the following commands of
+\cls{beamer} (classified upon their number of arguments) are automatically
+detected in the environments |{Piton}| (and in the listings processed by
+|\PitonInputFile|):
+\begin{itemize}
+\item no mandatory argument : |\pause|\footnote{One should remark that it's
+also  possible to use the command |\pause| in a ``LaTeX
+comment'', that is to say by writing |#> \pause|. By
+this way, if the code is copied, it's still executable}.  ;
+\item one mandatory argument : |\action|, |\alert|, |\invisible|, |\only|,
+|\uncover| and |\visible| ; \newline
+% It's possible to add new commands to that list with the key
+\Definition{detected-beamer-commands} (the names of the commands must
+\emph{not} be preceded by a backslash). 
+\item two mandatory arguments : |\alt| ; 
+\item three mandatory arguments  : |\temporal|.
+\end{itemize}
+
+\medskip 
+These commands must be used preceded and following by a space. In the
+mandatory arguments of these commands, the braces must be balanced. However,
+the braces included in short strings\footnote{The short strings of Python are
+the strings delimited by characters |'| or the characters |"|
+and not |'''| nor |"""|. In Python, the short strings can't
+extend on several lines.} of Python are not considered.
+
+\medskip
+Regarding the functions |\alt| and |\temporal| there should be no carriage
+returns in the mandatory arguments of these functions.
+
+\medskip
+Here is a complete example of file:
+
+\begin{small}
+\begin{Verbatim}
+\documentclass{beamer}
+\usepackage{piton}
+\begin{document}
+\begin{frame}[fragile]
+\begin{Piton}
+def string_of_list(l):
+    """Convert a list of numbers in string"""
+~emphase#    \only<2->{s = "{" + str(l[0])}@
+~emphase#    \only<3->{for x in l[1:]: s = s + "," + str(x)}@
+~emphase#    \only<4->{s = s + "}"}@
+    return s
+\end{Piton}
+\end{frame}
+\end{document}
+\end{Verbatim}
+\end{small}
+
+In the previous example, the braces in the Python strings |"{"| and |"}"| are
+correctly interpreted (without any escape character).
+
+
+
+
+\bigskip
+\subsubsection{Environments of Beamer allowed in \{Piton\} and \textbackslash PitonInputFile}
+
+When \pkg{piton} is used in the class \pkg{beamer}, the following environments
+of Beamer are directly detected in the environments |{Piton}| (and in the
+listings processed by |\PitonInputFile|): |{actionenv}|, |{alertenv}|,
+|{invisibleenv}|, |{onlyenv}|, |{uncoverenv}| and |{visibleenv}|.
+
+\smallskip
+\index{detected-beamer-environments}
+It's possible to add new environments to that list with the key
+\Definition{detected-beamer-environments}. 
+
+\smallskip
+
+However, there is a restriction: these environments must contain only \emph{whole
+lines of code} in their body. The instructions |\begin{...}| and
+|\end{...}| must be alone on their lines.
+
+\medskip
+Here is an example:
+
+\begin{small}
+\begin{Verbatim}
+\documentclass{beamer}
+\usepackage{piton}
+\begin{document}
+\begin{frame}[fragile]
+\begin{Piton}
+def square(x):
+    """Compure the square of its argument"""
+~emphase#\begin{uncoverenv}<2>@
+    return x*x
+~emphase#\end{uncoverenv}@
+\end{Piton}
+\end{frame}
+\end{document}
+\end{Verbatim}
+\end{small}
+
+
+\vspace{1cm}
+\textbf{Remark concerning the command \textbackslash alert and the environment
+\{alertenv\} of Beamer}
+
+\nobreak
+\smallskip
+Beamer provides an easy way to change the color used by the environment
+|{alertenv}| (and by the command |\alert| which relies upon it) to highlight
+its argument. Here is an example:
+
+\begin{Verbatim}
+\setbeamercolor{~emphase#alerted text@}{fg=blue} 
+\end{Verbatim}
+
+However, when used inside an environment |{Piton}|, such tuning will probably
+not be the best choice because \pkg{piton} will, by design, change (most of
+the time) the color the different elements of text. One may prefer an environment
+|{alertenv}| that will change the background color for the elements to be
+highlighted. 
+
+\smallskip
+Here is a code that will do that job and add a yellow background. That code
+uses the command |\@highLight| of \pkg{lua-ul} (that extension requires also
+the package \pkg{luacolor}).
+
+\begingroup
+\small
+\fvset{commandchars=\~\#\+}
+\begin{Verbatim}
+\setbeamercolor{alerted text}{bg=yellow!50}
+\makeatletter
+\AddToHook{env/Piton/begin}
+  {\renewenvironment<>{alertenv}{\only~#1{~emphase#\@highLight+[alerted text.bg]}}{}}
+\makeatother
+\end{Verbatim}
+\endgroup
+
+That code redefines locally the environment |{alertenv}| within the
+environments |{Piton}| (we recall that the command |\alert| relies upon that
+environment |{alertenv}|).
+
+
+\subsection{Footnotes in the environments of piton}
+
+ \index{footnote@\pkg{footnote} (extension)}
+\index{footnote (key)}
+\index{footnotehyper@\pkg{footnotehyper} (extension)}
+\index{footnotehyper (key)}
+
+\label{footnote}
+If you want to put footnotes in an environment |{Piton}| or
+(or, more unlikely, in a listing produced by |\PitonInputFile|), you can use a
+pair |\footnotemark|--|\footnotetext|. 
+
+\smallskip
+However, it's also possible to extract the footnotes with the help of the
+package \pkg{footnote} or the package \pkg{footnotehyper}.
+
+\smallskip
+If \pkg{piton} is loaded with the option \Definition{footnote} (with
+|\usepackage[footnote]{piton}|), the package \pkg{footnote} is loaded (if it is
+not yet loaded) and it is used to extract the footnotes.
+
+\smallskip
+If \pkg{piton} is loaded with the option \Definition{footnotehyper}, the
+package \pkg{footnotehyper} is loaded (if it is not yet loaded) ant it is used
+to extract footnotes.
+
+\smallskip
+Caution: The packages \pkg{footnote} and \pkg{footnotehyper} are incompatible.
+The package \pkg{footnotehyper} is the successor of the package \pkg{footnote}
+and should be used preferably. The package \pkg{footnote} has some drawbacks,
+in particular: it must be loaded after the package \pkg{xcolor} and it is not
+perfectly compatible with \pkg{hyperref}.
+
+
+\medskip
+\textbf{Important remark} : If you use Beamer, you should know that Beamer has
+its own system to extract the footnotes. Therefore, \pkg{piton} must be loaded
+in that class without the option |footnote| nor the option |footnotehyper|.
+
+
+\bigskip
+By default, in an environment |{Piton}|, a command |\footnote| may appear only
+within a ``LaTeX comment''. But it's also possible to add the command
+|\footnote| to the list of the ``\emph{detected-commands}''
+(cf.~part~\ref{detected-commands}, p.~\pageref{detected-commands}). 
+
+\medskip 
+In this document, the package \pkg{piton} has been loaded with the
+option |footnotehyper| dans we added the command |\footnote| to the list of
+the ``\emph{detected-commands}'' with the following instruction in the
+preamble of the LaTeX document.
+
+\qquad \verb|\PitonOptions{detected-commands = footnote}|
+
+
+\begingroup
+\small
+\fvset{commandchars=\~\&\@}
+\begin{Verbatim}
+\PitonOptions{background-color=gray!15}
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)~emphase&\footnote{First recursive call.}]@
+    elif x > 1: 
+        return pi/2 - arctan(1/x)~emphase&\footnote{Second recursive call.}@
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\end{Verbatim}
+\endgroup
+
+\begingroup
+\PitonOptions{background-color=gray!15}
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)\footnote{First recursive call.}
+    elif x > 1: 
+        return pi/2 - arctan(1/x)\footnote{Second recursive call.}
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\endgroup
+
+
+\vspace{1cm}
+
+If an environment |{Piton}| is used in an environment |{minipage}| of LaTeX,
+the notes are composed, of course, at the foot of the environment
+|{minipage}|. Recall that such |{minipage}| can't be broken by a page break.
+
+
+\begingroup
+\small
+\fvset{commandchars=\~\&\@}
+\begin{Verbatim}
+\PitonOptions{background-color=gray!15}
+~emphase&\begin{minipage}{\linewidth}@
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)~emphase&\footnote{First recursive call.}@
+    elif x > 1: 
+        return pi/2 - arctan(1/x)~emphase&\footnote{Second recursive call.}@
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+~emphase&\end{minipage}@
+\end{Verbatim}
+\endgroup
+
+\begingroup
+\PitonOptions{background-color=gray!15}
+\begin{minipage}{\linewidth}
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)\footnote{First recursive call.}
+    elif x > 1: 
+        return pi/2 - arctan(1/x)\footnote{Second recursive call.}
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\end{minipage}
+\endgroup
+
+
+\subsection{Tabulations}
+
+\index{tabulations}
+\index{tab-size}
+
+\smallskip 
+Even though it's probably recommended to indent the computers listings with
+spaces and not tabulations\footnote{For the language Python, see the note %
+PEP~8.}, \pkg{piton} accepts the characters of tabulation (that is to say the 
+characters U+0009) at the beginning of the lines. Each character U+0009 is
+replaced by $n$~spaces. The initial value of $n$ is $4$ but it's possible to
+change it with the key \Definition{tab-size} of |\PitonOptions|.
+
+\smallskip
+There exists also a key \Definition{tabs-auto-gobble} which computes the
+minimal value $n$ of the number of consecutive characters U+0009 beginning
+each (non empty) line of the environment |{Piton}| and applies |gobble| with
+that value of~$n$ (before replacement of the tabulations by spaces, of
+course). Hence, that key is similar to the key |auto-gobble| but acts on
+U+0009 instead of U+0020 (spaces).
+
+The key |env-gobble| is not compatible with the tabulations.
+
+
+\bigskip
+\section{API for the developpers}
+
+\label{API}
+
+The L3 variable \DefinitionCommand{l_piton_language_str} contains the name of
+the current language of \pkg{piton} (in lower case).
+
+\bigskip
+
+The extension \pkg{piton} provides a Lua function
+\Definition{piton.get_last_code} without argument which returns the code in
+the latest environment of \pkg{piton}.
+\begin{itemize}
+\item The carriage returns (which are present in the initial environment)
+appears as characters |\r| (i.e. U+000D).
+
+\item The code returned by |piton.get_last_code()| takes into account the
+potential application of a key |gobble|, |auto-gobble| or |env-gobble|
+(cf.~p.~\pageref{gobble}). 
+
+\item The extra formatting elements added in the code are deleted by
+|piton.get_last_code()|. That concerns the LaTeX commands declared by the key
+|detected-commands| and its variants (cf. part~\ref{detected-commands}) and the
+elements inserted by the mechanism ``|escape|'' (cf. part~\ref{escape}).
+
+\item |piton.get_last_code| is a Lua function and not a Lua string: the
+treatments outlined above are executed when the function is called. Therefore,
+it might be judicious to store the value returned by |piton.get_last_code()|
+in a variable of Lua if it will be used several times.
+\end{itemize}
+
+\medskip
+For an example of use, see the part concerning |pyluatex|, part~\ref{pyluatex},
+p.~\pageref{pyluatex}. 
+
+
+\section{Examples}
+
+
+\subsection{An example of tuning of the styles}
+
+The graphical styles have been presented in the section \ref{styles},
+p.~\pageref{styles}.
+
+\smallskip
+We present now an example of tuning of these styles adapted to the documents
+in black and white.
+
+That tuning uses the command |\highLight| of \pkg{lua-ul} (that package
+requires itself the package \pkg{luacolor}).
+
+\begin{Verbatim}
+\SetPitonStyle
+  {
+    Number = ,
+    String = \itshape , 
+    String.Doc = \color{gray} \slshape ,
+    Operator = , 
+    Operator.Word = \bfseries ,
+    Name.Builtin = ,
+    Name.Function = \bfseries \highLight[gray!20] ,
+    Comment = \color{gray} ,
+    Comment.LaTeX = \normalfont \color{gray},
+    Keyword = \bfseries ,
+    Name.Namespace = ,
+    Name.Class = , 
+    Name.Type = ,
+    InitialValues = \color{gray}
+  }
+\end{Verbatim}
+
+In that tuning, many values given to the keys are empty: that means that the
+corresponding style won't insert any formatting instruction, except those in
+the value of the parameter |font-command|, whose initial value is |\ttfamily|
+(the element will be composed in the standard color, usually in black, etc.).
+Nevertheless, those entries are mandatory because the initial value of those
+keys in \pkg{piton} is \emph{not} empty.
+
+\begingroup
+ \PitonOptions{splittable}
+
+\SetPitonStyle
+  {
+    Number = ,
+    String = \itshape , 
+    String.Doc = \color{gray} \slshape ,
+    Operator.Word = \bfseries ,
+    Operator = , 
+    Name.Builtin = ,
+    Name.Function = \bfseries \highLight[gray!20] ,
+    Comment = \color{gray} ,
+    Comment.LaTeX = \normalfont \color{gray} ,
+    Keyword = \bfseries ,
+    Name.Namespace = ,
+    Name.Class = , 
+    Name.Type = ,
+    InitialValues = \color{gray}
+  }
+
+
+\bigskip
+
+\begin{Piton}
+from math import pi
+
+def arctan(x,n=10):
+    """Compute the mathematical value of arctan(x)
+                                              
+    n is the number of terms in the sum
+    """
+    if x < 0:
+        return -arctan(-x) # recursive call
+    elif x > 1: 
+        return pi/2 - arctan(1/x) 
+        #> (we have used that $\arctan(x)+\arctan(1/x)=\pi/2$ for $x>0$)
+    else: 
+        s = 0
+        for k in range(n):
+            s += (-1)**k/(2*k+1)*x**(2*k+1)
+        return s 
+\end{Piton}
+
+\endgroup
+
+
+\subsection{Line numbering}
+
+\label{example-numbering}
+\index{numbers of the lines de code|emph}
+
+We remind that it's possible to have an automatic numbering of the lines in
+the computer listings by using the key |line-numbers| (used without value).
+
+By default, the numbers of the lines are composed by \pkg{piton} in an
+overlapping position on the left (by using internally the command |\llap| of LaTeX).
+
+\begingroup
+\small
+\fvset{commandchars=\~\&\@}
+\begin{Verbatim}
+~emphase&\PitonOptions{background-color=gray!15, line-numbers}@
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> (recursive call)
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> (other recursive call) 
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\end{Verbatim}
+\endgroup
+
+
+
+\begingroup
+\PitonOptions{background-color=gray!15, line-numbers}
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> (recursive call)
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> (other recursive call) 
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\endgroup
+
+\bigskip
+In order to avoid that overlapping, it's possible to use the option |left-margin=auto|
+which will insert automatically a margin adapted to the numbers of lines that
+will be written (that margin is larger when the numbers are greater than~10).
+
+
+\begingroup
+\small
+\fvset{commandchars=\~\&\@}
+\begin{Verbatim}
+~emphase&\PitonOptions{background-color=gray!15, left-margin = auto, line-numbers}@
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> (recursive call)
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> (other recursive call) 
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\end{Verbatim}
+\endgroup
+
+
+
+\begingroup
+\PitonOptions{background-color=gray!15,left-margin = auto, line-numbers}
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> (recursive call)
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> (other recursive call) 
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\endgroup
+
+
+
+\bigskip
+\subsection{Formatting of the LaTeX comments}
+
+\label{example-comments}
+
+It's possible to modify the style |Comment.LaTeX| (with |\SetPitonStyle|) in
+order to display the LaTeX comments (which begin with |#>|) aligned on the
+right margin.
+
+
+\begingroup
+\small
+\fvset{commandchars=\~\&\@}
+\begin{Verbatim}
+\PitonOptions{background-color=gray!15}
+~emphase&\SetPitonStyle{Comment.LaTeX = \hfill \normalfont\color{gray}}@
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> recursive call
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> other recursive call 
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\end{Verbatim}
+\endgroup
+
+\begingroup
+\PitonOptions{background-color=gray!15}
+\SetPitonStyle{Comment.LaTeX = \hfill \normalfont\color{gray}}
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> recursive call
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> another recursive call 
+    else: 
+        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+\end{Piton}
+\endgroup
+
+
+\vspace{1cm}
+It's also possible to display these LaTeX comments in a kind of second column
+by limiting the width of the listing with the key |width|. 
+
+\begingroup
+\small
+\fvset{commandchars=\~\&\@}
+\begin{Verbatim}
+\PitonOptions{background-color=gray!15, width=9cm}
+~emphase&\NewDocumentCommand{\MyLaTeXCommand}{m}{\hfill \normalfont\itshape\rlap{\quad #1}}@
+~emphase&\SetPitonStyle{Comment.LaTeX = \MyLaTeXCommand}@
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x) #> recursive call
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> another recursive call 
+    else: 
+        s = 0
+        for k in range(n):
+             s += (-1)**k/(2*k+1)*x**(2*k+1)
+        return s 
+\end{Piton}
+\end{Verbatim}
+\endgroup
+
+
+
+\begingroup
+\PitonOptions{background-color=gray!15, width=9cm}
+\NewDocumentCommand{\MyLaTeXCommand}{m}{\hfill \normalfont\itshape\rlap{\quad #1}}
+\SetPitonStyle{Comment.LaTeX = \MyLaTeXCommand}
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x) #> recursive call
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> another recursive call 
+    else: 
+        s = 0
+        for k in range(n):
+             s += (-1)**k/(2*k+1)*x**(2*k+1)
+        return s 
+\end{Piton}
+\endgroup
+
+
+\subsection{The command \textbackslash rowcolor}
+
+\indexcommand{rowcolor}
+
+
+The command |\rowcolor| has been presented in the part \ref{rowcolor}, at the
+page~\pageref{rowcolor}. We recall that this command adds a colored background
+to the current line (the \emph{whole} line, and not only the part with text).
+
+It's possible to use that command in a style of \pkg{piton}, as shown in
+p.~\pageref{rowcolor}, but maybe we wish to use it directly in a listing. In that aim,
+it's mandatory to use one of the mechanisms to escape to LaTeX provided by \pkg{piton}.
+In the following example, we use the key |raw-detected-commands|
+(cf.~p.~\pageref{raw-detected-commands}). Since the ``detected commands'' are commands
+with only one argument, it won't be possible to write (for example)
+|\rowcolor[rgb]{0.9,1,0.9}| but the syntax |\rowcolor{[rgb]{0.9,1,0.9}}| will be
+allowed.
+
+\bigbreak
+\begin{footnotesize}
+\begin{Verbatim}
+\PitonOptions{raw-detected-commands = rowcolor} % in the preamble
+\end{Verbatim}
+\end{footnotesize}
+
+\medskip
+
+\begin{BVerbatim}[boxwidth=87mm,baseline=c]
+\begin{Piton}[width=min]
+def fact(n):
+    if n==0:
+        return 1 ~emphase#\rowcolor{yellow!50}@
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+\end{BVerbatim}
+\hspace{1cm}
+\begin{Piton}[width=min,box]
+def fact(n):
+    if n==0:
+        return 1 \rowcolor{yellow!50}
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+
+
+\bigbreak
+Here is now the same example with the join use of the key |background-color|
+(cf. p.~\pageref{background-color}).
+
+\medskip
+\begin{BVerbatim}[boxwidth=92mm,baseline=c]
+\begin{Piton}[width=min,~emphase#background-color=gray!15@]
+def fact(n):
+    if n==0:
+        return 1 ~emphase#\rowcolor{yellow!50}@
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+\end{BVerbatim}
+\hspace{5mm}
+\begin{Piton}[width=min,box,background-color=gray!15]
+def fact(n):
+    if n==0:
+        return 1 \rowcolor{yellow!50}
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+
+
+\bigbreak
+As you can see, a margin has been added on both sides of the code by the key
+|background-color|. If you wish those margins without general background, you
+should use |background-color| with the special value~|none|.
+
+\medskip
+\begin{BVerbatim}[boxwidth=87mm,baseline=c]
+\begin{Piton}[width=min,~emphase#background-color=none@]
+def fact(n):
+    if n==0:
+        return 1 ~emphase#\rowcolor{yellow!50}@
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+\end{BVerbatim}
+\hspace{1cm}
+\begin{Piton}[width=min,box,background-color=none]
+def fact(n):
+    if n==0:
+        return 1 \rowcolor{yellow!50}
+    else:
+        return n*fact(n-1)
+\end{Piton}        
+
+
+
+
+
+\subsection{Use with tcolorbox}
+
+\label{examples-tcolorbox}
+
+The key |tcolorbox| of \pkg{piton} has been presented at the page
+\pageref{tcolorbox}.
+
+If, when that key is used, we wish to customize the graphical box created by
+\pkg{tcolorbox} (with the keys provided by \pkg{tcolorbox}), we should use the
+command |\tcbset| provided by \pkg{tcolorbox}. In order to limit the scope of
+the settings done by that command, the best way is to create a new environment
+with the dedicated command |\NewPitonEnvironment|
+(cf.~p.~\pageref{NewPitonEnvironment}). That environment with contain the
+settings done by \pkg{piton} (with |\PitonOptions|) and those done by
+\pkg{tcolorbox} (with |\tcbset|).
+
+
+\bigskip Here is an example of such environment |{Python}| with a colored
+column on the left for the numbers of lines. That example requires the library
+|skins| of \pkg{tcolorbox} to be loaded in the preamble of the LaTeX document
+with the instruction |\tcbuselibrary{skins}| (in order to be able to use the
+key |enhanced|).
+
+
+\begin{Verbatim}
+\NewPitonEnvironment{Python}{m}
+  {%
+    \PitonOptions
+      {
+        ~emphase#tcolorbox@,
+        splittable=3,
+        width=min,
+        line-numbers,       % activate the numbers of lines
+        line-numbers =      % tuning for the numbers of lines
+         {
+           format = \footnotesize\color{white}\sffamily ,
+           sep = 2.5mm
+         }
+      }%
+    \tcbset
+      {
+        enhanced,
+        title=~#1,
+        fonttitle=\sffamily,
+        left = 6mm,
+        top = 0mm,
+        bottom = 0mm,
+        overlay=
+         {%
+            \begin{tcbclipinterior}%
+                \fill[gray!80]
+                    (frame.south west) rectangle
+                    ([xshift=6mm]frame.north west); 
+            \end{tcbclipinterior}%
+         }
+      } 
+  } 
+  { }
+\end{Verbatim}
+
+\bigskip
+In the following example of use, we have illustrated the fact that it is possible
+to impose a break of page in such environment with |\newpage{}| if we have required the
+detection of the LaTeX command |\newpage| with the key |vertical-detected-commands|
+(cf.~p.~\pageref{vertical-detected-commands}) in the preamble of the LaTeX document.
+
+Remark that we must use |\newpage{}| and not |\newpage| because the LaTeX commands
+detected by \pkg{piton} are meant to be commands with one argument (between curly
+braces).
+
+\begin{footnotesize}
+\begin{Verbatim}
+\PitonOptions{vertical-detected-commands = newpage} % in the preamble
+\end{Verbatim}
+\end{footnotesize}
+
+\medskip
+\begin{Verbatim}
+~emphase#\begin{Python}@{My example}
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x ~emphase#\newpage{}@
+def square(x):
+    """Computes the square of x"""
+    return x*x
+...    
+def square(x):
+    """Computes the square of x"""
+    return x*x
+~emphase#\end{Python}@
+\end{Verbatim}
+
+\bigskip
+
+\RenewPitonEnvironment{Python}{m}
+  {%
+    \PitonOptions
+      {
+        tcolorbox,
+        splittable=3,
+        width=min,
+        line-numbers,
+        line-numbers =
+         {
+           format = \footnotesize\color{white}\sffamily ,
+           sep = 2.5mm
+         }
+      }%
+    \tcbset
+      {
+        enhanced,
+        title=#1,
+        fonttitle=\sffamily,
+        left = 6mm,
+        top = 0mm,
+        bottom = 0mm,
+        overlay=
+         {%
+            \begin{tcbclipinterior}%
+                \fill[gray!80]
+                    (frame.south west) rectangle
+                    ([xshift=6mm]frame.north west); 
+            \end{tcbclipinterior}%
+         }
+      } 
+  } 
+  { }
+ 
+
+\begin{Python}{My example}
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x \newpage{}
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+def square(x):
+    """Computes the square of x"""
+    return x*x
+\end{Python}
+
+
+
+\bigskip
+\subsection{Use with pyluatex}
+
+\index{pyluatex@{\pkg{pyluatex}} (extension)}
+\label{pyluatex}
+
+The package \pkg{pyluatex} is an extension which allows the execution of some
+Python code from |lualatex| (as long as Python is installed on the machine
+and that the compilation is done with |lualatex| and |--shell-escape|).
+
+Here is, for example, an environment |{PitonExecute}| which formats a Python
+listing (with \pkg{piton}) but also displays the output of the execution of the
+code with Python.
+
+\medskip
+\begin{Verbatim}
+\NewPitonEnvironment{~emphase#PitonExecute@}{!O{}}
+  {\PitonOptions{~#1}}
+  {\begin{center}
+   \directlua{pyluatex.execute(piton.get_last_code(), false, true, false, true)}%
+   \end{center}}
+\end{Verbatim}
+
+\medskip
+We have used the Lua function |piton.get_last_code| provided in the API of
+\pkg{piton} : cf.~part~\ref{API}, p.~\pageref{API}.
+
+\medskip
+This environment |{PitonExecute}| takes in as optional argument (between
+square brackets) the options of the command |\PitonOptions|.
+
+
+
+\clearpage
+\section{The styles for the different computer languages}
+
+\label{Semantic}
+
+
+\subsection{The language Python}
+
+In \pkg{piton}, the default language is Python. If necessary, it's possible to
+come back to the language Python with |\PitonOptions{language=Python}|.
+
+\bigskip
+
+The initial settings
+done by \pkg{piton} in |piton.sty| are inspired by the style \pkg{manni} of
+Pygments, as applied by Pygments to the language Python.\footnote{See:
+\url{https://pygments.org/styles/}. Remark that, by default, Pygments provides
+for its style \pkg{manni} a colored background whose color is the HTML color
+|#F0F3F3|. It's possible to have the same color in |{Piton}|
+with the instruction |\PitonOptions{background-color = [HTML]{F0F3F3}}|.} 
+
+\vspace{1cm}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\normalfont Style  & Use \\
+\midrule
+Number & the numbers \\
+String.Short & the short strings (entre \texttt{'} ou \texttt{"}) \\
+String.Long & the long strings (entre \texttt{'''} ou \texttt{"""}) excepted
+              the doc-strings (governed by |String.Doc|)\\
+String & that key fixes both |String.Short| et |String.Long| \\
+String.Doc & the doc-strings (only with |"""| following PEP~257) \\
+String.Interpol & the syntactic elements of the fields of the f-strings
+(that is to say the characters \texttt{\{} et \texttt{\}}); that style
+inherits for the styles |String.Short| and |String.Long| (according the kind
+of string where the interpolation appears) \\
+Interpol.Inside & the content of the interpolations in the f-strings (that
+is to say the elements between \texttt{\{} and~\texttt{\}}); if the final
+user has not set that key, those elements will be formatted by \pkg{piton}
+as done for any Python code. \\
+Operator & the following operators: \texttt{!= == << >> - \~{} + / * \% = < >
+\& .} \verb+|+ \verb|@| \\ 
+Operator.Word & the following operators: |in|, |is|, |and|, |or| et |not| \\
+Name.Builtin & almost all the functions predefined by Python \\
+Name.Decorator & the decorators (instructions beginning by \verb|@|) \\
+Name.Namespace & the name of the modules \\
+Name.Class & the name of the Python classes defined by the user \emph{at their
+point of definition} (with the keyword |class|) \\  
+Name.Function & the name of the Python functions defined by the user \emph{at their
+point of definition} (with the keyword |def|) \\ 
+UserFunction & the name of the Python functions previously defined by the user
+               (the initial value of that parameter is
+               {\ttfamily \textbackslash PitonStyle\{Identifier\}} and,
+               therefore, the names of that functions are formatted like the
+               identifiers).  \\
+Exception & les exceptions prédéfinies (ex.: \texttt{SyntaxError}) \\
+InitialValues & the initial values (and the preceding symbol |=|) of the
+optional arguments in the definitions of functions; if the final
+user has not set that key, those elements will be formatted by \pkg{piton}
+as done for any Python code. \\
+Comment & the comments beginning with \texttt{\#} \\
+Comment.LaTeX & the comments beginning with \texttt{\#>}, which are composed by
+\pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
+Keyword.Constant & |True|, |False| et |None| \\
+Keyword & the following keywords:
+          \ttfamily assert, break, case, continue, del,
+          elif, else, except, exec, finally, for, from, 
+          global, if, import, in, lambda, non local,
+          pass, raise, return, try, while,
+          with, yield et yield from.\\
+Identifier & the identifiers. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+\newpage
+
+\subsection{The language OCaml}
+
+It's possible to switch to the language |OCaml| with the key |language|:
+|language = OCaml|. 
+
+
+\bigskip
+
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+  \toprule
+  \normalfont Style  & Use \\
+  \midrule
+  Number & the numbers \\
+  String.Short & the characters (between \texttt{'}) \\
+  String.Long & the strings, between |"| but also the \emph{quoted-strings} \\
+  String & that key fixes both |String.Short| and |String.Long| \\
+  Operator & the oporators, in particular: |+|, |-|, |/|, |*|, |@|, |!=|, |==|, |&&| \\
+  Operator.Word & the following operators: |asr|, |land|, |lor|, |lsl|, |lxor|, |mod| et |or| \\
+  Name.Builtin & the functions |not|, |incr|, |decr|, |fst| et |snd| \\
+  Name.Type & the name of a type of OCaml \\
+  Name.Field & the name of a field of a module \\
+  Name.Constructor & the name of the constructors of types (which begins by a capital) \\
+  Name.Module & the name of the modules \\
+  Name.Function & the name of the Python functions defined by the user \emph{at their
+  point of definition} (with the keyword |let|) \\ 
+  UserFunction & the name of the Python functions previously defined by the user
+                 (the initial value of that parameter is
+                 {\ttfamily \textbackslash PitonStyle\{Identifier\}} and,
+                 therefore, the names of that functions are formatted like the identifiers). \\
+  Exception & the predefined exceptions (eg : |End_of_File|) \\
+  TypeParameter &  the parameters of the types \\
+  Comment & the comments, between |(*| et |*)|; these comments may be nested \\
+  Keyword.Constant & |true| et |false| \\
+  Keyword & the following keywords: |assert|, |as|, |done|, |downto|, |do|,
+  |else|, |exception|, |for|, |function| , |fun|, |if|, |lazy|, |match|,
+  |mutable|, |new|, |of|, |private|, |raise|, |then|, |to|, |try| , |virtual|,
+  |when|, |while| and |with| \\  
+  Keyword.Governing & the following keywords: |and|, |begin|, |class|, |constraint|,
+                     |end|, |external|, |functor|, |include|, |inherit|, |initializer|,
+                     |in|, |let|, |method|, |module|, |object|, |open|, |rec|, |sig|,
+                     |struct|, |type| and |val|. \\
+ Identifier & the identifiers. \\
+  \bottomrule
+\end{tabularx}
+\end{center}
+
+\vspace{1cm}
+
+Here is an example:
+
+\medskip
+\begin{Piton}[language = OCaml]
+let rec quick_sort lst =    (* Quick sort *)
+  match lst with
+  | [] -> []
+  | pivot :: rest ->
+      let left  = List.filter (fun x -> x < pivot) rest in
+      let right = List.filter (fun x -> x >= pivot) rest in
+      quick_sort left @ [pivot] @ quick_sort right
+\end{Piton}
+
+
+\newpage
+
+\subsection[The language C (and C++)]{The language C (and \CC)}
+
+
+It's possible to switch to the language |C| with the key |language|: |language = C|.
+
+\bigskip
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\normalfont Style  & Use \\
+\midrule
+Number & the numbers \\
+String.Short & the characters (between \texttt{'}) \\
+String.Long & the strings (between \texttt{"}) \\
+String.Interpol &  the elements \texttt{\%d}, \texttt{\%i}, \texttt{\%f},
+\texttt{\%c}, etc. in the strings; that style inherits from the style |String.Long| \\
+Operator & the following operators : 
+\texttt{!= == << >> - \~{} + / * \% = < > \& .} \verb+|+ \verb|@| \\ 
+Name.Type & the following predefined types:
+  |bool|, |char|, |char16_t|, |char32_t|, |double|, |float|, |int|, |int8_t|,
+  |int16_t|, |int32_t|, |int64_t|, |uint8_t|, |uint16_t|, |uint32_t|, |uint64_t|,
+  |long|, |short|, |signed|, |unsigned|, |void| et |wchar_t| \\  
+Name.Builtin & the following predefined functions: |printf|, |scanf|,
+|malloc|, |sizeof| and |alignof|  \\ 
+Name.Class & the names of the classes when they are defined, that is to say after
+  the keyword \verb|class| \\
+Name.Function & the name of the Python functions defined by the user \emph{at their
+  point of definition} (with the keyword |let|) \\ 
+UserFunction & the name of the Python functions previously defined by the user
+                 (the initial value of that parameter is
+                 {\ttfamily \textbackslash PitonStyle\{Identifier\}} and,
+                 therefore, the names of that functions are formatted like the
+                 identifiers). \\ 
+Preproc & the instructions of the preprocessor (beginning par |#|) \\
+Comment & the comments (beginning by \texttt{//} or between |/*| and |*/|) \\
+Comment.LaTeX & the comments beginning by  \texttt{//>} which are composed by
+\pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
+Keyword.Constant & |default|, |false|, |NULL|, |nullptr| and |true| \\
+Keyword & the following keywords:
+|alignas|, |asm|, |auto|, |break|, |case|, |catch|, |class|, 
+|constexpr|, |const|, |continue|, |decltype|, |do|, |else|, |enum|,
+|extern|, |for|, |goto|, |if|, |nexcept|, |private|, |public|, |register|,
+|restricted|, |try|, |return|, |static|, |static_assert|, |struct|, |switch|,
+|thread_local|, |throw|, |typedef|, |union|, |using|, |virtual|, |volatile|
+and |while| \\
+ Identifier & the identifiers. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\newpage
+
+\subsection{The language SQL}
+
+
+It's possible to switch to the language |SQL| with the key |language|: |language = SQL|.
+
+\bigskip
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\normalfont Style  & Use \\
+\midrule
+Number & the numbers \\
+String.Long & the strings (between \texttt{'} and not \texttt{"} because the
+elements between \texttt{"} are names of fields and formatted with |Name.Field|) \\
+Operator & the following operators : \texttt{= != <> >= > < <= * + / } \\
+Name.Table & the names of the tables \\
+Name.Field & the names of the fields of the tables \\
+Name.Builtin & the following built-in functions (their names are \emph{not} case-sensitive): 
+   |avg|, |count|, |char_length|, |concat|, |curdate|, |current_date|,
+   |date_format|, |day|, |lower|, |ltrim|, |max|, |min|, |month|, |now|,
+   |rank|, |round|, |rtrim|, |substring|, |sum|, |upper| and |year|. \\
+Comment & the comments (beginning by \texttt{--} or between |/*| and |*/|) \\
+Comment.LaTeX & the comments beginning by  \texttt{-->} which are composed by
+\pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
+Keyword & the following keywords (their names are \emph{not} case-sensitive):
+|abort|, |action|, |add|, |after|, |all|, |alter|, |always|, |analyze|,
+|and|, |as|, |asc|, |attach|, |autoincrement|, |before|, |begin|, |between|,
+|by|, |cascade|, |case|, |cast|, |check|, |collate|, |column|, |commit|,
+|conflict|, |constraint|, |create|, |cross|, |current|, |current_date|,
+|current_time|, |current_timestamp|, |database|, |default|, |deferrable|,
+|deferred|, |delete|, |desc|, |detach|, |distinct|, |do|, |drop|, |each|,
+|else|, |end|, |escape|, |except|, |exclude|, |exclusive|, |exists|,
+|explain|, |fail|, |filter|, |first|, |following|, |for|, |foreign|, |from|,
+|full|, |generated|, |glob|, |group|, |groups|, |having|, |if|, |ignore|,
+|immediate|, |in|, |index|, |indexed|, |initially|, |inner|, |insert|,
+|instead|, |intersect|, |into|, |is|, |isnull|, |join|, |key|, |last|,
+|left|, |like|, |limit|, |match|, |materialized|, |natural|, |no|, |not|,
+|nothing|, |notnull|, |null|, |nulls|, |of|, |offset|, |on|, |or|, |order|,
+|others|, |outer|, |over|, |partition|, |plan|, |pragma|, |preceding|,
+|primary|, |query|, |raise|, |range|, |recursive|, |references|, |regexp|,
+|reindex|, |release|, |rename|, |replace|, |restrict|, |returning|, |right|,
+|rollback|, |row|, |rows|, |savepoint|, |select|, |set|, |table|, |temp|,
+|temporary|, |then|, |ties|, |to|, |transaction|, |trigger|, |unbounded|,
+|union|, |unique|, |update|, |using|, |vacuum|, |values|, |view|, |virtual|,
+|when|, |where|, |window|, |with|, |without| \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+\bigskip
+It's possible to automatically capitalize the keywords by modifying locally
+for the language SQL the style |Keywords|.
+\begin{Verbatim}
+\SetPitonStyle~emphase#[SQL]@{Keywords = \bfseries \MakeUppercase}
+\end{Verbatim}
+
+\newpage
+\subsection{The languages defined by \textbackslash NewPitonLanguage}
+
+\vspace{1cm}
+The command |\NewPitonLanguage|, which defines new computer languages with the
+syntax of the extension \pkg{listings}, has been described p.~\pageref{NewPitonLanguage}.
+
+All the languages defined by the command |\NewPitonLanguage| use the same styles.
+\vspace{1cm}
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\normalfont Style  & Use \\
+\midrule
+Number & the numbers \\
+String.Long & the strings defined in |\NewPitonLanguage| by the key |morestring| \\
+Comment & the comments defined in |\NewPitonLanguage| by the key |morecomment|  \\
+Comment.LaTeX & the comments which are composed by \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
+Keyword & the keywords defined in |\NewPitonLanguage| by the keys |morekeywords|
+          and |moretexcs| (and also the  key |sensitive| which specifies whether
+          the keywords are case-sensitive or not) \\ 
+Directive & the directives defined in |\NewPitonLanguage| by the key
+|moredirectives| \\
+Tag & the ``tags'' defined by the key |tag| (the lexical units detected within
+the tag will also be formatted with their own style) \\
+ Identifier & the identifiers. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+\vspace{1cm}
+Here is for example a definition for the language HTML, obtained with a slight
+adaptation of the definition done by \pkg{listings} (file |lstlang1.sty|).
+
+\medskip
+\begin{small}
+\begin{Verbatim}
+\NewPitonLanguage{HTML}%
+  {morekeywords={A,ABBR,ACRONYM,ADDRESS,APPLET,AREA,B,BASE,BASEFONT,%
+      BDO,BIG,BLOCKQUOTE,BODY,BR,BUTTON,CAPTION,CENTER,CITE,CODE,COL,%
+      COLGROUP,DD,DEL,DFN,DIR,DIV,DL,DOCTYPE,DT,EM,FIELDSET,FONT,FORM,%
+      FRAME,FRAMESET,HEAD,HR,H1,H2,H3,H4,H5,H6,HTML,I,IFRAME,IMG,INPUT,%
+      INS,ISINDEX,KBD,LABEL,LEGEND,LH,LI,LINK,LISTING,MAP,META,MENU,%
+      NOFRAMES,NOSCRIPT,OBJECT,OPTGROUP,OPTION,P,PARAM,PLAINTEXT,PRE,%
+      OL,Q,S,SAMP,SCRIPT,SELECT,SMALL,SPAN,STRIKE,STRING,STRONG,STYLE,%
+      SUB,SUP,TABLE,TBODY,TD,TEXTAREA,TFOOT,TH,THEAD,TITLE,TR,TT,U,UL,%
+      VAR,XMP,%
+      accesskey,action,align,alink,alt,archive,axis,background,bgcolor,%
+      border,cellpadding,cellspacing,charset,checked,cite,class,classid,%
+      code,codebase,codetype,color,cols,colspan,content,coords,data,%
+      datetime,defer,disabled,dir,event,error,for,frameborder,headers,%
+      height,href,hreflang,hspace,http-equiv,id,ismap,label,lang,link,%
+      longdesc,marginwidth,marginheight,maxlength,media,method,multiple,%
+      name,nohref,noresize,noshade,nowrap,onblur,onchange,onclick,%
+      ondblclick,onfocus,onkeydown,onkeypress,onkeyup,onload,onmousedown,%
+      profile,readonly,onmousemove,onmouseout,onmouseover,onmouseup,%
+      onselect,onunload,rel,rev,rows,rowspan,scheme,scope,scrolling,%
+      selected,shape,size,src,standby,style,tabindex,text,title,type,%
+      units,usemap,valign,value,valuetype,vlink,vspace,width,xmlns},%
+   tag=<>,%
+   alsoletter = - ,%
+   sensitive=f,%
+   morestring=[d]",
+  }
+\end{Verbatim}
+\end{small}
+
+
+
+\subsection{The language ``minimal''}
+
+\label{minimal}
+
+It's possible to switch to the language ``|minimal|'' with the key |language|:
+|language = minimal|.
+
+\bigskip
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\normalfont Style  & Usage \\
+\midrule
+Number & the numbers \\
+String & the strings (between \texttt{"}) \\
+Comment & the comments (which begin with |#|) \\
+Comment.LaTeX &  the comments beginning with \texttt{\#>}, which are composed by
+  \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document)
+  \\
+ Identifier & the identifiers. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\bigskip
+That language is provided for the end user who might wish to add keywords in
+that language (with the command |\SetPitonIdentifier|: cf. \ref{SetPitonIdentifier},
+p.~\pageref{SetPitonIdentifier}) in order to create, for example, a language
+for pseudo-code.
+
+\vspace{1cm}
+
+\subsection{The language ``verbatim''}
+
+\label{verbatim}
+
+It's possible to switch to the language ``|verbatim|'' with the key |language|:
+|language = verbatim|.
+
+\bigskip
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\normalfont Style  & Usage \\
+\midrule
+None... & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+The language |verbatim| doesn't provide any style and, thus, does not do any
+syntactic formating. However, it's possible to use the mechanism
+|detected-commands| (cf. part~\ref{detected-commands},
+p.~\pageref{detected-commands}) and the detection of the commands and
+environments of Beamer.
+
+
+
+
+\vspace{1cm}
+\section{History}
+
+
+The development of the extension \pkg{piton} is done on the following GitHub
+repository:
+
+\verb|https://github.com/fpantigny/piton|
+
+\medskip
+The successive versions of the file |piton.sty| provided by TeXLive are also available on the
+\textsc{svn} server of TeXLive:
+
+\nobreak
+\smallskip
+{
+\small
+\nolinkurl{https://tug.org/svn/texlive/trunk/Master/texmf-dist/tex/lualatex/piton/piton.sty}
+}
+
+\subsection*{Changes between versions 4.8 and 4.9}
+
+New key |paperclip|
+
+\subsection*{Changes between versions 4.7 and 4.8}
+
+New key |\rowcolor|
+
+The command |\label| redefined by \pkg{piton} is now compatible with \pkg{hyperref}
+(thanks to P. Le Scornet).
+
+New key |label-as-zlabel|.
+
+\subsection*{Changes between versions 4.6 and 4.7}
+
+New key |rounded-corners|
+
+\subsection*{Changes between versions 4.5 and 4.6}
+
+New keys |tcolorbox|, |box|, |max-width| and |vertical-detected-commands|
+
+New special color: |none|
+
+\subsection*{Changes between versions 4.4 and 4.5}
+
+New key |print|
+
+|\RenewPitonEnvironment|,
+|\DeclarePitonEnvironment| and |\ProvidePitonEnvironment| have been added.
+
+\subsection*{Changes between versions 4.3 and 4.4}
+
+New key |join| which generates files embedded in the \textsc{pdf} as \emph{joined files}.
+
+\subsection*{Changes between versions 4.2 and 4.3}
+
+New key |raw-detected-commands|
+
+The key |old-PitonInputFile| has been deleted.
+
+\subsection*{Changes between versions 4.1 and 4.2}
+
+New key |break-numbers-anywhere|.
+
+\subsection*{Changes between versions 4.0 and 4.1}
+
+New language |verbatim|.
+
+New key |break-strings-anywhere|.
+
+\subsection*{Changes between versions 3.1 and 4.0}
+
+The syntax for the relative and absolute paths in |\PitonInputFile| and the key
+|path| has been changed to be conform to usual conventions.
+
+
+New keys |font-command|, |splittable-on-empty-lines| and |env-used-by-split|.
+
+
+\subsection*{Changes between versions 3.0 and 3.1}
+
+Keys |line-numbers/format|, |detected-beamer-commands| and
+|detected-beamer-environments|. 
+
+
+\subsection*{Changes between versions 2.8 and 3.0}
+
+New command |\NewPitonLanguage|. Thanks to that command, it's now possible to
+define new computer languages with the syntax used by \pkg{listings}.
+Therefore, it's possible to say that virtually all the computer languages
+are now supported by \pkg{piton}.
+
+\subsection*{Changes between versions 2.7 and 2.8}
+
+The key |path| now accepts a \emph{list} of paths where the files to include
+will be searched.
+
+New commands |\PitonInputFileT|, |\PitonInputFileF| and |\PitonInputFileTF|.
+
+\subsection*{Changes between versions 2.6 and 2.7}
+
+New keys |split-on-empty-lines| and |split-separation|
+
+\subsection*{Changes between versions 2.5 and 2.6}
+
+API: |piton.last_code| and |\g_piton_last_code_tl| are provided.
+
+\subsection*{Changes between versions 2.4 and 2.5}
+
+New key |path-write|
+
+\subsection*{Changes between versions 2.3 and 2.4}
+
+The key |identifiers| of the command |\PitonOptions| is now deprecated and
+replaced by the new command |\SetPitonIdentifier|.
+
+A new special language called ``minimal'' has been added.
+
+New key |detected-commands|.
+
+\subsection*{Changes between versions 2.2 and 2.3}
+
+New key |detected-commands|
+
+The variable |\l_piton_language_str| is now public.
+
+
+New key |write|.
+
+\subsection*{Changes between versions 2.1 and 2.2}
+
+New key |path| for |\PitonOptions|.
+
+New language SQL.
+
+It's now possible to define styles locally to a given language.
+
+\subsection*{Changes between versions 2.0 and 2.1}
+
+The key |line-numbers| has now subkeys |line-numbers/skip-empty-lines|,
+|line-numbers/label-empty-lines|, etc. 
+
+The key |all-line-numbers| is deprecated: use
+|line-numbers/skip-empty-lines=false|. 
+
+New system to import, with |\PitonInputFile|, only a part (of the file)
+delimited by textual markers. 
+
+New keys |begin-escape|, |end-escape|, |begin-escape-math| and |end-escape-math|.
+
+The key |escape-inside| is deprecated: use |begin-escape| and |end-escape|.
+
+
+\section*{Acknowledgments}
+
+Acknowledgments to Yann Salmon and Pierre Le Scornet for their numerous suggestions
+of improvments.
+
+\tableofcontents
+
+\end{document}
+
+% Local Variables:
+% fill-column: 80
+% End:
+
+
+ 

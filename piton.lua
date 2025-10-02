@@ -4,7 +4,7 @@
 --
 -- The original source files were:
 --
--- piton.dtx  (with options: `LUA')
+-- piton-code.dtx  (with options: `LUA')
 -- ---------------------------------------------
 -- Copyright (C) 2022-2025 by F. Pantigny
 -- 
@@ -21,14 +21,6 @@
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
 piton_version = "4.8x" -- 2025/09/28
-
-
-
-
-
-
-
-
 piton.comment_latex = piton.comment_latex or ">"
 piton.comment_latex = "#" .. piton.comment_latex
 piton.write_files = { }
