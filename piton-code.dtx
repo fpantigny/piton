@@ -31,15 +31,8 @@
 \geometry{left=2.8cm,right=2.8cm,top=2.5cm,bottom=2.5cm,papersize={21cm,29.7cm}}
 \usepackage{fontspec}
 \usepackage[dvipsnames,svgnames]{xcolor}
-\usepackage{caption,tabularx,luacolor,lua-ul,upquote,varwidth}
-\usepackage[framemethod=tikz]{mdframed}
-\usepackage{tcolorbox}
-\tcbuselibrary{skins,breakable}
-\tcbset{enhanced}
-\def\emphase{\bgroup\color{RoyalPurple}\let\next=}
+\usepackage{luacolor,lua-ul,upquote}
 \fvset{commandchars=\~\#\@,formatcom=\color{gray}}
-\captionsetup{labelfont = bf}
-\usepackage{ragged2e}
 \usepackage[footnotehyper]{piton} 
 \PitonOptions
   { 
@@ -49,48 +42,30 @@
     end-escape = ! ,
     begin-escape-math = \( , 
     end-escape-math = \) ,
-    detected-commands = { highLight, footnote } ,
-    vertical-detected-commands = newpage ,
-    raw-detected-commands = { NameTable , rowcolor } 
   }
 
 \parindent 0pt
 \skip\footins = 2\bigskipamount
 
-\def\CC{{C\nolinebreak[4]\hspace{-.05em}\raisebox{.4ex}{\tiny\bfseries ++}}}
 
-\usepackage{makeidx}
-\makeindex
-
-\NewDocumentCommand{\indexcommand}{m}{\index{#1@\texttt{\textbackslash #1}}}
-
-\NewDocumentCommand{\indexenv}{m}{\index{#1@\texttt{\{#1\}}}}
-
-\NewDocumentCommand{\Definition}{m}
-  {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily \vphantom{gl}#1}}}
-
-\NewDocumentCommand{\DefinitionCommand}{m}
-  {{\setlength{\fboxsep}{1pt}\colorbox{gray!20}{\ttfamily
-        \vphantom{gl}\textbackslash #1}}}
-  
 \PitonOptions{gobble=2} 
 
 \EnableCrossrefs
 
 \begin{document}
-\DocInput{piton.dtx}
+\DocInput{piton-code.dtx}
 \end{document}
 %</driver>
 % \fi
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.8x}
-\def\PitonFileDate{2025/09/28}
+\def\PitonFileVersion{4.9}
+\def\PitonFileDate{2025/10/04}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.8x" -- 2025/09/28
+piton_version = "4.9" -- 2025/10/04
 %</LUA>
 %\fi
 %
@@ -105,7 +80,7 @@ piton_version = "4.8x" -- 2025/09/28
 % \begin{abstract}
 % This document is the documented code of the LuaLaTeX package \pkg{piton}. It
 % is \emph{not} its user's guide. The guide of utilisation is the document
-% |piton.pdf| (with a French traduction: |piton-french.pdf|).
+% |piton.pdf| (with a French translation: |piton-french.pdf|).
 % \end{abstract}
 % 
 %
@@ -290,7 +265,7 @@ piton_version = "4.8x" -- 2025/09/28
 % \bigskip
 % The package \pkg{transparent} is compatible with \pkg{pdfmanagement} (which
 % is not loaded by \pkg{piton} but which is used for the key |join| when it is
-% loaded.
+% loaded).
 %    \begin{macrocode}
 \RequirePackage { transparent }
 %    \end{macrocode}
@@ -769,8 +744,7 @@ piton_version = "4.8x" -- 2025/09/28
 %    \end{macrocode}
 %
 % \medskip
-% The parameter |\l_@@_join_str| corresponds to the key |join|. In fact, |\l_@@_join_str|
-% won't contain the exact value used the end user but its conversion in ``|utf16/hex|''.
+% The parameter |\l_@@_join_str| corresponds to the key |join|. 
 %    \begin{macrocode}
 \str_new:N \l_@@_join_str
 %    \end{macrocode}
@@ -911,7 +885,7 @@ piton_version = "4.8x" -- 2025/09/28
 % the languages supported by \pkg{piton}. It's the list of the languages for
 % which at least a user function has been defined. We need that sequence only
 % for the command |\PitonClearUserFunctions| when it is used without its
-% optional argument: it must clear all the list of languages for which at least
+% optional argument: it must clear the whole list of languages for which at least
 % a user function has been defined.
 %    \begin{macrocode}
 \seq_new:N \g_@@_languages_seq 
@@ -1878,7 +1852,7 @@ piton_version = "4.8x" -- 2025/09/28
 % With the tuning |write=false|, the content of the environment won't be parsed
 % and won't be printed on the \textsc{pdf}. However, the Lua variables |piton.last_code|
 % and |piton.last_language| will be set (and, hence, |piton.get_last_code| will be
-% operationnal). The keys |join| and |write| will be honoured.
+% operational). The keys |join| and |write| will be honoured.
 % \begin{macrocode}
     print .bool_set:N = \l_@@_print_bool ,
     print .value_required:n = true ,
@@ -1913,14 +1887,6 @@ piton_version = "4.8x" -- 2025/09/28
     write .value_required:n = true ,
     no-write .code:n = \str_set_eq:NN \l_@@_write_str \c_empty_str ,
     no-write .value_forbidden:n = true ,
-%    \end{macrocode}
-% For the key |join|, we convert immediatly the value of the key in utf16
-% (with the \text{bom} big endian that will be automatically inserted)
-% written in hexadecimal (what L3 calls the \emph{escaping}). Indeed, we will
-% have to write that value in the key |/UF| of a |/Filespec| (between angular
-% brackets |<| and |>| since it is in hexadecimal). It's prudent to do that
-% conversion right now since that value will transit by the Lua of LuaTeX.
-%    \begin{macrocode}
     join .code:n =
       \str_set:Nn \l_@@_join_str { #1 }
       \seq_if_in:NnF \g_@@_join_seq { #1 }
@@ -2618,7 +2584,6 @@ piton_version = "4.8x" -- 2025/09/28
 %
 %
 % \bigskip
-%  In the following, we don't understand why |tostring| seems to be mandatory...
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_create_paperclip_annotation:
   {
@@ -2629,7 +2594,16 @@ piton_version = "4.8x" -- 2025/09/28
           {
             \bool_if:NT \l_@@_annotation_bool
               {
-                \lua_now:n { pdf.immediateobj ( "(" ..  piton.get_last_code() .. ")" ) } 
+                \lua_now:n
+                  {
+%    \end{macrocode}
+% The function |piton.utf16| does a conversion from utf8 to utf16 big endian encoded in
+% hexadecimal (with the \textsc{bom} of big endian), which is suitable to be put in
+% a string between angular brackets of the \textsc{pdf}. It's easier for a stream!
+%    \begin{macrocode}
+                    pdf.immediateobj
+                      ( "<" .. piton.utf16 ( piton.get_last_code ( ) ) .. ">" )
+                  } 
                 \pdfextension annot~width~5pt~height~10pt~depth~0pt
                   {
                     /Subtype /Text
@@ -2655,6 +2629,7 @@ piton_version = "4.8x" -- 2025/09/28
   }
 %    \end{macrocode}
 %
+% \bigskip
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_create_paperclip:
   {
@@ -2662,7 +2637,10 @@ piton_version = "4.8x" -- 2025/09/28
       {
         \int_gincr:N \g_@@_paperclip_int 
         \str_set:Ne \l_@@_paperclip_str { listing_\int_use:N \g_@@_paperclip_int .txt }
-      }      
+      }
+%    \end{macrocode}
+% Here, we don't understand why the |tostring| is mandatory.
+%    \begin{macrocode}
     \lua_now:n { pdf.immediateobj ( "stream" , tostring ( piton.get_last_code() ) ) }
     \box_move_down:nn
       { 10 pt }
@@ -2866,11 +2844,11 @@ piton_version = "4.8x" -- 2025/09/28
 %    \begin{macrocode}
             \cs_if_exist_use:cT { g_@@_after_line _ \int_use:N \g_@@_line_int _ tl }
               { \cs_undefine:c { g_@@_after_line _ \int_use:N \g_@@_line_int _ tl } }
-            \int_compare:nNnT \g_@@_line_int < \g_@@_nb_lines_int % added 25/08/18
+            \int_compare:nNnT \g_@@_line_int < \g_@@_nb_lines_int 
               { \mode_leave_vertical: }
           }
       }
-    \skip_vertical:n { 2.5 pt } % added 
+    \skip_vertical:n { 2.5 pt } 
   }      
 %    \end{macrocode}
 %
@@ -4003,8 +3981,9 @@ piton_version = "4.8x" -- 2025/09/28
             /FS <<
                     /Type /Filespec
 %    \end{macrocode}
-% We have previously converted the name of the embedded file in |utf16/hex| and
-% now we can write a \textsc{pdf} string between |<| and |>| (with that encoding).
+% We have previously converted the name of the embedded file in |utf16/hex| with
+% the \textsc{bom} of big endian and now we can write a \textsc{pdf} string
+% between |<| and |>| (with that encoding).
 %    \begin{macrocode}
                     /UF <\l_tmpa_str>
 %    \end{macrocode}                    
@@ -4475,7 +4454,7 @@ end
 %    \end{macrocode}
 % 
 % \bigskip
-% \subsubsection{Special functions dealing with LPEG}
+% \subsection{Special functions dealing with LPEG}
 %
 % \medskip
 % We will use the Lua library \pkg{lpeg} which is built in LuaTeX. That's why we
@@ -4493,7 +4472,7 @@ lpeg.locale(lpeg)
 %    \end{macrocode}
 %
 %
-% \subsubsection{The functions Q, K, WithStyle, etc.}
+% \subsection{The functions Q, K, WithStyle, etc.}
 %
 % \bigskip
 % The function |Q| takes in as argument a pattern and returns a \textsc{lpeg}
@@ -4741,7 +4720,7 @@ local SpaceInString = space * Lc [[ \l_@@_space_in_string_tl ]]
 %
 %
 % \bigskip
-% \subsubsection{The option 'detected-commands' and al.}
+% \subsection{The option 'detected-commands' and al.}
 %
 % We create four Lua tables called |detected_commands|, |raw_detected_commands|,
 % |beamer_commands| and |beamer_environments|.
@@ -5071,7 +5050,7 @@ local CommentLaTeX =
 % 
 % 
 % \bigskip
-% \subsubsection{The language Python}
+% \subsection{The language Python}
 % 
 % We open a Lua local scope for the language Python (of course, there will be
 % also global definitions).
@@ -5625,7 +5604,7 @@ end
 %    \end{macrocode}
 %
 % 
-% \subsubsection{The language OCaml}
+% \subsection{The language OCaml}
 %
 % We open a Lua local scope for the language OCaml (of course, there will be also
 % global definitions).
@@ -5814,9 +5793,14 @@ do
 % mode of Emacs.
 %    \begin{macrocode}
   local Constructor =
-    P "::" * Lc ( [[ {\PitonStyle{Name.Constructor}{\hspace{0.1em}:\hspace{-0.2em}:\hspace{0.1em}}} ]] )
+    P "::"
+    * Lc (
+           [[ {\PitonStyle{Name.Constructor}]] ..
+           [[{\hspace{0.1em}:\hspace{-0.2em}:\hspace{0.1em}}} ]]
+         )
      +
-    P "[]" * Lc ( [[ {\PitonStyle{Name.Constructor}{\hspace{-0.1em}[\hspace{0.1em}]}} ]] )     
+    P "[]"
+    * Lc ([[{\PitonStyle{Name.Constructor}{\hspace{-0.1em}[\hspace{0.1em}]}}]])     
     K ( 'Name.Constructor' , 
         Q "`" ^ -1 * cap_identifier 
         + Q ( "[" , true ) * SkipSpace * Q ( "]" , true) )
@@ -6035,7 +6019,8 @@ local DotNotation =
 % \bigskip
 %    \begin{macrocode}
   local Operator =
-    P "||" * Lc ( [[ {\PitonStyle{Operator}{\hspace{0.1em}|\hspace{-0.2em}|\hspace{0.1em}}} ]] )
+    P "||" *
+    Lc([[{\PitonStyle{Operator}{\hspace{0.1em}|\hspace{-0.2em}|\hspace{0.1em}}}]])
      + 
     K ( 'Operator' ,
         P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "&&" +
@@ -6323,7 +6308,7 @@ end
 % 
 % 
 % \bigskip
-% \subsubsection{The language C}
+% \subsection{The language C}
 % 
 % We open a Lua local scope for the language C (of course, there will be also
 % global definitions).
@@ -6542,7 +6527,7 @@ end
 %    \end{macrocode}
 %
 % \bigskip
-% \subsubsection{The language SQL}
+% \subsection{The language SQL}
 % 
 % We open a Lua local scope for the language SQL (of course, there will be also
 % global definitions).
@@ -6827,7 +6812,7 @@ do
 end
 %    \end{macrocode}
 % 
-% \subsubsection{The language ``Minimal''}
+% \subsection{The language ``Minimal''}
 % 
 % We open a Lua local scope for the language ``Minimal'' (of course, there
 % will be also global definitions).
@@ -6916,7 +6901,7 @@ do
 end
 %    \end{macrocode}
 %
-% \subsubsection{The language ``Verbatim''}
+% \subsection{The language ``Verbatim''}
 % 
 % We open a Lua local scope for the language ``Verbatim'' (of course, there
 % will be also global definitions).
@@ -6990,7 +6975,7 @@ end
 %    \end{macrocode}
 %
 %
-% \subsubsection{The language expl}
+% \subsection{The language expl}
 % 
 % We open a Lua local scope for the language |expl| of LaTeX3 (of course, there
 % will be also global definitions).
@@ -7143,7 +7128,7 @@ end
 %
 %
 % \bigskip
-% \subsubsection{The function Parse}
+% \subsection{The function Parse}
 %
 % \medskip
 % The function |Parse| is the main function of the package \pkg{piton}. It
@@ -7268,7 +7253,7 @@ end
 %    \end{macrocode}
 % 
 % \bigskip
-% \subsubsection{Two variants of  the function Parse with integrated preprocessors}
+% \subsection{Two variants of  the function Parse with integrated preprocessors}
 %
 % The following command will be used by the user command |\piton|.
 % For that command, we have to undo the duplication of the symbols |#|.
@@ -7302,7 +7287,7 @@ end
 % 
 %
 % \bigskip
-% \subsubsection{Preprocessors of the function Parse for gobble}
+% \subsection{Preprocessors of the function Parse for gobble}
 %
 % We deal now with preprocessors of the function |Parse| which are needed when
 % the ``gobble mechanism'' is used.
@@ -7580,7 +7565,7 @@ end
 %    \end{macrocode}
 %
 % 
-% \subsubsection{To count the number of lines}
+% \subsection{To count the number of lines}
 %
 %    \begin{macrocode}
 local CountBeamerEnvironments
@@ -7699,7 +7684,7 @@ end
 %    \end{macrocode}
 %
 % \bigskip
-% \subsubsection{To determine the empty lines of the listings}
+% \subsection{To determine the empty lines of the listings}
 %
 % Despite its name, the Lua function |ComputeLinesStatus| computes
 % |piton.lines_status| but also |piton.empty_lines|.
@@ -7869,7 +7854,7 @@ end
 %    \end{macrocode}
 % 
 % \bigskip
-% \subsubsection{To create new languages with the syntax of listings}
+% \subsection{To create new languages with the syntax of listings}
 %
 %    \begin{macrocode}
 function piton.new_language ( lang , definition )
@@ -8437,7 +8422,7 @@ function piton.new_language ( lang , definition )
 end
 %    \end{macrocode}
 %
-% \subsubsection{We write the files (key 'write') and join the files in the PDF (key 'join')}
+% \subsection{We write the files (key 'write') and join the files in the PDF (key 'join')}
 %
 %    \begin{macrocode}
 function piton.write_files_now ( )
@@ -8451,8 +8436,19 @@ function piton.write_files_now ( )
         ( [[ \@@_error_or_warning:nn { FileError } { ]] .. file_name .. "}" )
     end 
   end
-end  
-%</LUA>
+end
+%    \end{macrocode}
+%
+% \bigskip
+%    \begin{macrocode}
+function piton.utf16 ( str )
+  local hex = { "FEFF" }  -- BOM UTF-16BE
+  for _, codepoint in utf8.codes(str) do
+    table.insert(hex, string.format("%04X", codepoint))
+  end
+  return table.concat(hex)
+end
+%</LUA> 
 %    \end{macrocode}
 %
 %

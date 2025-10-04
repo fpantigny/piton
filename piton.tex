@@ -20,6 +20,8 @@
 \usepackage{fancyvrb}
 \fvset{commandchars=\~\#\@,formatcom=\color{gray}}
 
+\usepackage[executable=python3.exe]{pyluatex}
+
 \usepackage{underscore}
 
 \usepackage{booktabs}
@@ -43,6 +45,35 @@
     vertical-detected-commands = newpage ,
     raw-detected-commands = { NameTable , rowcolor } 
   }
+
+\ExplSyntaxOn
+
+\dim_new:N \l__pantigny_width_dim 
+
+\keys_define:nn { pantigny }
+  { width .dim_set:N = \l__pantigny_width_dim }
+
+\NewPitonEnvironment { Code } { O { } }
+  {
+    \SetPitonStyle{ Number = , Comment = , String = }
+    \PitonOptions{language = minimal}
+    \char_set_catcode_other:N |
+    \cs_set_eq:NN \emph \emphase
+    \dim_zero:N \l__pantigny_width_dim 
+    \keys_set:nn { pantigny } { #1 }
+    \color{gray}
+    \dim_compare:nNnT \l__pantigny_width_dim > \c_zero_dim 
+      { 
+        \PitonOptions { width = \l__pantigny_width_dim } 
+        \begin{minipage}[c]{\l__pantigny_width_dim} 
+      }
+  }
+  { \dim_compare:nNnT \l__pantigny_width_dim > \c_zero_dim 
+      { \end{minipage} }
+  }
+
+\ExplSyntaxOff  
+  
 
 \parindent 0pt
 \skip\footins = 2\bigskipamount
@@ -596,6 +627,7 @@ p.~\pageref{breakable}).
 \subsection{The styles}
 
 \label{styles}
+\index{styles (concept of \pkg{piton})}
 
 \subsubsection{Notion of style}
 
@@ -813,9 +845,6 @@ def passe(v):
 
 \endgroup
 
-\medskip
-The word |transpose| is in red because, in the document class \cls{l3doc} (used
-in this document) the clickable words are in red.
 
 \PitonClearUserFunctions[Python]
 
@@ -824,7 +853,7 @@ in this document) the clickable words are in red.
 Of course, the list of the names of Python functions previously défined is
 kept in the memory of LuaLaTeX (in a global way, that is to say independently
 of the TeX groups). The extension \pkg{piton} provides a command to clear that
-list : it's the command \DefinitionCommand{PitonClearUserFunctions}. When it
+list: it's the command \DefinitionCommand{PitonClearUserFunctions}. When it
 is used without argument, that command is applied to all the computer
 languages used by the user but it's also possible to use it with an optional
 argument (between square brackets) which is a list of computer languages to
@@ -836,6 +865,10 @@ the name of the computer languages are case-insensitive.}
 
 \label{NewPitonEnvironment}
 \indexcommand{NewPitonEnvironment}
+\indexcommand{RenewPitonEnvironment}
+\indexcommand{DeclarePitonEnvironment}
+\indexcommand{ProvidePitonEnvironment}
+
 
 Since the environment |{Piton}| has to catch its body in a special way (more
 or less as verbatim text), it's not possible to construct new environments
@@ -1281,7 +1314,9 @@ as alias for |write={}|.
 \item \index{path-write} The key \Definition{path-write} specifies a path
 where the files written by the key |write| will be written.
 
-\item The key \Definition{join} is similar to the key |write| but the files which
+\item \index{join (key)}
+
+The key \Definition{join} is similar to the key |write| but the files which
 are created are joined (as \emph{joined files}) in the \textsc{pdf}. Be
 careful: Some \textsc{pdf} readers don't provide any tool to access to these
 joined files.
@@ -1296,7 +1331,8 @@ course, the initial value of |print| is |true|. However, it may be useful to
 use |print=false| in some circumstancies (for example, when the key |write| or
 the key |join| is used).
 
-\item \colorbox{yellow!50}{\textbf{New 4.9}}
+\item \index{paperclip (key)}
+\colorbox{yellow!50}{\textbf{New 4.9}}
 
 \nobreak
 The key \Definition{paperclip} will, for each environment |{Piton}|, add in the right
@@ -1309,13 +1345,13 @@ where \textsl{i} is a counter incremented by \pkg{piton} each time that a new fi
 created by use of |paperclip| without value.
 
 \medskip
-\begin{Verbatim}
-\begin{Piton}[~emphase#paperclip@,background-color=gray!15]
+\begin{Code}
+\begin{Piton}[\emph{paperclip},background-color=gray!15]
 def square(x):
     """Computes the square of x"""
     return x*x
 \end{Piton}    
-\end{Verbatim}
+\end{Code}
 
 \medskip
 \begin{Piton}[paperclip,background-color=gray!15]
@@ -1325,7 +1361,8 @@ def square(x):
 \end{Piton}    
 
 
-\item \colorbox{yellow!50}{\textbf{New 4.9}}
+\item \index{annotation (key)}
+\colorbox{yellow!50}{\textbf{New 4.9}}
 
 \nobreak
 The key \Definition{annotation} will, for each environment |{Piton}|, add in the right
@@ -1333,13 +1370,13 @@ margin a \textsc{pdf} annotation whose content is directly the body of the
 environment |{Piton}|.
 
 \medskip
-\begin{Verbatim}
-\begin{Piton}[~emphase#annotation@,background-color=gray!15]
+\begin{Code}
+\begin{Piton}[\emph{annotation},background-color=gray!15]
 def square(x):
     """Computes the square of x"""
     return x*x
 \end{Piton}    
-\end{Verbatim}
+\end{Code}
 
 \medskip
 \begin{Piton}[annotation,background-color=gray!15]
@@ -1356,7 +1393,7 @@ def square(x):
 \subsection{The key ``box''}
 
 \label{box}
-\index{box}
+\index{box (key)}
 
 If one wishes to compose a listing in a box of LaTeX, he should use the key
 |box|. That key takes in as value |c|, |t| or |b| corresponding to the parameter
@@ -1889,7 +1926,7 @@ def square(x):
 def square(x):
     """Computes the square of x"""
     return x*x
-~emphase#\end{Piton}@
+~emphase#~textbackslash#@end{Piton}@
 \end{Verbatim}
 
 \bigskip
@@ -2164,6 +2201,7 @@ floor(5.4)
 
 \subsection{Mechanisms to escape to LaTeX}
 
+\label{LaTeX-escapes}
 \index{escapes to LaTeX}
 
 The package \pkg{piton} provides several mechanisms for escaping to LaTeX:
@@ -2401,14 +2439,14 @@ and ask in a listing a mandatory break of page with |\newpage{}| (the pair of br
 is mandatory because the commands detected by \pkg{piton} are meant to be LaTeX commands
 with one mandatory argument).
 
-\begin{Verbatim}
+\begin{Code}
 \begin{Piton}
 def square(x):
-    return x*x  ~emphase#\newpage{}@
+    return x*x  \emph{\textbackslash{}newpage{}}
 def cube(x):
     return x*x*x
 \end{Piton}
-\end{Verbatim}
+\end{Code}
 
 \medskip
 It would also be possible to require the detection of the command |\vspace|.
@@ -2628,7 +2666,7 @@ returns in the mandatory arguments of these functions.
 Here is a complete example of file:
 
 \begin{small}
-\begin{Verbatim}
+\begin{Code}
 \documentclass{beamer}
 \usepackage{piton}
 \begin{document}
@@ -2636,14 +2674,14 @@ Here is a complete example of file:
 \begin{Piton}
 def string_of_list(l):
     """Convert a list of numbers in string"""
-~emphase#    \only<2->{s = "{" + str(l[0])}@
-~emphase#    \only<3->{for x in l[1:]: s = s + "," + str(x)}@
-~emphase#    \only<4->{s = s + "}"}@
+    \emph{\only<2->{s = "{" + str(l[0])}}
+    \emph{\only<3->{for x in l[1:]: s = s + "," + str(x)}}
+    \emph{\only<4->{s = s + "}"}}
     return s
 \end{Piton}
 \end{frame}
 \end{document}
-\end{Verbatim}
+\end{Code}
 \end{small}
 
 In the previous example, the braces in the Python strings |"{"| and |"}"| are
@@ -2675,21 +2713,21 @@ lines of code} in their body. The instructions |\begin{...}| and
 Here is an example:
 
 \begin{small}
-\begin{Verbatim}
+\begin{Code}
 \documentclass{beamer}
 \usepackage{piton}
 \begin{document}
 \begin{frame}[fragile]
 \begin{Piton}
 def square(x):
-    """Compure the square of its argument"""
-~emphase#\begin{uncoverenv}<2>@
+    """Compute the square of its argument"""
+\emph{\begin{uncoverenv}<2>}
     return x*x
-~emphase#\end{uncoverenv}@
+\emph{\end{uncoverenv}}
 \end{Piton}
 \end{frame}
 \end{document}
-\end{Verbatim}
+\end{Code}
 \end{small}
 
 
@@ -3514,6 +3552,8 @@ def square(x):
 \bigskip
 \subsection{Use with pyluatex}
 
+\subsubsection{Standard use of pyluatex}
+
 \index{pyluatex@{\pkg{pyluatex}} (extension)}
 \label{pyluatex}
 
@@ -3526,13 +3566,13 @@ listing (with \pkg{piton}) but also displays the output of the execution of the
 code with Python.
 
 \medskip
-\begin{Verbatim}
-\NewPitonEnvironment{~emphase#PitonExecute@}{!O{}}
+\begin{Code}
+\NewPitonEnvironment{\emph{PitonExecute}}{O{}}
   {\PitonOptions{~#1}}
   {\begin{center}
    \directlua{pyluatex.execute(piton.get_last_code(), false, true, false, true)}%
    \end{center}}
-\end{Verbatim}
+\end{Code}
 
 \medskip
 We have used the Lua function |piton.get_last_code| provided in the API of
@@ -3541,6 +3581,224 @@ We have used the Lua function |piton.get_last_code| provided in the API of
 \medskip
 This environment |{PitonExecute}| takes in as optional argument (between
 square brackets) the options of the command |\PitonOptions|.
+
+\NewPitonEnvironment{PitonExecute}{O{}}
+  {\PitonOptions{#1}}
+  {\begin{center}
+   \directlua{pyluatex.execute(piton.get_last_code(), false, true, false, true)}%
+   \end{center}}
+
+\medskip
+\begin{Verbatim}
+~emphase#\begin{PitonExecute}@[background-color=gray!15]
+def square(x):
+    """Computes the square of x"""
+    return x*x
+print(f'The square of x is {square(12)}.')
+~emphase#\end{PitonExecute}@
+\end{Verbatim}
+
+
+\medskip
+\begin{PitonExecute}[background-color=gray!15]
+def square(x):
+    """Computes the square of x"""
+    return x*x
+print(f'The square of x is {square(12)}.')
+\end{PitonExecute}
+
+
+\bigskip
+It's also possible to use, in that environment, the mechanims for escapint to LaTeX
+as previously (cf. p.~\pageref{LaTeX-escapes}).
+
+\begin{footnotesize}
+\begin{Verbatim}
+\usepackage{luacolor,lua-ul}                  % in the preamble
+\PitonOptions{detected-commands = highLight}  % in the preamble
+\end{Verbatim}
+\end{footnotesize}
+
+\medskip
+\begin{Verbatim}
+\begin{PitonExecute}[background-color=gray!15]
+def square(x):
+    """Computes the square of x"""
+    ~emphase#\highLight{return x*x}@
+print(f'The square of 12 is {square(12)}.')
+\end{PitonExecute}
+\end{Verbatim}
+
+\medskip
+\begin{PitonExecute}[background-color=gray!15]
+def square(x):
+    """Computes the square of x"""
+    \highLight{return x*x}
+print(f'The square of 12 is {square(12)}.')
+\end{PitonExecute}
+
+\bigskip
+\subsubsection{Use of the environment \{pythonrepl\} of pyluatex}
+
+\label{pythonrepl}
+\index{pythonrepl@\texttt{\{pythonrepl\}} (environment of \pkg{pyluatex})}
+
+The environment |{pythonrepl}| of \pkg{pyluatex} submit its content to Python and
+return what we obtain when we submit that code to a \textsc{repl}
+(\emph{read-eval-print loop}) of Python. We obtain a succession of instructions
+preceded by the prompt |>>>| of Python and values returned by Python (and the outputs of
+potential commands |print| of Python).
+
+\medskip
+It's possible to give that to an environment |{Piton}| which will do the usual formatting
+and put on a colored background the lignes corresponding to the instructions provided to
+the Python interpreter (the color of that background may be changed with the key
+|prompt-background-color| whose inital value is |gray!15|).
+
+\medskip
+Here a programmation of environment |{PitonREPL}| which does that job (for technical
+reasons, the |!| is here mandatory in the signature of the environment). It's not
+possible to process as previously (in the ``standard'' use of \pkg{pyluatex}) because,
+of course, the output of |{pythonrepla}| must be treated by \pkg{piton}. Therefore, it's not
+possible to use the escaping tools (|detected-commands|, |begin-escape|, etc.) in the code.
+
+\begin{Verbatim}
+\ExplSyntaxOn
+\NewDocumentEnvironment { PitonREPL } { ! O { } } % le ! est obligatoire
+ { 
+   \PitonOptions
+     { 
+       ~emphase#background-color=none@, % pour avoir des petites marges
+       ~#1
+     }
+   \PyLTVerbatimEnv
+   \begin{pythonrepl}
+ }
+ {
+   \end{pythonrepl}
+   \lua_now:n
+     {
+       tex.print("\\begin{Piton}")
+       tex.print(pyluatex.get_last_output())
+       tex.print("\\end{Piton}")
+       tex.print("") 
+     } 
+   \ignorespacesafterend
+ }
+\ExplSyntaxOff
+\end{Verbatim}
+
+\medskip
+Here is an example of use of that new environment |{PitonREPL}|.
+
+\medskip
+\begin{Code}
+\emph{\begin{PitonREPL}}
+    def valeur_absolue(x):
+        """Renvoie la valeur absolue de x"""
+        if x > 0:
+           return x
+        else:
+           return -x
+
+    valeur_absolue(-3)
+    valeur_absolue(0)
+    valeur_absolue(5)
+\emph{\end{PitonREPL}}
+\end{Code}
+
+\bigskip
+
+\ExplSyntaxOn
+\NewDocumentEnvironment { PitonREPL } { }
+ { 
+   \PitonOptions{background-color=none}
+   \PyLTVerbatimEnv
+   \begin{pythonrepl}
+ }
+ {
+   \end{pythonrepl}
+   \lua_now:n
+     {
+       tex.print("\\begin{Piton}")
+       tex.print(pyluatex.get_last_output())
+       tex.print("\\end{Piton}")
+       tex.print("") 
+     }
+   \ignorespacesafterend
+ }
+\ExplSyntaxOff
+ 
+\begin{PitonREPL}
+    def absolute_value(x):
+        """Computes the absolute value of x"""
+        if x > 0:
+           return x
+        else:
+           return -x
+
+    absolute_value(-3)
+    absolute_value(0)
+    absolute_value(5)
+\end{PitonREPL}
+
+\bigskip
+In fact, it's possible to avoid the display of the prompts themselves (that is to say
+the strings |>>>| and |...|). Indeed, \pkg{piton} provides a style for those elements,
+called |Prompt|. The initial value of that style is empty, and that's why no action is done
+for those elements and they are displayed as they are. By using a value which
+is a function which gobbles its argument, it's possible to require that these prompts are not
+displayed.
+
+
+\bigskip
+\begin{savenotes}
+\begin{Verbatim}
+\NewDocumentCommand{\Gobe}{m}{}#~color#black@~footnote#Here we have defined a function ~texttt#~string~Gobe@ but, in fact, it already exists in L3 with the name ~texttt#~string~use~_none:n@.@@
+\SetPitonStyle{ ~emphase#Prompt = \Gobe@ }
+\end{Verbatim}
+\end{savenotes}
+
+\NewDocumentCommand{\Gobe}{m}{}
+\ExplSyntaxOn
+\SetPitonStyle{ Prompt = \use_none:n }
+\ExplSyntaxOff
+
+\bigskip
+L'exemple précédent donne alors :
+
+\medskip
+\begin{Verbatim}
+~emphase#\begin{PitonREPL}@
+    def absolute_value(x):
+        """Computes the absolute value of x"""
+        if x > 0:
+           return x
+        else:
+           return -x
+
+    absolute_value(-3)
+    absolute_value(0)
+    absolute_value(5)
+~emphase#\end{PitonREPL}@
+\end{Verbatim}
+
+
+\bigskip
+
+\begin{PitonREPL}
+    def absolute_value(x):
+        """Computes the absolute value of x"""
+        if x > 0:
+           return x
+        else:
+           return -x
+
+    absolute_value(-3)
+    absolute_value(0)
+    absolute_value(5)
+\end{PitonREPL}
+
 
 
 
@@ -3932,7 +4190,6 @@ environments of Beamer.
 
 
 
-
 \vspace{1cm}
 \section{History}
 
@@ -3955,7 +4212,11 @@ The successive versions of the file |piton.sty| provided by TeXLive are also ava
 
 \subsection*{Changes between versions 4.8 and 4.9}
 
-New key |paperclip|
+New keys |paperclip| and |annotations|.
+
+The package \pkg{piton} is now provided with three TeX files: |piton-code.dtx| (for the
+code), |piton.tex| (the documentation in English) and |piton-french.tex| (the
+documentation in French).
 
 \subsection*{Changes between versions 4.7 and 4.8}
 
@@ -4086,10 +4347,31 @@ New keys |begin-escape|, |end-escape|, |begin-escape-math| and |end-escape-math|
 The key |escape-inside| is deprecated: use |begin-escape| and |end-escape|.
 
 
+
+
+
+\section*{Other documentation}
+
+The document |piton-french.pdf| (provided by the extension \pkg{piton}) contains a French
+translation of the current documentation. The file |piton-code.pdf| describes the
+implementation of the package \pkg{piton} (both L3 and Lua parts).
+
+
 \section*{Acknowledgments}
 
 Acknowledgments to Yann Salmon and Pierre Le Scornet for their numerous suggestions
 of improvments.
+
+
+
+
+\cleardoublepage
+
+\phantomsection
+\addcontentsline{toc}{section}{Index}
+
+\printindex
+ 
 
 \tableofcontents
 

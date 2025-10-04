@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.8x}
-\def\PitonFileDate{2025/09/28}
+\def\PitonFileVersion{4.9}
+\def\PitonFileDate{2025/10/04}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesExplPackage
   {piton}
@@ -1253,7 +1253,11 @@
           {
             \bool_if:NT \l__piton_annotation_bool
               {
-                \lua_now:n { pdf.immediateobj ( "(" ..  piton.get_last_code() .. ")" ) }
+                \lua_now:n
+                  {
+                    pdf.immediateobj
+                      ( "<" .. piton.utf16 ( piton.get_last_code ( ) ) .. ">" )
+                  }
                 \pdfextension annot~width~5pt~height~10pt~depth~0pt
                   {
                     /Subtype /Text
@@ -1392,11 +1396,11 @@
             \__piton_add_penalty_for_the_line:
             \cs_if_exist_use:cT { g__piton_after_line _ \int_use:N \g__piton_line_int _ tl }
               { \cs_undefine:c { g__piton_after_line _ \int_use:N \g__piton_line_int _ tl } }
-            \int_compare:nNnT \g__piton_line_int < \g__piton_nb_lines_int % added 25/08/18
+            \int_compare:nNnT \g__piton_line_int < \g__piton_nb_lines_int
               { \mode_leave_vertical: }
           }
       }
-    \skip_vertical:n { 2.5 pt } % added
+    \skip_vertical:n { 2.5 pt }
   }
 \cs_new_protected:Npn \__piton_composition_ii:
   {

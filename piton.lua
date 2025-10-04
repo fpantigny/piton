@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.8x" -- 2025/09/28
+piton_version = "4.9" -- 2025/10/04
 piton.comment_latex = piton.comment_latex or ">"
 piton.comment_latex = "#" .. piton.comment_latex
 piton.write_files = { }
@@ -674,9 +674,14 @@ do
   local Punct = Q ( S ",:;!" )
   local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
   local Constructor =
-    P "::" * Lc ( [[ {\PitonStyle{Name.Constructor}{\hspace{0.1em}:\hspace{-0.2em}:\hspace{0.1em}}} ]] )
+    P "::"
+    * Lc (
+           [[ {\PitonStyle{Name.Constructor}]] ..
+           [[{\hspace{0.1em}:\hspace{-0.2em}:\hspace{0.1em}}} ]]
+         )
      +
-    P "[]" * Lc ( [[ {\PitonStyle{Name.Constructor}{\hspace{-0.1em}[\hspace{0.1em}]}} ]] )
+    P "[]"
+    * Lc ([[{\PitonStyle{Name.Constructor}{\hspace{-0.1em}[\hspace{0.1em}]}}]])
     K ( 'Name.Constructor' ,
         Q "`" ^ -1 * cap_identifier
         + Q ( "[" , true ) * SkipSpace * Q ( "]" , true) )
@@ -807,7 +812,8 @@ local DotNotation =
     )
     * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0
   local Operator =
-    P "||" * Lc ( [[ {\PitonStyle{Operator}{\hspace{0.1em}|\hspace{-0.2em}|\hspace{0.1em}}} ]] )
+    P "||" *
+    Lc([[{\PitonStyle{Operator}{\hspace{0.1em}|\hspace{-0.2em}|\hspace{0.1em}}}]])
      +
     K ( 'Operator' ,
         P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "&&" +
@@ -2236,5 +2242,12 @@ function piton.write_files_now ( )
         ( [[ \__piton_error_or_warning:nn { FileError } { ]] .. file_name .. "}" )
     end
   end
+end
+function piton.utf16 ( str )
+  local hex = { "FEFF" }  -- BOM UTF-16BE
+  for _, codepoint in utf8.codes(str) do
+    table.insert(hex, string.format("%04X", codepoint))
+  end
+  return table.concat(hex)
 end
 

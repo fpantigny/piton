@@ -21,7 +21,7 @@ The package `piton` is present in the distributions MiKTeX, TeXLive and MacTeX.
 
 For a manual installation:
 
-* put the files `piton.ins` and `piton.dtx` in the same directory; 
+* put the files `piton.ins` and `piton-code.dtx` in the same directory; 
 * run `latex piton.ins` in that directory.
 
 The files `piton.sty` and `piton.lua` will be generated.
@@ -29,6 +29,6 @@ The files `piton.sty` and `piton.lua` will be generated.
 These files `piton.sty` and `piton.lua` are the only files necessary to use the extension `piton`. 
 You have to put them in the same directory as your document or (best) in a `texmf` tree. 
 
-For the documentation in English, run: `lualatex piton.dtx`
+For the documentation in English, run: `lualatex piton.tex`
 
 

@@ -1196,6 +1196,7 @@ débuter par une oblique~|/|.
 \subsubsection{Insertion d'une partie d'un fichier}
 
 \label{part-of-a-file}
+\indexcommand{PitonInputFile}
 
 En fait, il existe des mécanismes permettant de n'insérer qu'une partie du fichier en
 question.
@@ -3608,8 +3609,8 @@ avec Python.
    \directlua{pyluatex.execute(piton.get_last_code(), false, true, false, true)}%
    \end{center}}
 
- On a utilisé la fonction Lua |piton.get_last_code| fournie dans l'API de \pkg{piton} :
- cf.~partie~\ref{API}, p.~\pageref{API}.
+On a utilisé la fonction Lua |piton.get_last_code| fournie dans l'API de \pkg{piton} :
+cf.~partie~\ref{API}, p.~\pageref{API}.
 
 \bigskip
 Cet environnement |{PitonExecute}| prend en argument optionnel (entre crochets) les
@@ -3724,8 +3725,8 @@ car, bien sûr, c'est le retour fait par |{pythonrepl}| qui doit être traité p
 Voici un exemple d'utilisation de ce nouvel environnement |{PitonREPL}|.
 
 \medskip
-\begin{Verbatim}
-~emphase#\begin{PitonREPL}@
+\begin{Code}
+\emph{\begin{PitonREPL}}
     def valeur_absolue(x):
         """Renvoie la valeur absolue de x"""
         if x > 0:
@@ -3736,8 +3737,8 @@ Voici un exemple d'utilisation de ce nouvel environnement |{PitonREPL}|.
     valeur_absolue(-3)
     valeur_absolue(0)
     valeur_absolue(5)
-~emphase#\end{PitonREPL}@
-\end{Verbatim}
+\emph{\end{PitonREPL}}
+\end{Code}
 
 \bigskip
 
@@ -3778,7 +3779,7 @@ Voici un exemple d'utilisation de ce nouvel environnement |{PitonREPL}|.
 \bigskip
 En fait, il est possible de ne pas faire afficher les prompts eux-mêmes (c'est-à-dire les
 chaînes de caractères |>>>| et |...|). En effet, \pkg{piton} propose un style pour ces
-éléments, qui est appelé |Prompt|. Par défaut, la valeur de ce style est vide, ce qui fait
+éléments, qui est appelé |Prompt|. La valeur initial de ce style est vide, ce qui fait
 qu'aucune action n'est exécutée sur ces éléments qui sont donc affichés tels quels. En
 fournissant comme valeur une fonction qui se contente de gober son argument, on peut
 demander à ce qu'ils ne soient pas affichés.
@@ -3819,6 +3820,7 @@ L'exemple précédent donne alors :
 \end{Code}
 
 
+\bigskip
 
 \begin{PitonREPL}
     def valeur_absolue(x):
@@ -4248,8 +4250,8 @@ Remerciements à Yann Salmon et Pierre Le Scornet pour leurs nombreuses suggesti
 \section*{Autre documentation}
 
 Le document |piton.pdf| (fourni avec l'extension \pkg{piton}) contient
-une traduction anglaise de la documentation ici présente, ainsi que le
-code source commenté et un historique des versions.
+une traduction anglaise de la documentation ici présente ainsi qu'un historique des versions.
+Le fichier |piton-code.pdf| contient le code commenté de l'extension \pkg{piton}.
 
 
 \medskip
