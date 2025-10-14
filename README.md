@@ -17,7 +17,7 @@ It requires the use of LuaLaTeX and won't work the other TeX engines (xelatex, p
 
 ## Installation
 
-The package `piton` is present in the distributions MiKTeX, TeXLive and MacTeX.
+The package `piton` is present in the distributions MiKTeX, TeX Live and MacTeX.
 
 For a manual installation:
 

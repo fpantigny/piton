@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.9}
-\def\PitonFileDate{2025/10/04}
+\def\PitonFileVersion{4.9x}
+\def\PitonFileDate{2025/10/06}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesExplPackage
   {piton}
@@ -40,6 +40,7 @@
   { }
   { \msg_critical:nn { piton } { latex-too-old } }
 \RequirePackage { amstext }
+\RequirePackage { marginalia }
 \RequirePackage { transparent }
 \cs_new_protected:Npn \__piton_error:n { \msg_error:nn { piton } }
 \cs_new_protected:Npn \__piton_warning:n { \msg_warning:nn { piton } }
@@ -217,6 +218,8 @@
 \bool_set_true:N \l__piton_print_bool
 \str_new:N \l__piton_write_str
 \str_new:N \l__piton_join_str
+\str_new:N \l__piton_join_separation_str
+\str_set:Nn \l__piton_join_separation_str { }
 \bool_new:N \l__piton_paperclip_bool
 \str_new:N \l__piton_paperclip_str
 \bool_new:N \l__piton_annotation_bool
@@ -844,6 +847,8 @@
       \seq_if_in:NnF \g__piton_join_seq { #1 }
         { \seq_gput_right:No \g__piton_join_seq { #1 } } ,
     join .value_required:n = true ,
+    join-separation .str_set:N = \l__piton_join_separation_str ,
+    join-separation .value_required:n = true ,
     no-join .code:n = \str_set_eq:NN \l__piton_join_str \c_empty_str ,
     no-join .value_forbidden:n = true ,
     left-margin .code:n =
@@ -1246,11 +1251,12 @@
   }
 \cs_new_protected:Npn \__piton_create_paperclip_annotation:
   {
-    \marginpar
+    \marginalia
       {
         \vspace* { - 0.8 em }
         \hbox:n
           {
+            \vrule~height~0~pt~depth~12~pt~width~0~pt
             \bool_if:NT \l__piton_annotation_bool
               {
                 \lua_now:n
@@ -1325,6 +1331,7 @@
       { \__piton_compute_left_margin: }
     \lua_now:e
       {
+        piton.join_separation = "\l__piton_join_separation_str"
         piton.join = "\l__piton_join_str"
         piton.write = "\l__piton_write_str"
         piton.path_write = "\l__piton_path_write_str"

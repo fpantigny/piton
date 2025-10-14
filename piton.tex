@@ -171,6 +171,10 @@ The package \pkg{piton} is contained in two files: |piton.sty| and |piton.lua|
 find them, for instance in a |texmf| tree. However, the best is to install
 \pkg{piton} with a TeX distribution such as MiKTeX, TeX Live or MacTeX.
 
+\medskip
+Note that the character \emph{quote} U+0027 : \verb|'| is never transformed by
+\pkg{piton} in an apostrophe U+2019. There is no point loading \pkg{upquote}.
+
 \section{Use of the package}
 
 The package \pkg{piton} must be used with \textbf{LuaLaTeX exclusively}: if
@@ -493,9 +497,7 @@ color at all.
 
 \emph{Example} : |\PitonOptions{background-color = {gray!15,none}}|
 
-\item \index{rounded-corners} \colorbox{yellow!50}{\textbf{New 4.7}}
-
-\nobreak
+\item \index{rounded-corners} 
 It's possible to use the key \Definition{rounded-corners} to require rounded
 corners for the colored panels drawn by the key |background-color| The initial
 value of that is $0$~pt, which means that the corners are not rounded. If the
@@ -4200,8 +4202,8 @@ repository:
 \verb|https://github.com/fpantigny/piton|
 
 \medskip
-The successive versions of the file |piton.sty| provided by TeXLive are also available on the
-\textsc{svn} server of TeXLive:
+The successive versions of the file |piton.sty| provided by TeX Live are also available
+on the \textsc{svn} server of TeX Live:
 
 \nobreak
 \smallskip

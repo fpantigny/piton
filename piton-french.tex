@@ -206,6 +206,11 @@ fichier LaTeX |piton.sty| chargé par |\usepackage| va à son tour charger le fi
 les trouver, de préférence dans une arborescence |texmf|. Le mieux reste néanmoins
 d'installer \pkg{piton} avec une distribution TeX comme MiKTeX, TeX~Live ou MacTeX.
 
+\medskip
+On remarquera que le caractère \emph{quoate} (U+0027 : \verb|'|) n'est jamais converti
+par \pkg{piton} en l'apostrophe U+2019. Il n'y a pas besoin de charger l'extension
+\pkg{upquote}.
+
 
 
 \section{Utilisation de l'extension}
@@ -547,9 +552,7 @@ Dans cette liste, la couleur spéciale \Definition{none} désigne une absence de
 
 \emph{Exemple} : |\PitonOptions{background-color = {gray!5,none}}|
 
-\item \index{rounded-corners} \colorbox{yellow!50}{\textbf{Nouveau 4.7}}
-
-\nobreak
+\item \index{rounded-corners} 
 On peut utiliser \Definition{rounded-corners} pour demander des coins arrondis
 pour les fonds colorés spécifiés par |background-color|. La valeur initiale de
 ce paramètre est $0$~pt, ce qui fait que les coins ne sont pas arrondis. Si on
@@ -4256,7 +4259,7 @@ Le fichier |piton-code.pdf| contient le code commenté de l'extension \pkg{piton
 
 \medskip
 Les versions successives du fichier |piton.sty| fournies par
-TeXLive sont disponibles sur le serveur \textsc{svn} de TeXLive :
+TeX Live sont disponibles sur le serveur \textsc{svn} de TeX Live :
 
 \smallskip
 {

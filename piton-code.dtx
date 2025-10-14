@@ -60,12 +60,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.9}
-\def\PitonFileDate{2025/10/04}
+\def\PitonFileVersion{4.9x}
+\def\PitonFileDate{2025/10/06}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.9" -- 2025/10/04
+piton_version = "4.9x" -- 2025/10/06
 %</LUA>
 %\fi
 %
@@ -262,6 +262,13 @@ piton_version = "4.9" -- 2025/10/04
 \RequirePackage { amstext }
 %    \end{macrocode}
 %
+% \bigskip
+% The command |\marginalia| of the package \pkg{marginalia} will be used
+% for the margin notes created by the keys |paperclip| and |annotation|.
+%    \begin{macrocode}
+\RequirePackage { marginalia }
+%    \end{macrocode}
+% 
 % \bigskip
 % The package \pkg{transparent} is compatible with \pkg{pdfmanagement} (which
 % is not loaded by \pkg{piton} but which is used for the key |join| when it is
@@ -747,6 +754,8 @@ piton_version = "4.9" -- 2025/10/04
 % The parameter |\l_@@_join_str| corresponds to the key |join|. 
 %    \begin{macrocode}
 \str_new:N \l_@@_join_str
+\str_new:N \l_@@_join_separation_str
+\str_set:Nn \l_@@_join_separation_str { }
 %    \end{macrocode}
 %
 % \medskip
@@ -1892,6 +1901,8 @@ piton_version = "4.9" -- 2025/10/04
       \seq_if_in:NnF \g_@@_join_seq { #1 }
         { \seq_gput_right:No \g_@@_join_seq { #1 } } ,
     join .value_required:n = true ,
+    join-separation .str_set:N = \l_@@_join_separation_str ,
+    join-separation .value_required:n = true ,
     no-join .code:n = \str_set_eq:NN \l_@@_join_str \c_empty_str ,
     no-join .value_forbidden:n = true ,
     left-margin .code:n =
@@ -2584,14 +2595,16 @@ piton_version = "4.9" -- 2025/10/04
 %
 %
 % \bigskip
+% |\marginalia| is a command of the package \pkg{marginalia} (loaded by \pkg{piton}).
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_create_paperclip_annotation:
   {
-    \marginpar
+    \marginalia
       {
         \vspace* { - 0.8 em }
         \hbox:n
           {
+            \vrule~height~0~pt~depth~12~pt~width~0~pt
             \bool_if:NT \l_@@_annotation_bool
               {
                 \lua_now:n
@@ -2719,6 +2732,7 @@ piton_version = "4.9" -- 2025/10/04
 %    \begin{macrocode}
     \lua_now:e
       {
+        piton.join_separation = "\l_@@_join_separation_str" 
         piton.join = "\l_@@_join_str"
         piton.write = "\l_@@_write_str"
         piton.path_write = "\l_@@_path_write_str"
@@ -5794,13 +5808,13 @@ do
 %    \begin{macrocode}
   local Constructor =
     P "::"
-    * Lc (
-           [[ {\PitonStyle{Name.Constructor}]] ..
-           [[{\hspace{0.1em}:\hspace{-0.2em}:\hspace{0.1em}}} ]]
-         )
+%    \end{macrocode}
+% Don't use |\hspace| instead of |\kern|
+%    \begin{macrocode}
+    * Lc [[{\PitonStyle{Name.Constructor}{\kern0.1em:\kern-0.2em:\kern0.1em}}]]
      +
     P "[]"
-    * Lc ([[{\PitonStyle{Name.Constructor}{\hspace{-0.1em}[\hspace{0.1em}]}}]])     
+    * Lc ([[{\PitonStyle{Name.Constructor}{\kern-0.1em[\kern0.1em]}}]])     
     K ( 'Name.Constructor' , 
         Q "`" ^ -1 * cap_identifier 
         + Q ( "[" , true ) * SkipSpace * Q ( "]" , true) )
@@ -6020,7 +6034,7 @@ local DotNotation =
 %    \begin{macrocode}
   local Operator =
     P "||" *
-    Lc([[{\PitonStyle{Operator}{\hspace{0.1em}|\hspace{-0.2em}|\hspace{0.1em}}}]])
+    Lc([[{\PitonStyle{Operator}{\kern0.1em|\kern-0.2em|\kern0.1em}}]])
      + 
     K ( 'Operator' ,
         P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "&&" +
@@ -7415,8 +7429,19 @@ function piton.join_and_write ( )
     if not piton.join_files [ piton.join ] then
       piton.join_files [ piton.join ] = piton.get_last_code ( )
     else
+      if piton.join_separation == '' then
       piton.join_files [ piton.join ] =
-      piton.join_files [ piton.join ] .. "\r\n" .. piton.get_last_code ( )
+      piton.join_files [ piton.join ]
+        .. "\r\n" 
+        .. piton.get_last_code ( )
+      else
+      piton.join_files [ piton.join ] =
+      piton.join_files [ piton.join ]
+        .. "\r\n"
+        .. ( piton.join_separation : gsub ( '##' , '#' ) )
+        .. "\r\n"
+        .. piton.get_last_code ( )
+      end 
     end
   end 
 %    \end{macrocode}
@@ -8440,6 +8465,9 @@ end
 %    \end{macrocode}
 %
 % \bigskip
+% \subsection{Conversion from utf8 to utf16}
+%
+% Caution: the following function should be considered as public.
 %    \begin{macrocode}
 function piton.utf16 ( str )
   local hex = { "FEFF" }  -- BOM UTF-16BE
@@ -8459,4 +8487,3 @@ end
 % End:
 
 
- 

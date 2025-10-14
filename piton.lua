@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.9" -- 2025/10/04
+piton_version = "4.9x" -- 2025/10/06
 piton.comment_latex = piton.comment_latex or ">"
 piton.comment_latex = "#" .. piton.comment_latex
 piton.write_files = { }
@@ -675,13 +675,10 @@ do
   local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
   local Constructor =
     P "::"
-    * Lc (
-           [[ {\PitonStyle{Name.Constructor}]] ..
-           [[{\hspace{0.1em}:\hspace{-0.2em}:\hspace{0.1em}}} ]]
-         )
+    * Lc [[{\PitonStyle{Name.Constructor}{\kern0.1em:\kern-0.2em:\kern0.1em}}]]
      +
     P "[]"
-    * Lc ([[{\PitonStyle{Name.Constructor}{\hspace{-0.1em}[\hspace{0.1em}]}}]])
+    * Lc ([[{\PitonStyle{Name.Constructor}{\kern-0.1em[\kern0.1em]}}]])
     K ( 'Name.Constructor' ,
         Q "`" ^ -1 * cap_identifier
         + Q ( "[" , true ) * SkipSpace * Q ( "]" , true) )
@@ -813,7 +810,7 @@ local DotNotation =
     * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0
   local Operator =
     P "||" *
-    Lc([[{\PitonStyle{Operator}{\hspace{0.1em}|\hspace{-0.2em}|\hspace{0.1em}}}]])
+    Lc([[{\PitonStyle{Operator}{\kern0.1em|\kern-0.2em|\kern0.1em}}]])
      +
     K ( 'Operator' ,
         P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "&&" +
@@ -1607,8 +1604,19 @@ function piton.join_and_write ( )
     if not piton.join_files [ piton.join ] then
       piton.join_files [ piton.join ] = piton.get_last_code ( )
     else
+      if piton.join_separation == '' then
       piton.join_files [ piton.join ] =
-      piton.join_files [ piton.join ] .. "\r\n" .. piton.get_last_code ( )
+      piton.join_files [ piton.join ]
+        .. "\r\n"
+        .. piton.get_last_code ( )
+      else
+      piton.join_files [ piton.join ] =
+      piton.join_files [ piton.join ]
+        .. "\r\n"
+        .. ( piton.join_separation : gsub ( '##' , '#' ) )
+        .. "\r\n"
+        .. piton.get_last_code ( )
+      end
     end
   end
   if piton.write ~= '' then
