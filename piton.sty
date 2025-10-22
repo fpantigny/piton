@@ -1561,6 +1561,7 @@
   }
 \NewDocumentCommand { \PitonInputFileTF } { d < > O { } m m m }
   {
+    \mode_if_vertical:F { \par }
     \group_begin:
     \seq_concat:NNN
       \l_file_search_path_seq

@@ -3125,6 +3125,7 @@ piton_version = "4.9x" -- 2025/10/06
 %    \begin{macrocode}
 \NewDocumentCommand { \PitonInputFileTF } { d < > O { } m m m }
   {
+    \mode_if_vertical:F { \par }
     \group_begin:
     \seq_concat:NNN 
       \l_file_search_path_seq 
@@ -6034,6 +6035,9 @@ local DotNotation =
 %    \begin{macrocode}
   local Operator =
     P "||" *
+%    \end{macrocode}
+% Don't use |\hspace| instead of |\kern|!
+%    \begin{macrocode}
     Lc([[{\PitonStyle{Operator}{\kern0.1em|\kern-0.2em|\kern0.1em}}]])
      + 
     K ( 'Operator' ,
