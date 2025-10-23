@@ -3703,7 +3703,8 @@ car, bien sûr, c'est le retour fait par |{pythonrepl}| qui doit être traité p
 \NewDocumentEnvironment { PitonREPL } { ! O { } } % le ! est obligatoire
  { 
    \PitonOptions
-     { 
+     {
+       ~emphase#prompt-background-color=blue!15@ ,
        ~emphase#background-color=none@, % pour avoir des petites marges
        ~#1
      }
@@ -3748,7 +3749,11 @@ Voici un exemple d'utilisation de ce nouvel environnement |{PitonREPL}|.
 \ExplSyntaxOn
 \NewDocumentEnvironment { PitonREPL } { }
  { 
-   \PitonOptions{background-color=none}
+   \PitonOptions
+     {
+       prompt-background-color=blue!15 ,
+       background-color=none ,
+     }
    \PyLTVerbatimEnv
    \begin{pythonrepl}
  }

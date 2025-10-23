@@ -3669,7 +3669,8 @@ possible to use the escaping tools (|detected-commands|, |begin-escape|, etc.) i
 \NewDocumentEnvironment { PitonREPL } { ! O { } } % le ! est obligatoire
  { 
    \PitonOptions
-     { 
+     {
+       ~emphase#prompt-background-color=blue!15@ ,
        ~emphase#background-color=none@, % pour avoir des petites marges
        ~#1
      }
@@ -3714,7 +3715,11 @@ Here is an example of use of that new environment |{PitonREPL}|.
 \ExplSyntaxOn
 \NewDocumentEnvironment { PitonREPL } { }
  { 
-   \PitonOptions{background-color=none}
+   \PitonOptions
+     {
+       background-color=none ,
+       prompt-background-color=blue!15 
+     }
    \PyLTVerbatimEnv
    \begin{pythonrepl}
  }
