@@ -18,9 +18,11 @@
 -- and version 1.3 or later is part of all distributions of
 -- LaTeX version 2005/12/01 or later.
 -- -------------------------------------------
+--
+-- TEST VERSION: NEVER RELEASED ON CTAN
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.9a" -- 2025/10/23
+piton_version = "4.9x" -- 2025/11/14
 piton.comment_latex = piton.comment_latex or ">"
 piton.comment_latex = "#" .. piton.comment_latex
 piton.write_files = { }
@@ -258,7 +260,21 @@ function Compute_Beamer ( lang , braces )
               * Cc ( [[\end{]] .. x ..  "}" )
               )
           * (
-              ( ( 1 - P ( [[\end{]] .. x .. "}" ) ) ^ 0 )
+               (
+                 P { "E" ,
+                      E = (
+                            P ( [[\begin{]] .. x .. "}" )
+                             * V "E"
+                             * P ( [[\end{]] .. x .. "}" )
+                            +
+                             (
+                              1
+                              - P ( [[\begin{]] .. x .. "}" )
+                              - P ( [[\end{]] .. x .. "}" )
+                             )
+                          ) ^ 0
+                   }
+               )
                   / ( function ( s )
                         if s ~= '' then return
                           LPEG1[lang] : match ( s )
@@ -722,17 +738,17 @@ do
   local TypeParameter =
     K ( 'TypeParameter' ,
         "'" * Q "_" ^ -1 * alpha ^ 1 * digit ^ 0 * ( # ( 1 - P "'" ) + -1 ) )
-local DotNotation =
-    (
-        K ( 'Name.Module' , cap_identifier )
-          * Q "."
-          * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ^ -1
-        +
-         Identifier
-          * Q "."
-          * K ( 'Name.Field' , identifier )
-    )
-    * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0
+  local DotNotation =
+      (
+          K ( 'Name.Module' , cap_identifier )
+            * Q "."
+            * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ^ -1
+          +
+           Identifier
+            * Q "."
+            * K ( 'Name.Field' , identifier )
+      )
+      * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0
   local expression_for_fields_type =
     P { "E" ,
         E =  (  "{" * V "F" * "}"
@@ -797,17 +813,6 @@ local DotNotation =
     * SkipSpace
     * Q "}"
   local Record = RecordType + RecordVal
-  local DotNotation =
-    (
-        K ( 'Name.Module' , cap_identifier )
-          * Q "."
-          * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ^ -1
-        +
-         Identifier
-          * Q "."
-          * K ( 'Name.Field' , identifier )
-    )
-    * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0
   local Operator =
     P "||" *
     Lc([[{\PitonStyle{Operator}{\kern0.1em|\kern-0.2em|\kern0.1em}}]])

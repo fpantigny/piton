@@ -92,6 +92,7 @@
 
 
 \usepackage[hyperfootnotes = false]{hyperref}
+\usepackage{bookmark}
 
 \hypersetup
   {
@@ -814,15 +815,15 @@ des \emph{documentation strings} pour avoir un fond coloré gris.
 
 
 \medskip
-\begin{Verbatim}
-~emphase#\SetPitonStyle{String.Doc = \rowcolor{gray!15}\color{black!80}}@
+\begin{Code}
+\emph{\SetPitonStyle{String.Doc = \rowcolor{gray!15}\color{black!80}}}
 \begin{Piton}[width=min]
 def square(x):
     """Calcule le carré de x
        Deuxième ligne de la documentation"""
     return x*x
 \end{Piton}
-\end{Verbatim}
+\end{Code}
 
 
 \bigskip
@@ -1242,8 +1243,8 @@ Supposons que le fichier à inclure contienne des solutions à des exercices de
 programmation sur le modèle suivant :
 
 \begin{small}
-\begin{Verbatim}
-~#[Exercice 1] Version itérative
+\begin{Code}
+#[Exercice 1] Version itérative
 def fibo(n):
     if n==0: return 0 
     else:
@@ -1254,8 +1255,8 @@ def fibo(n):
             u = v
             v = w
         return v
-~#<Exercice 1>
-\end{Verbatim}
+#<Exercice 1>
+\end{Code}
 \end{small}
 
 Les marqueurs de début de début et de fin sont les chaînes |#[Exercice 1]| et 
@@ -1266,10 +1267,12 @@ Pour spécifier des marqueurs de cette sorte dans \pkg{piton}, on utilisera les 
 |marker/beginning| et |marker/end| de la manière suivante (le caractère |#| des
 commentaires de Python doit être inséré sous la forme échappée |\#|).
 
-\begin{Verbatim}
-\PitonOptions{ ~emphase#marker/beginning@ = \~#[~#1] , ~emphase#marker/end@ = \~#<~#1> } 
-\end{Verbatim}
+\smallskip
+\begin{Code}
+\PitonOptions{ \emph{marker/beginning} = \#[#1] , \emph{marker/end} = \#<#1> } 
+\end{Code}
 
+\smallskip
 Comme on le voit, |marker/beginning| est une expression correspondant à la fonction
 mathématique qui, au nom du label (par exemple |Exercice 1|), associe le marqueur de début
 (dans l'exemple |#[Exercice 1]|). La chaîne |#1| correspond aux occurrences de l'argument
@@ -1455,9 +1458,9 @@ cf.~p.~\pageref{width}.
 
 
 \smallskip
-\begin{Verbatim}
+\begin{Code}
 \begin{center}
-\PitonOptions{~emphase#box@,background-color=gray!15}
+\PitonOptions{\emph{box},background-color=gray!15}
 \begin{Piton}
 def square(x):
     return x*x
@@ -1468,7 +1471,7 @@ def cube(x):
     return x*x*x
 \end{Piton}
 \end{center}
-\end{Verbatim}
+\end{Code}
 
 \begin{center}
 \PitonOptions{box,background-color=gray!15}
@@ -1486,9 +1489,9 @@ def cube(x):
 \vspace{1cm} Il est possible d'utiliser la clé |box| avec une valeur numérique pour |width|
 (5~cm dans l'exemple qui suit).
 
-\begin{Verbatim}
+\begin{Code}
 \begin{center}
-\PitonOptions{~emphase#box,width=5cm@,background-color=gray!15}
+\PitonOptions{\emph{box,width=5cm},background-color=gray!15}
 \begin{Piton}
 def square(x):
     return x*x
@@ -1499,7 +1502,7 @@ def cube(x):
     return x*x*x
 \end{Piton}
 \end{center}
-\end{Verbatim}
+\end{Code}
 
 \begin{center}
 \PitonOptions{box,width=5cm,background-color=gray!15}
@@ -1518,9 +1521,9 @@ def cube(x):
 \vspace{1cm}
 Voici un exemple avec la clé |max-width|, égale à 7~cm pour les deux listings.
 
-\begin{Verbatim}
+\begin{Code}
 \begin{center}
-\PitonOptions{~emphase#box=t,max-width=7cm@,background-color=gray!15}
+\PitonOptions{\emph{box=t,max-width=7cm},background-color=gray!15}
 \begin{Piton}
 def square(x):
     return x*x
@@ -1531,7 +1534,7 @@ def P(x):
     return 24*x**8 - 7*x**7 + 12*x**6 -4*x**5 + 4*x**3 + x**2 - 5*x + 2
 \end{Piton}
 \end{center}
-\end{Verbatim}
+\end{Code}
 
 \begin{center}
 \PitonOptions{box=t,max-width=7cm,background-color=gray!15}
@@ -1583,8 +1586,8 @@ une meilleure apparence au niveau du saut de page.
 \end{footnotesize}
 
 \smallskip
-\begin{Verbatim}
-\begin{Piton}~emphase#[tcolorbox,splittable=3]@
+\begin{Code}
+\begin{Piton}\emph{[tcolorbox,splittable=3]}
 def carré(x):
     """Calcule le carré de x"""
     return x*x
@@ -1593,7 +1596,7 @@ def carré(x):
     """Calcule le carré de x"""
     return x*x
 \end{Piton}
-\end{Verbatim}
+\end{Code}
 
 \begin{Piton}[tcolorbox,splittable=3]
 def carré(x):
@@ -1671,8 +1674,9 @@ On peut aussi utiliser |width| ou |max-width| avec une valeur numérique.
 L'environnement est sécable si la clé |splittable| est utilisée
 (cf. p.~\pageref{coupure-de-pages}).
 
-\begin{Verbatim}
-\begin{Piton}~emphase#[tcolorbox,width=min,splittable=3]@
+\smallskip
+\begin{Code}
+\begin{Piton}\emph{[tcolorbox,width=min,splittable=3]}
 def carré(x):
     """Calcule le carré de x"""
     return x*x
@@ -1681,8 +1685,9 @@ def carré(x):
     """Calcule le carré de x"""
     return x*x
 \end{Piton}
-\end{Verbatim}
+\end{Code}
 
+\smallskip
 \begin{Piton}[tcolorbox,width=min,splittable=3]
 def carré(x):
     """Calcule le carré de x"""
@@ -1760,9 +1765,9 @@ On rappelle que l'emploi de la clé |box| active |width=min| (sauf si on utilise
 explicitement |width| ou |max-width|).
 
 \smallskip
-\begin{Verbatim}
+\begin{Code}
 \begin{center}
-\PitonOptions{~emphase#tcolorbox,box=t@}
+\PitonOptions{\emph{tcolorbox,box=t}}
 \begin{Piton}
 def square(x):
     return x*x
@@ -1774,7 +1779,7 @@ def cube(x):
     return x*x*x
 \end{Piton}
 \end{center}
-\end{Verbatim}
+\end{Code}
 
 \begin{center}
 \PitonOptions{tcolorbox,box=t}%
@@ -1797,7 +1802,7 @@ Pour  un exemple plus sophistiqué d'utilisation de la clé |tcolorbox|, voir l'
 
 
 
-\subsection{Coupure des pages et des lignes}
+\subsection{Coupure des lignes et des pages}
 
 \label{breakable}
 
@@ -1805,7 +1810,7 @@ Pour  un exemple plus sophistiqué d'utilisation de la clé |tcolorbox|, voir l'
 
 \label{line-breaks}
 
-Il existe des clés pour contrôler les coupures ligne (les points de coupure
+Il existe des clés pour contrôler les coupures de ligne (les points de coupure
 possibles sont les espaces, y compris les espaces qui sont dans les chaînes de
 caractères des langages informatiques).
 \begin{itemize}
@@ -1817,8 +1822,8 @@ verbatim).
 \item \index{break-lines!break-lines-in-Piton} Avec la clé
 \Definition{break-lines-in-Piton}, les coupures de ligne sont autorisées dans
 l'environnement |{Piton}| (d'où la lettre |P| capitale dans le nom) et les
-listings produits par |\PitonInputFile|. La valeur initiale de ce paramètre est
-|true| (et non |false|).
+listings produits par |\PitonInputFile|. {\bfseries La valeur initiale de ce paramètre est
+|true| (et non |false|).}
 
 \item \index{break-lines} La clé \Definition{break-lines} est la conjonction des deux clés
 précédentes.
@@ -1852,12 +1857,12 @@ retour de ligne au niveau de l'indentation (uniquement dans le cas où la clé
 Le code suivant a été composé avec le réglage suivant :  
 
 \begin{Verbatim}
-\PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
+\PitonOptions{width=12cm,indent-broken-lines,background-color=gray!15}
 \end{Verbatim}
 
 
 \begin{center}
-\PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
+\PitonOptions{width=12cm,indent-broken-lines,background-color=gray!15}
 \begin{Piton}
 def dict_of_liste(liste):
     """Convertit une liste de subrs et de descriptions de glyphes en dictionnaire"""
@@ -1912,8 +1917,8 @@ Quand la clé |splittable| est utilisée avec la valeur numérique $n$ (qui doit
 entier naturel non nul) le listing pourra être coupé n'importe où avec cette exception
 qu'aucune coupure ne pourra avoir lieu entre les $n$~premières lignes, ni entre les
 $n$~dernières.\footnote{Remarquer que l'on parle des lignes du listing d'origine, une
-  telle ligne pouvant être composée sur plusieurs lignes dans le \textsc{pdf} final si la
-  clé |break-lines-in-Piton| est utilisée.}
+  telle ligne pouvant être composée sur plusieurs lignes dans le \textsc{pdf} final (quand la
+  clé |break-lines-in-Piton| est active).}
 
 Par exemple, |splittable = 4| pourrait être un réglage raisonnable.
 
@@ -1942,8 +1947,9 @@ environnement de \pkg{tcolorbox} inclus dans un autre environnement de
 On illustre ce point avec le code suivant (l'environnement |{tcolorbox}| dans lequel nous
 nous trouvons utilise la clé |breakable|).
 
-\begin{Verbatim}
-\begin{Piton}~emphase#[background-color=gray!30,rounded-corners,width=min,splittable=4]@
+\medskip
+\begin{Code}
+\begin{Piton}\emph{[background-color=gray!30,rounded-corners,width=min,splittable=4]}
 def carré(x):
     """Calcule le carré de x"""
     return x*x
@@ -1955,7 +1961,7 @@ def carré(x):
     """Calcule le carré de x"""
     return x*x
 \end{Piton}
-\end{Verbatim}
+\end{Code}
 
 \bigskip
 \begin{Piton}[background-color=gray!30,rounded-corners,width=min,splittable=4]
@@ -2063,8 +2069,8 @@ morceau. Bien sûr, des sauts de page peuvent intervenir entre les différents m
 code, quelle que soit la valeur de la clé |splittable|.
 
 \bigskip
-\begin{Verbatim}
-\begin{Piton}[~emphase#split-on-empty-lines@,background-color=gray!15,line-numbers]
+\begin{Code}
+\begin{Piton}[\emph{split-on-empty-lines},background-color=gray!15,line-numbers]
 def carré(x):
     """Calcule le carré de x"""
     return x*x
@@ -2073,9 +2079,9 @@ def cube(x):
     """Calcule le cube de x"""
     return x*x*x
 \end{Piton}
-\end{Verbatim}
+\end{Code}
 
-
+\medskip
 \begin{Piton}[split-on-empty-lines,background-color=gray!15,line-numbers]
 def carré(x):
     """Calcule le carré de x"""
@@ -2092,10 +2098,10 @@ Si on souhaite au contraire une continuité de numérotation, on peut ajouter
 |\PitonOptions{resume}| au paramètre |split-separation| :
 
 \bigskip
-\begin{Verbatim}
+\begin{Code}
 \begin{Piton}[
    split-on-empty-lines,
-   ~emphase#add-to-split-separation = \PitonOptions{resume}@ ,
+   \emph{add-to-split-separation = \PitonOptions{resume}} ,
    background-color=gray!15,
    line-numbers
  ]
@@ -2107,8 +2113,9 @@ def cube(x):
     """Calcule le cube de x"""
     return x*x*x
 \end{Piton}
-\end{Verbatim}
+\end{Code}
 
+\medskip
 \begin{Piton}[
    split-on-empty-lines,
    add-to-split-separation = \PitonOptions{resume} ,
@@ -2166,8 +2173,9 @@ p.~\pageref{styles}).
 mots-clés et les noms de fonctions prédéfinies ne seront pas affectés, même s'ils figurent
 dans le premier argument de |\SetPitonIdentifier|.
 
-\begin{Verbatim}
-~emphase#\SetPitonIdentifier{l1,l2}{\color{red}}@
+\medskip
+\begin{Code}
+\emph{\SetPitonIdentifier{l1,l2}{\color{red}}}
 \begin{Piton}
 def tri(l):
     """Tri par segmentation"""
@@ -2179,7 +2187,7 @@ def tri(l):
         l2 = [ x for x in l[1:] if x >= a ]
         return tri(l1) + [a] + tri(l2)
 \end{Piton}
-\end{Verbatim}
+\end{Code}
 
 
 \bigskip
@@ -2207,9 +2215,9 @@ Avec la commande |\SetPitonIdentifiers|, on peut ajouter à un langage informati
 nouvelles fonctions prédéfinies (ou de nouveaux mots-clés, etc.) qui seront détectées par
 \pkg{piton}.
 
-
-\begin{Verbatim}
-~emphase#\SetPitonIdentifier[Python]@
+\medskip
+\begin{Code}
+\emph{\SetPitonIdentifier[Python]}
   {cos, sin, tan, floor, ceil, trunc, pow, exp, ln, factorial}
   {\PitonStyle{Name.Builtin}}
 
@@ -2220,8 +2228,11 @@ factorial(5)
 ceil(-2.3) 
 floor(5.4) 
 \end{Piton}
-\end{Verbatim}
+\end{Code}
 
+
+
+\medskip
 \begingroup
 
 \SetPitonIdentifier[Python]
@@ -3379,9 +3390,16 @@ de \pkg{tcolorbox} (avec |\tcbset|).
 
 \bigskip
 Voici un exemple d'un tel environnement |{Python}| avec une colonne colorée à gauche
-pour les numéros de ligne. Cet exemple requiert que la librairie \pkg{skins} de \pkg{tcolorbox}
-soit chargée dans le préambule du document LaTeX avec l'instruction |\tcbuselibrary{skins}|
-(de manière à pouvoir utiliser la clé |enhanced|).
+pour les numéros de ligne. 
+
+\begin{footnotesize}
+\begin{Verbatim}
+\usepackage{tcolorbox}          % dans le préambule
+\tcbuselibrary{breakable,skins} % dans le préambule
+\end{Verbatim}
+\end{footnotesize}
+
+\medskip
 
 \begin{Verbatim}
 \NewPitonEnvironment{Python}{m}
@@ -3599,7 +3617,7 @@ avec Python.
 \medskip
 \begin{Code}
 \NewPitonEnvironment{\emph{PitonExecute}}{O{}}
-  {\PitonOptions{~#1}}
+  {\PitonOptions{#1}}
   {\begin{center}
    \directlua{pyluatex.execute(piton.get_last_code(), false, true, false, true)}%
    \end{center}}

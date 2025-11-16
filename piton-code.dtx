@@ -60,12 +60,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.9a}
-\def\PitonFileDate{2025/10/23}
+\def\PitonFileVersion{4.9x}
+\def\PitonFileDate{2025/11/16}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.9a" -- 2025/10/23
+piton_version = "4.9x" -- 2025/11/16
 %</LUA>
 %\fi
 %
@@ -4994,8 +4994,27 @@ function Compute_Beamer ( lang , braces )
                * space ^ 0 * ( P "\r" ) ^ 1 -- added 25/08/23
               * Cc ( [[\end{]] .. x ..  "}" )               
               )
-          * ( 
-              ( ( 1 - P ( [[\end{]] .. x .. "}" ) ) ^ 0 ) 
+          * (
+%    \end{macrocode}
+% We catch all the content of the Beamer environment which a \textsc{lpeg} which is
+% a grammar because t here may be nested environments of the same type
+% (added 2025/11/14).
+%    \begin{macrocode}
+               (  
+                 P { "E" ,
+                      E = (
+                            P ( [[\begin{]] .. x .. "}" )
+                             * V "E"
+                             * P ( [[\end{]] .. x .. "}" ) 
+                            +                       
+                             (
+                              1
+                              - P ( [[\begin{]] .. x .. "}" )
+                              - P ( [[\end{]] .. x .. "}" )
+                             ) 
+                          ) ^ 0
+                   }
+               ) 
                   / ( function ( s ) 
                         if s ~= '' then return 
                           LPEG1[lang] : match ( s ) 
@@ -5911,17 +5930,17 @@ do
 % Now, we deal with the notations with points (eg: |List.length|). In OCaml,
 % such notation is used for the fields of the records and for the modules.
 %    \begin{macrocode}
-local DotNotation =
-    (
-        K ( 'Name.Module' , cap_identifier )
-          * Q "."
-          * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ^ -1
-        +
-         Identifier
-          * Q "."
-          * K ( 'Name.Field' , identifier )
-    )
-    * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0    
+  local DotNotation =
+      (
+          K ( 'Name.Module' , cap_identifier ) 
+            * Q "."
+            * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ^ -1 
+          +
+           Identifier
+            * Q "."
+            * K ( 'Name.Field' , identifier )
+      )
+      * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0    
 %    \end{macrocode}
 %
 % \paragraph{The records}
@@ -6011,24 +6030,6 @@ local DotNotation =
     * SkipSpace
     * Q "}"
   local Record = RecordType + RecordVal
-%    \end{macrocode}
-%
-% \paragraph{DotNotation}
-%
-% Now, we deal with the notations with points (eg: |List.length|). In OCaml,
-% such notation is used for the fields of the records and for the modules.
-%    \begin{macrocode}
-  local DotNotation =
-    (
-        K ( 'Name.Module' , cap_identifier )
-          * Q "."
-          * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ^ -1 
-        +
-         Identifier
-          * Q "."
-          * K ( 'Name.Field' , identifier )
-    )
-    * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0
 %    \end{macrocode}
 %
 % \bigskip
@@ -7195,12 +7196,12 @@ function piton.Parse ( language , code )
 % |\end{uncoverenv}|. 
 %    \begin{macrocode}
       if one_item[1] == "Open" then
-        tex.sprint ( one_item[2] ) 
+        tex.sprint ( one_item[2] )
         table.insert ( left_stack , one_item[2] )
         table.insert ( right_stack , one_item[3] )
       else 
         if one_item[1] == "Close" then
-          tex.sprint ( right_stack[#right_stack] ) 
+          tex.sprint ( right_stack[#right_stack] )
           left_stack[#left_stack] = nil
           right_stack[#right_stack] = nil
         else 

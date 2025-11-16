@@ -41,7 +41,7 @@
     end-escape = ! ,
     begin-escape-math = \( , 
     end-escape-math = \) ,
-    detected-commands = { highLight, footnote } ,
+    detected-commands = { highLight , footnote , emph , textsl , textbackslash } ,
     vertical-detected-commands = newpage ,
     raw-detected-commands = { NameTable , rowcolor } 
   }
@@ -95,6 +95,7 @@
         \vphantom{gl}\textbackslash #1}}}
 
 \usepackage[hyperfootnotes = false]{hyperref}
+\usepackage{bookmark}
 
 \VerbatimFootnotes
   
@@ -449,7 +450,8 @@ The initial value is |\footnotesize\color{gray}|.
 
 For convenience, a mechanism of factorisation of the prefix |line-numbers| is
 provided. That means that it is possible, for instance, to write:
-\begin{Verbatim}
+
+\begin{Code}
 \PitonOptions
   {
     line-numbers = 
@@ -460,7 +462,7 @@ provided. That means that it is possible, for instance, to write:
         format = \footnotesize \color{blue}
       }
   }
-\end{Verbatim}
+\end{Code}
 
 Be careful : the previous code is not enough to print the numbers of lines.
 For that, one also has to use the key |line-numbers| is a absolute way, that
@@ -658,9 +660,10 @@ of a Python function, the name of the function which is defined. That code
 uses the command |\highLight| of \pkg{lua-ul} (that package requires also the
 package \pkg{luacolor}).
 
-\begin{verbatim}
-\SetPitonStyle{ Name.Function = \bfseries \highLight[red!30] }
-\end{verbatim}
+\begin{Code}
+\SetPitonStyle
+  { Name.Function = \bfseries \highLight[red!30] }
+\end{Code}
 
 In that example, |\highLight[red!30]| must be considered as the name of a
 LaTeX command which takes in exactly one argument, since, usually, it is used
@@ -823,13 +826,13 @@ so as to have clickable names of functions linked to the definition of the funct
   }
 
 \medskip
-\begin{Verbatim}
+\begin{Code}
 \NewDocumentCommand{\MyDefFunction}{m}
-   {\hypertarget{piton:~#1}{\color[HTML]{CC00FF}{~#1}}}
-\NewDocumentCommand{\MyUserFunction}{m}{\hyperlink{piton:~#1}{~#1}}
+   {\hypertarget{piton:#1}{\color[HTML]{CC00FF}{#1}}}
+\NewDocumentCommand{\MyUserFunction}{m}{\hyperlink{piton:#1}{#1}}
 
-\SetPitonStyle{Name.Function = \MyDefFunction, ~emphase#UserFunction@ = \MyUserFunction}
-\end{Verbatim}
+\SetPitonStyle{Name.Function = \MyDefFunction, \emph{UserFunction} = \MyUserFunction}
+\end{Code}
 
 \smallskip
 
@@ -900,9 +903,10 @@ commands of L3.
 With the following instruction, a new environment |{Python}| will be
 constructed with the same behaviour as |{Piton}|:
 
-\begin{Verbatim}
-~emphase#\NewPitonEnvironment@{Python}{O{}}{\PitonOptions{~#1}}{} 
-\end{Verbatim}
+\medskip
+\begin{Code}
+\emph{\NewPitonEnvironment}{Python}{O{}}{\PitonOptions{#1}}{} 
+\end{Code}
 
 \bigskip
 If one wishes to format Python code in a box of \pkg{mdframed}, it's possible
@@ -914,22 +918,22 @@ to define an environment |{Python}| with the following code.
 \end{Verbatim}
 \end{footnotesize}
 
-\begin{Verbatim}
-~emphase#\NewPitonEnvironment@{Python}{}
+\begin{Code}
+\emph{\NewPitonEnvironment}{Python}{}
   {\begin{mdframed}[roundcorner=3mm]}
   {\end{mdframed}}
-\end{Verbatim}
+\end{Code}
 
 \bigskip
 With this new environment |{Python}|, it's possible to write:
 
-\begin{Verbatim}
-~emphase#\begin{Python}@
+\begin{Code}
+\emph{\begin{Python}}
 def square(x):
     """Compute the square of x"""
     return x*x
-~emphase#\end{Python}@
-\end{Verbatim}
+\emph{\end{Python}}
+\end{Code}
 
 \NewPitonEnvironment{Python}{}
   {\begin{mdframed}[roundcorner=3mm]}
@@ -1408,9 +1412,9 @@ key |width| or the key |max-width| is explicitly used). For the keys |width| and
 
 
 \smallskip
-\begin{Verbatim}
+\begin{Code}
 \begin{center}
-\PitonOptions{~emphase#box@,background-color=gray!15}
+\PitonOptions{\emph{box},background-color=gray!15}
 \begin{Piton}
 def square(x):
     return x*x
@@ -1421,7 +1425,7 @@ def cube(x):
     return x*x*x
 \end{Piton}
 \end{center}
-\end{Verbatim}
+\end{Code}
 
 \begin{center}
 \PitonOptions{box,background-color=gray!15}
@@ -1442,9 +1446,9 @@ It's possible to use the key |box| with a numerical value for the key |width|.
 
 \smallskip
 
-\begin{Verbatim}
+\begin{Code}
 \begin{center}
-\PitonOptions{~emphase#box,width=5cm@,background-color=gray!15}
+\PitonOptions{\emph{box,width=5cm},background-color=gray!15}
 \begin{Piton}
 def square(x):
     return x*x
@@ -1455,7 +1459,7 @@ def cube(x):
     return x*x*x
 \end{Piton}
 \end{center}
-\end{Verbatim}
+\end{Code}
 
 \begin{center}
 \PitonOptions{box,width=5cm,background-color=gray!15}
@@ -1473,9 +1477,9 @@ def cube(x):
 \vspace{1cm}
 Here is an exemple with the key |max-width|, equal to 7~cm for both listings.
 
-\begin{Verbatim}
+\begin{Code}
 \begin{center}
-\PitonOptions{~emphase#box=t,max-width=7cm@,background-color=gray!15}
+\PitonOptions{\emph{box=t,max-width=7cm},background-color=gray!15}
 \begin{Piton}
 def square(x):
     return x*x
@@ -1486,7 +1490,7 @@ def P(x):
     return 24*x**8 - 7*x**7 + 12*x**6 -4*x**5 + 4*x**3 + x**2 - 5*x + 2
 \end{Piton}
 \end{center}
-\end{Verbatim}
+\end{Code}
 
 \begin{center}
 \PitonOptions{box=t,max-width=7cm,background-color=gray!15}
@@ -1538,90 +1542,90 @@ In the present document, we have loaded, besides \pkg{tcolorbox} and its library
 
 \begin{Verbatim}
 \begin{Piton}~emphase#[tcolorbox,splittable=3]@
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
 ...
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
 \end{Piton}
 \end{Verbatim}
 
 \begin{Piton}[tcolorbox,splittable=3]
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
-def carré(x):
+def square(x):
     """Computes the square of x"""
     return x*x
 \end{Piton}
@@ -1779,7 +1783,7 @@ given at the page~\pageref{examples-tcolorbox}.
 
 
 \bigskip
-\subsection{Page breaks and line breaks}
+\subsection{Line breaks and page breaks}
 
 \label{breakable}
 
@@ -1798,8 +1802,8 @@ command |\piton| in verbatim mode).
 \item \index{break-lines!break-lines-in-Piton} With the key
 \Definition{break-lines-in-Piton}, the line breaks are allowed in the
 environment |{Piton}| (hence the capital letter |P| in the name) and in the
-listings produced by |\PitonInputFile|. The initial value of that parameter is
-|true| (and not |false|).
+listings produced by |\PitonInputFile|. {\bfseries The initial value of that parameter is
+|true| (and not |false|).}
 \item \index{break-lines} The key \Definition{break-lines} is a conjunction of
 the two previous keys. 
 \end{itemize}
@@ -1835,7 +1839,7 @@ the symbol placed at each carriage return, on the position of the indentation
 The following code has been composed with the following tuning:
 
 \begin{Verbatim}
-\PitonOptions{width=12cm,break-lines,indent-broken-lines,background-color=gray!15}
+\PitonOptions{width=12cm,indent-broken-lines,background-color=gray!15}
 \end{Verbatim}
 
 \begin{center}
@@ -2064,12 +2068,12 @@ it's possible to add |\PitonOptions{resume}| to the parameter |split-separation|
    background-color=gray!15,
    line-numbers
  ]
-def carré(x):
-    """Calcule le carré de x"""
+def square(x):
+    """Computes the square of x"""
     return x*x
 
 def cube(x):
-    """Calcule le cube de x"""
+    """Computes the square of x"""
     return x*x*x
 \end{Piton}
 \end{Verbatim}
@@ -2080,12 +2084,12 @@ def cube(x):
    background-color=gray!15,
    line-numbers
  ]
-def carré(x):
-    """Calcule le carré de x"""
+def square(x):
+    """Computes the square of x"""
     return x*x
 
 def cube(x):
-    """Calcule le cube de x"""
+    """Computes the square of x"""
     return x*x*x
 \end{Piton}
 
@@ -3342,11 +3346,16 @@ settings done by \pkg{piton} (with |\PitonOptions|) and those done by
 
 
 \bigskip Here is an example of such environment |{Python}| with a colored
-column on the left for the numbers of lines. That example requires the library
-|skins| of \pkg{tcolorbox} to be loaded in the preamble of the LaTeX document
-with the instruction |\tcbuselibrary{skins}| (in order to be able to use the
-key |enhanced|).
+column on the left for the numbers of lines.
 
+\begin{footnotesize}
+\begin{Verbatim}
+\usepackage{tcolorbox}          % in the preamble
+\tcbuselibrary{breakable,skins} % in the preamble 
+\end{Verbatim}
+\end{footnotesize}
+
+\smallskip
 
 \begin{Verbatim}
 \NewPitonEnvironment{Python}{m}
@@ -3570,7 +3579,7 @@ code with Python.
 \medskip
 \begin{Code}
 \NewPitonEnvironment{\emph{PitonExecute}}{O{}}
-  {\PitonOptions{~#1}}
+  {\PitonOptions{#1}}
   {\begin{center}
    \directlua{pyluatex.execute(piton.get_last_code(), false, true, false, true)}%
    \end{center}}
@@ -3611,7 +3620,7 @@ print(f'The square of x is {square(12)}.')
 
 
 \bigskip
-It's also possible to use, in that environment, the mechanims for escapint to LaTeX
+It's also possible to use, in that environment, the mechanims for escape to LaTeX
 as previously (cf. p.~\pageref{LaTeX-escapes}).
 
 \begin{footnotesize}
@@ -3666,12 +3675,12 @@ possible to use the escaping tools (|detected-commands|, |begin-escape|, etc.) i
 
 \begin{Verbatim}
 \ExplSyntaxOn
-\NewDocumentEnvironment { PitonREPL } { ! O { } } % le ! est obligatoire
+\NewDocumentEnvironment { PitonREPL } { ! O { } } % the ! is mandatory
  { 
    \PitonOptions
      {
        ~emphase#prompt-background-color=blue!15@ ,
-       ~emphase#background-color=none@, % pour avoir des petites marges
+       ~emphase#background-color=none@, % for small margins
        ~#1
      }
    \PyLTVerbatimEnv
