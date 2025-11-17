@@ -18,11 +18,9 @@
 -- and version 1.3 or later is part of all distributions of
 -- LaTeX version 2005/12/01 or later.
 -- -------------------------------------------
---
--- TEST VERSION: NEVER RELEASED ON CTAN
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.9x" -- 2025/11/14
+piton_version = "4.9x" -- 2025/11/17
 piton.comment_latex = piton.comment_latex or ">"
 piton.comment_latex = "#" .. piton.comment_latex
 piton.write_files = { }
@@ -972,7 +970,7 @@ end)
       + Keyword * EndKeyword
       + OperatorWord * EndKeyword
       + Builtin * EndKeyword
-      + DotNotation
+      + DotNotation * EndKeyword
       + Constructor
       + Identifier
       + Punct
@@ -983,21 +981,33 @@ end)
   LPEG1.ocaml = Main ^ 0
   LPEG2.ocaml =
     Ct (
-        ( P ":" + (K ( 'Name.Module' , cap_identifier ) * Q ".") ^-1
-          * Identifier * SkipSpace * Q ":" )
-          * # ( 1 - S ":=" )
-          * SkipSpace
-          * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 )
+          (
+            (
+               P ":"
+               +
+               (
+                 ( K ( 'Name.Module' , cap_identifier ) * Q "." ) ^ -1
+                 * Identifier
+                 * SkipSpace
+                 * Q ":"
+               )
+            )
+              * # ( 1 - S ":=" )
+              * SkipSpace
+              * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 ) * -1
+          )
         +
-        ( space ^ 0 * "\r" ) ^ -1
-        * Lc [[ \__piton_begin_line: ]]
-        * LeadingSpace ^ 0
-        * ( ( space * Lc [[ \__piton_trailing_space: ]] ) ^ 1 * -1
-              + space ^ 0 * EOL
-              + Main
-          ) ^ 0
-        * -1
-        * Lc [[ \__piton_end_line: ]]
+        (
+          ( space ^ 0 * "\r" ) ^ -1
+          * Lc [[ \__piton_begin_line: ]]
+          * LeadingSpace ^ 0
+          * ( ( space * Lc [[ \__piton_trailing_space: ]] ) ^ 1 * -1
+                + space ^ 0 * EOL
+                + Main
+            ) ^ 0
+          * -1
+          * Lc [[ \__piton_end_line: ]]
+        )
       )
 end
 --c C c++ C++

@@ -61,11 +61,11 @@
 %<*STY>
 % \fi
 \def\PitonFileVersion{4.9x}
-\def\PitonFileDate{2025/11/16}
+\def\PitonFileDate{2025/11/17}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.9x" -- 2025/11/16
+piton_version = "4.9x" -- 2025/11/17
 %</LUA>
 %\fi
 %
@@ -6275,7 +6275,7 @@ end)
       + Keyword * EndKeyword
       + OperatorWord * EndKeyword
       + Builtin * EndKeyword
-      + DotNotation
+      + DotNotation * EndKeyword
       + Constructor
       + Identifier
       + Punct
@@ -6301,21 +6301,33 @@ end)
 % type such as |my_type -> 'a list| (in that case, the argument of |\piton|
 % \emph{must} begin by a colon).
 %    \begin{macrocode}
-        ( P ":" + (K ( 'Name.Module' , cap_identifier ) * Q ".") ^-1
-          * Identifier * SkipSpace * Q ":" )
-          * # ( 1 - S ":=" )
-          * SkipSpace
-          * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 )
+          (
+            (
+               P ":"
+               +
+               (
+                 ( K ( 'Name.Module' , cap_identifier ) * Q "." ) ^ -1
+                 * Identifier
+                 * SkipSpace
+                 * Q ":"
+               )
+            )
+              * # ( 1 - S ":=" )
+              * SkipSpace
+              * K ( 'TypeExpression' , ( 1 - P "\r" ) ^ 0 ) * -1
+          )
         +
-        ( space ^ 0 * "\r" ) ^ -1
-        * Lc [[ \@@_begin_line: ]]
-        * LeadingSpace ^ 0
-        * ( ( space * Lc [[ \@@_trailing_space: ]] ) ^ 1 * -1 
-              + space ^ 0 * EOL 
-              + Main 
-          ) ^ 0
-        * -1
-        * Lc [[ \@@_end_line: ]]
+        (
+          ( space ^ 0 * "\r" ) ^ -1
+          * Lc [[ \@@_begin_line: ]]
+          * LeadingSpace ^ 0
+          * ( ( space * Lc [[ \@@_trailing_space: ]] ) ^ 1 * -1 
+                + space ^ 0 * EOL 
+                + Main 
+            ) ^ 0
+          * -1
+          * Lc [[ \@@_end_line: ]]
+        )
       )
 %    \end{macrocode}
 % 
