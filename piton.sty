@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.9x}
-\def\PitonFileDate{2025/11/17}
+\def\PitonFileVersion{4.9b}
+\def\PitonFileDate{2025/11/25}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesExplPackage
   {piton}
@@ -31,7 +31,7 @@
   {
     Your~LaTeX~release~is~too~old. \\
     You~need~at~least~the~version~of~2025-06-01. \\
-    If~you~use~Overleaf,~you~need~at~least~"TeXLive~2025".\\
+    If~you~use~Overleaf,~you~need~at~least~"TeX~Live~2025".\\
     The~package~'piton'~won't~be~loaded.
   }
 \providecommand { \IfFormatAtLeastTF } { \@ifl@t@r \fmtversion }
@@ -71,8 +71,9 @@
     LuaLaTeX~is~mandatory.\\
     The~package~'piton'~requires~the~engine~LuaLaTeX.\\
     \str_if_eq:onT \c_sys_jobname_str { output }
-      { If~you~use~Overleaf,~you~can~switch~to~LuaLaTeX~in~the~"Menu"~and~
-        if~you~use~TeXPage,~you~should~go~in~"Settings". \\ }
+      { If~you~use~Overleaf,~you~can~switch~to~LuaLaTeX~in~
+        "Settings~>~Compiler"~and~if~you~use~TeXPage,
+        ~you~should~go~in~"Settings". \\ }
     \IfClassLoadedT { beamer }
       {
         Since~you~use~Beamer,~don't~forget~to~use~piton~in~frames~with~
@@ -675,7 +676,11 @@
     format .tl_set:N = \l__piton_line_numbers_format_tl ,
     format .value_required:n = true ,
 
-    unknown .code:n = \__piton_error:n { Unknown~key~for~line-numbers }
+    unknown .code:n =
+      \__piton_unknown_key:nn
+        { PitonOptions / line-numbers }
+        { Unknown~key~for~line-numbers }
+
   }
 \keys_define:nn { PitonOptions }
   {
@@ -914,7 +919,10 @@
 
     resume .meta:n = line-numbers/resume ,
 
-    unknown .code:n = \__piton_error:n { Unknown~key~for~PitonOptions } ,
+    unknown .code:n =
+      \__piton_unknown_key:nn
+        { PitonOptions }
+        { Unknown~key~for~PitonOptions } ,
 
     % deprecated
     all-line-numbers .code:n =
@@ -2119,6 +2127,28 @@
 \__piton_define_leading_space_Foxit:
 \AddToHook { env / piton / before }
   { \__piton_fatal:n { No~environment~piton } }
+\cs_new_protected:Npn \__piton_unknown_key:nn #1 #2
+  {
+    \str_set_eq:NN \l_tmpa_str \l_keys_key_str
+    \str_replace_all:Nnn \l_tmpa_str { ~ } { - }
+    \str_set:Ne \l_tmpa_str { \str_lowercase:f { \l_tmpa_str } }
+    \bool_set_false:N \l_tmpa_bool
+    \clist_map_inline:nn { #1 }
+      {
+        \keys_if_exist:neT { ##1 } { \l_tmpa_str }
+          {
+            \__piton_error:n { key~with~normal~form~exists }
+            \bool_set_true:N \l_tmpa_bool
+            \clist_map_break:
+          }
+      }
+    \bool_if:NF \l_tmpa_bool { \__piton_error:n { #2 } }
+  }
+\__piton_msg_new:nn { key~with~normal~form~exists }
+  {
+    The~key~'\l_keys_key_str'~does~not~exists.~It~will~be~ignored.\\
+    Maybe~you~want~to~use~the~key~'\l_tmpa_str'.
+  }
 \__piton_msg_new:nn { No~environment~piton }
   {
     There~is~no~environment~piton!\\

@@ -529,7 +529,7 @@ That parameter is used for:
 |break-lines| is set to false: cf.~p.~\pageref{line-breaks});
 \item the width of the backgrounds specified by the keys |background-color| and
 |prompt-background-color| described below;
-\item the width fo the colored backgrounds added by |\rowcolor|
+\item the width of the colored backgrounds added by |\rowcolor|
 (cf.~p.~\pageref{rowcolor});
 \item the width of the LaTeX box created by the key |box| (cf. p.~\pageref{box});
 \item the width of the graphical box created by the key |tcolorbox|
@@ -768,7 +768,7 @@ The command |\rowcolor| is protected against the TeX expansions.
 Here is an example for the language Python where we modify the style |String.Doc|
 of the ``documentation strings'' in order to have a colored background.
 
-
+% here, don't use {Code}
 \begin{Verbatim}
 ~emphase#\SetPitonStyle{String.Doc = \rowcolor{gray!15}\color{black!80}}@
 \begin{Piton}[width=min]
@@ -881,8 +881,8 @@ directly over the environment |{Piton}| with the classical commands
 |\newenvironment| (of standard LaTeX) or |\NewDocumentEnvironment| (of
 LaTeX3). 
 
-With a LaTeX kernel newer than 2025-06-01, it's possible to use
-|\NewEnvironmentCopy| on the environment |{Piton}| but it's not very powerful.
+It's possible to use |\NewEnvironmentCopy| on the environment |{Piton}| but
+it's not very powerful.
 
 That's why \pkg{piton} provides a command
 \DefinitionCommand{NewPitonEnvironment}. That command takes in three mandatory
@@ -2063,11 +2063,7 @@ it's possible to add |\PitonOptions{resume}| to the parameter |split-separation|
 \bigskip
 \begin{Verbatim}
 \begin{Piton}[
-   split-on-empty-lines,
-   ~emphase#add-to-split-separation = \PitonOptions{resume}@ ,
-   background-color=gray!15,
-   line-numbers
- ]
+split-on-empty-lines, ~emphase#add-to-split-separation = \PitonOptions{resume}@ , background-color=gray!15, line-numbers ]
 def square(x):
     """Computes the square of x"""
     return x*x

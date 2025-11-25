@@ -60,12 +60,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.9x}
-\def\PitonFileDate{2025/11/17}
+\def\PitonFileVersion{4.9b}
+\def\PitonFileDate{2025/11/25}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.9x" -- 2025/11/17
+piton_version = "4.9b" -- 2025/11/25
 %</LUA>
 %\fi
 %
@@ -226,7 +226,7 @@ piton_version = "4.9x" -- 2025/11/17
 %
 % \section{The L3 part of the implementation}
 %
-% \subsubsection{Declaration of the package}
+% \subsection{Declaration of the package}
 %    \begin{macrocode}
 %<*STY>
 \NeedsTeXFormat{LaTeX2e}
@@ -242,7 +242,7 @@ piton_version = "4.9x" -- 2025/11/17
   { 
     Your~LaTeX~release~is~too~old. \\
     You~need~at~least~the~version~of~2025-06-01. \\
-    If~you~use~Overleaf,~you~need~at~least~"TeXLive~2025".\\
+    If~you~use~Overleaf,~you~need~at~least~"TeX~Live~2025".\\
     The~package~'piton'~won't~be~loaded.
   }
 %    \end{macrocode}
@@ -334,8 +334,9 @@ piton_version = "4.9x" -- 2025/11/17
     LuaLaTeX~is~mandatory.\\
     The~package~'piton'~requires~the~engine~LuaLaTeX.\\
     \str_if_eq:onT \c_sys_jobname_str { output }
-      { If~you~use~Overleaf,~you~can~switch~to~LuaLaTeX~in~the~"Menu"~and~
-        if~you~use~TeXPage,~you~should~go~in~"Settings". \\ }
+      { If~you~use~Overleaf,~you~can~switch~to~LuaLaTeX~in~
+        "Settings~>~Compiler"~and~if~you~use~TeXPage,
+        ~you~should~go~in~"Settings". \\ }
     \IfClassLoadedT { beamer }
       {
         Since~you~use~Beamer,~don't~forget~to~use~piton~in~frames~with~
@@ -1694,7 +1695,11 @@ piton_version = "4.9x" -- 2025/11/17
     format .tl_set:N = \l_@@_line_numbers_format_tl ,
     format .value_required:n = true ,
 
-    unknown .code:n = \@@_error:n { Unknown~key~for~line-numbers } 
+    unknown .code:n =
+      \@@_unknown_key:nn
+        { PitonOptions / line-numbers }
+        { Unknown~key~for~line-numbers }
+      
   }
 %    \end{macrocode}
 %
@@ -1968,7 +1973,10 @@ piton_version = "4.9x" -- 2025/11/17
 
     resume .meta:n = line-numbers/resume , 
 
-    unknown .code:n = \@@_error:n { Unknown~key~for~PitonOptions } ,
+    unknown .code:n =
+      \@@_unknown_key:nn
+        { PitonOptions }
+        { Unknown~key~for~PitonOptions } ,
 
     % deprecated
     all-line-numbers .code:n = 
@@ -3897,54 +3905,9 @@ piton_version = "4.9x" -- 2025/11/17
 %    \end{macrocode}
 %
 %
-% % \bigskip
-% % If the new pakcage \pkg{pdfmanagement} is used, we insert the file directly in the
-% % catalog of the \textsc{pdf} file.
-% %    \begin{macrocode}
-% \cs_new_protected:Npn \@@_join_files:
-%   {
-%     \seq_map_inline:Nn \g_@@_join_seq
-%       {
-% %    \end{macrocode}
-% % The group is for the modifications of the the dictionary |l_pdffile/Filespec|
-% %    \begin{macrocode}
-%         \group_begin:
-% %    \end{macrocode}
-% % We create a new \textsc{pdf} object but, in fact, it won't be really used.
-% %    \begin{macrocode}
-%         \pdf_object_new:n { piton / join / ##1 }
-% %    \end{macrocode}
-% % The stream of the file is created by Lua (in the Lua side of LuaLaTeX) but
-% % the file itself will be added to the catalog of the \textsc{pdf} file in the LaTeX
-% % part of Lualatex by using the command |\pdfmanagement_add:nne| of \pkg{pdfmanagement}.
-% %    \begin{macrocode}
-%         \lua_now:n { pdf.immediateobj ( "stream" , piton.join_files["##1"] ) }
-% %    \end{macrocode}
-% % The value of the key |/AFRelationship| must be a name of \textsc{pdf}
-% % (beginning with a solidus).
-% %    \begin{macrocode}
-%         \pdfdict_put:nnn { l_pdffile / Filespec } { AFRelationship } { /Supplement }
-% %    \end{macrocode}
-% % The value of the key |/Desc| must be a string of \textsc{pdf} (between parenthesis).
-% %    \begin{macrocode}
-%         \pdfdict_put:nnn { l_pdffile / Filespec } { Desc } { (Computer~listing) }
-%         \pdffile_filespec:nnn { piton / join / ##1 } { ##1 } { \pdf_object_ref_last: }
-% %    \end{macrocode}
-% % It's mandatory to use |\pdfmanagement_add:nne| to add to the catalog of the \textsc{pdf}
-% % in order to avoid clashes with other extensions writting to the catalog.
-% %    \begin{macrocode}
-%         \pdfmanagement_add:nne
-%           { Catalog / Names }
-%           { EmbeddedFiles }
-%           { \pdf_object_ref_last: }
-%         \group_end:
-%       }
-%   } 
-% %    \end{macrocode}
-%
 % \bigskip
-% Here is a version of the previous code with a direct code for the \textsc{pdf}
-% dictionnary |/FileSpec|.
+% If the new pakcage \pkg{pdfmanagement} is used, we insert the file directly in the
+% catalog of the \textsc{pdf} file.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_join_files:
   {
@@ -4064,6 +4027,44 @@ piton_version = "4.9x" -- 2025/11/17
 % 
 % \bigskip
 % \subsubsection{The error messages of the package}
+%
+%
+% When there is a unknown key, we try a ``normal form'' of the key and, when
+% that normal form exists, we add that information in the error message.
+%
+% The normal form is the lower case form of the key, with all the spaces
+% replaced by hyphens (there is never spaces in the keys of \pkg{piton}).
+% 
+% |#1| is a clist of names of sets of keys and |#2| is the error message
+% to send.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_unknown_key:nn #1 #2
+  {
+    \str_set_eq:NN \l_tmpa_str \l_keys_key_str 
+    \str_replace_all:Nnn \l_tmpa_str { ~ } { - }
+    \str_set:Ne \l_tmpa_str { \str_lowercase:f { \l_tmpa_str } }
+    \bool_set_false:N \l_tmpa_bool 
+    \clist_map_inline:nn { #1 }
+      {
+        \keys_if_exist:neT { ##1 } { \l_tmpa_str } 
+          {
+            \@@_error:n { key~with~normal~form~exists }
+            \bool_set_true:N \l_tmpa_bool
+            \clist_map_break:
+          }
+      }
+    \bool_if:NF \l_tmpa_bool { \@@_error:n { #2 } } 
+  }
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\@@_msg_new:nn { key~with~normal~form~exists }
+  {
+    The~key~'\l_keys_key_str'~does~not~exists.~It~will~be~ignored.\\
+    Maybe~you~want~to~use~the~key~'\l_tmpa_str'.
+  }
+%    \end{macrocode}
+%
 %
 %    \begin{macrocode}
 \@@_msg_new:nn { No~environment~piton }

@@ -208,7 +208,7 @@ les trouver, de préférence dans une arborescence |texmf|. Le mieux reste néan
 d'installer \pkg{piton} avec une distribution TeX comme MiKTeX, TeX~Live ou MacTeX.
 
 \medskip
-On remarquera que le caractère \emph{quoate} (U+0027 : \verb|'|) n'est jamais converti
+On remarquera que le caractère \emph{quote} (U+0027 : \verb|'|) n'est jamais converti
 par \pkg{piton} en l'apostrophe U+2019. Il n'y a pas besoin de charger l'extension
 \pkg{upquote}.
 
@@ -815,15 +815,16 @@ des \emph{documentation strings} pour avoir un fond coloré gris.
 
 
 \medskip
-\begin{Code}
-\emph{\SetPitonStyle{String.Doc = \rowcolor{gray!15}\color{black!80}}}
+% Ici, ne pas utiliser {Code}
+\begin{Verbatim}
+~emphase#\SetPitonStyle{String.Doc = \rowcolor{gray!15}\color{black!80}}@
 \begin{Piton}[width=min]
 def square(x):
     """Calcule le carré de x
        Deuxième ligne de la documentation"""
     return x*x
 \end{Piton}
-\end{Code}
+\end{Verbatim}
 
 
 \bigskip
@@ -937,8 +938,8 @@ peu près comme du texte verbatim), il n'est pas possible de définir de nouveau
 environnements directement au-dessus de l'environnement |{Piton}| avec les commandes
 classiques |\newenvironment| (de LaTeX standard) et |\NewDocumentEnvironment| (de LaTeX3).
 
-Avec un noyau LaTeX postérieur au 2025-06-01, il est possible d'utiliser
-|\NewEnvironmentCopy| sur l'environment |{Piton}| mais l'utilité est limitée.
+Il est possible d'utiliser |\NewEnvironmentCopy| sur l'environment |{Piton}| mais
+l'utilité est limitée.
 
 C'est pourquoi \pkg{piton} propose une commande \DefinitionCommand{NewPitonEnvironment}.
 Cette commande a la même syntaxe que la commande classique
@@ -1949,7 +1950,8 @@ nous trouvons utilise la clé |breakable|).
 
 \medskip
 \begin{Code}
-\begin{Piton}\emph{[background-color=gray!30,rounded-corners,width=min,splittable=4]}
+\begin{Piton}\emph{[background-color=gray!30,rounded-corners,
+  width=min,splittable=4]}
 def carré(x):
     """Calcule le carré de x"""
     return x*x
