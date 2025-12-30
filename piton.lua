@@ -6,7 +6,7 @@
 --
 -- piton-code.dtx  (with options: `LUA')
 -- ---------------------------------------------
--- Copyright (C) 2022-2025 by F. Pantigny
+-- Copyright (C) 2022-2026 by F. Pantigny
 -- 
 -- This file may be distributed and/or modified under the
 -- conditions of the LaTeX Project Public License, either

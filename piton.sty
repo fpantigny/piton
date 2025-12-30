@@ -6,7 +6,7 @@
 %%
 %% piton-code.dtx  (with options: `STY')
 %% -------------------------------------------
-%% Copyright (C) 2022-2025 by F. Pantigny
+%% Copyright (C) 2022-2026 by F. Pantigny
 %% 
 %% This file may be distributed and/or modified under the
 %% conditions of the LaTeX Project Public License, either
@@ -245,6 +245,8 @@
 \bool_new:N \l__piton_left_margin_auto_bool
 \dim_new:N \l__piton_numbers_sep_dim
 \dim_set:Nn \l__piton_numbers_sep_dim { 0.7 em }
+\int_new:N \l__piton_numbers_step_int
+\int_set:Nn \l__piton_numbers_step_int { 1 }
 \seq_new:N \g__piton_languages_seq
 \int_new:N \l__piton_tab_size_int
 \int_set:Nn \l__piton_tab_size_int { 4 }
@@ -418,7 +420,20 @@
             \bool_lazy_or:nnT
               { \int_compare_p:nNn \l_tmpa_int = \c_one_int }
               { ! \l__piton_skip_empty_lines_bool && \l__piton_label_empty_lines_bool }
-              { \__piton_print_number: }
+              {
+                \int_compare:nNnTF { \l__piton_numbers_step_int } = \c_one_int
+                 { \__piton_print_number: }
+                 {
+                   \int_compare:nNnT
+                     {
+                       \int_mod:nn
+                         { \g__piton_visual_line_int }
+                         { \l__piton_numbers_step_int }
+                     }
+                     = 1
+                    { \__piton_print_number: }
+                 }
+              }
           }
         \int_compare:nNnT \l__piton_bg_colors_int > { \c_zero_int }
           {
@@ -672,6 +687,9 @@
 
     sep .dim_set:N = \l__piton_numbers_sep_dim ,
     sep .value_required:n = true ,
+
+    step .int_set:N = \l__piton_numbers_step_int ,
+    step .value_required:n = true ,
 
     format .tl_set:N = \l__piton_line_numbers_format_tl ,
     format .value_required:n = true ,

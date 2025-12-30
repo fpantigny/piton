@@ -1,7 +1,7 @@
 % \iffalse -*- coding: utf-8 ; -*- \fi 
 % \iffalse meta-comment
 %
-% Copyright (C) 2022-2025 by F. Pantigny
+% Copyright (C) 2022-2026 by F. Pantigny
 % -----------------------------------
 %
 % This file may be distributed and/or modified under the
@@ -888,6 +888,13 @@ piton_version = "4.9b" -- 2025/11/25
 \dim_new:N \l_@@_numbers_sep_dim 
 \dim_set:Nn \l_@@_numbers_sep_dim { 0.7 em }
 %    \end{macrocode}
+%
+% \medskip
+% The following parameter corresponds to the key |numbers/step|.
+%    \begin{macrocode}
+\int_new:N \l_@@_numbers_step_int
+\int_set:Nn \l_@@_numbers_step_int { 1 }
+%    \end{macrocode}
 % 
 %
 % \medskip
@@ -1291,7 +1298,20 @@ piton_version = "4.9b" -- 2025/11/25
             \bool_lazy_or:nnT
               { \int_compare_p:nNn \l_tmpa_int = \c_one_int }
               { ! \l_@@_skip_empty_lines_bool && \l_@@_label_empty_lines_bool }
-              { \@@_print_number: }
+              {
+                \int_compare:nNnTF { \l_@@_numbers_step_int } = \c_one_int
+                 { \@@_print_number: }
+                 {
+                   \int_compare:nNnT
+                     {
+                       \int_mod:nn
+                         { \g_@@_visual_line_int }
+                         { \l_@@_numbers_step_int }
+                     }
+                     = 1
+                    { \@@_print_number: }                     
+                 }
+              }
           }
 %    \end{macrocode}
 % If there is a background, we must remind that there is a left margin of 0.5~em
@@ -1690,7 +1710,10 @@ piton_version = "4.9b" -- 2025/11/25
     resume .value_forbidden:n = true ,
 
     sep .dim_set:N = \l_@@_numbers_sep_dim ,
-    sep .value_required:n = true , 
+    sep .value_required:n = true ,
+
+    step .int_set:N = \l_@@_numbers_step_int ,
+    step .value_required:n = true ,
 
     format .tl_set:N = \l_@@_line_numbers_format_tl ,
     format .value_required:n = true ,
@@ -7468,7 +7491,7 @@ function piton.join_and_write ( )
 % environment on an external file (on the disk).
 %
 % We have written the values of the keys |write| and |path-write| in the Lua
-% variables |piton.write| and |piton.path-write|.
+% variables |piton.write| and |piton.path_write|.
 %
 % If |piton.write| is not empty, that means that the key |write| has been used
 % for the current environment and, hence, we have to write the content of the
