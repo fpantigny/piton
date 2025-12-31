@@ -477,6 +477,13 @@ est active, la clé |/label-empty-lines| est sans effet. La valeur initiale de
 cette clé est |true|.\footnote{Quand la clé |split-on-empty-lines| est activée,
   les labels des lignes vides ne sont jamais imprimés.}
 
+\item \colorbox{yellow!50}{\textbf{Nouveau 4.10}}
+
+\nobreak
+La clé \Definition{line-numbers/step} doit être utilisée quand on ne veut pas faire afficher
+tous les numéros de ligne. Si $n$ est la valeur de cette clé, les numéros ne
+seront affichés que de~$n$ en~$n$. Bien sûr, la valeur initiale vaut~$1$.
+
 \item La clé \Definition{line-numbers/absolute} demande, pour les listings
 générés par |\PitonInputFile|, que les numéros de lignes affichés soient absolus
 (c'est-à-dire ceux du fichier d'origine). Elle n'a d'intérêt que si on n'insère

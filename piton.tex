@@ -419,11 +419,20 @@ numbering (if the key |/absolute|, described below, is in force, the key
 |/skip-empty-lines| is no-op in |\PitonInputFile|). The initial value of that
 key is |true| (and not |false|).\footnote{For the language Python, the empty
 lines in the docstrings are taken into account (by design).}
+
+\item \colorbox{yellow!50}{\textbf{New 4.10}}
+
+\nobreak
+The key \Definition{line-numbers/step} should be used when we don't want to print all the
+numbers of line. If $n$ is the value of that key, only one number out of~$n$
+will be printed. Of course, the initial value is 1.
+
 \item With the key \Definition{line-numbers/label-empty-lines}, the labels
 (that is to say the numbers) of the empty lines are displayed. If the key
 |/skip-empty-line| is in force, the clé |/label-empty-lines| is no-op. The
 initial value of that key is~|true|.\footnote{When the key
 |split-on-empty-lines| is in force, the labels of the empty lines are never printed.}
+
 \item With the key \Definition{line-numbers/absolute}, in the listings
 generated in |\PitonInputFile|, the numbers of the lines displayed are
 \emph{absolute} (that is to say: they are the numbers of the lines in the
@@ -431,15 +440,19 @@ file). That key may be useful when |\PitonInputFile| is used to insert only a
 part of the file (cf. part~\ref{part-of-a-file}, p.~\pageref{part-of-a-file}).
 The key |/absolute| is no-op in the environments |{Piton}| and those created
 by |\NewPitonEnvironment|.
+
 \item The key \Definition{line-numbers/start} requires that the line numbering
 begins to the value of the key. 
+
 \item With the key \Definition{line-numbers/resume}, the counter of lines is
 not set to zero at the beginning of each environment |{Piton}| or use of
 |\PitonInputFile| as it is otherwise. That allows a numbering of the lines
 across several environments.
+
 \item The key \Definition{line-numbers/sep} is the horizontal distance between
 the numbers of lines (inserted by |line-numbers|) and the beginning of the
 lines of code. The initial value is 0.7~em.
+
 \item The key \Definition{line-numbers/format} is a list of tokens which are inserted before
 the number of line in order to format it. It's possible to put, \emph{at the
 end} of the list, a LaTeX command with one argument, such as, for example,
@@ -4221,6 +4234,10 @@ on the \textsc{svn} server of TeX Live:
 \small
 \nolinkurl{https://tug.org/svn/texlive/trunk/Master/texmf-dist/tex/lualatex/piton/piton.sty}
 }
+
+\subsection*{Changes between versions 4.9 and 4.10}
+
+New key |line-numbers/step|.
 
 \subsection*{Changes between versions 4.8 and 4.9}
 
