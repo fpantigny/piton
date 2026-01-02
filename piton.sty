@@ -247,6 +247,7 @@
 \dim_set:Nn \l__piton_numbers_sep_dim { 0.7 em }
 \int_new:N \l__piton_numbers_step_int
 \int_set:Nn \l__piton_numbers_step_int { 1 }
+\seq_new:N \g__piton_visual_line_numbers_seq
 \seq_new:N \g__piton_languages_seq
 \int_new:N \l__piton_tab_size_int
 \int_set:Nn \l__piton_tab_size_int { 4 }
@@ -417,22 +418,34 @@
               { \int_compare_p:nNn \l_tmpa_int = \c_one_int }
               { ! \l__piton_skip_empty_lines_bool }
               { \int_gincr:N \g__piton_visual_line_int }
+
             \bool_lazy_or:nnT
               { \int_compare_p:nNn \l_tmpa_int = \c_one_int }
               { ! \l__piton_skip_empty_lines_bool && \l__piton_label_empty_lines_bool }
               {
-                \int_compare:nNnTF { \l__piton_numbers_step_int } = \c_one_int
-                 { \__piton_print_number: }
-                 {
-                   \int_compare:nNnT
-                     {
-                       \int_mod:nn
-                         { \g__piton_visual_line_int }
-                         { \l__piton_numbers_step_int }
-                     }
-                     = 1
-                    { \__piton_print_number: }
-                 }
+                \bool_lazy_or:nnTF
+                  { \int_compare_p:nNn { \l__piton_numbers_step_int } = 1 }
+                  {
+                    \int_compare_p:nNn
+                      {
+                        \int_mod:nn
+                          { \g__piton_visual_line_int }
+                          { \l__piton_numbers_step_int }
+                      }
+                      = \c_one_int
+                  }
+                  {
+                    \str_if_eq:eeTF \l__piton_line_numbers_position_str { left }
+                      { \__piton_print_number_left: }
+                      {
+                        \seq_gput_right:Ne \g__piton_visual_line_numbers_seq
+                          { \int_use:N \g__piton_visual_line_int }
+                      }
+                  }
+                  {
+                    \str_if_eq:eeT \l__piton_line_numbers_position_str { right }
+                      { \seq_gput_right:Nn \g__piton_visual_line_numbers_seq { } }
+                  }
               }
           }
         \int_compare:nNnT \l__piton_bg_colors_int > { \c_zero_int }
@@ -475,13 +488,14 @@
         \strut \hfil
       }
   }
-\cs_new_protected:Npn \__piton_add_background_to_line_and_use:
+\cs_new_protected:Npn \__piton_add_bg_and_right_nb_to_line_and_use:
   {
     \vtop
       {
         \offinterlineskip
         \hbox
           {
+            \group_begin:
             \__piton_compute_and_set_color:
             \dim_set:Nn \l_tmpa_dim { \box_dp:N \l__piton_line_box }
             \bool_if:NT \g__piton_next_color_is_none_bool
@@ -520,6 +534,9 @@
                         \vrule height \l__piton_tmpc_dim
                         depth \l_tmpa_dim
                         width \l_tmpb_dim
+                        % added 2026-01-02
+                        \dim_compare:nNnT \l_tmpb_dim = \c_zero_dim
+                          { \skip_horizontal:N \l__piton_listing_width_dim }
                       }
                   }
               }
@@ -527,6 +544,20 @@
                 \vrule height \l__piton_tmpc_dim
                 depth \l_tmpa_dim
                 width \l_tmpb_dim
+                % added 2026-01-0
+                \dim_compare:nNnT \l_tmpb_dim = \c_zero_dim
+                  { \skip_horizontal:N \l__piton_listing_width_dim }
+              }
+            \group_end:
+
+            % added 2026-01-02
+            \bool_if:NT \l__piton_line_numbers_bool
+              {
+                \str_if_eq:eeT \l__piton_line_numbers_position_str { right }
+                  {
+                    \seq_gpop_right:NN \g__piton_visual_line_numbers_seq \l_tmpa_tl
+                    \__piton_print_number_right:
+                  }
               }
           }
         \bool_if:NT \g__piton_next_color_is_none_bool
@@ -628,6 +659,7 @@
 \bool_new:N \l__piton_label_empty_lines_bool
 \bool_set_true:N \l__piton_label_empty_lines_bool
 \int_new:N \l__piton_number_lines_start_int
+\str_new:N \l__piton_line_numbers_position_str
 \bool_new:N \l__piton_resume_bool
 \bool_new:N \l__piton_split_on_empty_lines_bool
 \bool_new:N \l__piton_splittable_on_empty_lines_bool
@@ -690,6 +722,10 @@
 
     step .int_set:N = \l__piton_numbers_step_int ,
     step .value_required:n = true ,
+
+    position .choices:nn = { left , right  }
+      { \str_set_eq:NN \l__piton_line_numbers_position_str \l_keys_choice_tl } ,
+    position .value_required:n = true ,
 
     format .tl_set:N = \l__piton_line_numbers_format_tl ,
     format .value_required:n = true ,
@@ -1002,7 +1038,7 @@
     \bool_if:NF \l__piton_skip_empty_lines_bool
       { \int_gincr:N \g__piton_visual_line_int }
   }
-\cs_new_protected:Npn \__piton_print_number:
+\cs_new_protected:Npn \__piton_print_number_left:
   {
     \hbox_overlap_left:n
       {
@@ -1013,6 +1049,19 @@
           \pdfextension literal { EMC }
         }
         \skip_horizontal:N \l__piton_numbers_sep_dim
+      }
+  }
+\cs_new_protected:Npn \__piton_print_number_right:
+  {
+    \hbox_overlap_right:n
+      {
+        \skip_horizontal:N \l__piton_numbers_sep_dim
+        {
+          \l__piton_line_numbers_format_tl
+          \pdfextension literal { /Artifact << /ActualText (\space) >> BDC }
+          { \l_tmpa_tl }
+          \pdfextension literal { EMC }
+        }
       }
   }
 \NewDocumentCommand { \NewPitonLanguage } { O { } m ! o }
@@ -1184,6 +1233,10 @@
     \dim_zero:N \parindent
     \dim_zero:N \lineskip
     \dim_zero:N \parskip
+
+    % added 2026-01-02
+    \seq_gclear:N \g__piton_visual_line_numbers_seq
+
     \cs_set_eq:NN \rowcolor \__piton_rowcolor:n
     \int_compare:nNnT \l__piton_bg_colors_int > { \c_zero_int }
       { \bool_set_true:N \l__piton_bg_bool }
@@ -1494,12 +1547,19 @@
     \vbox_gset:Nn \g__piton_output_box
       { \__piton_retrieve_gobble_parse:o \l__piton_listing_tl }
     \bool_if:NT \l__piton_minimize_width_bool { \__piton_recompute_listing_width: }
-    \bool_lazy_or:nnT
-      { \int_compare_p:nNn \l__piton_bg_colors_int > { \c_zero_int } }
-      { \g__piton_rowcolor_inside_bool }
-      { \__piton_add_backgrounds_to_output_box: }
+    \bool_lazy_any:nT
+      {
+        { \int_compare_p:nNn \l__piton_bg_colors_int > { \c_zero_int } }
+        { \g__piton_rowcolor_inside_bool }
+        {
+          \l__piton_line_numbers_bool
+          &&
+          \str_if_eq_p:ee { \l__piton_line_numbers_position_str } { right }
+        }
+      }
+      { \__piton_add_bg_and_right_nb_to_output_box: }
   }
-\cs_new_protected:Npn \__piton_add_backgrounds_to_output_box:
+\cs_new_protected:Npn \__piton_add_bg_and_right_nb_to_output_box:
   {
     \int_gset_eq:NN \g__piton_line_int \g__piton_nb_lines_int
     \vbox_set:Nn \l_tmpa_box
@@ -1518,7 +1578,7 @@
               {
                 \vbox_gset:Nn \g__piton_output_box
                   {
-                    \__piton_add_background_to_line_and_use:
+                    \__piton_add_bg_and_right_nb_to_line_and_use:
                     \kern -2.5 pt
                     \penalty \l_tmpa_int
                     \vbox_unpack:N \g__piton_output_box
@@ -2431,7 +2491,6 @@
                      [[\__piton_test_version:n {]] .. piton_version ..  "}" )
       }
   }
-
 \endinput
 %%
 %% End of file `piton.sty'.

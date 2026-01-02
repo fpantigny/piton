@@ -530,7 +530,7 @@ piton_version = "4.10" -- 2026/01/01
 %
 % 
 % \bigskip
-% \subsubsection{Parameters and technical definitions}
+% \subsection{Parameters and technical definitions}
 %
 %    \begin{macrocode}
 \dim_new:N \l_@@_rounded_corners_dim
@@ -556,7 +556,7 @@ piton_version = "4.10" -- 2026/01/01
 % The content of an environment such as |{Piton}| will be composed first in the
 % following box, but that box will (sometimes) be \emph{unvboxed} at the end.
 %
-% We need a global variable (see |\@@_add_backgrounds_to_output_box:|).
+% We need a global variable (see |\@@_add_bg_and_right_nb_to_output_box:|).
 %    \begin{macrocode}
 \box_new:N \g_@@_output_box
 %    \end{macrocode}
@@ -895,8 +895,14 @@ piton_version = "4.10" -- 2026/01/01
 \int_new:N \l_@@_numbers_step_int
 \int_set:Nn \l_@@_numbers_step_int { 1 }
 %    \end{macrocode}
-% 
 %
+% \medskip
+% When the key |line-numbers/position| is set to |right|, we will have
+% to keep in memory the numbers of the lines in the following sequence.
+%    \begin{macrocode}
+\seq_new:N \g_@@_visual_line_numbers_seq
+%    \end{macrocode}
+% 
 % \medskip
 % Be careful. The following sequence |\g_@@_languages_seq| is not the list of
 % the languages supported by \pkg{piton}. It's the list of the languages for
@@ -1081,7 +1087,7 @@ piton_version = "4.10" -- 2026/01/01
 %
 % 
 % \bigskip
-% \subsubsection{Detected commands}
+% \subsection{Detected commands}
 %
 % There are four keys for ``detected commands and environments'':
 % |detected-commands|, |raw-detected-commands|, |beamer-commands| and
@@ -1185,7 +1191,7 @@ piton_version = "4.10" -- 2026/01/01
 %
 % 
 % \bigskip
-% \subsubsection{Treatment of a line of code}
+% \subsection{Treatment of a line of code}
 % 
 % 
 %    \begin{macrocode}
@@ -1282,7 +1288,7 @@ piton_version = "4.10" -- 2026/01/01
                     tex.sprint 
                       ( 
 %    \end{macrocode}
-% The following expression gives a integer of Lua (\emph{integer} is a
+% The following expression gives an integer of Lua (\emph{integer} is a
 % sub-type of \emph{number} introduced in Lua 5.3), the output will be of the
 % form |"3"| (and not |"3.0"|) which is what we want for |\int_set:Nn|.
 %    \begin{macrocode}
@@ -1295,22 +1301,34 @@ piton_version = "4.10" -- 2026/01/01
               { \int_compare_p:nNn \l_tmpa_int = \c_one_int }
               { ! \l_@@_skip_empty_lines_bool }
               { \int_gincr:N \g_@@_visual_line_int }
+              
             \bool_lazy_or:nnT
               { \int_compare_p:nNn \l_tmpa_int = \c_one_int }
               { ! \l_@@_skip_empty_lines_bool && \l_@@_label_empty_lines_bool }
               {
-                \int_compare:nNnTF { \l_@@_numbers_step_int } = \c_one_int
-                 { \@@_print_number: }
-                 {
-                   \int_compare:nNnT
-                     {
-                       \int_mod:nn
-                         { \g_@@_visual_line_int }
-                         { \l_@@_numbers_step_int }
-                     }
-                     = 1
-                    { \@@_print_number: }                     
-                 }
+                \bool_lazy_or:nnTF
+                  { \int_compare_p:nNn { \l_@@_numbers_step_int } = 1 }
+                  {
+                    \int_compare_p:nNn
+                      {
+                        \int_mod:nn
+                          { \g_@@_visual_line_int }
+                          { \l_@@_numbers_step_int }
+                      }
+                      = \c_one_int
+                  }
+                  {
+                    \str_if_eq:eeTF \l_@@_line_numbers_position_str { left }
+                      { \@@_print_number_left: }
+                      {
+                        \seq_gput_right:Ne \g_@@_visual_line_numbers_seq
+                          { \int_use:N \g_@@_visual_line_int }
+                      }
+                  }
+                  {
+                    \str_if_eq:eeT \l_@@_line_numbers_position_str { right }
+                      { \seq_gput_right:Nn \g_@@_visual_line_numbers_seq { } }
+                  }
               }
           }
 %    \end{macrocode}
@@ -1383,14 +1401,14 @@ piton_version = "4.10" -- 2026/01/01
 %    \end{macrocode}
 % 
 % \bigskip
-% Of course, the following command will be used when the key |background-color|
-% is used.
+% The following command will be used when the key |background-color| is used or when
+% the key |line-numbers| is used in conjunction with |line-numbers/position=right|.
 %
 % The content of the line has been previously set in |\l_@@_line_box|.
 %
-% That command is used only once, in |\@@_add_backgrounds_to_output_box:|.
+% That command is used only once, in |\@@_add_bg_and_right_nb_to_output_box:|.
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_add_background_to_line_and_use:
+\cs_new_protected:Npn \@@_add_bg_and_right_nb_to_line_and_use:
   {
     \vtop
       {
@@ -1404,6 +1422,7 @@ piton_version = "4.10" -- 2026/01/01
 % current line) but also potential token lists of the form |\g_@@_color_12_tl| if the end
 % user has used the command |\rowcolor|.
 %    \begin{macrocode}
+            \group_begin:
             \@@_compute_and_set_color:
 %    \end{macrocode}
 % The colored panels are overlapping. However, if the special color |none| is used
@@ -1453,6 +1472,12 @@ piton_version = "4.10" -- 2026/01/01
                         \vrule height \l_@@_tmpc_dim
                         depth \l_tmpa_dim
                         width \l_tmpb_dim
+%    \end{macrocode}
+% For the case when |line-numbers/position=right| is in force with |line-numbers|.
+%    \begin{macrocode}
+                        % added 2026-01-02
+                        \dim_compare:nNnT \l_tmpb_dim = \c_zero_dim                         
+                          { \skip_horizontal:N \l_@@_listing_width_dim }
                       }
                   }
               }
@@ -1460,6 +1485,26 @@ piton_version = "4.10" -- 2026/01/01
                 \vrule height \l_@@_tmpc_dim
                 depth \l_tmpa_dim
                 width \l_tmpb_dim
+%    \end{macrocode}
+% For the case when |line-numbers/position=right| is in force with |line-numbers|.
+%    \begin{macrocode}
+                % added 2026-01-0
+                \dim_compare:nNnT \l_tmpb_dim = \c_zero_dim 
+                  { \skip_horizontal:N \l_@@_listing_width_dim }
+              }
+%    \end{macrocode}
+% The group is for the color of the background.
+%    \begin{macrocode}
+            \group_end:
+
+            % added 2026-01-02
+            \bool_if:NT \l_@@_line_numbers_bool
+              {
+                \str_if_eq:eeT \l_@@_line_numbers_position_str { right }
+                  {
+                    \seq_gpop_right:NN \g_@@_visual_line_numbers_seq \l_tmpa_tl
+                    \@@_print_number_right: 
+                  }
               }
           }
         \bool_if:NT \g_@@_next_color_is_none_bool
@@ -1469,9 +1514,9 @@ piton_version = "4.10" -- 2026/01/01
       }
   }
 %    \end{macrocode}
-% End of |\@@_add_background_to_line_and_use:|
+% End of |\@@_add_bg_and_right_nb_to_line_and_use:|
 %
-%
+% 
 % \bigskip
 % The command |\@@_compute_and_set_color:| sets the current color but also sets the booleans
 % |\g_@@_color_is_none_bool| and |\g_@@_next_color_is_none_bool|. It uses the
@@ -1628,7 +1673,7 @@ piton_version = "4.10" -- 2026/01/01
 %    \end{macrocode}
 % 
 % \bigskip
-% \subsubsection{PitonOptions}
+% \subsection{PitonOptions}
 %
 %
 %
@@ -1643,6 +1688,7 @@ piton_version = "4.10" -- 2026/01/01
 \bool_new:N \l_@@_label_empty_lines_bool
 \bool_set_true:N \l_@@_label_empty_lines_bool 
 \int_new:N \l_@@_number_lines_start_int
+\str_new:N \l_@@_line_numbers_position_str
 \bool_new:N \l_@@_resume_bool 
 \bool_new:N \l_@@_split_on_empty_lines_bool
 \bool_new:N \l_@@_splittable_on_empty_lines_bool
@@ -1714,6 +1760,10 @@ piton_version = "4.10" -- 2026/01/01
 
     step .int_set:N = \l_@@_numbers_step_int ,
     step .value_required:n = true ,
+
+    position .choices:nn = { left , right  }
+      { \str_set_eq:NN \l_@@_line_numbers_position_str \l_keys_choice_tl } , 
+    position .value_required:n = true ,
 
     format .tl_set:N = \l_@@_line_numbers_format_tl ,
     format .value_required:n = true ,
@@ -2091,7 +2141,7 @@ piton_version = "4.10" -- 2026/01/01
 %
 % 
 % \bigskip
-% \subsubsection{The numbers of the lines}
+% \subsection{The numbers of the lines}
 %
 % \medskip
 % The following counter will be used to count the lines in the code when the
@@ -2110,9 +2160,13 @@ piton_version = "4.10" -- 2026/01/01
       { \int_gincr:N \g_@@_visual_line_int }
   }
 %    \end{macrocode}
-% 
+%
+% \bigskip
+% The following command will be used when the numbers of lines are printed
+% on the left (|line-numbers/position=left|). The number of line is in the counter
+% |\g_@@_visual_line_int|.
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_print_number:
+\cs_new_protected:Npn \@@_print_number_left:
   {
     \hbox_overlap_left:n
       {
@@ -2130,11 +2184,35 @@ piton_version = "4.10" -- 2026/01/01
       }
   }
 %    \end{macrocode}
+%
+% \bigskip
+% The following command will be used when the numbers of lines are printed
+% on the right (|line-numbers/position=right|). The number of line is in |\l_tmpa_tl|.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_print_number_right:
+  {
+    \hbox_overlap_right:n
+      {
+        \skip_horizontal:N \l_@@_numbers_sep_dim          
+        {
+          \l_@@_line_numbers_format_tl 
+%    \end{macrocode}
+% We put braces. Thus, the user may use the key |line-numbers/format| with a
+% value such as |\fbox|. 
+%    \begin{macrocode}
+          \pdfextension literal { /Artifact << /ActualText (\space) >> BDC }
+          { \l_tmpa_tl }
+          \pdfextension literal { EMC }      
+        }
+      }
+  }
+%    \end{macrocode}
+%
 % 
 %
 % 
 % \bigskip
-% \subsubsection{The main commands and environments for the end user}
+% \subsection{The main commands and environments for the end user}
 %
 % \bigskip
 %    \begin{macrocode}
@@ -2472,6 +2550,10 @@ piton_version = "4.10" -- 2026/01/01
     \dim_zero:N \parindent 
     \dim_zero:N \lineskip
     \dim_zero:N \parskip
+
+    % added 2026-01-02
+    \seq_gclear:N \g_@@_visual_line_numbers_seq
+    
     \cs_set_eq:NN \rowcolor \@@_rowcolor:n
 %    \end{macrocode}
 % 
@@ -2559,7 +2641,7 @@ piton_version = "4.10" -- 2026/01/01
 % If there is a background (even a background with only the color |none|),
 % we subtract 0.5~em for the margin on the right.
 %    \begin{macrocode}
-      { 
+      {
         \dim_sub:Nn \l_@@_code_width_dim { 0.5 em }
 %    \end{macrocode}
 % And we subtract also for the left margin. If the key |left-margin| has been
@@ -2898,7 +2980,8 @@ piton_version = "4.10" -- 2026/01/01
 %    \end{macrocode}
 %
 % \bigskip
-% |\@@_composition_ii:| will be used when the key |box| is in force.
+% |\@@_composition_ii:| will be used when the key |box| is in force but \emph{not} the key
+% |tcolorbox|.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_composition_ii:
   {
@@ -2990,7 +3073,8 @@ piton_version = "4.10" -- 2026/01/01
 % \bigskip
 % |\@@_create_output_box:| is used only once, in |\@@_composition:|.
 %
-% It creates (and modify when there are backgrounds) |\g_@@_output_box|.
+% It creates (and modifies when there are backgrounds or numbers of the lines
+% on the right) |\g_@@_output_box|.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_create_output_box:
   {
@@ -2998,22 +3082,31 @@ piton_version = "4.10" -- 2026/01/01
     \vbox_gset:Nn \g_@@_output_box
       { \@@_retrieve_gobble_parse:o \l_@@_listing_tl }
     \bool_if:NT \l_@@_minimize_width_bool { \@@_recompute_listing_width: }
-    \bool_lazy_or:nnT
-      { \int_compare_p:nNn \l_@@_bg_colors_int > { \c_zero_int } }
-      { \g_@@_rowcolor_inside_bool }
-      { \@@_add_backgrounds_to_output_box: }
+    \bool_lazy_any:nT
+      {
+        { \int_compare_p:nNn \l_@@_bg_colors_int > { \c_zero_int } }
+        { \g_@@_rowcolor_inside_bool }
+        {
+          \l_@@_line_numbers_bool
+          &&
+          \str_if_eq_p:ee { \l_@@_line_numbers_position_str } { right }
+        }
+      }
+      { \@@_add_bg_and_right_nb_to_output_box: }
   }
 %    \end{macrocode}
 %
 %
 % \bigskip
 % We add the backgrounds after the composition of the box |\g_@@_output_box| by a
-% loop over the lines in that box.
+% loop over the lines in that box. Idem when the key |line-numbers| is used in
+% conjunction with |line-numbers/position=right|.
+%
 % The backgrounds will have a width equal to |\l_@@_listing_width_dim|.
 %
 % That command will be used only once, in |\@@_create_output_box:|.
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_add_backgrounds_to_output_box:
+\cs_new_protected:Npn \@@_add_bg_and_right_nb_to_output_box:
   {
     \int_gset_eq:NN \g_@@_line_int \g_@@_nb_lines_int
 %    \end{macrocode}
@@ -3046,16 +3139,16 @@ piton_version = "4.10" -- 2026/01/01
               { \bool_gset_true:N \g_tmpa_bool }
               {
 %    \end{macrocode}
-% |\g_@@_line_int| will be used in |\@@_add_background_to_line_and_use:|.
+% |\g_@@_line_int| will be used in |\@@_add_bg_and_right_nb_to_line_and_use:|.
 %    \begin{macrocode}
                 \vbox_gset:Nn \g_@@_output_box
                   {
 %    \end{macrocode}
-% The command |\@@_add_background_to_line_and_use:| will add a background to
+% The command |\@@_add_bg_and_right_nb_to_line_and_use:| will add a background to
 % the line (in |\l_@@_line_box|) but will also put the line in the current box.
 % The background will have a width equal to |\l_@@_listing_width_dim|.
 %    \begin{macrocode}
-                    \@@_add_background_to_line_and_use:
+                    \@@_add_bg_and_right_nb_to_line_and_use:
                     \kern -2.5 pt 
                     \penalty \l_tmpa_int
                     \vbox_unpack:N \g_@@_output_box
@@ -3334,7 +3427,7 @@ piton_version = "4.10" -- 2026/01/01
 %    \end{macrocode}
 % 
 % \bigskip
-% \subsubsection{The styles}
+% \subsection{The styles}
 % 
 % \medskip
 % The following command is fundamental: it will be used by the Lua code.
@@ -3634,7 +3727,7 @@ piton_version = "4.10" -- 2026/01/01
 %    \end{macrocode}
 % 
 % \bigskip
-% \subsubsection{The initial styles}
+% \subsection{The initial styles}
 %
 % The initial styles are inspired by the style ``manni'' of Pygments.
 % 
@@ -3688,7 +3781,7 @@ piton_version = "4.10" -- 2026/01/01
   }
 %    \end{macrocode}
 % \bigskip
-% \subsubsection{Styles specific to the language expl}
+% \subsection{Styles specific to the language expl}
 %
 %    \begin{macrocode}
 \clist_new:N \g_@@_expl_styles_clist
@@ -3766,7 +3859,7 @@ piton_version = "4.10" -- 2026/01/01
 % 
 % 
 % \bigskip
-% \subsubsection{Highlighting some identifiers}
+% \subsection{Highlighting some identifiers}
 %
 %
 % \medskip
@@ -4003,7 +4096,7 @@ piton_version = "4.10" -- 2026/01/01
 %
 % \bigskip
 %
-% \subsubsection{Spaces of indentation}
+% \subsection{Spaces of indentation}
 %
 % \bigskip
 %    \begin{macrocode}
@@ -4040,7 +4133,7 @@ piton_version = "4.10" -- 2026/01/01
 %
 % 
 % \bigskip
-% \subsubsection{Security}
+% \subsection{Security}
 %
 %     \begin{macrocode}
 \AddToHook { env / piton / before } 
@@ -4049,7 +4142,7 @@ piton_version = "4.10" -- 2026/01/01
 %
 % 
 % \bigskip
-% \subsubsection{The error messages of the package}
+% \subsection{The error messages of the package}
 %
 %
 % When there is a unknown key, we try a ``normal form'' of the key and, when
@@ -4430,7 +4523,7 @@ piton_version = "4.10" -- 2026/01/01
 %    \end{macrocode}
 % 
 % \bigskip
-% \subsubsection{We load piton.lua}
+% \subsection{We load piton.lua}
 %
 %
 % \bigskip
@@ -8526,5 +8619,3 @@ end
 % Local Variables:
 % fill-column: 80
 % End:
-
-

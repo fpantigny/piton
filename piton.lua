@@ -2273,4 +2273,3 @@ function piton.utf16 ( str )
   end
   return table.concat(hex)
 end
-
