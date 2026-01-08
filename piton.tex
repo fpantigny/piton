@@ -173,8 +173,9 @@ find them, for instance in a |texmf| tree. However, the best is to install
 \pkg{piton} with a TeX distribution such as MiKTeX, TeX Live or MacTeX.
 
 \medskip
-Note that the character \emph{quote} U+0027 : \verb|'| is never transformed by
-\pkg{piton} in an apostrophe U+2019. There is no point loading \pkg{upquote}.
+Note that the character \emph{quote} (U+0027 : \verb|'|) is never transformed by
+\pkg{piton} in an apostrophe U+2019. There is no point loading the package
+\pkg{upquote}.
 
 \section{Use of the package}
 
@@ -458,7 +459,13 @@ the number of line in order to format it. It's possible to put, \emph{at the
 end} of the list, a LaTeX command with one argument, such as, for example,
 |\fbox|. 
 
-The initial value is |\footnotesize\color{gray}|. 
+The initial value is |\footnotesize\color{gray}|.
+
+\item \colorbox{yellow!50}{\textbf{New 4.11}}
+
+\nobreak
+The key \Definition{line-numbers/position} specifies the position of the numbers.
+Two values are possible: |left| and |right|. The initial value is |left|.
 \end{itemize}
 
 For convenience, a mechanism of factorisation of the prefix |line-numbers| is
@@ -490,6 +497,14 @@ It's possible to use the key |left-margin| with the special value |auto|. With t
 value, if the key |line-numbers| is in force, a margin will be automatically
 inserted to fit the numbers of lines. See an example part
 \ref{example-numbering} on page~\pageref{example-numbering}.
+
+
+\item \index{right-margin}
+\colorbox{yellow!50}{\textbf{Nouveau 4.11}}
+
+\nobreak
+The key |right-margin| is similar to the previous one, but for the margin on the
+right.
 
 \item \index{background-color} \label{background-color} The key
 \Definition{background-color} sets the background color of the environments
@@ -2452,7 +2467,7 @@ For example, it's possible to detect the command |\newpage| by
 
 and ask in a listing a mandatory break of page with |\newpage{}| (the pair of braces |{}|
 is mandatory because the commands detected by \pkg{piton} are meant to be LaTeX commands
-with one mandatory argument).
+with one mandatory argument, written between explicit braces).
 
 \begin{Code}
 \begin{Piton}
@@ -3089,7 +3104,10 @@ def arctan(x,n=10):
     elif x > 1: 
         return pi/2 - arctan(1/x) #> (other recursive call) 
     else: 
-        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
 \end{Piton}
 \end{Verbatim}
 \endgroup
@@ -3105,7 +3123,10 @@ def arctan(x,n=10):
     elif x > 1: 
         return pi/2 - arctan(1/x) #> (other recursive call) 
     else: 
-        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
 \end{Piton}
 \endgroup
 
@@ -3127,7 +3148,10 @@ def arctan(x,n=10):
     elif x > 1: 
         return pi/2 - arctan(1/x) #> (other recursive call) 
     else: 
-        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
 \end{Piton}
 \end{Verbatim}
 \endgroup
@@ -3143,9 +3167,125 @@ def arctan(x,n=10):
     elif x > 1: 
         return pi/2 - arctan(1/x) #> (other recursive call) 
     else: 
-        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
 \end{Piton}
 \endgroup
+
+\bigskip
+It's possible to have the numbers of lines on the right with
+|line-numbers/position=right| (the initial value of the parameter
+|line-numbers/position| is, without surprise, |left|). In that case, it is good
+to provide a positive value to |right-margin| (it's possible to use
+|right-margin=auto| but the actual value computed for |right-margin| will be
+probably appear to be too small if there is long broken lines of code.
+
+\begingroup
+\fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
+\begin{Verbatim}
+\PitonOptions
+  {
+    background-color=gray!15,
+    ~emphase&line-numbers/position = right@,
+    ~emphase&right-margin = 1cm@,
+    ~emphase&line-numbers@
+  }
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> (recursive call)
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> (other recursive call)
+    else:
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
+\end{Piton}
+\end{Verbatim}
+\endgroup
+
+
+
+\begingroup
+\PitonOptions
+  {
+    background-color=gray!15,
+    line-numbers/position = right,
+    right-margin = 1cm,
+    line-numbers
+  }
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> (recursive call)
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> (other recursive call) 
+    else:
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
+\end{Piton}
+\endgroup
+
+\bigskip
+The same example with the key |width=min|.
+
+
+\begingroup
+\fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
+\begin{Verbatim}
+\PitonOptions
+  {
+    background-color=gray!15,
+    ~emphase&line-numbers/position = right@,
+    ~emphase&right-margin = 1cm@,
+    ~emphase&line-numbers@,
+    ~emphase&width=min@
+  }
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> (recursive call)
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> (other recursive call)
+    else:
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
+\end{Piton}
+\end{Verbatim}
+\endgroup
+
+
+
+\begingroup
+\PitonOptions
+  {
+    background-color=gray!15,
+    line-numbers/position = right,
+    right-margin = 1cm,
+    line-numbers,
+    width=min
+  }
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> (recursive call)
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> (other recursive call) 
+    else:
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
+\end{Piton}
+\endgroup
+
 
 
 
@@ -3408,9 +3548,9 @@ to impose a break of page in such environment with |\newpage{}| if we have requi
 detection of the LaTeX command |\newpage| with the key |vertical-detected-commands|
 (cf.~p.~\pageref{vertical-detected-commands}) in the preamble of the LaTeX document.
 
-Remark that we must use |\newpage{}| and not |\newpage| because the LaTeX commands
-detected by \pkg{piton} are meant to be commands with one argument (between curly
-braces).
+Remark that we must use |\newpage{}| and not |\newpage| because the LaTeX
+commands detected by \pkg{piton} are meant to be commands with one argument
+(between explicit curly braces).
 
 \begin{footnotesize}
 \begin{Verbatim}
@@ -4234,6 +4374,11 @@ on the \textsc{svn} server of TeX Live:
 \small
 \nolinkurl{https://tug.org/svn/texlive/trunk/Master/texmf-dist/tex/lualatex/piton/piton.sty}
 }
+
+\subsection*{Changes between versions 4.10 and 4.11}
+
+New keys |right-margin| and |line-numbers/position|.
+
 
 \subsection*{Changes between versions 4.9 and 4.10}
 

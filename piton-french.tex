@@ -509,10 +509,18 @@ insérée avant le numéro de ligne pour le formater. Il est possible de mettre
 comme |\fbox|.
 
 La valeur initiale est |\footnotesize \color{gray}|.
+
+
+\item \colorbox{yellow!50}{\textbf{Nouveau 4.11}}
+
+\nobreak
+La clé \Definition{line-numbers/position} indique la position des numéros : à
+gauche, avec la valeur |left| ou bien à droite avec la valeur |right|. La valeur
+initiale est |left|.
 \end{itemize}
 
 Pour la commodité, un dispositif de factorisation du préfixe |line-numbers| est
-disponible, c'est-à-dire que l'on peut écrire :
+disponible, c'est-à-dire que l'on peut écrire, par exemple :
 
 \begin{Code}
 \PitonOptions
@@ -536,10 +544,18 @@ gauche. Cette clé peut être utile, en particulier, en conjonction avec la clé
 |line-numbers| si on ne souhaite pas que les numéros de ligne soient dans une
 position en débordement sur la gauche.
 
+
 Il est possible de donner à la clé |left-margin| la valeur spéciale~|auto|. Avec
 cette valeur, une marge est insérée automatiquement pour les numéros de ligne
 quand la clé |line-numbers| est utilisée. Voir un exemple à la partie
 \ref{example-numbering} p.~\pageref{example-numbering}.
+
+\item \index{right-margin}
+\colorbox{yellow!50}{\textbf{New 4.11}}
+
+\nobreak
+La clé \Definition{right-margin} est similaire à la
+clé précédente, mais pour la marge de droite.
 
 \item \index{background-color} \label{background-color} La clé
 \Definition{background-color} fixe la couleur de fond des environnements
@@ -3138,8 +3154,11 @@ def arctan(x,n=10):
         return -arctan(-x)        #> (appel récursif)
     elif x > 1: 
         return pi/2 - arctan(1/x) #> (autre appel récursif) 
-    else: 
-        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+    else:
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
 \end{Piton}
 \end{Verbatim}
 \endgroup
@@ -3154,8 +3173,11 @@ def arctan(x,n=10):
         return -arctan(-x)        #> (appel récursif)
     elif x > 1: 
         return pi/2 - arctan(1/x) #> (autre appel récursif) 
-    else: 
-        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+    else:
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
 \end{Piton}
 \endgroup
 
@@ -3176,8 +3198,11 @@ def arctan(x,n=10):
         return -arctan(-x)        #> (appel récursif)
     elif x > 1: 
         return pi/2 - arctan(1/x) #> (autre appel récursif) 
-    else: 
-        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+    else:
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
 \end{Piton}
 \end{Verbatim}
 \endgroup
@@ -3192,10 +3217,129 @@ def arctan(x,n=10):
         return -arctan(-x)        #> (appel récursif)
     elif x > 1: 
         return pi/2 - arctan(1/x) #> (autre appel récursif) 
-    else: 
-        return sum( (-1)**k/(2*k+1)*x**(2*k+1) for k in range(n) ) 
+    else:
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
 \end{Piton}
 \endgroup
+
+
+\bigskip
+On peut aussi demander la composition des numéros à droite avec
+|line-numbers/position=right| (la valeur initiale du paramètre
+|line-numbers/position| est, sans surprise, |left|). Il est bon dans ce cas de
+donner une valeur non nulle à |right-margin| (on peut aussi utiliser
+|right-margin=auto| mais la valeur effective résultante pour |right-margin| paraîtra
+dans doute trop faible en cas de longues lignes coupées).
+
+
+\begingroup
+\fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
+\begin{Verbatim}
+\PitonOptions
+  {
+    background-color=gray!15,
+    ~emphase&line-numbers/position = right@,
+    ~emphase&right-margin = 1cm@,
+    ~emphase&line-numbers@
+  }
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> (appel récursif)
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> (autre appel récursif) 
+    else:
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
+\end{Piton}
+\end{Verbatim}
+\endgroup
+
+
+
+\begingroup
+\PitonOptions
+  {
+    background-color=gray!15,
+    line-numbers/position = right,
+    right-margin = 1cm,
+    line-numbers
+  }
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> (appel récursif)
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> (autre appel récursif) 
+    else:
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
+\end{Piton}
+\endgroup
+
+
+
+\bigskip
+Le même exemple avec la clé |width=min|.
+
+\begingroup
+\fvset{commandchars=\~\&\@,formatcom=\small\color{gray}}
+\begin{Verbatim}
+\PitonOptions
+  {
+    background-color=gray!15,
+    ~emphase&line-numbers/position = right@,
+    ~emphase&right-margin = 1cm@,
+    ~emphase&line-numbers@,
+    ~emphase&width=min@
+  }
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> (appel récursif)
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> (autre appel récursif) 
+    else:
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
+\end{Piton}
+\end{Verbatim}
+\endgroup
+
+
+
+\begingroup
+\PitonOptions
+  {
+    background-color=gray!15,
+    line-numbers/position = right,
+    right-margin = 1cm,
+    line-numbers,
+    width=min
+  }
+\begin{Piton}
+def arctan(x,n=10):
+    if x < 0:
+        return -arctan(-x)        #> (appel récursif)
+    elif x > 1: 
+        return pi/2 - arctan(1/x) #> (autre appel récursif) 
+    else:
+        s = 0.0
+        for k in range(n):
+            s = s + (-1)**k/(2*k+1)*x**(2*k+1)
+        return s
+\end{Piton}
+\endgroup
+
 
 
 \bigskip
@@ -3455,7 +3599,7 @@ le préambule du document LaTeX.
 
 Remarquer que l'on doit bien utiliser |\newpage{}| et non |\newpage| car les
 commandes LaTeX détectées par \pkg{piton} sont censées être des commandes à un argument
-entre accolades.
+entre accolades (les accolades doivent être explicites).
 
 \begin{footnotesize}
 \begin{Verbatim}

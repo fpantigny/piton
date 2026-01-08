@@ -60,12 +60,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.10}
-\def\PitonFileDate{2026/01/01}
+\def\PitonFileVersion{4.11}
+\def\PitonFileDate{2026/01/08}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.10" -- 2026/01/01
+piton_version = "4.11" -- 2026/01/08
 %</LUA>
 %\fi
 %
@@ -870,15 +870,17 @@ piton_version = "4.10" -- 2026/01/01
 %    \end{macrocode}
 %
 % \medskip
-% The following dimension corresponds to the key |left-margin|.
+% The following dimension corresponds to the keys |left-margin| and |right-margin|.
 %    \begin{macrocode}
 \dim_new:N \l_@@_left_margin_dim
+\dim_new:N \l_@@_right_margin_dim
 %    \end{macrocode}
 %
 % \medskip
 % The following boolean will be set when the key |left-margin=auto| is used.
 %    \begin{macrocode}
 \bool_new:N \l_@@_left_margin_auto_bool
+\bool_new:N \l_@@_right_margin_auto_bool
 %    \end{macrocode}
 %
 % \medskip
@@ -1302,7 +1304,7 @@ piton_version = "4.10" -- 2026/01/01
               { ! \l_@@_skip_empty_lines_bool }
               { \int_gincr:N \g_@@_visual_line_int }
               
-            \bool_lazy_or:nnT
+            \bool_lazy_or:nnTF
               { \int_compare_p:nNn \l_tmpa_int = \c_one_int }
               { ! \l_@@_skip_empty_lines_bool && \l_@@_label_empty_lines_bool }
               {
@@ -1329,6 +1331,10 @@ piton_version = "4.10" -- 2026/01/01
                     \str_if_eq:eeT \l_@@_line_numbers_position_str { right }
                       { \seq_gput_right:Nn \g_@@_visual_line_numbers_seq { } }
                   }
+              }
+              {
+                \str_if_eq:eeT \l_@@_line_numbers_position_str { right }
+                  { \seq_gput_right:Nn \g_@@_visual_line_numbers_seq { } }
               }
           }
 %    \end{macrocode}
@@ -1488,7 +1494,7 @@ piton_version = "4.10" -- 2026/01/01
 %    \end{macrocode}
 % For the case when |line-numbers/position=right| is in force with |line-numbers|.
 %    \begin{macrocode}
-                % added 2026-01-0
+                % added 2026-01-02
                 \dim_compare:nNnT \l_tmpb_dim = \c_zero_dim 
                   { \skip_horizontal:N \l_@@_listing_width_dim }
               }
@@ -1496,14 +1502,13 @@ piton_version = "4.10" -- 2026/01/01
 % The group is for the color of the background.
 %    \begin{macrocode}
             \group_end:
-
             % added 2026-01-02
             \bool_if:NT \l_@@_line_numbers_bool
               {
                 \str_if_eq:eeT \l_@@_line_numbers_position_str { right }
                   {
                     \seq_gpop_right:NN \g_@@_visual_line_numbers_seq \l_tmpa_tl
-                    \@@_print_number_right: 
+                    \@@_print_number_right:
                   }
               }
           }
@@ -1689,6 +1694,7 @@ piton_version = "4.10" -- 2026/01/01
 \bool_set_true:N \l_@@_label_empty_lines_bool 
 \int_new:N \l_@@_number_lines_start_int
 \str_new:N \l_@@_line_numbers_position_str
+\str_set:Nn \l_@@_line_numbers_position_str { left }
 \bool_new:N \l_@@_resume_bool 
 \bool_new:N \l_@@_split_on_empty_lines_bool
 \bool_new:N \l_@@_splittable_on_empty_lines_bool
@@ -1983,6 +1989,7 @@ piton_version = "4.10" -- 2026/01/01
     join-separation .value_required:n = true ,
     no-join .code:n = \str_set_eq:NN \l_@@_join_str \c_empty_str ,
     no-join .value_forbidden:n = true ,
+    
     left-margin .code:n =
       \str_if_eq:nnTF { #1 } { auto }
         { 
@@ -1994,6 +2001,18 @@ piton_version = "4.10" -- 2026/01/01
           \bool_set_false:N \l_@@_left_margin_auto_bool
         } ,
     left-margin      .value_required:n  = true ,
+
+    right-margin .code:n =
+      \str_if_eq:nnTF { #1 } { auto }
+        { 
+          \dim_zero:N \l_@@_right_margin_dim 
+          \bool_set_true:N \l_@@_right_margin_auto_bool
+        }
+        { 
+          \dim_set:Nn \l_@@_right_margin_dim { #1 } 
+          \bool_set_false:N \l_@@_right_margin_auto_bool
+        } ,
+    right-margin     .value_required:n  = true ,
 
     tab-size         .int_set:N         = \l_@@_tab_size_int ,
     tab-size         .value_required:n  = true , 
@@ -2170,16 +2189,7 @@ piton_version = "4.10" -- 2026/01/01
   {
     \hbox_overlap_left:n
       {
-        {
-          \l_@@_line_numbers_format_tl 
-%    \end{macrocode}
-% We put braces. Thus, the user may use the key |line-numbers/format| with a
-% value such as |\fbox|. 
-%    \begin{macrocode}
-          \pdfextension literal { /Artifact << /ActualText (\space) >> BDC }
-          { \int_to_arabic:n \g_@@_visual_line_int }
-          \pdfextension literal { EMC }      
-        }
+        \@@_actually_print_number:n { \int_to_arabic:n { \g_@@_visual_line_int } }
         \skip_horizontal:N \l_@@_numbers_sep_dim  
       }
   }
@@ -2191,23 +2201,33 @@ piton_version = "4.10" -- 2026/01/01
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_print_number_right:
   {
-    \hbox_overlap_right:n
+    \hbox_overlap_left:n
       {
-        \skip_horizontal:N \l_@@_numbers_sep_dim          
-        {
-          \l_@@_line_numbers_format_tl 
-%    \end{macrocode}
-% We put braces. Thus, the user may use the key |line-numbers/format| with a
-% value such as |\fbox|. 
-%    \begin{macrocode}
-          \pdfextension literal { /Artifact << /ActualText (\space) >> BDC }
-          { \l_tmpa_tl }
-          \pdfextension literal { EMC }      
-        }
+        \@@_actually_print_number:n { \l_tmpa_tl }
+        \int_compare:nNnT \l_@@_bg_colors_int > 0
+          { \skip_horizontal:n { 0.1 em } }
       }
   }
 %    \end{macrocode}
 %
+% |\@@_actually_print_number:| itself prints the number without the
+% |\hbox_overlap_left:n|. It is used by both |\@@_print_number_left:| and
+% |\@@_print_number_right:|
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_actually_print_number:n #1
+  {
+    \group_begin:
+    \pdfextension literal { /Artifact << /ActualText (\space) >> BDC }
+%    \end{macrocode}
+% We put braces. Thus, the user may use the key |line-numbers/format| with a
+% value such as |\fbox|. 
+%    \begin{macrocode}
+    \l_@@_line_numbers_format_tl { #1 }
+    \pdfextension literal { EMC }      
+    \group_end:
+  }
+%    \end{macrocode}
+% 
 % 
 %
 % 
@@ -2576,11 +2596,17 @@ piton_version = "4.10" -- 2026/01/01
 % 
 %
 % \bigskip
-% If the end user has used both |left-margin=auto| and |line-numbers|, we have
-% to compute the width of the maximal number of lines at the end of the
-% environment to fix the correct value to |left-margin|. 
+% When the parameters |line-numbers|, |line-numbers/position=left| and
+% |left-margin| are in force (or if |line-numbers|, |line-numbers=right| and
+% |right-margin| are in force), we have to compute the width of the maximal
+% number of lines at the end of the environment to fix the correct value to
+% |left-margin| (or |right-margin|).
+%
+% The command |\@@_compute_margin:N| will do that job.
+
+% It's argument must be either |\l_@@_left_margin_dim| either |\l_@@_right_margin_dim|.
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_compute_left_margin:
+\cs_new_protected:Npn \@@_compute_margin:N #1
   {
      \use:e
        {
@@ -2601,68 +2627,77 @@ piton_version = "4.10" -- 2026/01/01
                 { \g_@@_nb_lines_int }
            }   
        }
-     \dim_set:Nn \l_@@_left_margin_dim 
-       { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
+     \dim_set:Nn #1 { \box_wd:N \l_tmpa_box + \l_@@_numbers_sep_dim + 0.1 em }
   }
 %    \end{macrocode}
 % 
+%
+%
+% \bigskip
+% The following command computes |\l_@@_code_width_dim|.
+%
+% It will be used only once (in |\@@_create_output_box:|).
+%
+% If there is a background (even a background with the color |none|), we
+% subtract 0.5~em on both sides. However, if there is a left margin or a right
+% margin, we use those margins. If the key |left-margin| has been used with the
+% special value |auto| (this is meaningful only in conjonction with the key
+% |line-numbers| and a value of |line-numbers/position| equal to |left|), the
+% actual value for the left margin has yet computed (and stored in
+% |left-margin|). Idem for the right margin.
+%    \begin{macrocode}
+\cs_new_protected:Npn \@@_compute_code_width:
+  {
+    \dim_set:Nn \l_@@_code_width_dim
+      {
+        \l_@@_listing_width_dim
+        -
+        (
+          \int_compare:nNnTF \l_@@_bg_colors_int > { \c_zero_int }
+          {
+            \dim_compare:nNnTF \l_@@_left_margin_dim > \c_zero_dim
+              { \l_@@_left_margin_dim }            
+              { 0.5 em }
+            +
+            \dim_compare:nNnTF \l_@@_right_margin_dim > \c_zero_dim
+              { \l_@@_right_margin_dim }            
+              { 0.5 em }
+          }
+          { \l_@@_left_margin_dim + \l_@@_right_margin_dim }          
+        )
+      }
+  }
+%    \end{macrocode}
 %
 % \bigskip
 % The following command computes |\l_@@_listing_width_dim| and it will be used
 % when |max-width| (or |width=min|) is used. Remind that the key |box| sets |width=min|
 % (except when |width| is used with a numerical value).
 %
-% % It will be used only once in |\@@_create_output_box:|.
+% It will be used only once (in |\@@_create_output_box:|).
+%
+% The computation is the inverse of the computation done in |\@@_compute_code_width:|.
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_recompute_listing_width:
   {
-    \dim_set:Nn \l_@@_listing_width_dim { \box_wd:N \g_@@_output_box }
-    \int_compare:nNnTF \l_@@_bg_colors_int > { \c_zero_int }     
-      { 
-        \dim_add:Nn \l_@@_listing_width_dim { 0.5 em }
-        \dim_compare:nNnTF \l_@@_left_margin_dim = \c_zero_dim 
-          { \dim_add:Nn \l_@@_listing_width_dim { 0.5 em } }
-          { \dim_add:Nn \l_@@_listing_width_dim \l_@@_left_margin_dim }
+    \dim_set:Nn \l_@@_listing_width_dim
+      {
+        \box_wd:N \g_@@_output_box
+        +
+        \int_compare:nNnTF \l_@@_bg_colors_int > \c_zero_int 
+          {
+            \dim_compare:nNnTF \l_@@_left_margin_dim > \c_zero_dim
+              { \l_@@_left_margin_dim }            
+              { 0.5 em }
+            + 
+            \dim_compare:nNnTF \l_@@_right_margin_dim > \c_zero_dim
+              { \l_@@_right_margin_dim }            
+              { 0.5 em }
+          }
+          { \l_@@_left_margin_dim + \l_@@_right_margin_dim }        
       }
-      { \dim_add:Nn \l_@@_listing_width_dim \l_@@_left_margin_dim }
   }          
 %    \end{macrocode}
-%
-% \bigskip
-% The following command computes |\l_@@_code_width_dim|.
-%
-% It will be used only once in |\@@_create_output_box:|.
-%    \begin{macrocode}
-\cs_new_protected:Npn \@@_compute_code_width:
-  {
-    \dim_set_eq:NN \l_@@_code_width_dim \l_@@_listing_width_dim
-    \int_compare:nNnTF \l_@@_bg_colors_int > { \c_zero_int } 
-%    \end{macrocode}
-% If there is a background (even a background with only the color |none|),
-% we subtract 0.5~em for the margin on the right.
-%    \begin{macrocode}
-      {
-        \dim_sub:Nn \l_@@_code_width_dim { 0.5 em }
-%    \end{macrocode}
-% And we subtract also for the left margin. If the key |left-margin| has been
-% used (with a numerical value or with the special value~|min|),
-% |\l_@@_left_margin_dim| has a non-zero value\footnote{If the key
-% |left-margin| has been used with the special value |min|, the
-% actual value of \texttt{\textbackslash l_\@\@_left_margin_dim} has yet been
-% computed when we use the current command.} and we use that value. Elsewhere,
-% we use a value of 0.5~em.
-%    \begin{macrocode}
-        \dim_compare:nNnTF \l_@@_left_margin_dim = \c_zero_dim 
-          { \dim_sub:Nn \l_@@_code_width_dim { 0.5 em } }
-          { \dim_sub:Nn \l_@@_code_width_dim \l_@@_left_margin_dim }
-      }
-%    \end{macrocode}
-% If there is no background, we only subtract the left margin. 
-%    \begin{macrocode}
-      { \dim_sub:Nn \l_@@_code_width_dim \l_@@_left_margin_dim } 
-  }
-%    \end{macrocode}
-%
 %
 % \bigskip
 %    \begin{macrocode}
@@ -2838,8 +2873,17 @@ piton_version = "4.10" -- 2026/01/01
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-    \bool_lazy_and:nnT \l_@@_left_margin_auto_bool \l_@@_line_numbers_bool
-      { \@@_compute_left_margin: }
+    \bool_if:NT \l_@@_line_numbers_bool
+      {
+        \bool_lazy_and:nnT
+          { \l_@@_left_margin_auto_bool }
+          { \str_if_eq_p:ee \l_@@_line_numbers_position_str { left } }
+          { \@@_compute_margin:N \l_@@_left_margin_dim }
+        \bool_lazy_and:nnT
+          { \l_@@_right_margin_auto_bool }
+          { \str_if_eq_p:ee \l_@@_line_numbers_position_str { right } }
+          { \@@_compute_margin:N \l_@@_right_margin_dim }
+      }
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -4283,7 +4327,7 @@ piton_version = "4.10" -- 2026/01/01
     The~key~'line-numbers / \l_keys_key_str'~is~unknown.\\
     The~available~keys~of~the~family~'line-numbers'~are~(in~
     alphabetic~order):~
-    absolute,~false,~label-empty-lines,~resume,~skip-empty-lines,~
+    absolute,~false,~label-empty-lines,~position,~resume,~skip-empty-lines,~
     sep,~start~and~true.\\
     That~key~will~be~ignored.
   }
@@ -4464,6 +4508,7 @@ piton_version = "4.10" -- 2026/01/01
     prompt-background-color,~
     raw-detected-commands,~
     resume,~
+    right-margin,~
     rounded-corners,~
     show-spaces,~
     show-spaces-in-strings,~
