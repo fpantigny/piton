@@ -693,6 +693,7 @@ do
      +
     P "[]"
     * Lc ([[{\PitonStyle{Name.Constructor}{\kern-0.1em[\kern0.1em]}}]])
+     +
     K ( 'Name.Constructor' ,
         Q "`" ^ -1 * cap_identifier
         + Q ( "[" , true ) * SkipSpace * Q ( "]" , true) )
