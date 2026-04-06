@@ -684,8 +684,8 @@ do
               * Q "*)"
         }
   local Comment = WithStyle ( 'Comment.Internal' , comment )
-  local Delim = Q ( P "[|" + "|]" + S "[()]" )
-  local Punct = Q ( S ",:;!" )
+  local Delim = K ( 'Delimiter', P "[|" + "|]" + ".(" + ".[" + S "[()]" - P "()" - P "[]" )
+  local Punct = Q ( S ",:" - P ":=" - P "::" )
   local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
   local Constructor =
     P "::"
@@ -698,6 +698,14 @@ do
         Q "`" ^ -1 * cap_identifier
         + Q ( "[" , true ) * SkipSpace * Q ( "]" , true) )
   local ModuleType = K ( 'Name.Type' , cap_identifier )
+  local Operator =
+    P "||" *
+    Lc([[{\PitonStyle{Operator}{\kern0.1em|\kern-0.2em|\kern0.1em}}]])
+     +
+    K ( 'Operator' ,
+        P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "&&" +
+        "//" + "**" + ";;" + "->" + "+." + "-." + "*." + "/." + "<-"
+        + S "-~+/*%=<>&@|!;" )
   local OperatorWord =
     K ( 'Operator.Word' ,
         P "asr" + "land" + "lor" + "lsl" + "lxor" + "mod" + "or" + "not" )
@@ -714,7 +722,7 @@ do
     + K ( 'Keyword.Constant' , P "true" + "false" )
     + K ( 'Keyword.Governing', governing_keyword )
   local EndKeyword
-    = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape
+    = Space + Punct + Delim + Operator + EOL + Beamer + DetectedCommands + Escape
        + EscapeMath + -1
   local identifier = ( R "az" + "_" ) * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
                      - ( OperatorWord + Keyword ) * EndKeyword
@@ -812,16 +820,8 @@ do
     * SkipSpace
     * Q "}"
   local Record = RecordType + RecordVal
-  local Operator =
-    P "||" *
-    Lc([[{\PitonStyle{Operator}{\kern0.1em|\kern-0.2em|\kern0.1em}}]])
-     +
-    K ( 'Operator' ,
-        P "!=" + "<>" + "==" + "<<" + ">>" + "<=" + ">=" + ":=" + "&&" +
-        "//" + "**" + ";;" + "->" + "+." + "-." + "*." + "/."
-        + S "-~+/*%=<>&@|" )
   local Builtin =
-    K ( 'Name.Builtin' , P "incr" + "decr" + "fst" + "snd" + "ref" )
+    K ( 'Name.Builtin' , P "incr" + "decr" + "fst" + "snd" + "ref" + "()" + "<abstr>" + "<fun>" )
   local Exception =
     K (   'Exception' ,
         P "Division_by_zero" + "End_of_File" + "Failure" + "Invalid_argument" +
@@ -988,7 +988,7 @@ end)
                +
                (
                  ( K ( 'Name.Module' , cap_identifier ) * Q "." ) ^ -1
-                 * Identifier
+                 * ( Identifier + Number + Q "()" )
                  * SkipSpace
                  * Q ":"
                )
@@ -1098,6 +1098,8 @@ do
        + DetectedCommands
        + Preproc
        + Comment + LongComment
+       + Keyword * EndKeyword
+       + Builtin * EndKeyword
        + Delim
        + Operator
        + Character
@@ -1106,8 +1108,6 @@ do
        + DefFunction
        + DefClass
        + Type * ( Q "*" ^ -1 + EndKeyword )
-       + Keyword * EndKeyword
-       + Builtin * EndKeyword
        + Identifier
        + Number
        + Word
