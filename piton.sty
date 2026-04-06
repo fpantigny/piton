@@ -832,6 +832,10 @@
     path-write       .value_required:n  = true ,
     font-command     .tl_set:N          = \l__piton_font_command_tl ,
     font-command     .value_required:n  = true ,
+    font-command+    .code:n            = {\tl_put_right:Nn \l__piton_font_command_tl { #1 }} ,
+    font-command+    .value_required:n  = true ,
+    font-command~+   .meta:n            = {font-command+ = #1} ,
+    font-command~+   .value_required:n  = true ,
     gobble           .int_set:N         = \l__piton_gobble_int ,
     gobble           .default:n         = -1 ,
     auto-gobble      .code:n            = \int_set:Nn \l__piton_gobble_int { -1 } ,
@@ -2461,6 +2465,7 @@
     env-gobble,~
     env-used-by-split,~
     font-command,~
+    font-command+,~
     gobble,~
     indent-broken-lines,~
     join,~
