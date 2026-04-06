@@ -677,7 +677,7 @@ do
           A = Q "(*"
               * ( V "A"
                   + Q ( ( 1 - S "\r$\"" - "(*" - "*)" ) ^ 1 ) -- $
-                  + ocaml_string
+                  + Q (ocaml_string)
                   + "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) * "$" -- $
                   + EOL
                 ) ^ 0
