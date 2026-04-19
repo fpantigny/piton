@@ -431,6 +431,13 @@ lesquels ces instructions de fonte ne sont pas utilisées).
 La valeur initiale de ce paramètre |font-command| est |\ttfamily|, ce qui fait,
 que, par défaut, \pkg{piton} utilise la fonte mono-chasse courante.
 
+\item \index{font-command +}
+\colorbox{yellow!50}{\bfseries Nouveau 4.12}\enskip
+La clé \Definition{font-command +} ajoute des instructions à droite du paramètre
+|font-command|. Le nom de cette clé contient un espace de manière à pouvoir écrire, par
+exemple, |\PitonOptions{font-command += \bfseries}|. Néanmoins, cet espace
+est facultatif.
+
 \item \index{gobble}\label{gobble} La clé \Definition{gobble} prend comme valeur
 un entier positif $n$ : les $n$ premiers caractères de chaque ligne sont alors
 retirés (avant formatage du code) dans les environnements |{Piton}|. Ces $n$
@@ -2046,7 +2053,6 @@ def carré(x):
 \label{split-on-empty-lines}
 \index{split-separation}
 \index{env-used-by-split}
-\index{add-to-split-separation}
 
 L'exension \pkg{piton} fournit la clé \Definition{split-on-empty-lines}, qui ne doit pas
 être confondue avec la clé |splittable-on-empty-lines| définie précédemment. 
@@ -2066,24 +2072,23 @@ vides successives sont supprimées et remplacées par le contenu du paramètre c
 \item Ce paramètre doit contenir du matériel à insérer en \emph{mode vertical} de TeX. On
 peut, par exemple, mettre la primitive TeX |\hrule|.
 
-\item La valeur initiale de ce paramètre est |\vspace{\baselineskip}\vspace{-1.25pt}|, ce qui,
-au final, correspond à une ligne vide dans le \textsc{pdf} produit (cet espace vertical
-est supprimé s'il tombe au niveau d'un saut de page).
+\item La valeur initiale de ce paramètre est
+|\vspace{\baselineskip}\vspace{-1.25pt}|, ce qui, au final, correspond à une
+ligne vide dans le \textsc{pdf} produit (cet espace vertical est supprimé s'il tombe au
+niveau d'un saut de page).
 
-\item L'extension \pkg{piton} propose en fait aussi la clé
-\Definition{add-to-split-separation} qui ajoute du contenu à droite de
-|split-separation|.
+\item L'extension \pkg{piton} propose en fait aussi la clé \Definition{split-separation~+} qui ajoute
+du contenu à droite de |split-separation|. Le nom de cette clé contient un espace
+de manière à pouvoir écrire, par exemple : |split-separation += \hrule|.
 \end{itemize}
 
-
-
 Chaque morceau du code informatique est formaté (de manière autonome) dans un
-environnement dont le nom est donné par la clé \Definition{env-used-by-split}. La valeur
-initiale de ce paramètre est, sans surprise, |Piton| et les différents morceaux sont donc
-composés dans des environnements |{Piton}|. Si on décide de donner une autre valeur à la
-clé |env-used-by-split|, on doit bien sûr donner le nom d'un environnement créé par
-|\NewPitonEnvironment| (cf.~partie~\ref{NewPitonEnvironment},
-p.~\pageref{NewPitonEnvironment}).
+environnement dont le nom est donné par la clé \Definition{env-used-by-split}.
+La valeur initiale de ce paramètre est, sans surprise, |Piton| et les différents
+morceaux sont donc composés dans des environnements |{Piton}|. Si on décide de
+donner une autre valeur à la clé |env-used-by-split|, on doit bien sûr donner le
+nom d'un environnement créé par |\NewPitonEnvironment|
+(cf.~partie~\ref{NewPitonEnvironment}, p.~\pageref{NewPitonEnvironment}).
 
 \smallskip
 Chaque morceau du listing de départ étant composé dans son environnement, il dispose de sa
@@ -2126,7 +2131,7 @@ Si on souhaite au contraire une continuité de numérotation, on peut ajouter
 \begin{Code}
 \begin{Piton}[
    split-on-empty-lines,
-   \emph{add-to-split-separation = \PitonOptions{resume}} ,
+   \emph{split-separation += \PitonOptions{resume}} ,
    background-color=gray!15,
    line-numbers
  ]
@@ -2143,7 +2148,7 @@ def cube(x):
 \medskip
 \begin{Piton}[
    split-on-empty-lines,
-   add-to-split-separation = \PitonOptions{resume} ,
+   split-separation += \PitonOptions{resume} ,
    background-color=gray!15,
    line-numbers
  ]
@@ -3759,6 +3764,11 @@ def carré(x):
 \label{pyluatex}
 \index{pyluatex@{\pkg{pyluatex}} (extension)}
 
+
+\textcolor{red}{Attention: Les codes qui suivent nécessitent la version 0.7.0 de \pkg{pyluatex}.}
+
+\bigskip
+
 L'extension \pkg{pyluatex} est une extension qui permet l'exécution de code Python à
 partir de |lualatex| (pourvu que Python soit installé sur la machine et que la compilation
 soit effectuée avec |lualatex| et |--shell-escape|).
@@ -3772,7 +3782,12 @@ avec Python.
 \NewPitonEnvironment{\emph{PitonExecute}}{O{}}
   {\PitonOptions{#1}}
   {\begin{center}
-   \directlua{pyluatex.execute(piton.get_last_code(), false, true, false, true)}%
+   \directlua
+     {
+       pyluatex.execute(piton.get_last_code(),false,cctab_latex,
+         false,false,true,"default",false,false)
+       tex.print(pyluatex.get_last_output())         
+     }
    \end{center}}
 \end{Code}
 
@@ -3780,8 +3795,14 @@ avec Python.
 \NewPitonEnvironment{PitonExecute}{O{}}
   {\PitonOptions{#1}}
   {\begin{center}
-   \directlua{pyluatex.execute(piton.get_last_code(), false, true, false, true)}%
+   \directlua
+     {
+       pyluatex.execute(piton.get_last_code(),false,cctab_latex,
+         false,false,true,"default",false,false)
+       tex.print(pyluatex.get_last_output()) 
+     }
    \end{center}}
+
 
 On a utilisé la fonction Lua |piton.get_last_code| fournie dans l'API de \pkg{piton} :
 cf.~partie~\ref{API}, p.~\pageref{API}.
@@ -3870,8 +3891,7 @@ car, bien sûr, c'est le retour fait par |{pythonrepl}| qui doit être traité p
 |detected-commands|, |begin-escape|, etc.) dans le code.
 
 \begin{Verbatim}
-\ExplSyntaxOn
-\NewDocumentEnvironment { PitonREPL } { ! O { } } % le ! est obligatoire
+\NewDocumentEnvironment{PitonREPL}{!O{}} % le ! est obligatoire
  { 
    \PitonOptions
      {
@@ -3884,7 +3904,7 @@ car, bien sûr, c'est le retour fait par |{pythonrepl}| qui doit être traité p
  }
  {
    \end{pythonrepl}
-   \lua_now:n
+   \directlua
      {
        tex.print("\\begin{Piton}")
        tex.print(pyluatex.get_last_output())
@@ -3930,7 +3950,7 @@ Voici un exemple d'utilisation de ce nouvel environnement |{PitonREPL}|.
  }
  {
    \end{pythonrepl}
-   \lua_now:n
+    \directlua
      {
        tex.print("\\begin{Piton}")
        tex.print(pyluatex.get_last_output())

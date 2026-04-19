@@ -100,9 +100,6 @@
     'piton.lua'.
   }
 \file_if_exist:nF { piton.lua } { \__piton_fatal:n { piton.lua~not~found } }
-\bool_new:N \g__piton_footnotehyper_bool
-\bool_new:N \g__piton_footnote_bool
-\bool_new:N \g__piton_beamer_bool
 \keys_define:nn { piton }
   {
     footnote .bool_gset:N = \g__piton_footnote_bool ,
@@ -111,7 +108,6 @@
     footnotehyper .usage:n = load ,
 
     beamer .bool_gset:N = \g__piton_beamer_bool ,
-    beamer .default:n = true ,
     beamer .usage:n = load ,
 
     unknown .code:n = \__piton_error:n { Unknown~key~for~package }
@@ -190,51 +186,26 @@
 \tl_new:N \g_piton_last_code_tl
 \seq_new:N \l__piton_path_seq
 \seq_new:N \g__piton_join_seq
-\str_new:N \l__piton_path_write_str
-\bool_new:N \l__piton_tcolorbox_bool
+\str_new:N \l__piton_join_str
 \dim_new:N \l__piton_tcb_margins_dim
 \str_new:N \l__piton_box_str
 \bool_new:N \l__piton_in_PitonOptions_bool
 \bool_new:N \l__piton_in_PitonInputFile_bool
-\tl_new:N \l__piton_font_command_tl
-\tl_set:Nn \l__piton_font_command_tl { \ttfamily }
 \int_new:N \g__piton_nb_lines_int
 \int_new:N \l__piton_nb_non_empty_lines_int
 \int_new:N \g__piton_line_int
-\int_new:N \l__piton_splittable_int
-\int_set:Nn \l__piton_splittable_int { 100 }
-\tl_new:N \l__piton_split_separation_tl
-\tl_set:Nn \l__piton_split_separation_tl
-  { \vspace { \baselineskip } \vspace { -1.25pt } }
 \clist_new:N \l__piton_bg_color_clist
 \int_new:N \l__piton_bg_colors_int
-\tl_new:N \l__piton_prompt_bg_color_tl
-\tl_set:Nn \l__piton_prompt_bg_color_tl { gray!15 }
 \tl_new:N \l__piton_space_in_string_tl
 \str_new:N \l__piton_begin_range_str
 \str_new:N \l__piton_end_range_str
 \bool_new:N \g__piton_math_comments_bool
 \str_new:N \l__piton_file_name_str
-\bool_new:N \l__piton_print_bool
-\bool_set_true:N \l__piton_print_bool
-\str_new:N \l__piton_write_str
-\str_new:N \l__piton_join_str
-\str_new:N \l__piton_join_separation_str
-\str_set:Nn \l__piton_join_separation_str { }
+\bool_new:N \l__piton_tcolorbox_bool
 \bool_new:N \l__piton_paperclip_bool
 \str_new:N \l__piton_paperclip_str
-\bool_new:N \l__piton_annotation_bool
 \int_new:N \g__piton_paperclip_int
 \bool_new:N \l__piton_show_spaces_bool
-\bool_new:N \l__piton_break_lines_in_Piton_bool
-\bool_set_true:N \l__piton_break_lines_in_Piton_bool
-\bool_new:N \l__piton_indent_broken_lines_bool
-\tl_new:N \l__piton_continuation_symbol_tl
-\tl_set:Nn \l__piton_continuation_symbol_tl { + }
-\tl_new:N \l__piton_csoi_tl
-\tl_set:Nn \l__piton_csoi_tl { $ \hookrightarrow \; $  }
-\tl_new:N \l__piton_end_of_broken_line_tl
-\tl_set:Nn \l__piton_end_of_broken_line_tl { \hspace* { 0.5em } \textbackslash }
 \bool_new:N \l__piton_break_lines_in_piton_bool
 \bool_new:N \l__piton_minimize_width_bool
 \dim_new:N \l__piton_width_dim
@@ -245,14 +216,8 @@
 \dim_new:N \l__piton_right_margin_dim
 \bool_new:N \l__piton_left_margin_auto_bool
 \bool_new:N \l__piton_right_margin_auto_bool
-\dim_new:N \l__piton_numbers_sep_dim
-\dim_set:Nn \l__piton_numbers_sep_dim { 0.7 em }
-\int_new:N \l__piton_numbers_step_int
-\int_set:Nn \l__piton_numbers_step_int { 1 }
 \seq_new:N \g__piton_visual_line_numbers_seq
 \seq_new:N \g__piton_languages_seq
-\int_new:N \l__piton_tab_size_int
-\int_set:Nn \l__piton_tab_size_int { 4 }
 \cs_new_protected:Npn \__piton_tab:
   {
     \bool_if:NTF \l__piton_show_spaces_bool
@@ -266,7 +231,6 @@
       { \hbox:n { \prg_replicate:nn \l__piton_tab_size_int { ~ } } }
     \int_gadd:Nn \g__piton_indentation_int \l__piton_tab_size_int
   }
-\int_new:N \l__piton_gobble_int
 \tl_set_eq:NN \l__piton_space_in_string_tl \nobreakspace
 \int_new:N \g__piton_indentation_int
 \cs_new_protected:Npn \__piton_label:n #1
@@ -438,7 +402,7 @@
                   }
                   {
                     \str_if_eq:eeTF \l__piton_line_numbers_position_str { left }
-                      { \__piton_print_number_left: }
+                      \__piton_print_number_left:
                       {
                         \seq_gput_right:Ne \g__piton_visual_line_numbers_seq
                           { \int_use:N \g__piton_visual_line_int }
@@ -641,7 +605,7 @@
               \l__piton_continuation_symbol_tl
             }
             \skip_horizontal:n { 0.3 em }
-            \int_compare:nNnT \l__piton_bg_colors_int > { \c_zero_int }
+            \int_compare:nNnT \l__piton_bg_colors_int > \c_zero_int
               { \skip_horizontal:n { 0.5 em } }
           }
         \bool_if:NT \l__piton_indent_broken_lines_bool
@@ -667,8 +631,6 @@
 \str_new:N \l__piton_line_numbers_position_str
 \str_set:Nn \l__piton_line_numbers_position_str { left }
 \bool_new:N \l__piton_resume_bool
-\bool_new:N \l__piton_split_on_empty_lines_bool
-\bool_new:N \l__piton_splittable_on_empty_lines_bool
 \bool_new:N \g__piton_label_as_zlabel_bool
 \keys_define:nn { PitonOptions / marker }
   {
@@ -677,7 +639,6 @@
     end .cs_set:Np = \__piton_marker_end:n #1 ,
     end .value_required:n = true ,
     include-lines .bool_set:N = \l__piton_marker_include_lines_bool ,
-    include-lines .default:n = true ,
     unknown .code:n = \__piton_error:n { Unknown~key~for~marker }
   }
 \keys_define:nn { PitonOptions / line-numbers }
@@ -696,7 +657,6 @@
       \str_if_eq:nnTF { #1 } { false }
         { \bool_set_false:N \l__piton_skip_empty_lines_bool }
         { \bool_set_true:N \l__piton_skip_empty_lines_bool } ,
-    skip-empty-lines .default:n = true ,
 
     label-empty-lines .code:n =
       \bool_if:NF \l__piton_in_PitonOptions_bool
@@ -704,7 +664,6 @@
       \str_if_eq:nnTF { #1 } { false }
         { \bool_set_false:N \l__piton_label_empty_lines_bool }
         { \bool_set_true:N \l__piton_label_empty_lines_bool } ,
-    label-empty-lines .default:n = true ,
 
     absolute .code:n =
       \bool_if:NTF \l__piton_in_PitonOptions_bool
@@ -725,11 +684,13 @@
 
     sep .dim_set:N = \l__piton_numbers_sep_dim ,
     sep .value_required:n = true ,
+    sep .initial:n = 0.7 em ,
 
     step .int_set:N = \l__piton_numbers_step_int ,
+    step .initial:n = 1 ,
     step .value_required:n = true ,
 
-    position .choices:nn = { left , right  }
+    position .choices:nn = { left , right }
       { \str_set_eq:NN \l__piton_line_numbers_position_str \l_keys_choice_tl } ,
     position .value_required:n = true ,
 
@@ -754,9 +715,7 @@
       { \str_set_eq:NN \l__piton_box_str \l_keys_choice_tl } ,
     box .default:n = c ,
     break-strings-anywhere .bool_set:N = \l__piton_break_strings_anywhere_bool ,
-    break-strings-anywhere .default:n = true ,
     break-numbers-anywhere .bool_set:N = \l__piton_break_numbers_anywhere_bool ,
-    break-numbers-anywhere .default:n = true  ,
     detected-commands .code:n =
       \clist_if_in:nnTF { #1 } { rowcolor }
         {
@@ -810,11 +769,9 @@
     comment-latex .usage:n = preamble ,
 
     label-as-zlabel .bool_gset:N = \g__piton_label_as_zlabel_bool ,
-    label-as-zlabel .default:n = true ,
     label-as-zlabel .usage:n = preamble ,
 
     math-comments .bool_gset:N = \g__piton_math_comments_bool ,
-    math-comments .default:n  = true ,
     math-comments .usage:n = preamble ,
     language      .code:n =
       \str_set:Ne \l_piton_language_str { \str_lowercase:n { #1 } } ,
@@ -831,7 +788,13 @@
     path-write       .str_set:N         = \l__piton_path_write_str ,
     path-write       .value_required:n  = true ,
     font-command     .tl_set:N          = \l__piton_font_command_tl ,
+    font-command     .initial:n         = \ttfamily ,
     font-command     .value_required:n  = true ,
+    font-command+    .code:n
+      = { \tl_put_right:Nn \l__piton_font_command_tl { #1 } } ,
+    font-command+    .value_required:n  = true ,
+    font-command~+   .meta:n            = { font-command+ = #1 } ,
+    font-command~+   .value_required:n  = true ,
     gobble           .int_set:N         = \l__piton_gobble_int ,
     gobble           .default:n         = -1 ,
     auto-gobble      .code:n            = \int_set:Nn \l__piton_gobble_int { -1 } ,
@@ -842,17 +805,17 @@
     tabs-auto-gobble .value_forbidden:n = true ,
 
     splittable-on-empty-lines .bool_set:N = \l__piton_splittable_on_empty_lines_bool ,
-    splittable-on-empty-lines .default:n  = true ,
 
     split-on-empty-lines .bool_set:N = \l__piton_split_on_empty_lines_bool ,
-    split-on-empty-lines .default:n  = true ,
-
     split-separation .tl_set:N         = \l__piton_split_separation_tl ,
     split-separation .value_required:n = true ,
+    split-separation .initial:n = \vspace { \baselineskip } \vspace { -1.25pt } ,
 
-    add-to-split-separation .code:n =
+    split-separation+ .code:n =
       \tl_put_right:Nn \l__piton_split_separation_tl { #1 } ,
-    add-to-split-separation .value_required:n = true ,
+    split-separation+ .value_required:n = true ,
+    split-separation~+ .meta:n = { split-separation+ = #1 } ,
+    add-to-split-separation .meta:n = { split-separation+ = #1 } ,
 
     marker .code:n =
       \bool_lazy_or:nnTF
@@ -864,18 +827,19 @@
 
     line-numbers .code:n =
       \keys_set:nn { PitonOptions / line-numbers } { #1 } ,
-    line-numbers .default:n = true ,
-
     splittable       .int_set:N         = \l__piton_splittable_int ,
     splittable       .default:n         = 1 ,
+    splittable       .initial:n         = 100 ,
     background-color .code:n =
       \clist_set:Nn \l__piton_bg_color_clist { #1 }
       \int_set:Nn \l__piton_bg_colors_int { \clist_count:N \l__piton_bg_color_clist } ,
     background-color .value_required:n  = true ,
     prompt-background-color .tl_set:N         = \l__piton_prompt_bg_color_tl ,
     prompt-background-color .value_required:n = true ,
+    prompt-background-color .initial:n        = gray!15 ,
     print .bool_set:N = \l__piton_print_bool ,
     print .value_required:n = true ,
+    print .initial:n = true ,
 
     width .code:n =
       \str_if_eq:nnTF  { #1 } { min }
@@ -901,7 +865,6 @@
         { \str_set:Nn \l__piton_paperclip_str { #1 } } ,
 
     annotation .bool_set:N = \l__piton_annotation_bool ,
-    annotation .default:n = true ,
 
     write .str_set:N = \l__piton_write_str ,
     write .value_required:n = true ,
@@ -943,25 +906,36 @@
 
     tab-size         .int_set:N         = \l__piton_tab_size_int ,
     tab-size         .value_required:n  = true ,
+    tab-size         .initial:n         = 4 ,
+
     show-spaces      .bool_set:N        = \l__piton_show_spaces_bool ,
     show-spaces      .value_forbidden:n = true ,
+
     show-spaces-in-strings .code:n      =
         \tl_set:Nn \l__piton_space_in_string_tl { ␣ } , % U+2423
     show-spaces-in-strings .value_forbidden:n = true ,
+
     break-lines-in-Piton .bool_set:N    = \l__piton_break_lines_in_Piton_bool ,
-    break-lines-in-Piton .default:n     = true ,
+    break-lines-in-Piton .initial:n     = true ,
+
     break-lines-in-piton .bool_set:N    = \l__piton_break_lines_in_piton_bool ,
-    break-lines-in-piton .default:n     = true ,
+
     break-lines .meta:n = { break-lines-in-piton , break-lines-in-Piton } ,
     break-lines .value_forbidden:n      = true ,
+
     indent-broken-lines .bool_set:N     = \l__piton_indent_broken_lines_bool ,
-    indent-broken-lines .default:n      = true ,
+
     end-of-broken-line  .tl_set:N       = \l__piton_end_of_broken_line_tl ,
     end-of-broken-line  .value_required:n = true ,
+    end-of-broken-line  .initial:n      = \hspace* { 0.5em } \textbackslash ,
+
     continuation-symbol .tl_set:N       = \l__piton_continuation_symbol_tl ,
     continuation-symbol .value_required:n = true ,
+    continuation-symbol .initial:n      = + ,
+
     continuation-symbol-on-indentation .tl_set:N = \l__piton_csoi_tl ,
     continuation-symbol-on-indentation .value_required:n = true ,
+    continuation-symbol-on-indentation .initial:n = $\hookrightarrow \;$ ,
 
     first-line .code:n = \__piton_in_PitonInputFile:n
       { \int_set:Nn \l__piton_first_line_int { #1 } } ,
@@ -1019,7 +993,6 @@
             \keys_define:nn { PitonOptions }
               {
                 tcolorbox .bool_set:N = \l__piton_tcolorbox_bool ,
-                tcolorbox .default:n = true
               }
           }
           {
@@ -1053,10 +1026,7 @@
   { \keys_set:nn { PitonOptions } }
 \int_new:N \g__piton_visual_line_int
 \cs_new_protected:Npn \__piton_incr_visual_line:
-  {
-    \bool_if:NF \l__piton_skip_empty_lines_bool
-      { \int_gincr:N \g__piton_visual_line_int }
-  }
+  { \bool_if:NF \l__piton_skip_empty_lines_bool { \int_gincr:N \g__piton_visual_line_int } }
 \cs_new_protected:Npn \__piton_print_number_left:
   {
     \hbox_overlap_left:n
@@ -1468,13 +1438,13 @@
             \bool_if:NTF \l__piton_tcolorbox_bool
               {
                 \str_if_empty:NTF \l__piton_box_str
-                  { \__piton_composition_iii: }
-                  { \__piton_composition_iv: }
+                  \__piton_composition_iii:
+                  \__piton_composition_iv:
               }
               {
                 \str_if_empty:NTF \l__piton_box_str
-                  { \__piton_composition_i: }
-                  { \__piton_composition_ii: }
+                  \__piton_composition_i:
+                  \__piton_composition_ii:
               }
          }
       }
@@ -1592,15 +1562,15 @@
     \bool_if:NT \l__piton_minimize_width_bool { \__piton_recompute_listing_width: }
     \bool_lazy_any:nT
       {
-        { \int_compare_p:nNn \l__piton_bg_colors_int > { \c_zero_int } }
+        { \int_compare_p:nNn \l__piton_bg_colors_int > \c_zero_int }
         { \g__piton_rowcolor_inside_bool }
         {
           \l__piton_line_numbers_bool
           &&
-          \str_if_eq_p:ee { \l__piton_line_numbers_position_str } { right }
+          \str_if_eq_p:ee \l__piton_line_numbers_position_str { right }
         }
       }
-      { \__piton_add_bg_and_right_nb_to_output_box: }
+      \__piton_add_bg_and_right_nb_to_output_box:
   }
 \cs_new_protected:Npn \__piton_add_bg_and_right_nb_to_output_box:
   {
@@ -2460,7 +2430,7 @@
     end-range,~
     env-gobble,~
     env-used-by-split,~
-    font-command,~
+    font-command(+),~
     gobble,~
     indent-broken-lines,~
     join,~

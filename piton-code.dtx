@@ -377,27 +377,6 @@ piton_version = "4.11" -- 2026/01/08
 \file_if_exist:nF { piton.lua } { \@@_fatal:n { piton.lua~not~found } }
 %    \end{macrocode}
 %
-%
-% \bigskip
-% The boolean |\g_@@_footnotehyper_bool| will indicate if the option
-% |footnotehyper| is used.
-%    \begin{macrocode}
-\bool_new:N \g_@@_footnotehyper_bool
-%    \end{macrocode}
-%
-% \medskip
-% The boolean |\g_@@_footnote_bool| will indicate if the option |footnote| is
-% used, but quickly, it will also be set to |true| if the option |footnotehyper|
-% is used.
-%    \begin{macrocode}
-\bool_new:N \g_@@_footnote_bool
-%    \end{macrocode}
-%
-%
-% \medskip
-%    \begin{macrocode}
-\bool_new:N \g_@@_beamer_bool
-%    \end{macrocode}
 % 
 % \bigskip
 % We define a set of keys for the options at load-time.
@@ -410,7 +389,6 @@ piton_version = "4.11" -- 2026/01/08
     footnotehyper .usage:n = load ,
 
     beamer .bool_gset:N = \g_@@_beamer_bool ,
-    beamer .default:n = true , 
     beamer .usage:n = load ,
 
     unknown .code:n = \@@_error:n { Unknown~key~for~package }
@@ -591,20 +569,12 @@ piton_version = "4.11" -- 2026/01/08
 \seq_new:N \g_@@_join_seq
 %    \end{macrocode}
 % 
-% \medskip
-% The following parameter corresponds to the key |path-write| (which is the path
-% used when writing files from listings inserted in the environments of
-% \pkg{piton} by use of the key |write|).
-%    \begin{macrocode}
-\str_new:N \l_@@_path_write_str
-%    \end{macrocode}
 %
 % \medskip
-% The following parameter corresponds to the key |tcolorbox|.
 %    \begin{macrocode}
-\bool_new:N \l_@@_tcolorbox_bool
+\str_new:N \l_@@_join_str
 %    \end{macrocode}
-%
+% 
 % \medskip
 % When the key |tcolorbox| is used, you will have to take into account the width
 % of the graphical elements added by |tcolorbox| on both sides of the listing.
@@ -626,12 +596,6 @@ piton_version = "4.11" -- 2026/01/08
 \bool_new:N \l_@@_in_PitonInputFile_bool 
 %    \end{macrocode}
 %
-% \medskip
-% The following parameter corresponds to the key |font-command|.
-%    \begin{macrocode}
-\tl_new:N \l_@@_font_command_tl
-\tl_set:Nn \l_@@_font_command_tl { \ttfamily }
-%    \end{macrocode}
 % 
 % \medskip
 % We will compute (with Lua) the numbers of lines of the listings (or
@@ -658,34 +622,6 @@ piton_version = "4.11" -- 2026/01/08
 \int_new:N \g_@@_line_int
 %    \end{macrocode}
 % 
-% \medskip
-% The following counter corresponds to the key |splittable| of |\PitonOptions|.
-% If the value of |\l_@@_splittable_int| is equal to $n$, then no line break can
-% occur within the first $n$~lines or the last $n$~lines of a listing (or a
-% \emph{chunk} of listings when the key |split-on-empty-lines| is in force).
-%    \begin{macrocode}
-\int_new:N \l_@@_splittable_int
-%    \end{macrocode}
-%
-% \medskip
-% An initial value of |splittable| equal to 100 is equivalent to say that the
-% environments |{Piton}| are unbreakable.
-%    \begin{macrocode}
-\int_set:Nn \l_@@_splittable_int { 100 }
-%    \end{macrocode}
-%
-% \medskip
-% When the key |split-on-empty-lines| will be in force, then the following token
-% list will be inserted between the chunks of code (the computer listing provided
-% by the end user is split in chunks on the empty lines in the code). 
-%    \begin{macrocode}
-\tl_new:N \l_@@_split_separation_tl
-\tl_set:Nn \l_@@_split_separation_tl 
-  { \vspace { \baselineskip } \vspace { -1.25pt } }
-%    \end{macrocode}
-% That parameter must contain elements to be inserted in \emph{vertical} mode by
-% TeX. 
-%
 % 
 % \medskip
 % The following string corresponds to the key |background-color| of |\PitonOptions|.
@@ -696,17 +632,6 @@ piton_version = "4.11" -- 2026/01/08
 % We will also keep in memory the length of the previous |clist| (for efficiency).
 %    \begin{macrocode}
 \int_new:N \l_@@_bg_colors_int 
-%    \end{macrocode}
-% 
-% \medskip
-% The package \pkg{piton} will also detect the lines of code which correspond to
-% the user input in a Python console, that is to say the lines of code beginning
-% with |>>>| and |...|. It's possible, with the key |prompt-background-color|,
-% to require a background for these lines of code (and the other lines of code
-% will have the standard background color specified by |background-color|).
-%    \begin{macrocode}
-\tl_new:N \l_@@_prompt_bg_color_tl
-\tl_set:Nn \l_@@_prompt_bg_color_tl { gray!15 }
 %    \end{macrocode}
 %
 % \medskip
@@ -735,28 +660,10 @@ piton_version = "4.11" -- 2026/01/08
 \str_new:N \l_@@_file_name_str 
 %    \end{macrocode}
 %
-%
 % \medskip
-% The following flag corresponds to the key |print|. The initial value of that
-% parameter will be |true| (and not |false|) since, of course, by default, we
-% want to print the content of the environment |{Piton}|
+% The following line can't be deleted.
 %    \begin{macrocode}
-\bool_new:N \l_@@_print_bool
-\bool_set_true:N \l_@@_print_bool
-%    \end{macrocode}
-%
-% \medskip
-% The parameter |\l_@@_write_str| corresponds to the key |write|. 
-%    \begin{macrocode}
-\str_new:N \l_@@_write_str
-%    \end{macrocode}
-%
-% \medskip
-% The parameter |\l_@@_join_str| corresponds to the key |join|. 
-%    \begin{macrocode}
-\str_new:N \l_@@_join_str
-\str_new:N \l_@@_join_separation_str
-\str_set:Nn \l_@@_join_separation_str { }
+\bool_new:N \l_@@_tcolorbox_bool
 %    \end{macrocode}
 %
 % \medskip
@@ -764,7 +671,6 @@ piton_version = "4.11" -- 2026/01/08
 %    \begin{macrocode}
 \bool_new:N \l_@@_paperclip_bool
 \str_new:N \l_@@_paperclip_str
-\bool_new:N \l_@@_annotation_bool
 %    \end{macrocode}
 %
 % \medskip
@@ -780,36 +686,6 @@ piton_version = "4.11" -- 2026/01/08
 \bool_new:N \l_@@_show_spaces_bool
 %    \end{macrocode}
 %
-% \medskip
-% The following booleans correspond to the keys |break-lines| and
-% |indent-broken-lines|.
-%    \begin{macrocode}
-\bool_new:N \l_@@_break_lines_in_Piton_bool
-\bool_set_true:N \l_@@_break_lines_in_Piton_bool
-\bool_new:N \l_@@_indent_broken_lines_bool
-%    \end{macrocode}
-%
-% \medskip
-% The following token list corresponds to the key |continuation-symbol|.
-%    \begin{macrocode}
-\tl_new:N \l_@@_continuation_symbol_tl
-\tl_set:Nn \l_@@_continuation_symbol_tl { + }
-%    \end{macrocode}
-%
-% \medskip
-% The following token list corresponds to the key
-% |continuation-symbol-on-indentation|. The name has been shorten to |csoi|.
-%    \begin{macrocode}
-\tl_new:N \l_@@_csoi_tl 
-\tl_set:Nn \l_@@_csoi_tl { $ \hookrightarrow \; $  }
-%    \end{macrocode}
-%
-% \medskip
-% The following token list corresponds to the key |end-of-broken-line|.
-%    \begin{macrocode}
-\tl_new:N \l_@@_end_of_broken_line_tl 
-\tl_set:Nn \l_@@_end_of_broken_line_tl { \hspace* { 0.5em } \textbackslash }
-%    \end{macrocode}
 %
 % \medskip
 % The following boolean corresponds to the key |break-lines-in-piton|.
@@ -883,20 +759,7 @@ piton_version = "4.11" -- 2026/01/08
 \bool_new:N \l_@@_right_margin_auto_bool
 %    \end{macrocode}
 %
-% \medskip
-% The following dimension corresponds to the key |numbers-sep| of
-% |\PitonOptions|.
-%    \begin{macrocode}
-\dim_new:N \l_@@_numbers_sep_dim 
-\dim_set:Nn \l_@@_numbers_sep_dim { 0.7 em }
-%    \end{macrocode}
 %
-% \medskip
-% The following parameter corresponds to the key |numbers/step|.
-%    \begin{macrocode}
-\int_new:N \l_@@_numbers_step_int
-\int_set:Nn \l_@@_numbers_step_int { 1 }
-%    \end{macrocode}
 %
 % \medskip
 % When the key |line-numbers/position| is set to |right|, we will have
@@ -917,12 +780,6 @@ piton_version = "4.11" -- 2026/01/08
 %    \end{macrocode}
 % 
 %
-% \medskip
-%    \begin{macrocode}
-\int_new:N \l_@@_tab_size_int 
-\int_set:Nn \l_@@_tab_size_int { 4 }
-%    \end{macrocode}
-%
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_tab:
   { 
@@ -937,13 +794,6 @@ piton_version = "4.11" -- 2026/01/08
       { \hbox:n { \prg_replicate:nn \l_@@_tab_size_int { ~ } } }
     \int_gadd:Nn \g_@@_indentation_int \l_@@_tab_size_int 
   }
-%    \end{macrocode}
-%
-% 
-% \medskip
-% The following integer corresponds to the key |gobble|.
-%    \begin{macrocode}
-\int_new:N \l_@@_gobble_int 
 %    \end{macrocode}
 %
 % \medskip
@@ -1321,7 +1171,7 @@ piton_version = "4.11" -- 2026/01/08
                   }
                   {
                     \str_if_eq:eeTF \l_@@_line_numbers_position_str { left }
-                      { \@@_print_number_left: }
+                      \@@_print_number_left: 
                       {
                         \seq_gput_right:Ne \g_@@_visual_line_numbers_seq
                           { \int_use:N \g_@@_visual_line_int }
@@ -1661,7 +1511,7 @@ piton_version = "4.11" -- 2026/01/08
               \l_@@_continuation_symbol_tl 
             } 
             \skip_horizontal:n { 0.3 em }
-            \int_compare:nNnT \l_@@_bg_colors_int > { \c_zero_int } 
+            \int_compare:nNnT \l_@@_bg_colors_int > \c_zero_int 
               { \skip_horizontal:n { 0.5 em } }
           }  
         \bool_if:NT \l_@@_indent_broken_lines_bool
@@ -1696,8 +1546,6 @@ piton_version = "4.11" -- 2026/01/08
 \str_new:N \l_@@_line_numbers_position_str
 \str_set:Nn \l_@@_line_numbers_position_str { left }
 \bool_new:N \l_@@_resume_bool 
-\bool_new:N \l_@@_split_on_empty_lines_bool
-\bool_new:N \l_@@_splittable_on_empty_lines_bool
 \bool_new:N \g_@@_label_as_zlabel_bool
 %    \end{macrocode}
 % 
@@ -1711,7 +1559,6 @@ piton_version = "4.11" -- 2026/01/08
     end .cs_set:Np = \@@_marker_end:n #1 ,   
     end .value_required:n = true ,
     include-lines .bool_set:N = \l_@@_marker_include_lines_bool ,
-    include-lines .default:n = true ,
     unknown .code:n = \@@_error:n { Unknown~key~for~marker } 
   }
 %    \end{macrocode}
@@ -1734,7 +1581,6 @@ piton_version = "4.11" -- 2026/01/08
       \str_if_eq:nnTF { #1 } { false }
         { \bool_set_false:N \l_@@_skip_empty_lines_bool } 
         { \bool_set_true:N \l_@@_skip_empty_lines_bool } ,
-    skip-empty-lines .default:n = true , 
 
     label-empty-lines .code:n = 
       \bool_if:NF \l_@@_in_PitonOptions_bool
@@ -1742,7 +1588,6 @@ piton_version = "4.11" -- 2026/01/08
       \str_if_eq:nnTF { #1 } { false }
         { \bool_set_false:N \l_@@_label_empty_lines_bool } 
         { \bool_set_true:N \l_@@_label_empty_lines_bool } ,
-    label-empty-lines .default:n = true ,
 
     absolute .code:n = 
       \bool_if:NTF \l_@@_in_PitonOptions_bool
@@ -1763,11 +1608,13 @@ piton_version = "4.11" -- 2026/01/08
 
     sep .dim_set:N = \l_@@_numbers_sep_dim ,
     sep .value_required:n = true ,
+    sep .initial:n = 0.7 em , 
 
     step .int_set:N = \l_@@_numbers_step_int ,
+    step .initial:n = 1 ,
     step .value_required:n = true ,
 
-    position .choices:nn = { left , right  }
+    position .choices:nn = { left , right }
       { \str_set_eq:NN \l_@@_line_numbers_position_str \l_keys_choice_tl } , 
     position .value_required:n = true ,
 
@@ -1800,9 +1647,7 @@ piton_version = "4.11" -- 2026/01/08
       { \str_set_eq:NN \l_@@_box_str \l_keys_choice_tl } , 
     box .default:n = c ,
     break-strings-anywhere .bool_set:N = \l_@@_break_strings_anywhere_bool ,
-    break-strings-anywhere .default:n = true , 
     break-numbers-anywhere .bool_set:N = \l_@@_break_numbers_anywhere_bool ,
-    break-numbers-anywhere .default:n = true  ,
 %    \end{macrocode}
 % First, we put keys that should be available only in the preamble.
 %    \begin{macrocode}
@@ -1865,11 +1710,9 @@ piton_version = "4.11" -- 2026/01/08
     comment-latex .usage:n = preamble ,
 
     label-as-zlabel .bool_gset:N = \g_@@_label_as_zlabel_bool ,
-    label-as-zlabel .default:n = true ,
     label-as-zlabel .usage:n = preamble ,
 
     math-comments .bool_gset:N = \g_@@_math_comments_bool ,
-    math-comments .default:n  = true ,
     math-comments .usage:n = preamble , 
 %    \end{macrocode}
 % 
@@ -1895,7 +1738,13 @@ piton_version = "4.11" -- 2026/01/08
     path-write       .str_set:N         = \l_@@_path_write_str ,
     path-write       .value_required:n  = true , 
     font-command     .tl_set:N          = \l_@@_font_command_tl ,
+    font-command     .initial:n         = \ttfamily , 
     font-command     .value_required:n  = true ,
+    font-command+    .code:n
+      = { \tl_put_right:Nn \l__piton_font_command_tl { #1 } } ,
+    font-command+    .value_required:n  = true ,
+    font-command~+   .meta:n            = { font-command+ = #1 } ,
+    font-command~+   .value_required:n  = true ,
     gobble           .int_set:N         = \l_@@_gobble_int , 
     gobble           .default:n         = -1 ,
     auto-gobble      .code:n            = \int_set:Nn \l_@@_gobble_int { -1 } , 
@@ -1906,17 +1755,24 @@ piton_version = "4.11" -- 2026/01/08
     tabs-auto-gobble .value_forbidden:n = true ,
 
     splittable-on-empty-lines .bool_set:N = \l_@@_splittable_on_empty_lines_bool ,
-    splittable-on-empty-lines .default:n  = true ,
 
     split-on-empty-lines .bool_set:N = \l_@@_split_on_empty_lines_bool ,
-    split-on-empty-lines .default:n  = true ,
-
+%    \end{macrocode}    
+% When the key |split-on-empty-lines| is in force, the correspondint token
+% list will be inserted between the chunks of code (the computer listing provided
+% by the end user is split in chunks on the empty lines in the code).
+% % That parameter must contain elements to be inserted in \emph{vertical} mode by
+% TeX. 
+%    \begin{macrocode}
     split-separation .tl_set:N         = \l_@@_split_separation_tl ,
     split-separation .value_required:n = true ,
+    split-separation .initial:n = \vspace { \baselineskip } \vspace { -1.25pt } ,
 
-    add-to-split-separation .code:n =
+    split-separation+ .code:n = 
       \tl_put_right:Nn \l_@@_split_separation_tl { #1 } ,
-    add-to-split-separation .value_required:n = true ,
+    split-separation+ .value_required:n = true ,
+    split-separation~+ .meta:n = { split-separation+ = #1 } ,    
+    add-to-split-separation .meta:n = { split-separation+ = #1 } ,    
  
     marker .code:n = 
       \bool_lazy_or:nnTF
@@ -1928,10 +1784,17 @@ piton_version = "4.11" -- 2026/01/08
 
     line-numbers .code:n = 
       \keys_set:nn { PitonOptions / line-numbers } { #1 } ,
-    line-numbers .default:n = true , 
-
+%    \end{macrocode}
+% 
+% \medskip
+% The following counter corresponds to the key |splittable| of |\PitonOptions|.
+% If the value of |\l_@@_splittable_int| is equal to $n$, then no line break can
+% occur within the first $n$~lines or the last $n$~lines of a listing (or a
+% \emph{chunk} of listings when the key |split-on-empty-lines| is in force).
+%    \begin{macrocode}
     splittable       .int_set:N         = \l_@@_splittable_int ,
-    splittable       .default:n         = 1 , 
+    splittable       .default:n         = 1 ,
+    splittable       .initial:n         = 100 ,
     background-color .code:n =
       \clist_set:Nn \l_@@_bg_color_clist { #1 }
 %    \end{macrocode}
@@ -1939,8 +1802,16 @@ piton_version = "4.11" -- 2026/01/08
 %    \begin{macrocode}
       \int_set:Nn \l_@@_bg_colors_int { \clist_count:N \l_@@_bg_color_clist } ,
     background-color .value_required:n  = true ,
+%    \end{macrocode}
+% The package \pkg{piton} will also detect the lines of code which correspond to
+% the user input in a Python console, that is to say the lines of code beginning
+% with |>>>| and |...|. It's possible, with the key |prompt-background-color|,
+% to require a background for these lines of code (and the other lines of code
+% will have the standard background color specified by |background-color|).
+%    \begin{macrocode}
     prompt-background-color .tl_set:N         = \l_@@_prompt_bg_color_tl ,
     prompt-background-color .value_required:n = true ,
+    prompt-background-color .initial:n        = gray!15 , 
 %    \end{macrocode}
 % With the tuning |write=false|, the content of the environment won't be parsed
 % and won't be printed on the \textsc{pdf}. However, the Lua variables |piton.last_code|
@@ -1949,6 +1820,7 @@ piton_version = "4.11" -- 2026/01/08
 % \begin{macrocode}
     print .bool_set:N = \l_@@_print_bool ,
     print .value_required:n = true ,
+    print .initial:n = true , 
 
     width .code:n = 
       \str_if_eq:nnTF  { #1 } { min } 
@@ -1974,7 +1846,6 @@ piton_version = "4.11" -- 2026/01/08
         { \str_set:Nn \l_@@_paperclip_str { #1 } } ,
 
     annotation .bool_set:N = \l_@@_annotation_bool ,
-    annotation .default:n = true ,
     
     write .str_set:N = \l_@@_write_str ,
     write .value_required:n = true ,
@@ -2015,26 +1886,37 @@ piton_version = "4.11" -- 2026/01/08
     right-margin     .value_required:n  = true ,
 
     tab-size         .int_set:N         = \l_@@_tab_size_int ,
-    tab-size         .value_required:n  = true , 
+    tab-size         .value_required:n  = true ,
+    tab-size         .initial:n         = 4 , 
+
     show-spaces      .bool_set:N        = \l_@@_show_spaces_bool ,
     show-spaces      .value_forbidden:n = true ,
+
     show-spaces-in-strings .code:n      = 
         \tl_set:Nn \l_@@_space_in_string_tl { ␣ } , % U+2423
     show-spaces-in-strings .value_forbidden:n = true ,
+
     break-lines-in-Piton .bool_set:N    = \l_@@_break_lines_in_Piton_bool ,
-    break-lines-in-Piton .default:n     = true ,
+    break-lines-in-Piton .initial:n     = true ,
+ 
     break-lines-in-piton .bool_set:N    = \l_@@_break_lines_in_piton_bool ,
-    break-lines-in-piton .default:n     = true ,
+
     break-lines .meta:n = { break-lines-in-piton , break-lines-in-Piton } , 
     break-lines .value_forbidden:n      = true ,
+
     indent-broken-lines .bool_set:N     = \l_@@_indent_broken_lines_bool ,
-    indent-broken-lines .default:n      = true ,
+
     end-of-broken-line  .tl_set:N       = \l_@@_end_of_broken_line_tl ,
-    end-of-broken-line  .value_required:n = true , 
+    end-of-broken-line  .value_required:n = true ,
+    end-of-broken-line  .initial:n      = \hspace* { 0.5em } \textbackslash ,
+
     continuation-symbol .tl_set:N       = \l_@@_continuation_symbol_tl ,
-    continuation-symbol .value_required:n = true , 
+    continuation-symbol .value_required:n = true ,
+    continuation-symbol .initial:n      = + ,    
+
     continuation-symbol-on-indentation .tl_set:N = \l_@@_csoi_tl ,
-    continuation-symbol-on-indentation .value_required:n = true , 
+    continuation-symbol-on-indentation .value_required:n = true ,
+    continuation-symbol-on-indentation .initial:n = $\hookrightarrow \;$ ,
 
     first-line .code:n = \@@_in_PitonInputFile:n 
       { \int_set:Nn \l_@@_first_line_int { #1 } } ,
@@ -2098,7 +1980,6 @@ piton_version = "4.11" -- 2026/01/08
             \keys_define:nn { PitonOptions }
               {
                 tcolorbox .bool_set:N = \l_@@_tcolorbox_bool ,
-                tcolorbox .default:n = true 
               }
           }
           {
@@ -2174,10 +2055,7 @@ piton_version = "4.11" -- 2026/01/08
 % 
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_incr_visual_line: 
-  { 
-    \bool_if:NF \l_@@_skip_empty_lines_bool
-      { \int_gincr:N \g_@@_visual_line_int }
-  }
+  { \bool_if:NF \l_@@_skip_empty_lines_bool { \int_gincr:N \g_@@_visual_line_int } }
 %    \end{macrocode}
 %
 % \bigskip
@@ -2915,13 +2793,13 @@ piton_version = "4.11" -- 2026/01/08
             \bool_if:NTF \l_@@_tcolorbox_bool
               {
                 \str_if_empty:NTF \l_@@_box_str
-                  { \@@_composition_iii: }
-                  { \@@_composition_iv: }
+                  \@@_composition_iii: 
+                  \@@_composition_iv: 
               }
               {
                 \str_if_empty:NTF \l_@@_box_str
-                  { \@@_composition_i: }
-                  { \@@_composition_ii: }
+                  \@@_composition_i: 
+                  \@@_composition_ii: 
               }
          }
       }
@@ -3128,15 +3006,15 @@ piton_version = "4.11" -- 2026/01/08
     \bool_if:NT \l_@@_minimize_width_bool { \@@_recompute_listing_width: }
     \bool_lazy_any:nT
       {
-        { \int_compare_p:nNn \l_@@_bg_colors_int > { \c_zero_int } }
+        { \int_compare_p:nNn \l_@@_bg_colors_int > \c_zero_int } 
         { \g_@@_rowcolor_inside_bool }
         {
           \l_@@_line_numbers_bool
           &&
-          \str_if_eq_p:ee { \l_@@_line_numbers_position_str } { right }
+          \str_if_eq_p:ee \l_@@_line_numbers_position_str { right }
         }
       }
-      { \@@_add_bg_and_right_nb_to_output_box: }
+      \@@_add_bg_and_right_nb_to_output_box: 
   }
 %    \end{macrocode}
 %
@@ -4490,7 +4368,7 @@ piton_version = "4.11" -- 2026/01/08
     end-range,~
     env-gobble,~
     env-used-by-split,~
-    font-command,~
+    font-command(+),~
     gobble,~
     indent-broken-lines,~
     join,~
