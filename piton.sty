@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.11}
-\def\PitonFileDate{2026/01/08}
+\def\PitonFileVersion{4.12}
+\def\PitonFileDate{2026/04/20}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesExplPackage
   {piton}
@@ -1888,7 +1888,11 @@
   {
     TypeExpression =
       {
-        \SetPitonStyle [ OCaml ] { Identifier = \PitonStyle { Name.Type } }
+        \SetPitonStyle [ OCaml ]
+          {
+            Identifier = \PitonStyle { Name.Type } ,
+            Name.Builtin = \PitonStyle { Name.Type}
+          }
         \__piton_piton:n
       }
   }

@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.11" -- 2026/01/08
+piton_version = "4.12" -- 2026/04/20
 piton.comment_latex = piton.comment_latex or ">"
 piton.comment_latex = "#" .. piton.comment_latex
 piton.write_files = { }
@@ -635,7 +635,7 @@ do
   * (
       P " "
       +
-      P ( ( 1 - S " \"\r" ) ^ 1 )
+      P ( ( P '\\\"' + 1 - S " \"\r" ) ^ 1 )
       +
       EOL -- ?
     ) ^ 0
@@ -647,7 +647,7 @@ do
         * (
             SpaceInString
             +
-            Q ( ( 1 - S " \"\r" ) ^ 1 )
+            Q ( ( P '\\\"' +  1 - S " \"\r" ) ^ 1 )
             +
             EOL
           ) ^ 0
@@ -677,7 +677,7 @@ do
           A = Q "(*"
               * ( V "A"
                   + Q ( ( 1 - S "\r$\"" - "(*" - "*)" ) ^ 1 ) -- $
-                  + ocaml_string
+                  + Q ( ocaml_string )
                   + "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) * "$" -- $
                   + EOL
                 ) ^ 0

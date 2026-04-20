@@ -60,12 +60,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.11}
-\def\PitonFileDate{2026/01/08}
+\def\PitonFileVersion{4.12}
+\def\PitonFileDate{2026/04/20}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.11" -- 2026/01/08
+piton_version = "4.12" -- 2026/04/20
 %</LUA>
 %\fi
 %
@@ -1741,7 +1741,7 @@ piton_version = "4.11" -- 2026/01/08
     font-command     .initial:n         = \ttfamily , 
     font-command     .value_required:n  = true ,
     font-command+    .code:n
-      = { \tl_put_right:Nn \l__piton_font_command_tl { #1 } } ,
+      = { \tl_put_right:Nn \l_@@_font_command_tl { #1 } } ,
     font-command+    .value_required:n  = true ,
     font-command~+   .meta:n            = { font-command+ = #1 } ,
     font-command~+   .value_required:n  = true ,
@@ -3520,7 +3520,11 @@ piton_version = "4.11" -- 2026/01/08
   {
     TypeExpression = 
       { 
-        \SetPitonStyle [ OCaml ] { Identifier = \PitonStyle { Name.Type } } 
+        \SetPitonStyle [ OCaml ]
+          {
+            Identifier = \PitonStyle { Name.Type } ,
+            Name.Builtin = \PitonStyle { Name.Type}             
+          } 
         \@@_piton:n  
       }
   }
@@ -5756,7 +5760,7 @@ do
   * (
       P " " 
       +
-      P ( ( 1 - S " \"\r" ) ^ 1 )
+      P ( ( P '\\\"' + 1 - S " \"\r" ) ^ 1 )
       +
       EOL -- ?
     ) ^ 0
@@ -5771,7 +5775,7 @@ do
         * (
             SpaceInString
             +
-            Q ( ( 1 - S " \"\r" ) ^ 1 )
+            Q ( ( P '\\\"' +  1 - S " \"\r" ) ^ 1 )
             +
             EOL
           ) ^ 0
@@ -5837,7 +5841,7 @@ do
           A = Q "(*"
               * ( V "A"
                   + Q ( ( 1 - S "\r$\"" - "(*" - "*)" ) ^ 1 ) -- $
-                  + ocaml_string
+                  + Q ( ocaml_string )
                   + "$" * K ( 'Comment.Math' , ( 1 - S "$\r" ) ^ 1 ) * "$" -- $
                   + EOL
                 ) ^ 0

@@ -1510,7 +1510,9 @@ def cube(x):
 \end{center}
 
 \vspace{1cm}
-Here is an exemple with the key |max-width|, equal to 7~cm for both listings.
+Here is an example with the key |max-width|, equal to 7~cm for both listings.
+
+\smallskip
 
 \begin{Code}
 \begin{center}
@@ -3434,7 +3436,7 @@ def fact(n):
 
 
 \bigbreak
-Here is now the same example with the join use of the key |background-color|
+Here is now the same example with the use of the key |background-color|
 (cf. p.~\pageref{background-color}).
 
 \medskip
@@ -3726,7 +3728,8 @@ def square(x):
 \label{pyluatex}
 
 
-\textcolor{red}{The following examples require the version 0.7.0 of \pkg{pyluatex}.}
+\textcolor{red}{Caution: The following examples require the version 0.7.0 of
+  \pkg{pyluatex}.}
 
 \bigskip
 
@@ -3848,7 +3851,6 @@ of course, the output of |{pythonrepla}| must be treated by \pkg{piton}. Therefo
 possible to use the escaping tools (|detected-commands|, |begin-escape|, etc.) in the code.
 
 \begin{Verbatim}
-\ExplSyntaxOn
 \NewDocumentEnvironment { PitonREPL } { ! O { } } % the ! is mandatory
  { 
    \PitonOptions
@@ -3862,7 +3864,7 @@ possible to use the escaping tools (|detected-commands|, |begin-escape|, etc.) i
  }
  {
    \end{pythonrepl}
-   \lua_now:n
+   \directlua
      {
        tex.print("\\begin{Piton}")
        tex.print(pyluatex.get_last_output())
@@ -3871,7 +3873,6 @@ possible to use the escaping tools (|detected-commands|, |begin-escape|, etc.) i
      } 
    \ignorespacesafterend
  }
-\ExplSyntaxOff
 \end{Verbatim}
 
 \medskip
@@ -3895,20 +3896,21 @@ Here is an example of use of that new environment |{PitonREPL}|.
 
 \bigskip
 
-\ExplSyntaxOn
-\NewDocumentEnvironment { PitonREPL } { }
+
+\NewDocumentEnvironment { PitonREPL } { ! O { } }
  { 
    \PitonOptions
      {
        background-color=none ,
-       prompt-background-color=blue!15 
+       prompt-background-color=blue!15 ,
+       #1
      }
    \PyLTVerbatimEnv
    \begin{pythonrepl}
  }
  {
    \end{pythonrepl}
-   \lua_now:n
+   \directlua
      {
        tex.print("\\begin{Piton}")
        tex.print(pyluatex.get_last_output())
@@ -3917,7 +3919,7 @@ Here is an example of use of that new environment |{PitonREPL}|.
      }
    \ignorespacesafterend
  }
-\ExplSyntaxOff
+
  
 \begin{PitonREPL}
     def absolute_value(x):
@@ -4401,6 +4403,9 @@ on the \textsc{svn} server of TeX Live:
 }
 
 \subsection*{Changes between versions 4.11 and 4.12}
+
+The documentation has been changed in order to be compatible with the version
+0.7.0 of \pkg{pyluatex}.
 
 New key ``|font-command +|''.
 
