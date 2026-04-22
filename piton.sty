@@ -2098,9 +2098,10 @@
   }
 \cs_new_protected:Npn \__piton_identifier:n #1
   {
-    \cs_if_exist_use:cF { PitonIdentifier _ \l_piton_language_str _ #1 }
+    \str_set:Nn \l_tmpa_str { #1 }
+    \cs_if_exist_use:cF { PitonIdentifier _ \l_piton_language_str _ \l_tmpa_str }
       {
-        \cs_if_exist_use:cF { PitonIdentifier _ #1 }
+        \cs_if_exist_use:cF { PitonIdentifier _ \l_tmpa_str }
           { \PitonStyle { Identifier } }
       }
     { #1 }
@@ -2108,11 +2109,12 @@
 \cs_new_protected:cpn { pitonStyle _ Name.Function.Internal } #1
   {
     { \PitonStyle { Name.Function } { #1 } }
-    \cs_gset_protected:cpn { PitonIdentifier _ \l_piton_language_str _ #1 }
+      \str_set:Nn \l_tmpa_str { #1 }
+    \cs_gset_protected:cpn { PitonIdentifier _ \l_piton_language_str _ \l_tmpa_str }
       { \PitonStyle { UserFunction } }
     \seq_if_exist:cF { g__piton_functions _ \l_piton_language_str _ seq }
       { \seq_new:c { g__piton_functions _ \l_piton_language_str _ seq } }
-    \seq_gput_right:cn { g__piton_functions _ \l_piton_language_str _ seq } { #1 }
+    \seq_gput_right:co { g__piton_functions _ \l_piton_language_str _ seq } \l_tmpa_str
     \seq_if_in:NoF \g__piton_languages_seq { \l_piton_language_str }
       { \seq_gput_left:No \g__piton_languages_seq { \l_piton_language_str } }
   }

@@ -3810,10 +3810,11 @@ piton_version = "4.12" -- 2026/04/20
 % 
 %    \begin{macrocode}
 \cs_new_protected:Npn \@@_identifier:n #1
-  { 
-    \cs_if_exist_use:cF { PitonIdentifier _ \l_piton_language_str _ #1 } 
+  {
+    \str_set:Nn \l_tmpa_str { #1 }
+    \cs_if_exist_use:cF { PitonIdentifier _ \l_piton_language_str _ \l_tmpa_str } 
       { 
-        \cs_if_exist_use:cF { PitonIdentifier _ #1 } 
+        \cs_if_exist_use:cF { PitonIdentifier _ \l_tmpa_str } 
           { \PitonStyle { Identifier } } 
       }
     { #1 } 
@@ -3825,7 +3826,7 @@ piton_version = "4.12" -- 2026/04/20
 % In particular, we have an highlighting of the identifiers which are the
 % names of Python functions previously defined by the user. Indeed, when a
 % Python function is defined, the style |Name.Function.Internal| is applied to
-% that name. We define now that style (you define it directly and you short-cut
+% that name. We define now that style (we define it directly and we short-cut
 % the function |\SetPitonStyle|). 
 %    \begin{macrocode}
 \cs_new_protected:cpn { pitonStyle _ Name.Function.Internal } #1
@@ -3835,13 +3836,14 @@ piton_version = "4.12" -- 2026/04/20
 % which is provided to the end user.
 %    \begin{macrocode}
     { \PitonStyle { Name.Function } { #1 } }
+      \str_set:Nn \l_tmpa_str { #1 } 
 %    \end{macrocode}
 % Now, we specify that the name of the new Python function is a known identifier
 % that will be formatted with the Piton style |UserFunction|. Of course,
 % here the affectation is global because we have to exit many groups and even
 % the environments |{Piton}|).
 %    \begin{macrocode}
-    \cs_gset_protected:cpn { PitonIdentifier _ \l_piton_language_str _ #1 } 
+    \cs_gset_protected:cpn { PitonIdentifier _ \l_piton_language_str _ \l_tmpa_str } 
       { \PitonStyle { UserFunction } }
 %    \end{macrocode}
 % Now, we put the name of that new user function in the dedicated sequence
@@ -3850,7 +3852,7 @@ piton_version = "4.12" -- 2026/04/20
 %    \begin{macrocode}
     \seq_if_exist:cF { g_@@_functions _ \l_piton_language_str _ seq }
       { \seq_new:c { g_@@_functions _ \l_piton_language_str _ seq } }
-    \seq_gput_right:cn { g_@@_functions _ \l_piton_language_str _ seq } { #1 }
+    \seq_gput_right:co { g_@@_functions _ \l_piton_language_str _ seq } \l_tmpa_str
 %    \end{macrocode}
 % We update |\g_@@_languages_seq| which is used only by the command
 % |\PitonClearUserFunctions| when it's used without its optional argument.
@@ -6158,7 +6160,7 @@ do
 %    \end{macrocode}
 %
 % \bigskip
-% Despite its name, then \textsc{lpeg} |DefFunction| deals also with |let open|
+% Despite its name, the \textsc{lpeg} |DefFunction| deals also with |let open|
 % which opens locally a module.
 %    \begin{macrocode}
   local DefFunction =

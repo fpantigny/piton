@@ -784,9 +784,6 @@ all the styles globally.
 \label{rowcolor}
 \indexcommand{rowcolor}
 
-\colorbox{yellow!50}{\textbf{New 4.8}}
-
-\nobreak
 \medskip
 The extension \pkg{piton} provides the command \DefinitionCommand{rowcolor} which adds
 a colored background to the current line (the \emph{whole} line and not only the part with
@@ -1373,9 +1370,6 @@ use |print=false| in some circumstancies (for example, when the key |write| or
 the key |join| is used).
 
 \item \index{paperclip (key)}
-\colorbox{yellow!50}{\textbf{New 4.9}}
-
-\nobreak
 The key \Definition{paperclip} will, for each environment |{Piton}|, add in the right
 margin a \textsc{pdf} annotation linked with a file joined in the \textsc{pdf}
 corresponding to the listing of the environment.
@@ -1403,9 +1397,6 @@ def square(x):
 
 
 \item \index{annotation (key)}
-\colorbox{yellow!50}{\textbf{New 4.9}}
-
-\nobreak
 The key \Definition{annotation} will, for each environment |{Piton}|, add in the right
 margin a \textsc{pdf} annotation whose content is directly the body of the
 environment |{Piton}|.
@@ -3826,16 +3817,16 @@ print(f'The square of 12 is {square(12)}.')
 \end{PitonExecute}
 
 \bigskip
-\subsubsection{Use of the environment \{pythonrepl\} of pyluatex}
+\subsubsection{Use of the environment \{python\} of pyluatex with the key repl}
 
-\label{pythonrepl}
-\index{pythonrepl@\texttt{\{pythonrepl\}} (environment of \pkg{pyluatex})}
+\label{python}
+\index{python@\texttt{\{python\}} (environment of \pkg{pyluatex})}
 
-The environment |{pythonrepl}| of \pkg{pyluatex} submit its content to Python and
-return what we obtain when we submit that code to a \textsc{repl}
-(\emph{read-eval-print loop}) of Python. We obtain a succession of instructions
-preceded by the prompt |>>>| of Python and values returned by Python (and the outputs of
-potential commands |print| of Python).
+With the key |repl| the environment |{python}| of \pkg{pyluatex} submit its
+content to Python and return what we obtain when we submit that code to a
+\textsc{repl} (\emph{read-eval-print loop}) of Python. We obtain a succession of
+instructions preceded by the prompt |>>>| of Python and values returned by
+Python (and the outputs of potential commands |print| of Python).
 
 \medskip
 It's possible to give that to an environment |{Piton}| which will do the usual formatting
@@ -3847,7 +3838,7 @@ the Python interpreter (the color of that background may be changed with the key
 Here a programmation of environment |{PitonREPL}| which does that job (for technical
 reasons, the |!| is here mandatory in the signature of the environment). It's not
 possible to process as previously (in the ``standard'' use of \pkg{pyluatex}) because,
-of course, the output of |{pythonrepla}| must be treated by \pkg{piton}. Therefore, it's not
+of course, the output of |{python}| must be treated by \pkg{piton}. Therefore, it's not
 possible to use the escaping tools (|detected-commands|, |begin-escape|, etc.) in the code.
 
 \begin{Verbatim}
@@ -3860,10 +3851,10 @@ possible to use the escaping tools (|detected-commands|, |begin-escape|, etc.) i
        ~#1
      }
    \PyLTVerbatimEnv
-   \begin{pythonrepl}
+   \begin{python}[repl,quiet]
  }
  {
-   \end{pythonrepl}
+   \end{python}
    \directlua
      {
        tex.print("\\begin{Piton}")
@@ -3906,10 +3897,10 @@ Here is an example of use of that new environment |{PitonREPL}|.
        #1
      }
    \PyLTVerbatimEnv
-   \begin{pythonrepl}
+   \begin{python}[repl,quiet]
  }
  {
-   \end{pythonrepl}
+   \end{python}
    \directlua
      {
        tex.print("\\begin{Piton}")

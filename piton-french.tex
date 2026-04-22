@@ -600,7 +600,7 @@ La valeur par défaut de |rounded-corners| vaut $4$~pt.\footnote{Cette valeur pa
 lignes débutant par le prompt «|>>>|» (et sa continuation «|...|»)
 caractéristique des consoles Python avec boucle \textsc{repl}
 (\emph{read-eval-print loop}). Pour un exemple d'utilisation de cette clé, voir
-la partie \ref{pythonrepl} p.~\pageref{pythonrepl}.
+la partie \ref{python} p.~\pageref{python}.
 
 La valeurs initiale est : |gray!15|
 
@@ -616,7 +616,7 @@ mise à |false|: cf. p.~\pageref{line-breaks}) ;
 \item les fonds colorés spécifiés par les clés |background-color| et
 |prompt-background-color| ;
 \item les fonds colorés tracés par la clé |\rowcolor|
-(cf.~p.\pageref{rowcolor});
+(cf.~p.~\pageref{rowcolor});
 \item la largeur de la boîte LaTeX créée par la clé |box| (cf. p.~\pageref{box}) ;
 \item la largeur de la boîte graphique créée par la clé |tcolorbox|
 (cf. p.~\pageref{tcolorbox}).
@@ -823,8 +823,6 @@ Les styles fournis par défaut par \pkg{piton} sont tous définis globalement.
 
 \label{rowcolor}
 \indexcommand{rowcolor}
-
-\colorbox{yellow!50}{\textbf{Nouveau 4.8}}
 
 \nobreak
 \medskip
@@ -1411,9 +1409,6 @@ d'utiliser |print=false| (dans le cas, par exemple, où la clé |write|, ou bien
 la clé |join|, est utilisée).
 
 \item \index{paperclip (clé)}
-\colorbox{yellow!50}{\textbf{Nouveau 4.9}}
-
-\nobreak
 La clé \Definition{paperclip} va, pour chaque environnement |{Piton}|, ajouter dans la marge
 droite une annotation \textsc{pdf} liée à un fichier joint dans le \textsc{pdf} correspondant
 au listing de l'environnement.
@@ -1441,9 +1436,6 @@ def carré(x):
 
 
 \item \index{annotation (clé)}
-\colorbox{yellow!50}{\textbf{Nouveau 4.9}}
-
-\nobreak
 La clé \Definition{annotation} va, pour chaque environnement |{Piton}|, ajouter
 dans la marge droite une annotation \textsc{pdf} de type note contenant
 directement le listing de l'environnement |{Piton}|.
@@ -3863,17 +3855,18 @@ print(f'Le carré de 12 est {carré(12)}.')
 
 \bigskip
 
-\subsubsection{Utilisation de l'environnement \{pythonrepl\} de pyluatex}
+\subsubsection{Utilisation de l'environnement \{python\} de pyluatex avec la clé repl}
 
-\label{pythonrepl}
+\label{python}
 
-\index{pythonrepl@\texttt{\{pythonrepl\}} (environnement de \pkg{pyluatex})}
+\index{python@\texttt{\{python\}} (environnement de \pkg{pyluatex})}
 
-L'environnement |{pythonrepl}| de \pkg{pyluatex} passe son contenu à Python et renvoie ce
-que l'on obtient quand on fournit ce code à une boucle \textsc{repl}
-(\emph{read-eval-print loop}) de Python. On obtient un entrelacement d'instructions
-précédées par le prompt |>>>| de Python et des valeurs renvoyées par Python (et de ce qui
-a été demandé d'être affiché avec des \piton{print} de Python).
+Avec la clé |repl|, l'environnement |{python}| de \pkg{pyluatex} passe son
+contenu à Python et renvoie ce que l'on obtient quand on fournit ce code à une
+boucle \textsc{repl} (\emph{read-eval-print loop}) de Python. On obtient un
+entrelacement d'instructions précédées par le prompt |>>>| de Python et des
+valeurs renvoyées par Python (et de ce qui a été demandé d'être affiché avec des
+\piton{print} de Python).
 
 \medskip
 Il est ensuite possible de passer cela à un environnement |{Piton}| qui va faire un
@@ -3886,7 +3879,7 @@ fournies à l'interpréteur Python (la couleur de ce fond est réglable avec la 
 Voici la programmation d'un environnement |{PitonREPL}| qui effectue ce travail (pour des
 raisons techniques, le |!| est ici obligatoire dans la signature de l'environnement). On
 ne peut pas procéder comme précédemment (dans l'utilisation «standard» de \pkg{pyluatex})
-car, bien sûr, c'est le retour fait par |{pythonrepl}| qui doit être traité par
+car, bien sûr, c'est le retour fait par |{python}| qui doit être traité par
 \pkg{piton}. De ce fait, il ne sera pas possible de mettre des surcharges (avec
 |detected-commands|, |begin-escape|, etc.) dans le code.
 
@@ -3900,10 +3893,10 @@ car, bien sûr, c'est le retour fait par |{pythonrepl}| qui doit être traité p
        ~#1
      }
    \PyLTVerbatimEnv
-   \begin{pythonrepl}
+   \begin{python}[repl,quiet]
  }
  {
-   \end{pythonrepl}
+   \end{python}
    \directlua
      {
        tex.print("\\begin{Piton}")
@@ -3945,10 +3938,10 @@ Voici un exemple d'utilisation de ce nouvel environnement |{PitonREPL}|.
        background-color=none ,
      }
    \PyLTVerbatimEnv
-   \begin{pythonrepl}
+   \begin{python}[repl,quiet]
  }
  {
-   \end{pythonrepl}
+   \end{python}
     \directlua
      {
        tex.print("\\begin{Piton}")
