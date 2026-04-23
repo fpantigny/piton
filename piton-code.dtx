@@ -1785,6 +1785,10 @@ piton_version = "4.12" -- 2026/04/20
     line-numbers .code:n = 
       \keys_set:nn { PitonOptions / line-numbers } { #1 } ,
 %    \end{macrocode}
+% The following line is mandatory.
+%    \begin{macrocode}
+    line-numbers .default:n = true ,       
+%    \end{macrocode}
 % 
 % \medskip
 % The following counter corresponds to the key |splittable| of |\PitonOptions|.
