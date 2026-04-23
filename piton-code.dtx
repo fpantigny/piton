@@ -1783,7 +1783,9 @@ piton_version = "4.12" -- 2026/04/20
     marker .value_required:n = true , 
 
     line-numbers .code:n = 
-      \keys_set:nn { PitonOptions / line-numbers } { #1 } ,
+      \tl_if_empty:nTF { #1 }
+        { \bool_set_true:N \l__piton_line_numbers_bool \keys_set:nn { PitonOptions / line-numbers } { true } }
+        { \keys_set:nn { PitonOptions / line-numbers } { #1 } } ,
 %    \end{macrocode}
 % 
 % \medskip

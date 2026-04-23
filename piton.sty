@@ -826,7 +826,9 @@
     marker .value_required:n = true ,
 
     line-numbers .code:n =
-      \keys_set:nn { PitonOptions / line-numbers } { #1 } ,
+      \tl_if_empty:nTF { #1 }
+        { \bool_set_true:N \l__piton_line_numbers_bool \keys_set:nn { PitonOptions / line-numbers } { true } }
+        { \keys_set:nn { PitonOptions / line-numbers } { #1 } } ,
     splittable       .int_set:N         = \l__piton_splittable_int ,
     splittable       .default:n         = 1 ,
     splittable       .initial:n         = 100 ,
