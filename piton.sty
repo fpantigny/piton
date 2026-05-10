@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.12}
-\def\PitonFileDate{2026/04/20}
+\def\PitonFileVersion{4.12a}
+\def\PitonFileDate{2026/05/10}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesExplPackage
   {piton}
@@ -84,14 +84,12 @@
         Since~you~use~'ltx-talk',~don't~forget~to~use~piton~in~
         environments~'frame*'.\\
       }
-    That~error~is~fatal.
   }
 \sys_if_engine_luatex:F { \__piton_fatal:n { LuaLaTeX~mandatory } }
 \RequirePackage { luacode }
 \__piton_msg_new:nnn { piton.lua~not~found }
   {
-    The~file~'piton.lua'~can't~be~found.\\
-    This~error~is~fatal.\\
+    The~file~'piton.lua'~can't~be~found.~
     If~you~want~to~know~how~to~retrieve~the~file~'piton.lua',~type~H~<return>.
   }
   {
@@ -2252,37 +2250,37 @@
     There~is~no~environment~piton!\\
     There~is~an~environment~{Piton}~and~a~command~
     \token_to_str:N \piton\ but~there~is~no~environment~
-    {piton}.~This~error~is~fatal.
+    {piton}.
   }
 \__piton_msg_new:nn { rounded-corners~without~Tikz }
   {
     TikZ~not~used \\
     You~can't~use~the~key~'rounded-corners'~because~
-    you~have~not~loaded~the~package~TikZ. \\
-    If~you~go~on,~that~key~will~be~ignored. \\
+    you~have~not~loaded~the~package~TikZ.~
+    If~you~go~on,~your~key~will~be~ignored.~
     You~won't~have~similar~error~till~the~end~of~the~document.
   }
 \__piton_msg_new:nn { tcolorbox~not~loaded }
   {
     tcolorbox~not~loaded \\
     You~can't~use~the~key~'tcolorbox'~because~
-    you~have~not~loaded~the~package~tcolorbox. \\
-    Use~\token_to_str:N \usepackage[breakable]{tcolorbox}. \\
+    you~have~not~loaded~the~package~tcolorbox.~
+    Use~\token_to_str:N \usepackage[breakable]{tcolorbox}.~
     If~you~go~on,~that~key~will~be~ignored.
   }
 \__piton_msg_new:nn { library~breakable~not~loaded }
   {
     breakable~not~loaded \\
     You~can't~use~the~key~'tcolorbox'~because~
-    you~have~not~loaded~the~library~'breakable'~of~tcolorbox'. \\
+    you~have~not~loaded~the~library~'breakable'~of~tcolorbox'.~
     Use~\token_to_str:N \tcbuselibrary{breakable}~in~the~preamble~
-    of~your~document.\\
+    of~your~document.~
     If~you~go~on,~that~key~will~be~ignored.
   }
 \__piton_msg_new:nn { Language~not~defined }
   {
     Language~not~defined \\
-    The~language~'\l_tmpa_tl'~has~not~been~defined~previously.\\
+    The~language~'\l_tmpa_tl'~has~not~been~defined~previously.~
     If~you~go~on,~your~command~\token_to_str:N \NewPitonLanguage\
     will~be~ignored.
   }
@@ -2296,45 +2294,45 @@
 \__piton_msg_new:nn { Unknown~key~NewPitonLanguage }
   {
     Unknown~key~for~\token_to_str:N \NewPitonLanguage.\\
-    The~key~'\l_keys_key_str'~is~unknown.\\
-    This~key~will~be~ignored.\\
+    The~key~'\l_keys_key_str'~is~unknown.~
+    This~key~will~be~ignored.
   }
 \__piton_msg_new:nn { Unknown~key~for~SetPitonStyle }
   {
     The~style~'\l_keys_key_str'~is~unknown.\\
-    This~setting~will~be~ignored.\\
+    This~setting~will~be~ignored.~
     The~available~styles~are~(in~alphabetic~order):~
     \clist_use:Nnnn \g__piton_styles_clist { ~and~ } { ,~ } { ~and~ }.
   }
 \__piton_msg_new:nn { Invalid~key }
   {
     Wrong~use~of~key.\\
-    You~can't~use~the~key~'\l_keys_key_str'~here.\\
-    That~key~will~be~ignored.
+    You~can't~use~the~key~'\l_keys_key_str'~here.~
+    Your~key~will~be~ignored.
   }
 \__piton_msg_new:nn { Unknown~key~for~line-numbers }
   {
     Unknown~key. \\
-    The~key~'line-numbers / \l_keys_key_str'~is~unknown.\\
+    The~key~'line-numbers / \l_keys_key_str'~is~unknown.~
     The~available~keys~of~the~family~'line-numbers'~are~(in~
     alphabetic~order):~
     absolute,~false,~label-empty-lines,~position,~resume,~skip-empty-lines,~
-    sep,~start~and~true.\\
-    That~key~will~be~ignored.
+    sep,~start~and~true.~
+    Your~key~will~be~ignored.
   }
 \__piton_msg_new:nn { Unknown~key~for~marker }
   {
     Unknown~key. \\
-    The~key~'marker / \l_keys_key_str'~is~unknown.\\
+    The~key~'marker / \l_keys_key_str'~is~unknown.~
     The~available~keys~of~the~family~'marker'~are~(in~
-    alphabetic~order):~ beginning,~end~and~include-lines.\\
-    That~key~will~be~ignored.
+    alphabetic~order):~ beginning,~end~and~include-lines.~
+    Your~key~will~be~ignored.
   }
 \__piton_msg_new:nn { bad~range~specification }
   {
     Incompatible~keys.\\
     You~can't~specify~the~range~of~lines~to~include~by~using~both~
-    markers~and~explicit~number~of~lines.\\
+    markers~and~explicit~number~of~lines.~
     Your~whole~file~'\l__piton_file_name_str'~will~be~included.
   }
 \cs_new_nopar:Nn \__piton_thepage:
@@ -2351,7 +2349,7 @@
   {
     Syntax~Error~on~page~\__piton_thepage:.\\
     Your~code~of~the~language~'\l_piton_language_str'~is~not~
-    syntactically~correct.\\
+    syntactically~correct.~
     It~won't~be~printed~in~the~PDF~file.
   }
 \__piton_msg_new:nn { FileError }
@@ -2366,7 +2364,7 @@
   {
     Inexistent~directory.\\
     The~directory~'\l__piton_path_write_str'~
-    given~in~the~key~'path-write'~does~not~exist.\\
+    given~in~the~key~'path-write'~does~not~exist.~
     Nothing~will~be~written~on~'\l__piton_write_str'.
   }
 \__piton_msg_new:nn { begin~marker~not~found }
@@ -2387,8 +2385,8 @@
 \__piton_msg_new:nn { Unknown~file }
   {
     Unknown~file. \\
-    The~file~'#1'~is~unknown.\\
-    Your~command~\token_to_str:N \PitonInputFile\ will~be~discarded.
+    The~file~'#1'~is~unknown.~
+    Your~command~\token_to_str:N \PitonInputFile\ will~be~ignored.
   }
 \cs_new_protected:Npn \__piton_error_if_not_in_beamer:
   {
@@ -2399,20 +2397,19 @@
   {
     Key~'\l_keys_key_str'~without~Beamer.\\
     You~should~not~use~the~key~'\l_keys_key_str'~since~you~
-    are~not~in~Beamer.\\
-    However,~you~can~go~on.
+    are~not~in~Beamer.~However,~you~can~go~on.
   }
 \__piton_msg_new:nn { rowcolor~in~detected-commands }
   {
      'rowcolor'~forbidden~in~'detected-commands'.\\
-     You~should~put~'rowcolor'~in~'raw-detected-commands'.\\
+     You~should~put~'rowcolor'~in~'raw-detected-commands'.~
      That~key~will~be~ignored.
   }
 \__piton_msg_new:nnn { Unknown~key~for~PitonOptions }
   {
     Unknown~key. \\
     The~key~'\l_keys_key_str'~is~unknown~for~\token_to_str:N \PitonOptions.~
-    It~will~be~ignored.\\
+    It~will~be~ignored.~
     For~a~list~of~the~available~keys,~type~H~<return>.
   }
   {
@@ -2474,21 +2471,18 @@
   {
     You~can't~use~the~command~\token_to_str:N \label\
     or~\token_to_str:N \zlabel\ because~the~key~'line-numbers'
-    ~is~not~active.\\
-    If~you~go~on,~that~command~will~ignored.
+    ~is~not~active.~If~you~go~on,~that~command~will~ignored.
   }
 \__piton_msg_new:nn { overlay~without~beamer }
   {
     You~can't~use~an~argument~<...>~for~your~command~
     \token_to_str:N \PitonInputFile\ because~you~are~not~
-    in~Beamer.\\
-    If~you~go~on,~that~argument~will~be~ignored.
+    in~Beamer.~If~you~go~on,~that~argument~will~be~ignored.
   }
 \__piton_msg_new:nn { label~as~zlabel~needs~zref~package }
   {
     The~key~'label-as-zlabel'~requires~the~package~'zref'.~
-    Please~load~the~package~'zref'~before~setting~the~key.\\
-    This~error~is~fatal.
+    Please~load~the~package~'zref'~before~setting~the~key.
   }
 \hook_gput_code:nnn { begindocument } { . }
   {
