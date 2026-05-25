@@ -1,4 +1,5 @@
 % -*- coding: utf-8 ; -*- This file should be compiled with LuaLaTeX only
+\listfiles
 \documentclass{article}
 
 \usepackage{geometry}
@@ -41,9 +42,9 @@
     end-escape = ! ,
     begin-escape-math = \( , 
     end-escape-math = \) ,
-    detected-commands = { highLight , footnote , emph , textsl , textbackslash } ,
-    vertical-detected-commands = newpage ,
-    raw-detected-commands = { NameTable , rowcolor } 
+    detected-commands = { \highLight , \footnote , \emph , \textsl , \textbackslash } ,
+    vertical-detected-commands = \newpage ,
+    raw-detected-commands = { \NameTable , \rowcolor } 
   }
 
 \ExplSyntaxOn
@@ -256,7 +257,7 @@ p.~\pageref{PitonInputFile}.
 
 \end{itemize}
 
-\subsection{The double syntax of the command \textbackslash piton}
+\subsection{The double syntax of the command \texttt{\textbackslash piton}}
 
 \indexcommand{piton}
 
@@ -352,7 +353,7 @@ command.
 \section{Customization}
 
 
-\subsection{The keys of the command \textbackslash PitonOptions}
+\subsection{The keys of the command \texttt{\textbackslash PitonOptions}}
 
 
 \indexcommand{PitonOptions}
@@ -383,12 +384,13 @@ surprise, these instructions are not used for the so-called ``LaTeX comments'').
 The initial value is |\ttfamily| and, thus, \pkg{piton} uses by default the
 current monospace font.
 
-\item \colorbox{yellow!50}{\bfseries New 4.12}
+The key |font-command| has also an ``additive syntax''. That means that it's
+possible to write |font-command +=| $\langle$\textsl{instructions}$\rangle$
+and the tokens $\langle$\textsl{instructions}$\rangle$ will be added
+on the right of the current value of the parameter.
 
-The key \Definition{font-command +} puts some intructions on the right of the
-parameter |font-command|. The name of that parameter contains a space in order
-to be able to write something like, for example,
-|\PitonOptions{font-command += \bfseries}|. Nevertheless, this space is optional.
+In that case, the new formating instructions are added at the right of the current
+value of the parameter.
 
 \item \index{gobble}\label{gobble} The key \Definition{gobble} takes in as
 value a positive integer~$n$: the first $n$ characters are discarded (before
@@ -428,12 +430,9 @@ numbering (if the key |/absolute|, described below, is in force, the key
 key is |true| (and not |false|).\footnote{For the language Python, the empty
 lines in the docstrings are taken into account (by design).}
 
-\item \colorbox{yellow!50}{\textbf{New 4.10}}
-
-\nobreak
-The key \Definition{line-numbers/step} should be used when we don't want to print all the
-numbers of line. If $n$ is the value of that key, only one number out of~$n$
-will be printed. Of course, the initial value is 1.
+\item The key \Definition{line-numbers/step} should be used when we don't want
+to print all the numbers of line. If $n$ is the value of that key, only one
+number out of~$n$ will be printed. Of course, the initial value is 1.
 
 \item With the key \Definition{line-numbers/label-empty-lines}, the labels
 (that is to say the numbers) of the empty lines are displayed. If the key
@@ -473,6 +472,15 @@ The initial value is |\footnotesize\color{gray}|.
 \nobreak
 The key \Definition{line-numbers/position} specifies the position of the numbers.
 Two values are possible: |left| and |right|. The initial value is |left|.
+
+
+\item \colorbox{yellow!50}{\textbf{New 4.13}}
+
+\nobreak
+With the key \Definition{line-numbers/lmmono10-drawn}, the numbers of lines use the
+font \emph{Latin Modern Mono 10}, but the numbers are drawn and are not displayed as text.
+Therefore, during a copy-paste, the \textsc{pdf} readers won't catch those numbers of lines.
+
 \end{itemize}
 
 For convenience, a mechanism of factorisation of the prefix |line-numbers| is
@@ -660,7 +668,7 @@ in force, the tabulations at the beginning of the lines are represented by arrow
 
 \bigskip
 The command |\PitonOptions| provides in fact several other keys which will be
-described further (see in particular the ``Pages breaks and line breaks''
+described further (see in particular the ``Pages breaks and line breaks'',
 p.~\pageref{breakable}). 
 
 \subsection{The styles}
@@ -1121,7 +1129,7 @@ public class Cipher {  // Caesar cipher
 The keys of the command |\lstdefinelanguage| of \pkg{listings} supported by |\NewPitonLanguage| are:
 |morekeywords|, |otherkeywords|, |sensitive|, |keywordsprefix|, |moretexcs|,
 |morestring| (with the letters |b|,
-|d|, |s| and |m|), |morecomment| (with the letters |i|, |l|, |s| and |n|),
+|d|, |s| and |m|), |morecomment| (with the letters |i|, |l|, |s|, |n| and |f|\footnote{For the letter |f|, only a specification for a comment beginning in the first column is allowed.}),
 |moredelim| (with the letters |i|,
 |l|, |s|, |*| and |**|), |moredirectives|, |tag|, |alsodigit|, |alsoletter|
 and |alsoother|.
@@ -1136,9 +1144,10 @@ For example, here is a language called ``LaTeX'' to format LaTeX chunks of codes
 \NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoother = ~@_ }
 \end{Verbatim}
 
-Initially, the characters |@| and |_| are considered as letters because, in
-many computer languages, they are allowed in the keywords and the names of
-the identifiers. With \verb|alsoother = @_|, we retrieve them from the
+Initially, the characters |@| and |_| are considered as letters (in the
+sens of \pkg{listings}) because, in many computer languages, they are
+allowed in the keywords and the names of the identifiers.
+With \verb|alsoother = @_|, we retrieve them from the
 category of the letters. 
 
 \section{Import and export}
@@ -1730,33 +1739,6 @@ def square(x):
 def square(x):
     """Computes the square of x"""
     return x*x
-def square(x):
-    """Computes the square of x"""
-    return x*x
-def square(x):
-    """Computes the square of x"""
-    return x*x
-def square(x):
-    """Computes the square of x"""
-    return x*x
-def square(x):
-    """Computes the square of x"""
-    return x*x
-def square(x):
-    """Computes the square of x"""
-    return x*x
-def square(x):
-    """Computes the square of x"""
-    return x*x
-def square(x):
-    """Computes the square of x"""
-    return x*x
-def square(x):
-    """Computes the square of x"""
-    return x*x
-def square(x):
-    """Computes the square of x"""
-    return x*x
 \end{Piton}
 
 \bigskip
@@ -1919,7 +1901,7 @@ When the key |splittable| is used with the numeric value~$n$ (which must be a
 positive integer) the listing, or each part of the listing delimited by empty
 lines (when |split-on-empty-lines| is in force) may be broken anywhere with
 the restriction that no break will occur within the $n$ first lines of
-the listing or within the $n$ last lines.\footnote{Remark that we speak of the
+the listing or within the $n$ last lines.\footnote{Remark that we speak of thes
 lines of the original computer listing and such line may be composed on
 several lines in the final \textsc{pdf} when the key |break-lines-in-Piton| is
 in force.} 
@@ -2362,8 +2344,8 @@ directly by \pkg{piton}.
 \begin{itemize}
 \item The key |detected-commands| must be used in the preamble of the LaTeX document.
 
-\item The names of the LaTeX commands must appear without the leading
-backslash (eg. |detected-commands = { emph, textbf }|). 
+\item The names of the LaTeX commands may appear \emph{with} or \emph{without}
+the leading backslash (eg. |detected-commands = { \emph, textbf }|).
 
 \item These commands must be LaTeX commands with only one (mandatory) argument
 between braces (and these braces must appear explicitly in the computer
@@ -2386,7 +2368,7 @@ the package \pkg{luacolor}.} directly does the job.
 \medskip
 \begin{footnotesize}
 \begin{Verbatim}
-\PitonOptions{~emphase#detected-commands@ = highLight} % in the preamble
+\PitonOptions{~emphase#detected-commands@ = \highLight} % in the preamble
 \end{Verbatim}
 \end{footnotesize}
 
@@ -2435,7 +2417,7 @@ In the preamble of the LaTeX document, we insert the following lines:
 
 \begin{Verbatim}
 \NewDocumentCommand{\NameTable}{m}{{\PitonStyle{Name.Table}{~#1}}}
-\PitonOptions{language=SQL, ~emphase#raw-detected-commands = NameTable@}
+\PitonOptions{language=SQL, ~emphase#raw-detected-commands = \NameTable@}
 \end{Verbatim}
 
 In the main document, the instruction:
@@ -2463,7 +2445,7 @@ which are executed in \emph{vertical} mode between the lines of the code.
 For example, it's possible to detect the command |\newpage| by
 
 \begin{Verbatim}
-\PitonOptions{vertical-detected-commands = newpage}
+\PitonOptions{~emphase#vertical-detected-commands@ = \newpage}
 \end{Verbatim}
 
 and ask in a listing a mandatory break of page with |\newpage{}| (the pair of braces |{}|
@@ -2690,8 +2672,8 @@ and not |'''| nor |"""|. In Python, the short strings can't
 extend on several lines.} of Python are not considered.
 
 \medskip
-Regarding the functions |\alt| and |\temporal| there should be no carriage
-returns in the mandatory arguments of these functions.
+Regarding the functions |\alt| and |\temporal|, there should be no carriage
+return in the mandatory arguments of these functions.
 
 \medskip
 Here is a complete example of file:
@@ -3380,7 +3362,7 @@ def arctan(x,n=10):
 \endgroup
 
 
-\subsection{The command \textbackslash rowcolor}
+\subsection{The command \texttt{\textbackslash rowcolor}}
 
 \indexcommand{rowcolor}
 
@@ -4108,7 +4090,9 @@ It's possible to switch to the language |OCaml| with the key |language|:
                      |end|, |external|, |functor|, |include|, |inherit|, |initializer|,
                      |in|, |let|, |method|, |module|, |object|, |open|, |rec|, |sig|,
                      |struct|, |type| and |val|. \\
- Identifier & the identifiers. \\
+  Identifier & the identifiers \\
+  Delim    & the delimiters |(|, |[|, \verb+[|+, |)|, |]| and \verb+|]+ \\
+  Punct    & the symbols of ponctuation |,| |:|, |;| and |!|. \\
   \bottomrule
 \end{tabularx}
 \end{center}
@@ -4243,7 +4227,7 @@ for the language SQL the style |Keywords|.
 \end{Verbatim}
 
 \newpage
-\subsection{The languages defined by \textbackslash NewPitonLanguage}
+\subsection{The languages defined by \texttt{\textbackslash NewPitonLanguage}}
 
 \vspace{1cm}
 The command |\NewPitonLanguage|, which defines new computer languages with the
@@ -4392,6 +4376,10 @@ on the \textsc{svn} server of TeX Live:
 \small
 \nolinkurl{https://tug.org/svn/texlive/trunk/Master/texmf-dist/tex/lualatex/piton/piton.sty}
 }
+
+\subsection*{Changes between versions 4.12 and 4.13}
+
+New key |line-numbers/lmmono10-drawn|.
 
 \subsection*{Changes between versions 4.11 and 4.12}
 

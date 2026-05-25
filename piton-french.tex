@@ -15,9 +15,9 @@
     end-escape = ? ,
     begin-escape-math = \( , 
     end-escape-math = \) ,
-    detected-commands =  { highLight , footnote , emph , textsl , textbackslash } ,
-    vertical-detected-commands = newpage ,
-    raw-detected-commands = { NomTable , rowcolor } ,
+    detected-commands =  { \highLight , \footnote , \emph , \textsl , \textbackslash } ,
+    vertical-detected-commands = \newpage ,
+    raw-detected-commands = { \NomTable , \rowcolor } ,
   }
 
 
@@ -300,7 +300,7 @@ p.~\pageref{PitonInputFile}.
 \end{itemize}
 
 
-\subsection{La double syntaxe de la commande \textbackslash piton}
+\subsection{La double syntaxe de la commande \texttt{\textbackslash piton}}
 
 \indexcommand{piton}
 
@@ -401,7 +401,7 @@ l'argument d'une autre fonction.
 \section{Personnalisation}
 
 
-\subsection{Les clés de la commande \textbackslash PitonOptions}
+\subsection{Les clés de la commande \texttt{\textbackslash PitonOptions}}
 
 
 \indexcommand{PitonOptions}
@@ -431,12 +431,11 @@ lesquels ces instructions de fonte ne sont pas utilisées).
 La valeur initiale de ce paramètre |font-command| est |\ttfamily|, ce qui fait,
 que, par défaut, \pkg{piton} utilise la fonte mono-chasse courante.
 
-\item \index{font-command +}
-\colorbox{yellow!50}{\bfseries Nouveau 4.12}\enskip
-La clé \Definition{font-command +} ajoute des instructions à droite du paramètre
-|font-command|. Le nom de cette clé contient un espace de manière à pouvoir écrire, par
-exemple, |\PitonOptions{font-command += \bfseries}|. Néanmoins, cet espace
-est facultatif.
+Cette clé possède aussi une syntaxe additive avec, c'est-à-dire que l'on peut
+écrire : |font-command +=| $\langle$\textsl{instructions}$\rangle$. Les
+tokens $\langle$\textsl{instructions}$\rangle$ sont alors ajoutées à droite
+de la valeur courante du paramètre.
+
 
 \item \index{gobble}\label{gobble} La clé \Definition{gobble} prend comme valeur
 un entier positif $n$ : les $n$ premiers caractères de chaque ligne sont alors
@@ -484,12 +483,10 @@ est active, la clé |/label-empty-lines| est sans effet. La valeur initiale de
 cette clé est |true|.\footnote{Quand la clé |split-on-empty-lines| est activée,
   les labels des lignes vides ne sont jamais imprimés.}
 
-\item \colorbox{yellow!50}{\textbf{Nouveau 4.10}}
-
-\nobreak
-La clé \Definition{line-numbers/step} doit être utilisée quand on ne veut pas faire afficher
-tous les numéros de ligne. Si $n$ est la valeur de cette clé, les numéros ne
-seront affichés que de~$n$ en~$n$. Bien sûr, la valeur initiale vaut~$1$.
+\item La clé \Definition{line-numbers/step} doit être utilisée quand on ne veut
+pas faire afficher tous les numéros de ligne. Si $n$ est la valeur de cette clé,
+les numéros ne seront affichés que de~$n$ en~$n$. Bien sûr, la valeur initiale
+vaut~$1$.
 
 \item La clé \Definition{line-numbers/absolute} demande, pour les listings
 générés par |\PitonInputFile|, que les numéros de lignes affichés soient absolus
@@ -524,6 +521,16 @@ La valeur initiale est |\footnotesize \color{gray}|.
 La clé \Definition{line-numbers/position} indique la position des numéros : à
 gauche, avec la valeur |left| ou bien à droite avec la valeur |right|. La valeur
 initiale est |left|.
+
+
+\item \colorbox{yellow!50}{\textbf{Nouveau 4.13}}
+
+\nobreak
+Avec la clé \Definition{line-numbers/lmmono10-drawn}, les numéros de lines
+utilisent la fonte \emph{Latin Modern Mono 10} mais les chiffres sont dessinés
+et non affichés comme du texte. Ainsi, lors d'un copier-coller, les lecteurs de
+\textsc{pdf} ne captureront pas ces numéros de lignes.
+
 \end{itemize}
 
 Pour la commodité, un dispositif de factorisation du préfixe |line-numbers| est
@@ -1170,7 +1177,7 @@ public class Cipher { // cryptage par le chiffre de César
 Les clés de la commande |\lstdefinelanguage| de \pkg{listings} prises en charge par
 |\NewPitonLanguage| sont : |morekeywords|, |otherkeywords|, |sensitive|, |keywordsprefix|,
 |moretexcs|, |morestring| (avec les lettres |b|, |d|, |s| et |m|), |morecomment| (avec les
-lettres |i|, |l|, |s| et |n|), |moredelim| (avec les lettres |i|, |l|, |s|, |*| et |**|),
+lettres |i|, |l|, |s|, |n| et |f|\footnote{Pour la lettre |f|, seule une spécification de commentaire commençant en  première colonne est autorisée.})), |moredelim| (avec les lettres |i|, |l|, |s|, |*| et |**|),
 |moredirectives|, |tag|, |alsodigit|, |alsoletter| et |alsoother|.
 
 Pour la description de ces clés, on renvoie à la documentation de \pkg{listings} (taper
@@ -1185,8 +1192,8 @@ Par exemple, pour formater du code LaTeX, on pourra créer le language suivant :
 \end{verbatim}
 } 
 
-Initialement, les caractères |@| et |_| sont considérés comme des lettres car de nombreux
-langages de programmation les autorisent dans les mots-clés et les identificateurs. Avec
+Initialement, les caractères |@| et |_| sont considérés comme des lettres (au sens de \pkg{listings})
+car de nombreux langages de programmation les autorisent dans les mots-clés et les identificateurs. Avec
 \verb|alsoother = @_|, on les retire de la catégorie des lettres.
 
 \section{Importation et exportation de listings}
@@ -1751,24 +1758,6 @@ def carré(x):
 def carré(x):
     """Calcule le carré de x"""
     return x*x
-def carré(x):
-    """Calcule le carré de x"""
-    return x*x
-def carré(x):
-    """Calcule le carré de x"""
-    return x*x
-def carré(x):
-    """Calcule le carré de x"""
-    return x*x
-def carré(x):
-    """Calcule le carré de x"""
-    return x*x
-def carré(x):
-    """Calcule le carré de x"""
-    return x*x
-def carré(x):
-    """Calcule le carré de x"""
-    return x*x  
 def carré(x):
     """Calcule le carré de x"""
     return x*x
@@ -2403,8 +2392,8 @@ noms de commandes LaTeX qui seront directement détectées par \pkg{piton}.
 \item Cette clé |detected-commands| ne peut être utilisée que dans le préambule du
 document.
 
-\item Les noms de commandes LaTeX doivent apparaître sans la contre-oblique (ex. :
-|detected-commands = { emph , textbf }|).
+\item Les noms de commandes LaTeX peuvent apparaître \emph{avec} ou \emph{sans}
+la contre-oblique (ex. : |detected-commands = { \emph , textbf }|).
 
 \item Ces commandes doivent être des commandes LaTeX à un seul argument obligatoire entre
 accolades (et ces accolades doivent apparaître explicitement dans le listing).
@@ -2427,7 +2416,7 @@ factorielle, on décide de surligner en jaune l'appel récursif. La commande
 
 \begin{footnotesize}
 \begin{Verbatim}
-\PitonOptions{~emphase#detected-commands@ = highLight} % dans le préambule
+\PitonOptions{~emphase#detected-commands@ = \highLight} % dans le préambule
 \end{Verbatim}
 \end{footnotesize}
 
@@ -2476,7 +2465,7 @@ une commande personnelle |\NomTable|
 Dans le préambule du document LaTeX, on insère les lignes suivantes :
 \begin{Verbatim}
 \NewDocumentCommand{\NomTable}{m}{{\PitonStyle{Name.Table}{~#1}}}
-\PitonOptions{language=SQL, ~emphase#raw-detected-commands = NomTable@}
+\PitonOptions{language=SQL, ~emphase#raw-detected-commands = \NomTable@}
 \end{Verbatim}
 
 Dans le corps du document, l'instruction :
@@ -2506,7 +2495,7 @@ du listing.
 On peut par exemple demander la détection de |\newpage| par
 
 \begin{Verbatim}
-\PitonOptions{vertical-detected-commands = newpage}
+\PitonOptions{~emphase#vertical-detected-commands@ = \newpage}
 \end{Verbatim}
 
 et demander dans un listing un saut de page obligatoire par |\newpage{}| (la paire
@@ -3425,7 +3414,7 @@ def arctan(x,n=10):
 \end{Piton}
 \endgroup
 
-\subsection{La commande \textbackslash rowcolor}
+\subsection{La commande \texttt{\textbackslash rowcolor}}
 
 \indexcommand{rowcolor}
 
@@ -4150,7 +4139,9 @@ On peut basculer vers le langage |OCaml| avec la clé |language| : |language = O
                       |end|, |external|, |functor|, |include|, |inherit|, |initializer|,
                       |in|, |let|, |method|, |module|, |object|, |open|, |rec|, |sig|,
                       |struct|, |type| et |val|. \\
-  Identifier & les identificateurs. \\
+  Identifier & les identificateurs \\
+  Delim      & les délimiteurs |(|, |[|, \verb+[|+, |)|, |]| et \verb+|]+ \\
+  Punct      & les symboles de ponctuation |,| |:|, |;| et |!|. \\
   \bottomrule
 \end{tabularx}
 \end{center}
@@ -4287,7 +4278,7 @@ style |Keywords| localement pour le langage SQL avec l'instruction :
 
 \newpage
 
-\subsection{Les langages définis par la commande \textbackslash NewPitonLanguage}
+\subsection{Les langages définis par la commande \texttt{\textbackslash NewPitonLanguage}}
 
 \indexcommand{NewPitonLanguage}
 

@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.12a" -- 2026/05/10
+piton_version = "4.13" -- 2026/05/25
 piton.comment_latex = piton.comment_latex or ">"
 piton.comment_latex = "#" .. piton.comment_latex
 piton.write_files = { }
@@ -560,7 +560,7 @@ do
     = Space + Punct + Delim + EOL + Beamer + DetectedCommands + Escape +
     EscapeMath + -1
   local Main =
-       space ^ 0 * EOL -- faut-il le mettre en commentaire ?
+       space ^ 0 * EOL
        + Space
        + Tab
        + Escape + EscapeMath
@@ -593,7 +593,7 @@ do
          ( space ^ 0 * "\r" ) ^ -1
          * Lc [[ \__piton_begin_line: ]]
          * LeadingSpace ^ 0
-         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
+         * ( space ^ 1 * -1 + Main ) ^ 0
          * -1
          * Lc [[ \__piton_end_line: ]]
        )
@@ -684,8 +684,8 @@ do
               * Q "*)"
         }
   local Comment = WithStyle ( 'Comment.Internal' , comment )
-  local Delim = Q ( P "[|" + "|]" + S "[()]" )
-  local Punct = Q ( S ",:;!" )
+  local Delim = K ( 'Delim' , P "[|" + "|]" + S "[()]" )
+  local Punct = K ( 'Punct' , S ",:;!" )
   local cap_identifier = R "AZ" * ( R "az" + R "AZ" + S "_'" + digit ) ^ 0
   local Constructor =
     P "::"
@@ -1116,7 +1116,7 @@ do
          ( space ^ 0 * P "\r" ) ^ -1
          * Lc [[ \__piton_begin_line: ]]
          * LeadingSpace ^ 0
-         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
+         * ( space ^ 1 * -1 + Main ) ^ 0
          * -1
          * Lc [[ \__piton_end_line: ]]
        )
@@ -1280,7 +1280,7 @@ do
          ( space ^ 0 * "\r" ) ^ -1
          * Lc [[ \__piton_begin_line: ]]
          * LeadingSpace ^ 0
-         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
+         * ( space ^ 1 * -1 + Main ) ^ 0
          * -1
          * Lc [[ \__piton_end_line: ]]
        )
@@ -1342,7 +1342,7 @@ do
          ( space ^ 0 * "\r" ) ^ -1
          * Lc [[ \__piton_begin_line: ]]
          * LeadingSpace ^ 0
-         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
+         * ( space ^ 1 * -1 + Main ) ^ 0
          * -1
          * Lc [[ \__piton_end_line: ]]
        )
@@ -1387,7 +1387,7 @@ do
          ( space ^ 0 * "\r" ) ^ -1
          * Lc [[ \__piton_begin_line: ]]
          * LeadingSpace ^ 0
-         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
+         * ( space ^ 1 * -1 + Main ) ^ 0
          * -1
          * Lc [[ \__piton_end_line: ]]
        )
@@ -1476,7 +1476,7 @@ do
          ( space ^ 0 * "\r" ) ^ -1
          * Lc [[ \__piton_begin_line: ]]
          * LeadingSpace ^ 0
-         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
+         * ( space ^ 1 * -1 + Main ) ^ 0
          * -1
          * Lc [[ \__piton_end_line: ]]
        )
@@ -2082,30 +2082,40 @@ function piton.new_language ( lang , definition )
     + Compute_RawDetectedCommands ( lang , braces )
 
   LPEG_cleaner[lang] = Compute_LPEG_cleaner ( lang , braces )
-  local CommentDelim = P ( false )
+  local sComment = P ( false )
+  local lComment = P ( false )
+  local fComment = P ( false )
+  local fComment = P ( false )
 
   for _ , x in ipairs ( def_table ) do
     if x[1] == "morecomment" then
       local arg1 , arg2 , other_args = args_for_morecomment : match ( x[2] )
       arg2 = arg2 or [[\PitonStyle{Comment}]]
       if arg1 : match "i" then arg2 = [[\PitonStyle{Discard}]] end
-      if arg1 : match "l" then
+      if arg1 : match "l" or arg1 : match "f" then
         local arg3 = ( tex_braced_arg + C ( P ( 1 ) ^ 0 * -1 ) )
                      : match ( other_args )
         if arg3 == [[\#]] then arg3 = "#" end -- mandatory
-        if arg3 == [[\%]] then arg3 = "%" end -- mandatory¨
-        CommentDelim = CommentDelim +
+        if arg3 == [[\%]] then arg3 = "%" end -- mandatory
+        local MyLPEG =
             Ct ( Cc "Open"
-                 * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
+                 * Cc ( "{" .. arg2 .. [[{\PitonSpaceSubstitute{]] )
+                 * Cc "}}}"
+               )
                  * Q ( arg3 )
-                 * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $
+                 * ( CommentMath + Q ( ( 1 - S "$\r" ) ^ 1 ) ) ^ 0 -- $ noqa
             * Ct ( Cc "Close" )
             * ( EOL + -1 )
+         if arg1 : match "l" then
+           lComment = lComment + MyLPEG
+         else
+           fComment = fComment + MyLPEG
+         end
       else
         local arg3 , arg4 =
           ( tex_arg * space ^ 0 * tex_arg ) : match ( other_args )
         if arg1 : match "s" then
-          CommentDelim = CommentDelim +
+          sComment = sComment +
               Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
               * Q ( arg3 )
               * (
@@ -2117,7 +2127,7 @@ function piton.new_language ( lang , definition )
               * Ct ( Cc "Close" )
         end
         if arg1 : match "n" then
-          CommentDelim = CommentDelim +
+          sComment = sComment +
             Ct ( Cc "Open" * Cc ( "{" .. arg2 .. "{" ) * Cc "}}" )
              * P { "A" ,
                   A = Q ( arg3 )
@@ -2154,7 +2164,7 @@ function piton.new_language ( lang , definition )
         left_delim = Q ( arg4 )
       end
       if arg2 : match "l" then
-        CommentDelim = CommentDelim +
+        sComment = sComment +
             Ct ( Cc "Open" * Cc ( "{" .. arg3 .. "{" ) * Cc "}}" )
             * left_delim
             * ( MyFun ( ( 1 - P "\r" ) ^ 1 ) ) ^ 0
@@ -2168,7 +2178,7 @@ function piton.new_language ( lang , definition )
         else
           right_delim = Q ( arg5 )
         end
-        CommentDelim = CommentDelim +
+        sComment = sComment +
             Ct ( Cc "Open" * Cc ( "{" .. arg3 .. "{" ) * Cc "}}" )
             * left_delim
             * ( MyFun ( ( 1 - P ( arg5 ) - "\r" ) ^ 1 ) + EOL ) ^ 0
@@ -2180,15 +2190,25 @@ function piton.new_language ( lang , definition )
 
   local Delim = Q ( S "{[()]}" )
   local Punct = Q ( S "=,:;!\\'\"" )
+  local EOL =
+    P "\r"
+    *
+    (
+      space ^ 0 * -1
+      +
+      Cc "EOL"
+    )
+    * ( ( fComment + lComment ) ^ 0 * LeadingSpace ^ 0 * # ( 1 - S " \r" ) ) ^ -1
   local Main =
-       space ^ 0 * EOL
+    space ^ 0 * EOL * ( fComment + lComment ) ^ 0
        + Space
        + Tab
        + Escape + EscapeMath
        + CommentLaTeX
        + Beamer
        + DetectedCommands
-       + CommentDelim
+       + sComment
+       + lComment
        + LongString
        + Delim
        + PrefixedKeyword
@@ -2202,8 +2222,9 @@ function piton.new_language ( lang , definition )
     Ct (
          ( space ^ 0 * P "\r" ) ^ -1
          * Lc [[ \__piton_begin_line: ]]
+         * ( fComment + lComment ) ^ 0 -- 2026-05-12
          * LeadingSpace ^ 0
-         * ( space ^ 1 * -1 + space ^ 0 * EOL + Main ) ^ 0
+         * ( space ^ 1 * -1 + Main ) ^ 0
          * -1
          * Lc [[ \__piton_end_line: ]]
        )
@@ -2223,7 +2244,7 @@ function piton.new_language ( lang , definition )
             + CommentLaTeX
             + Beamer
             + DetectedCommands
-            + CommentDelim
+            + sComment
             + Delim
             + LongString
             + PrefixedKeyword
@@ -2234,7 +2255,7 @@ function piton.new_language ( lang , definition )
             + Word
     LPEG0[lang] = MainWithoutTag ^ 0
     local LPEGaux = Tab + Escape + EscapeMath + CommentLaTeX
-                    + Beamer + DetectedCommands + CommentDelim + Tag
+                    + Beamer + DetectedCommands + sComment + Tag
     MainWithTag
             = space ^ 1 * -1
             + space ^ 0 * EOL

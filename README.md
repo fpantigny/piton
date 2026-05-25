@@ -12,9 +12,6 @@ The LaTeX extension `piton` is distributed under the LPPL 1.3 license.
 ## Presentation
 
 The package `piton` provides tools to typeset computer listings, with syntactic highlighting, by using the Lua library LPEG. It requires the use of `lualatex` and won't work with `xelatex` nor `pdflatex`. 
-
-It requires the use of LuaLaTeX and won't work the other TeX engines (xelatex, pdflatex, etc.).
-
 ## Installation
 
 The package `piton` is present in the distributions MiKTeX, TeX Live and MacTeX.
