@@ -431,7 +431,7 @@ lesquels ces instructions de fonte ne sont pas utilisées).
 La valeur initiale de ce paramètre |font-command| est |\ttfamily|, ce qui fait,
 que, par défaut, \pkg{piton} utilise la fonte mono-chasse courante.
 
-Cette clé possède aussi une syntaxe additive avec, c'est-à-dire que l'on peut
+Cette clé possède aussi une syntaxe additive, c'est-à-dire que l'on peut
 écrire : |font-command +=| $\langle$\textsl{instructions}$\rangle$. Les
 tokens $\langle$\textsl{instructions}$\rangle$ sont alors ajoutées à droite
 de la valeur courante du paramètre.
@@ -514,6 +514,10 @@ comme |\fbox|.
 
 La valeur initiale est |\footnotesize \color{gray}|.
 
+Cette clé possède aussi une syntaxe additive, c'est-à-dire que l'on peut
+écrire : |format +=| $\langle$\textsl{instructions}$\rangle$. Les
+tokens $\langle$\textsl{instructions}$\rangle$ sont alors ajoutées à droite
+de la valeur courante du paramètre.
 
 \item \colorbox{yellow!50}{\textbf{Nouveau 4.11}}
 
@@ -544,7 +548,7 @@ disponible, c'est-à-dire que l'on peut écrire, par exemple :
         skip-empty-lines = false ,
         label-empty-lines = false ,
         sep = 1 em ,
-        format = \footnotesize \color{blue}
+        format += \color{blue}
       }
   }
 \end{Code}
@@ -1175,10 +1179,11 @@ public class Cipher { // cryptage par le chiffre de César
 
 \bigskip
 Les clés de la commande |\lstdefinelanguage| de \pkg{listings} prises en charge par
-|\NewPitonLanguage| sont : |morekeywords|, |otherkeywords|, |sensitive|, |keywordsprefix|,
-|moretexcs|, |morestring| (avec les lettres |b|, |d|, |s| et |m|), |morecomment| (avec les
-lettres |i|, |l|, |s|, |n| et |f|\footnote{Pour la lettre |f|, seule une spécification de commentaire commençant en  première colonne est autorisée.})), |moredelim| (avec les lettres |i|, |l|, |s|, |*| et |**|),
-|moredirectives|, |tag|, |alsodigit|, |alsoletter| et |alsoother|.
+|\NewPitonLanguage| sont : |morekeywords|, |otherkeywords|, |sensitive|,
+|keywordsprefix|, |moretexcs|, |morestring| (avec les lettres |b|, |d|, |s| et
+|m|), |morecomment| (avec les lettres |i|, |l|, |s|, |n| et |f|\footnote{Pour la lettre |f|, seule une spécification de commentaire commençant en première colonne est autorisée.})),
+|moredelim| (avec les lettres |i|, |l|, |s|, |*| et |**|), |moredirectives|,
+|tag|, |alsodigit|, |alsoletter| et |alsoother|.
 
 Pour la description de ces clés, on renvoie à la documentation de \pkg{listings} (taper
 |texdoc| |listings| dans un terminal).
@@ -1192,9 +1197,11 @@ Par exemple, pour formater du code LaTeX, on pourra créer le language suivant :
 \end{verbatim}
 } 
 
-Initialement, les caractères |@| et |_| sont considérés comme des lettres (au sens de \pkg{listings})
-car de nombreux langages de programmation les autorisent dans les mots-clés et les identificateurs. Avec
-\verb|alsoother = @_|, on les retire de la catégorie des lettres.
+Initialement, les caractères |@| et |_| sont considérés comme des lettres (au
+sens de \pkg{listings} et non au sens des catcodes de TeX !) car de nombreux
+langages de programmation les autorisent dans les mots-clés et les
+identificateurs. Avec \verb|alsoother = @_|, on les retire de la catégorie des
+lettres.
 
 \section{Importation et exportation de listings}
 
@@ -2570,6 +2577,17 @@ def fact(n):
 dans les commentaires (pour avoir un commentaire entièrement en échappement vers LaTeX,
 c'est-à-dire ce qui est appelé dans ce document «commentaire LaTeX», il suffit de le faire
 débuter par |#>|).
+
+\bigskip
+\index{before-end-escape}
+\index{after-begin-escape}
+\colorbox{yellow!50}{\textbf{Nouveau 4.14}}
+
+\smallskip
+\nobreak
+On peut utiliser les clés \Definition{after-begin-escape} et
+\Definition{before-end-escape} pour insérer du matériel LaTeX au début ou à la
+fin de l'échappement LaTeX.
 
 
 \subsubsection{Le mécanisme «escape-math»}
@@ -4460,3 +4478,4 @@ Le développement de l'extension \pkg{piton} se fait sur le dépôt GitHub suiva
 % Local Variables:
 % fill-column: 80
 % End:
+ 

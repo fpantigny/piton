@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.13" -- 2026/05/25
+piton_version = "4.13x" -- 2026/06/20
 piton.comment_latex = piton.comment_latex or ">"
 piton.comment_latex = "#" .. piton.comment_latex
 piton.write_files = { }
@@ -62,11 +62,13 @@ EscapeClean = P ( false )
 if piton.begin_escape then
   Escape =
     P ( piton.begin_escape )
-    * L ( ( 1 - P ( piton.end_escape ) ) ^ 1 )
+    * Lc [[\l__piton_after_begin_escape_tl]]
+    * L ( ( 1 - P ( piton.end_escape ) ) ^ 0 )
+    * Lc [[\l__piton_before_end_escape_tl]]
     * P ( piton.end_escape )
   EscapeClean =
     P ( piton.begin_escape )
-    * ( 1 - P ( piton.end_escape ) ) ^ 1
+    * ( 1 - P ( piton.end_escape ) ) ^ 0
     * P ( piton.end_escape )
 end
 EscapeMath = P ( false )

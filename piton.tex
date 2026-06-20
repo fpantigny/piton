@@ -1,5 +1,4 @@
 % -*- coding: utf-8 ; -*- This file should be compiled with LuaLaTeX only
-\listfiles
 \documentclass{article}
 
 \usepackage{geometry}
@@ -467,6 +466,11 @@ end} of the list, a LaTeX command with one argument, such as, for example,
 
 The initial value is |\footnotesize\color{gray}|.
 
+The key |font-command| has also an ``additive syntax''. That means that it's
+possible to write |format +=| $\langle$\textsl{instructions}$\rangle$
+and the tokens $\langle$\textsl{instructions}$\rangle$ will be added
+on the right of the current value of the parameter.
+
 \item \colorbox{yellow!50}{\textbf{New 4.11}}
 
 \nobreak
@@ -494,7 +498,7 @@ provided. That means that it is possible, for instance, to write:
         skip-empty-lines = false ,
         label-empty-lines = false ,
         sep = 1 em ,
-        format = \footnotesize \color{blue}
+        format += \color{blue}
       }
   }
 \end{Code}
@@ -1145,9 +1149,9 @@ For example, here is a language called ``LaTeX'' to format LaTeX chunks of codes
 \end{Verbatim}
 
 Initially, the characters |@| and |_| are considered as letters (in the
-sens of \pkg{listings}) because, in many computer languages, they are
-allowed in the keywords and the names of the identifiers.
-With \verb|alsoother = @_|, we retrieve them from the
+sens of \pkg{listings} and not in the sens of the TeX's catcodes!) because,
+in many computer languages, they are allowed in the keywords and the names
+of the identifiers. With \verb|alsoother = @_|, we retrieve them from the
 category of the letters. 
 
 \section{Import and export}
@@ -2000,7 +2004,7 @@ previously defined.
 
 \smallskip
 In order to understand the behaviour of the key |split-on-empty-lines|, one
-should imagine that he has to compose an computer listing which contains
+should imagine that he has to compose a computer listing which contains
 several definitions of computer functions. Usually, in the computer
 languages, those definitions of functions are separated by empty lines.
 
@@ -2015,7 +2019,7 @@ primitive |\hrule|.
 
 \item The initial value of this parameter is
 |\vspace{\baselineskip}\vspace{-1.25pt}| which corresponds eventually to an 
-empty line in the final \textsc{pdf} (this vertical space is deleted if it
+empty line in the final \textsc{pdf} (this vertical space is deleted when it
 occurs on a page break). If the key |background-color| is in force, no
 background color is added to that empty line.
 
@@ -2520,6 +2524,17 @@ def fact(n):
 the comments (however, it's possible to have a whole Python comment
 composed in LaTeX by beginning it with |#>|; such comments are merely called
 ``LaTeX comments'' in this document).
+
+\bigskip
+\index{before-end-escape}
+\index{after-begin-escape}
+\colorbox{yellow!50}{\textbf{New 4.14}}
+
+\smallskip
+\nobreak
+It's possible to use the keys \Definition{after-begin-escape} and
+\Definition{before-end-escape} in order to insert some LaTeX material at the
+beginning of at the end of the LaTeX escape.
 
 
 \subsubsection{The mechanism ``escape-math''}

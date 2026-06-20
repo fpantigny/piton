@@ -9,8 +9,8 @@
 % of this license or (at your option) any later version.
 % The latest version of this license is in:
 %
-% http://www.latex-project.org/lppl.txti
-%
+% http://www.latex-project.org/lppl.txt
+% 
 % and version 1.3 or later is part of all distributions of LaTeX
 % version 2005/12/01 or later.
 %
@@ -60,12 +60,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.13}
-\def\PitonFileDate{2026/05/25}
+\def\PitonFileVersion{4.13x}
+\def\PitonFileDate{2026/06/20}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.13" -- 2026/05/25
+piton_version = "4.13x" -- 2026/06/20
 %</LUA>
 %\fi
 %
@@ -205,8 +205,8 @@ piton_version = "4.13" -- 2026/05/25
 % We give now the LaTeX code which is sent back by Lua to TeX (we have written
 % on several lines for legibility but no character |\r| will be sent to LaTeX). The
 % characters which are greyed-out are sent to LaTeX with the catcode ``other''
-% (=12). All the others characters are sent with the regime of catcodes of L3
-% (as set by |\ExplSyntaxOn|).
+% (=12). All the others characters are sent with the regime of catcodes of the L3
+% Programming Layer (as set by |\ExplSyntaxOn|).
 %
 % 
 % \begingroup
@@ -987,8 +987,9 @@ piton_version = "4.13" -- 2026/05/25
     \newtoks \PitonBeamerCommands
     \newtoks \PitonBeamerEnvironments
 %    \end{macrocode}
-% L3 does \emph{not} support those ``toks registers'' but it's still possible to
-% affect to the ``toks registers'' the content of the clists with a L3-like syntax.
+% The L3 Programming Layer does \emph{not} support those ``toks registers'' but
+% it's still possible to affect to the ``toks registers'' the content of the
+% clists with a L3-like syntax.
 %    \begin{macrocode}
     \exp_args:NV \PitonDetectedCommands \l_@@_detected_commands_clist
     \exp_args:NV \PitonRawDetectedCommands \l_@@_raw_detected_commands_clist
@@ -1589,6 +1590,8 @@ piton_version = "4.13" -- 2026/05/25
 \str_set:Nn \l_@@_line_numbers_position_str { left }
 \bool_new:N \l_@@_resume_bool 
 \bool_new:N \g_@@_label_as_zlabel_bool
+\tl_new:N \l_@@_after_begin_escape_tl
+\tl_new:N \l_@@_before_end_escape_tl
 %    \end{macrocode}
 % 
 %
@@ -1663,6 +1666,11 @@ piton_version = "4.13" -- 2026/05/25
     format .tl_set:N = \l_@@_line_numbers_format_tl ,
     format .value_required:n = true ,
 
+    format+ .code:n = \tl_put_right:Nn \l_@@_line_numbers_format_tl { #1 } ,
+    format+ .value_required:n = true ,
+
+    format~+ .meta:n = { format+ = #1} ,
+
     lmmono10-drawn .bool_set:N = \l_@@_lmodern_drawn_bool ,
     lmmono10-drawn .default:n = true ,
 
@@ -1721,15 +1729,21 @@ piton_version = "4.13" -- 2026/05/25
 % Remark that the command |\lua_escape:n| is fully expandable. That's why we use
 % |\lua_now:e|.
 %    \begin{macrocode}
-    begin-escape .code:n = 
+    begin-escape .code:n =
       \lua_now:e { piton.begin_escape = "\lua_escape:n{#1}" } ,
     begin-escape .value_required:n = true , 
     begin-escape .usage:n = preamble , 
 
+    after-begin-escape .tl_set:N = \l_@@_after_begin_escape_tl ,
+    after-begin-escape .value_required:n = true ,
+    
     end-escape   .code:n = 
       \lua_now:e { piton.end_escape = "\lua_escape:n{#1}" } ,
     end-escape   .value_required:n = true ,
-    end-escape .usage:n = preamble ,
+    end-escape   .usage:n = preamble ,
+
+    before-end-escape .tl_set:N = \l_@@_before_end_escape_tl , 
+    before-end-escape .value_required:n = true ,
 
     begin-escape-math .code:n = 
       \lua_now:e { piton.begin_escape_math = "\lua_escape:n{#1}" } ,
@@ -2657,7 +2671,7 @@ piton_version = "4.13" -- 2026/05/25
         \bool_if:NT \g_@@_footnote_bool \savenotes 
         \@@_composition:
         \bool_lazy_or:nnT { \l_@@_paperclip_bool } { \l_@@_annotation_bool }
-          { \@@_create_paperclip_annotation: }
+          { \@@_create_paperclip_or_annotation: }
         \bool_if:NT \g_@@_footnote_bool \endsavenotes 
         #5
       }
@@ -2669,7 +2683,7 @@ piton_version = "4.13" -- 2026/05/25
 % \bigskip
 % |\marginalia| is a command of the package \pkg{marginalia} (loaded by \pkg{piton}).
 %    \begin{macrocode}
-\cs_new_protected:Npn \@@_create_paperclip_annotation:
+\cs_new_protected:Npn \@@_create_paperclip_or_annotation:
   {
     \marginalia [ pos = right ]
       {
@@ -3097,10 +3111,10 @@ piton_version = "4.13" -- 2026/05/25
             \int_set_eq:NN \l_tmpa_int \lastpenalty
             \unpenalty \unkern
 %    \end{macrocode}
-% In standard TeX (not LuaTeX), the only way to loop over the sub-boxes of a given
-% box is to use the TeX primitive |\lastbox| (via |\box_set_to_last:N| of L3).
-% Of course, it would be interesting to replace that programming by a programming
-% in Lua of LuaTeX...
+% In standard TeX (not LuaTeX), the only way to loop over the sub-boxes of a
+% given box is to use the TeX primitive |\lastbox| (via |\box_set_to_last:N| of
+% the L3 Programming Layer). Of course, it would be interesting to replace that
+% programming by a programming in Lua of LuaTeX...
 %    \begin{macrocode}
             \box_set_to_last:N \l_@@_line_box
             \box_if_empty:NTF \l_@@_line_box
@@ -4204,8 +4218,9 @@ piton_version = "4.13" -- 2026/05/25
     breakable~not~loaded \\
     You~can't~use~the~key~'tcolorbox'~because~
     you~have~not~loaded~the~library~'breakable'~of~tcolorbox'.~
-    Use~\token_to_str:N \tcbuselibrary{breakable}~in~the~preamble~
-    of~your~document.~
+    You~should~load~'piton'~with~the~key~'breakable'~or~
+    use~\token_to_str:N \tcbuselibrary{breakable}~
+    in~the~preamble~of~your~document.~
     If~you~go~on,~that~key~will~be~ignored.
   }
 %    \end{macrocode}
@@ -4267,9 +4282,8 @@ piton_version = "4.13" -- 2026/05/25
     The~key~'line-numbers / \l_keys_key_str'~is~unknown.~
     The~available~keys~of~the~family~'line-numbers'~are~(in~
     alphabetic~order):~
-    absolute,~false,~label-empty-lines,~lmmono10-drawn,~
-    ~position,~resume,~skip-empty-lines,~
-    sep,~start~and~true.~
+    absolute,~false,~format,~label-empty-lines,~lmmono10-drawn,~
+    ~position,~resume,~skip-empty-lines,~sep,~start~and~true.~
     Your~key~will~be~ignored.
   }
 %    \end{macrocode}
@@ -4412,8 +4426,10 @@ piton_version = "4.13" -- 2026/05/25
     The~available~keys~are~(in~alphabetic~order):~
     annotation,~
     add-to-split-separation,~
+    after-before-escape,~
     auto-gobble,~
     background-color,~
+    before-end-escape,~
     begin-range,~
     box,~
     break-lines,~
@@ -5018,14 +5034,16 @@ end
 % 
 % \bigskip
 % The following \textsc{lpeg} catches the Python chunks which are in LaTeX
-% escapes (and that chunks will be considered as normal LaTeX constructions).
+% escapes (and those chunks will be considered as normal LaTeX constructions).
 %    \begin{macrocode}
 Escape = P ( false ) 
 EscapeClean = P ( false ) 
 if piton.begin_escape then 
   Escape = 
     P ( piton.begin_escape )
-    * L ( ( 1 - P ( piton.end_escape ) ) ^ 1 ) 
+    * Lc [[\l_@@_after_begin_escape_tl]]
+    * L ( ( 1 - P ( piton.end_escape ) ) ^ 0 )
+    * Lc [[\l_@@_before_end_escape_tl]]
     * P ( piton.end_escape )
 %    \end{macrocode}
 % The LPEG |EscapeClean| will be used in the LPEG Clean (and that LPEG is used
@@ -5033,7 +5051,7 @@ if piton.begin_escape then
 %    \begin{macrocode}
   EscapeClean = 
     P ( piton.begin_escape )
-    * ( 1 - P ( piton.end_escape ) ) ^ 1 
+    * ( 1 - P ( piton.end_escape ) ) ^ 0 
     * P ( piton.end_escape )
 end
 %    \end{macrocode}

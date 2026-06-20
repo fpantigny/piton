@@ -19,8 +19,8 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.13}
-\def\PitonFileDate{2026/05/25}
+\def\PitonFileVersion{4.13x}
+\def\PitonFileDate{2026/06/20}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesExplPackage
   {piton}
@@ -659,6 +659,8 @@
 \str_set:Nn \l__piton_line_numbers_position_str { left }
 \bool_new:N \l__piton_resume_bool
 \bool_new:N \g__piton_label_as_zlabel_bool
+\tl_new:N \l__piton_after_begin_escape_tl
+\tl_new:N \l__piton_before_end_escape_tl
 \keys_define:nn { PitonOptions / marker }
   {
     beginning .cs_set:Np = \__piton_marker_beginning:n #1 ,
@@ -724,6 +726,11 @@
     format .tl_set:N = \l__piton_line_numbers_format_tl ,
     format .value_required:n = true ,
 
+    format+ .code:n = \tl_put_right:Nn \l__piton_line_numbers_format_tl { #1 } ,
+    format+ .value_required:n = true ,
+
+    format~+ .meta:n = { format+ = #1} ,
+
     lmmono10-drawn .bool_set:N = \l__piton_lmodern_drawn_bool ,
     lmmono10-drawn .default:n = true ,
 
@@ -770,10 +777,16 @@
     begin-escape .value_required:n = true ,
     begin-escape .usage:n = preamble ,
 
+    after-begin-escape .tl_set:N = \l__piton_after_begin_escape_tl ,
+    after-begin-escape .value_required:n = true ,
+
     end-escape   .code:n =
       \lua_now:e { piton.end_escape = "\lua_escape:n{#1}" } ,
     end-escape   .value_required:n = true ,
-    end-escape .usage:n = preamble ,
+    end-escape   .usage:n = preamble ,
+
+    before-end-escape .tl_set:N = \l__piton_before_end_escape_tl ,
+    before-end-escape .value_required:n = true ,
 
     begin-escape-math .code:n =
       \lua_now:e { piton.begin_escape_math = "\lua_escape:n{#1}" } ,
@@ -1351,13 +1364,13 @@
         \bool_if:NT \g__piton_footnote_bool \savenotes
         \__piton_composition:
         \bool_lazy_or:nnT { \l__piton_paperclip_bool } { \l__piton_annotation_bool }
-          { \__piton_create_paperclip_annotation: }
+          { \__piton_create_paperclip_or_annotation: }
         \bool_if:NT \g__piton_footnote_bool \endsavenotes
         #5
       }
       { \ignorespacesafterend }
   }
-\cs_new_protected:Npn \__piton_create_paperclip_annotation:
+\cs_new_protected:Npn \__piton_create_paperclip_or_annotation:
   {
     \marginalia [ pos = right ]
       {
@@ -2300,8 +2313,9 @@
     breakable~not~loaded \\
     You~can't~use~the~key~'tcolorbox'~because~
     you~have~not~loaded~the~library~'breakable'~of~tcolorbox'.~
-    Use~\token_to_str:N \tcbuselibrary{breakable}~in~the~preamble~
-    of~your~document.~
+    You~should~load~'piton'~with~the~key~'breakable'~or~
+    use~\token_to_str:N \tcbuselibrary{breakable}~
+    in~the~preamble~of~your~document.~
     If~you~go~on,~that~key~will~be~ignored.
   }
 \__piton_msg_new:nn { Language~not~defined }
@@ -2343,9 +2357,8 @@
     The~key~'line-numbers / \l_keys_key_str'~is~unknown.~
     The~available~keys~of~the~family~'line-numbers'~are~(in~
     alphabetic~order):~
-    absolute,~false,~label-empty-lines,~lmmono10-drawn,~
-    ~position,~resume,~skip-empty-lines,~
-    sep,~start~and~true.~
+    absolute,~false,~format,~label-empty-lines,~lmmono10-drawn,~
+    ~position,~resume,~skip-empty-lines,~sep,~start~and~true.~
     Your~key~will~be~ignored.
   }
 \__piton_msg_new:nn { Unknown~key~for~marker }
@@ -2444,8 +2457,10 @@
     The~available~keys~are~(in~alphabetic~order):~
     annotation,~
     add-to-split-separation,~
+    after-before-escape,~
     auto-gobble,~
     background-color,~
+    before-end-escape,~
     begin-range,~
     box,~
     break-lines,~
