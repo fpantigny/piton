@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.13x" -- 2026/06/20
+piton_version = "4.14" -- 2026/07/01
 piton.comment_latex = piton.comment_latex or ">"
 piton.comment_latex = "#" .. piton.comment_latex
 piton.write_files = { }
@@ -2004,6 +2004,7 @@ function piton.new_language ( lang , definition )
   end
   local Keyword = P ( false )
   local PrefixedKeyword = P ( false )
+  local keywords_prefix = ''
   for _ , x in ipairs ( def_table )
   do if x[1] == "morekeywords"
         or x[1] == "otherkeywords"
@@ -2035,6 +2036,7 @@ function piton.new_language ( lang , definition )
        local prefix = ( ( C ( 1 - P " " ) ^ 1 ) * P " " ^ 0 ) : match ( x[2] )
        PrefixedKeyword = PrefixedKeyword
           + K ( 'Keyword' , P ( prefix ) * ( letter ^ 1 + other ) )
+       keywords_prefix = keywords_prefix .. prefix
      end
   end
   local long_string  = P ( false )
@@ -2201,6 +2203,14 @@ function piton.new_language ( lang , definition )
       Cc "EOL"
     )
     * ( ( fComment + lComment ) ^ 0 * LeadingSpace ^ 0 * # ( 1 - S " \r" ) ) ^ -1
+  local lpeg_central = 1 - S " '\"\r[({})]" - digit - S ( keywords_prefix )
+  if piton.begin_escape then
+    lpeg_central = lpeg_central - piton.begin_escape
+  end
+  if piton.begin_escape_math then
+    lpeg_central = lpeg_central - piton.begin_escape_math
+  end
+  local Word = Q ( lpeg_central ^ 1 )
   local Main =
     space ^ 0 * EOL * ( fComment + lComment ) ^ 0
        + Space

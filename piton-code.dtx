@@ -60,12 +60,12 @@
 % \iffalse
 %<*STY>
 % \fi
-\def\PitonFileVersion{4.13x}
-\def\PitonFileDate{2026/06/20}
+\def\PitonFileVersion{4.14}
+\def\PitonFileDate{2026/07/01}
 % \iffalse
 %</STY>
 %<*LUA>
-piton_version = "4.13x" -- 2026/06/20
+piton_version = "4.14" -- 2026/07/01
 %</LUA>
 %\fi
 %
@@ -4870,7 +4870,7 @@ piton_version = "4.13x" -- 2026/06/20
      }%        
   }
 \ExplSyntaxOn
-% \end{macrocode}
+%    \end{macrocode}
 % 
 % \bigskip
 % \subsection{We load piton.lua}
@@ -8587,7 +8587,12 @@ function piton.new_language ( lang , definition )
       ) 
   end 
   local Keyword = P ( false )  
-  local PrefixedKeyword = P ( false )  
+  local PrefixedKeyword = P ( false )
+%    \end{macrocode}
+% The variable |keywords_prefix| will be a string whose the characters will be
+% the different values used with the key |keywordsprefix|. 
+%    \begin{macrocode}  
+  local keywords_prefix = ''
 %    \end{macrocode}
 % Now, we actually treat all the keywords and also the key |moredirectives|.
 %    \begin{macrocode}
@@ -8630,7 +8635,7 @@ function piton.new_language ( lang , definition )
      end 
 %    \end{macrocode}
 % Of course, the feature with the key |keywordsprefix| is designed for the
-% languages TeX, LaTeX, et \emph{al}. In that case, there is two kinds of
+% languages TeX, LaTeX, and \emph{al}. In that case, there is two kinds of
 % keywords (= control sequences).
 % \begin{itemize}
 % \item those beginning with |\| and a sequence of characters of catcode
@@ -8647,6 +8652,7 @@ function piton.new_language ( lang , definition )
        local prefix = ( ( C ( 1 - P " " ) ^ 1 ) * P " " ^ 0 ) : match ( x[2] ) 
        PrefixedKeyword = PrefixedKeyword 
           + K ( 'Keyword' , P ( prefix ) * ( letter ^ 1 + other ) )
+       keywords_prefix = keywords_prefix .. prefix
      end 
   end    
 %    \end{macrocode}
@@ -8871,6 +8877,21 @@ function piton.new_language ( lang , definition )
       Cc "EOL" 
     )
     * ( ( fComment + lComment ) ^ 0 * LeadingSpace ^ 0 * # ( 1 - S " \r" ) ) ^ -1 
+%    \end{macrocode}
+%
+% \bigskip
+% The following definition of the \textsc{lpeg} |Word| is added on 2026/07/01. Previously,
+% the general definition of |Word| (defined at the beginning of the Lua part of the code of
+% this extension \pkg{piton}) was used. The only differnce is the term |S(keywords_prefix)|.
+%    \begin{macrocode}
+  local lpeg_central = 1 - S " '\"\r[({})]" - digit - S ( keywords_prefix ) 
+  if piton.begin_escape then 
+    lpeg_central = lpeg_central - piton.begin_escape 
+  end
+  if piton.begin_escape_math then 
+    lpeg_central = lpeg_central - piton.begin_escape_math
+  end
+  local Word = Q ( lpeg_central ^ 1 ) 
 %    \end{macrocode}
 % 
 %    \begin{macrocode}

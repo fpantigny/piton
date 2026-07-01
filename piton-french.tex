@@ -463,8 +463,8 @@ retirer ne dépend que de la position des délimiteurs |\begin{Piton}| et
 
 
 \item \index{line-numbers} La clé \Definition{line-numbers} active la
-numérotation des lignes (en débordement à gauche) dans les environnements
-|{Piton}| et dans les listings produits par la commande |\PitonInputFile|.
+numérotation des lignes dans les environnements |{Piton}| et dans les listings
+produits par la commande |\PitonInputFile|.
 
 Cette clé propose en fait plusieurs sous-clés.
 \begin{itemize}
@@ -1193,7 +1193,7 @@ Par exemple, pour formater du code LaTeX, on pourra créer le language suivant :
 %
 {\color{gray}
 \begin{verbatim}
-\NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoother = @_ }
+\NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoother = @_ , morecomment = [l]\%}
 \end{verbatim}
 } 
 
@@ -1256,7 +1256,7 @@ Dans les deux cas, si on souhaite numéroter les lignes avec les numéros des li
 fichier d'origine, il convient d'utiliser la clé |line-numbers/absolute|.
 
 \bigskip
-\textbf{Avec les numéros de lignes absolus}
+\textbf{Avec les numéros de lignes}
 
 \nobreak
 La commande |\PitonInputFile| propose les clés \Definition{first-line} et
@@ -3030,7 +3030,7 @@ application d'une clé |gobble| (cf. p.~\pageref{gobble}).
 
 \item Les surcharges du code (qui entraînent des échappements vers LaTeX) ont
 été retirées du code fourni par |piton.get_last_code()|. Cela s'applique aux
-commandes LaTeX déclarées par la clé |detected-commands| et ses variantess (cf.
+commandes LaTeX déclarées par la clé |detected-commands| et ses variantes (cf.
 partie~\ref{detected-commands}) et aux éléments insérés avec le mécanisme
 «|escape|» (cf. partie~\ref{escape}).
 
