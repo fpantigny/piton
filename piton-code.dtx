@@ -277,6 +277,15 @@ piton_version = "4.14" -- 2026/07/01
 \RequirePackage { transparent }
 %    \end{macrocode}
 %
+% \bigskip
+%    \begin{macrocode}
+\AtBeginDocument
+  {
+    \IfPackageLoadedT { babel }
+      { \babelprovide { english } }
+  }
+%    \end{macrocode}
+% 
 %
 % \bigskip
 %    \begin{macrocode}
@@ -2658,6 +2667,7 @@ piton_version = "4.14" -- 2026/07/01
   {
     \use:c { #1 DocumentEnvironment } { #2 } { #3 > { \@@_store_body:n } c } 
       {
+
         \cs_set_eq:NN \PitonOptions \@@_fake_PitonOptions
         #4
         \@@_pre_composition:
@@ -2668,10 +2678,13 @@ piton_version = "4.14" -- 2026/07/01
           }
         \bool_if:NT \g_@@_beamer_bool
           { \@@_translate_beamer_env:o { \l_@@_listing_tl } }
-        \bool_if:NT \g_@@_footnote_bool \savenotes 
+        \bool_if:NT \g_@@_footnote_bool \savenotes
+        \IfPackageLoadedT { babel }
+          { \begin { otherlanguage } { english } }
         \@@_composition:
         \bool_lazy_or:nnT { \l_@@_paperclip_bool } { \l_@@_annotation_bool }
           { \@@_create_paperclip_or_annotation: }
+        \IfPackageLoadedT { babel } { \end { otherlanguage } }
         \bool_if:NT \g_@@_footnote_bool \endsavenotes 
         #5
       }
@@ -7412,7 +7425,7 @@ do
 
 % \bigskip
 % Here, we don't use |braces| as done with the other languages because we don't
-% have have to take into account the strings (there is no string in the langage
+% have to take into account the strings (there is no string in the langage
 % ``Verbatim''). 
 %    \begin{macrocode}
   local braces = 
@@ -7549,7 +7562,7 @@ do
 %
 % \bigskip
 % Here, we don't use |braces| as done with the other languages because we don't
-% have have to take into account the strings (there is no string in the langage
+% have to take into account the strings (there is no string in the langage
 % |expl|). 
 %    \begin{macrocode}
   local braces = 

@@ -42,6 +42,11 @@
 \RequirePackage { amstext }
 \RequirePackage { marginalia }
 \RequirePackage { transparent }
+\AtBeginDocument
+  {
+    \IfPackageLoadedT { babel }
+      { \babelprovide { english } }
+  }
 \cs_new_protected:Npn \__piton_error:n { \msg_error:nn { piton } }
 \cs_new_protected:Npn \__piton_warning:n { \msg_warning:nn { piton } }
 \cs_new_protected:Npn \__piton_warning:nn { \msg_warning:nnn { piton } }
@@ -1351,6 +1356,7 @@
   {
     \use:c { #1 DocumentEnvironment } { #2 } { #3 > { \__piton_store_body:n } c }
       {
+
         \cs_set_eq:NN \PitonOptions \__piton_fake_PitonOptions
         #4
         \__piton_pre_composition:
@@ -1362,9 +1368,12 @@
         \bool_if:NT \g__piton_beamer_bool
           { \__piton_translate_beamer_env:o { \l__piton_listing_tl } }
         \bool_if:NT \g__piton_footnote_bool \savenotes
+        \IfPackageLoadedT { babel }
+          { \begin { otherlanguage } { english } }
         \__piton_composition:
         \bool_lazy_or:nnT { \l__piton_paperclip_bool } { \l__piton_annotation_bool }
           { \__piton_create_paperclip_or_annotation: }
+        \IfPackageLoadedT { babel } { \end { otherlanguage } }
         \bool_if:NT \g__piton_footnote_bool \endsavenotes
         #5
       }
