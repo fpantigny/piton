@@ -6413,16 +6413,17 @@ do
 % such notation is used for the fields of the records and for the modules.
 %    \begin{macrocode}
   local DotNotation =
-      (
-          K ( 'Name.Module' , cap_identifier ) 
-            * Q "."
-            * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ^ -1 
-          +
-           Identifier
-            * Q "."
-            * K ( 'Name.Field' , identifier )
-      )
+      ( K ( 'Name.Module' , cap_identifier )
+        * Q "."
+        * ( K ( 'Name.Module' , cap_identifier )
+              * ( Q "." * K ( 'Name.Module' , cap_identifier ) ) ^ 0
+              * ( Q "." * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ) ^ -1
+            + Identifier + Constructor + Q "(" + Q "[" + Q "{" )
+        + Identifier
+          * Q "."
+          * K ( 'Name.Field' , identifier ) )
       * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0    
+      * ( Q "." * # Q "(" ) ^ -1
 %    \end{macrocode}
 %
 % \paragraph{The records}
