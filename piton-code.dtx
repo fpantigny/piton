@@ -5998,7 +5998,7 @@ do
     P { "E" , 
          E = ( V "F" * ( Q "," * V "F" ) ^ 0 ) ^ -1 ,
          F = SkipSpace * ( Identifier + Q "*args" + Q "**kwargs" ) * SkipSpace
-             * ( Q ":" * SkipSpace * K ( 'Name.Type' , identifier ) ) ^ -1
+             * ( Q ":" * SkipSpace * K ( 'Name.Type' , expression ) ) ^ -1 -- modified 2026/07/15
              * ( SkipSpace * K ( 'InitialValues' , "=" * SkipSpace * expression ) ) ^ -1
       }
 %    \end{macrocode}
