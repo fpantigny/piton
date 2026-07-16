@@ -739,16 +739,17 @@ do
     K ( 'TypeParameter' ,
         "'" * Q "_" ^ -1 * alpha ^ 1 * digit ^ 0 * ( # ( 1 - P "'" ) + -1 ) )
   local DotNotation =
-      (
-          K ( 'Name.Module' , cap_identifier )
-            * Q "."
-            * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ^ -1
-          +
-           Identifier
-            * Q "."
-            * K ( 'Name.Field' , identifier )
-      )
+      ( K ( 'Name.Module' , cap_identifier )
+        * Q "."
+        * ( K ( 'Name.Module' , cap_identifier )
+              * ( Q "." * K ( 'Name.Module' , cap_identifier ) ) ^ 0
+              * ( Q "." * ( Identifier + Constructor + Q "(" + Q "[" + Q "{" ) ) ^ -1
+            + Identifier + Constructor + Q "(" + Q "[" + Q "{" )
+        + Identifier
+          * Q "."
+          * K ( 'Name.Field' , identifier ) )
       * ( Q "." * K ( 'Name.Field' , identifier ) ) ^ 0
+      * ( Q "." * # Q "(" ) ^ -1
   local expression_for_fields_type =
     P { "E" ,
         E =  (  "{" * V "F" * "}"
