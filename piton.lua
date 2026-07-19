@@ -129,7 +129,7 @@ local Punct = Q ( S ".,:;!" )
 
 local Tab = "\t" * Lc [[ \__piton_tab: ]]
 local LeadingSpace = Lc [[ \__piton_leading_space: ]] * P " "
-local Delim = Q ( S "[({})]" )
+local Delim = K ( 'Delim' ,  S "[({})]" )
 local SpaceInString = space * Lc [[ \l__piton_space_in_string_tl ]]
 
 local detected_commands = tex.toks.PitonDetectedCommands : explode ( ',' )
@@ -1015,7 +1015,7 @@ end)
 end
 --c C c++ C++
 do
-  local Delim = Q ( S "{[()]}" )
+  local Delim = K ( 'Delim' , S "{[()]}" )
   local Punct = Q ( S ",:;!" )
   local identifier = letter * alphanum ^ 0
 

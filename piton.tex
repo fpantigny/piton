@@ -2986,8 +2986,9 @@ in a variable of Lua if it will be used several times.
 \end{itemize}
 
 \medskip
-For an example of use, see the part concerning |pyluatex|, part~\ref{pyluatex},
-p.~\pageref{pyluatex}. 
+For examples of use, see the example of formatting of LaTeX code,
+part~\ref{latex-formatting}, p.~\pageref{latex-formatting}, and the part
+concerning |pyluatex|, part~\ref{pyluatex}, p.~\pageref{pyluatex}.
 
 
 \section{Examples}
@@ -3706,6 +3707,45 @@ def square(x):
 \end{Python}
 
 
+\subsection{Formatting of LaTeX code}
+
+\label{latex-formatting}
+
+Here is a way to define an environment |{CodeLaTeX}| which formats a LaTeX code and also
+produces the output obtained when compiling that code with LaTeX
+
+\medskip
+\begin{Code}
+\NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoother = @_ , morecomment = [l]\%}
+
+\NewPitonEnvironment{\emph{CodeLaTeX}}{}
+  { \PitonOptions{language=LaTeX} }
+  { \luadirect{tex.print(piton.get_last_code():explode(string.char(10)))} }
+
+\begin{\emph{CodeLaTeX}}
+    \[x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}\] % solution
+\end{\emph{CodeLaTeX}}
+\end{Code}
+
+
+\bigskip
+\begingroup
+\NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoother = @_ , morecomment = [l]\%}
+
+\NewPitonEnvironment{CodeLaTeX}{}
+  { \PitonOptions{language=LaTeX} }
+  { \luadirect{tex.print(piton.get_last_code():explode(string.char(10)))} }
+
+\begin{CodeLaTeX}
+    \[x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}\] % solution
+\end{CodeLaTeX}
+\endgroup
+
+
+\medskip
+We have used the Lua function |piton.get_last_code| provided in the API of
+\pkg{piton} : cf.~part~\ref{API}, p.~\pageref{API}.
+
 
 \bigskip
 \subsection{Use with pyluatex}
@@ -4047,6 +4087,7 @@ as done for any Python code. \\
 Comment & the comments beginning with \texttt{\#} \\
 Comment.LaTeX & the comments beginning with \texttt{\#>}, which are composed by
 \pkg{piton} as LaTeX code (merely named ``LaTeX comments'' in this document) \\
+Delim    & the delimiters |(|, |[|, \texttt{\{}, |)|, |]| and \texttt{\}} \\      
 Keyword.Constant & |True|, |False| et |None| \\
 Keyword & the following keywords:
           \ttfamily assert, break, case, continue, del,
@@ -4265,6 +4306,7 @@ Keyword & the keywords defined in |\NewPitonLanguage| by the keys |morekeywords|
           the keywords are case-sensitive or not) \\ 
 Directive & the directives defined in |\NewPitonLanguage| by the key
 |moredirectives| \\
+Delim    & the delimiters |(|, |[|, \texttt{\{}, |)|, |]| and \texttt{\}} \\    
 Tag & the ``tags'' defined by the key |tag| (the lexical units detected within
 the tag will also be formatted with their own style) \\
  Identifier & the identifiers. \\

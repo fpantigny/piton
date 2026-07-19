@@ -5201,7 +5201,7 @@ local LeadingSpace = Lc [[ \@@_leading_space: ]] * P " "
 %
 % \bigskip
 %    \begin{macrocode}
-local Delim = Q ( S "[({})]" )
+local Delim = K ( 'Delim' ,  S "[({})]" )
 %    \end{macrocode}
 % 
 % \bigskip 
@@ -6833,7 +6833,7 @@ do
 %
 % \bigskip
 %    \begin{macrocode}
-  local Delim = Q ( S "{[()]}" )
+  local Delim = K ( 'Delim' , S "{[()]}" ) 
 %    \end{macrocode}
 %
 %    \begin{macrocode}

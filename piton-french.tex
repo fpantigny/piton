@@ -3043,7 +3043,8 @@ fois.
 \end{itemize}
 
 \medskip
-Pour un exemple d'utilisation, voir la partie concernant l'utilisation
+Pour un exemple d'utilisation, voir l'exemple~\ref{latex-formatting},
+p.~\pageref{latex-formatting}, ainsi que la partie concernant l'utilisation
 (standard) de \pkg{pyluatex}, partie~\ref{pyluatex}, p.~\pageref{pyluatex}.
 
 \section{Exemples}
@@ -3757,6 +3758,44 @@ def carré(x):
     return x*x
 \end{Python}
 
+\subsection{Formatage de code LaTeX}
+
+\label{latex-formatting}
+
+Voici une manière de définir un environnement |{CodeLaTeX}| qui formate du code
+LaTeX et affiche dessous le résultat obtenu en compilant ce code avec LaTeX.
+
+\medskip
+\begin{Code}
+\NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoother = @_ , morecomment = [l]\%}
+
+\NewPitonEnvironment{\emph{CodeLaTeX}}{}
+  { \PitonOptions{language=LaTeX} }
+  { \luadirect{tex.print(piton.get_last_code():explode(string.char(10)))} }
+
+\begin{\emph{CodeLaTeX}}
+    \[x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}\] % solution
+\end{\emph{CodeLaTeX}}
+\end{Code}
+
+
+\bigskip
+\begingroup
+\NewPitonLanguage{LaTeX}{keywordsprefix = \ , alsoother = @_ , morecomment = [l]\%}
+
+\NewPitonEnvironment{CodeLaTeX}{}
+  { \PitonOptions{language=LaTeX} }
+  { \luadirect{tex.print(piton.get_last_code():explode(string.char(10)))} }
+
+\begin{CodeLaTeX}
+    \[x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}\] % solution
+\end{CodeLaTeX}
+\endgroup
+
+On a utilisé la fonction Lua |piton.get_last_code| fournie dans l'API de \pkg{piton} :
+cf.~partie~\ref{API}, p.~\pageref{API}.
+
+
 \subsection{Utilisation avec pyluatex}
 
 \subsubsection{Utilisation standard de pyluatex}
@@ -4099,7 +4138,8 @@ InitialValues & les valeurs initiales (et le symbole |=| qui précède) des argu
 Comment & les commentaires commençant par \texttt{\#} \\
 Comment.LaTeX & les commentaires commençant par \texttt{\#>} qui sont composés par
                 \pkg{piton} comme du code LaTeX (et appelés simplement «commentaires
-                LaTeX» dans ce document) \\ 
+                LaTeX» dans ce document) \\
+Delim      & les délimiteurs |(|, |[|, \texttt{\{}, |)|, |]| et \texttt{\}} \\  
 Keyword.Constant & |True|, |False| et |None| \\
 Keyword & les mots-clés suivants :
           \ttfamily assert, break, case, continue, del,
@@ -4326,6 +4366,7 @@ Keyword & les mots-clés, définis dans |\NewPitonLanguage| par les clés |morek
 Directive & les directives définies dans |\NewPitonLanguage| par la clé |moredirectives| \\
 Tag & les «tags» définis par la clé |tag| (les lexèmes détectés à l'intérieur d'un tag
       seront aussi composés avec leur propre style) \\
+Delim      & les délimiteurs |(|, |[|, \texttt{\{}, |)|, |]| et \texttt{\}} \\    
 Identifier & les identificateurs. \\
 \bottomrule
 \end{tabularx}
