@@ -365,7 +365,8 @@ do
         "TimeoutError" + "StopAsyncIteration" + "ModuleNotFoundError" +
         "RecursionError" )
 
-  local RaiseException = K ( 'Keyword' , P "raise" ) * SkipSpace * Exception * Q "("
+  local RaiseException =
+   K ( 'Keyword' , P "raise" ) * SkipSpace * Exception * K ( 'Delim' , P "(" )
   local Decorator = K ( 'Name.Decorator' , P "@" * letter ^ 1  )
   local DefClass =
     K ( 'Keyword' , "class" ) * Space * K ( 'Name.Class' , identifier )
@@ -546,7 +547,7 @@ do
     * Space
     * K ( 'Name.Function.Internal' , identifier )
     * SkipSpace
-    * Q "("  * Params * Q ")"
+    * K ( 'Delim' , P "(" )  * Params * K ( 'Delim' , P ")" )
     * SkipSpace
     * ( Q "->" * SkipSpace * K ( 'Name.Type' , identifier ) ) ^ -1
     * ( C ( ( 1 - S ":\r" ) ^ 0 ) / ParseAgain )
