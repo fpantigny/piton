@@ -326,7 +326,7 @@ do
         P  "assert" + "as" + "break" + "case" + "class" + "continue" + "def" +
         "del" + "elif" + "else" + "except" + "exec" + "finally" + "for" + "from" +
         "global" + "if" + "import" + "lambda" + "non local" + "pass" + "return" +
-        "try" + "while" + "with" + "yield" + "yield from" )
+        "try" + "type" + "while" + "with" + "yield" + "yield from" )
     + K ( 'Keyword.Constant' , P "True" + "False" + "None" )
 
   local Builtin =
@@ -339,7 +339,7 @@ do
         "len" + "list" + "locals" + "map" + "max" + "memoryview" + "min" + "next"
         + "object" + "oct" + "open" + "ord" + "pow" + "print" + "property" +
         "range" + "repr" + "reversed" + "round" + "set" + "setattr" + "slice" +
-        "sorted" + "staticmethod" + "str" + "sum" + "super" + "tuple" + "type" +
+        "sorted" + "staticmethod" + "str" + "sum" + "super" + "tuple" +
         "vars" + "zip" )
 
   local Exception =
