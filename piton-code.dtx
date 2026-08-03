@@ -6869,15 +6869,16 @@ do
 
   local Type = 
     K ( 'Name.Type' ,
-        P "bool" + "char" + "char16_t" + "char32_t" + "double" + "float" +
+        P "FILE" + "bool" + "char" + "char16_t" + "char32_t" + "clock_t" +
+        "double" + "float" + "fpos_t" +
         "int8_t" + "int16_t" + "int32_t" + "int64_t" + "uint8_t" + "uint16_t" +
         "uint32_t" + "uint64_t" + "int" + "long" + "short" + "signed" + "unsigned" +
-        "size_t" + "void" + "wchar_t" ) * Q "*" ^ 0 
+        "ptrdiff_t" + "size_t" + "time_t" + "void" + "wchar_t" )
+    * -alphanum * Space ^ 0 * Q "*" ^ 0
 
   local DefFunction = 
-    Type 
-    * Space 
-    * Q "*" ^ -1
+    Type
+    * Space ^ 0
     * K ( 'Name.Function.Internal' , identifier ) 
     * SkipSpace 
     * # P "("
@@ -6995,15 +6996,15 @@ do
        + Beamer
        + DetectedCommands
        + Preproc
-       + Comment + LongComment
-       + Delim
-       + Operator
+        + Comment + LongComment
+        + Delim
+        + Operator
        + Character
        + String
        + Punct
        + DefFunction
        + DefClass 
-       + Type * ( Q "*" ^ -1 + EndKeyword ) 
+        + Type
        + Keyword * EndKeyword
        + Builtin * EndKeyword
        + Identifier 
