@@ -5473,14 +5473,13 @@ function Compute_Beamer ( lang , braces )
                      P ( [[\begin{]] .. x .. "}" )
                         * ( "<" * ( 1 - P ">") ^ 0 * ">" ) ^ -1  
                     )
-               * space ^ 0 * ( P "\r" ) ^ 1 -- added 25/08/23
+               * space ^ 0 * ( P "\r" ) ^ 1 
               * Cc ( [[\end{]] .. x ..  "}" )               
               )
           * (
 %    \end{macrocode}
 % We catch all the content of the Beamer environment which a \textsc{lpeg} which is
-% a grammar because t here may be nested environments of the same type
-% (added 2025/11/14).
+% a grammar because there may be nested environments of the same type.
 %    \begin{macrocode}
                (  
                  P { "E" ,
@@ -5574,6 +5573,30 @@ local CommentLaTeX =
 --python Python
 do 
 %    \end{macrocode}
+%
+%
+% The following \textsc{lpeg} |expression| will be used for the interpolations
+% in the Python strings but also for the parameters in the \emph{argspec} of a
+% Python function.
+%
+%    \begin{macrocode}
+  local expression =
+    P { "E" ,
+         E = (   "'" * ( P "\\'" + 1 - S "'\r" ) ^ 0 * "'" 
+               + "\"" * ( P "\\\"" + 1 - S "\"\r" ) ^ 0 * "\""
+               + "{" * V "F" * "}"
+               + "(" * V "F" * ")"
+               + "[" * V "F" * "]" 
+               + ( 1 - S "{}()[]\r," ) ) ^ 0 ,
+         F = (   "'" * ( P "\\'" + 1 - S "'\r" ) ^ 0 * "'" 
+               + "\"" * ( P "\\\"" + 1 - S "\"\r" ) ^ 0 * "\""
+               +  "{" * V "F" * "}"
+               + "(" * V "F" * ")"
+               + "[" * V "F" * "]"
+               + ( 1 - S "{}()[]\r\"'" ) ) ^ 0
+      }
+%    \end{macrocode}
+%
 %
 % \bigskip
 % Some strings of length 2 are explicit because we want the corresponding
@@ -5762,7 +5785,8 @@ do
         * S "sdfFeExXorgiGauc%" 
       ) 
 %    \end{macrocode}
-% 
+%
+%
 % \bigskip
 % We can now define the \textsc{lpeg} for the four kinds of strings. It's not
 % possible to use our function~|K| because of the interpolations which must be
@@ -5779,7 +5803,7 @@ do
            Q ( P "f'" + "F'" ) 
            * ( 
                K ( 'String.Interpol' , "{" )
-                * K ( 'Interpol.Inside' , ( 1 - S "}':" ) ^ 0  )
+                * K ( 'Interpol.Inside' , expression )
                 * Q ( P ":" * ( 1 - S "}:'" ) ^ 0 ) ^ -1
                 * K ( 'String.Interpol' , "}" )
                + 
@@ -5963,28 +5987,7 @@ do
 % \bigskip
 % \paragraph{DefFunction}
 %
-% The following \textsc{lpeg} |expression| will be used for the parameters in
-% the \emph{argspec} of a Python function. It's necessary to use a \emph{grammar}
-% because that pattern mainly checks the correct nesting of the delimiters
-% (and it's known in the theory of formal languages that this can't be done with
-% regular expressions \emph{stricto sensu} only). 
-%    \begin{macrocode}
-  local expression =
-    P { "E" ,
-         E = ( "'" * ( P "\\'" + 1 - S "'\r" ) ^ 0 * "'" 
-               + "\"" * ( P "\\\"" + 1 - S "\"\r" ) ^ 0 * "\""
-               + "{" * V "F" * "}"
-               + "(" * V "F" * ")"
-               + "[" * V "F" * "]" 
-               + ( 1 - S "{}()[]\r," ) ) ^ 0 ,
-         F = (   "{" * V "F" * "}"
-               + "(" * V "F" * ")"
-               + "[" * V "F" * "]"
-               + ( 1 - S "{}()[]\r\"'" ) ) ^ 0
-      }
-%    \end{macrocode}
-%
-% \bigskip 
+% \bigskip
 % We will now define a \textsc{lpeg} |Params| that will catch the list of
 % parameters (that is to say the \emph{argspec}) in the definition of a Python
 % function. For example, in the line of code
