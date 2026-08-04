@@ -745,7 +745,7 @@ instructions LaTeX de formatage correspondantes.
 Ces instructions LaTeX doivent être des instructions de formatage du type de |\bfseries|,
 |\slshape|, |\color{...}|, etc. (les commandes de ce type sont parfois
 qualifiées de \emph{semi-globales}). Il est aussi possible de mettre, \emph{à la fin de la liste
-  d'instructions}, une commande LaTeX prenant exactement un argument.
+  d'instructions}, une commande LaTeX prenant exactement un argument (obligatoire).
 
 \bigskip
 Voici un exemple qui change le style utilisé pour le nom d'une fonction Python, au moment
@@ -771,7 +771,7 @@ Avec ce réglage, on obtient : \piton{def cube(x) : return x * x * x }
 
 \bigskip
 L'usage des différents styles suivant le langage informatique considéré est décrit dans la
-partie \ref{Semantic}, à partir de la page \pageref{Semantic}.
+partie~\ref{Semantic}, à partir de la page~\pageref{Semantic}.
 
 
 \bigskip
@@ -889,7 +889,7 @@ Si la commande |\rowcolor| apparaît (via un style de \pkg{piton}) dans une comm
 \index{UserFunction (style)}
 
 \bigskip
-Il existe un style spécial nommé |UserFunction|. Ce style s'applique aux noms des
+Il existe un style spécial nommé \Definition{UserFunction}. Ce style s'applique aux noms des
 fonctions précédemment définies par l'utilisateur (par exemple, avec le langage Python,
 ces noms de fonctions sont ceux qui apparaissent après le mot-clé \piton{def} dans un
 listing Python précédent). La valeur initiale de ce style est |\PitonStyle{Identifier}|,

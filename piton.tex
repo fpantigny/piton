@@ -691,7 +691,7 @@ a LaTeX environment is, in particular, a TeX group.}
 \bigskip
 \indexcommand{SetPitonStyle}
 The command |\SetPitonStyle| takes in as argument a comma-separated list of
-\textsl{key=value} pairs. The keys are names of styles and the value are LaTeX
+\textsl{key=value} pairs. The keys are names of styles and the values are LaTeX
 formatting instructions.
 
 \bigskip
@@ -699,7 +699,7 @@ These LaTeX instructions must be formatting instructions such as
 |\color{ }|, |\bfseries|, |\slshape|, etc. (the commands of this kind are
 sometimes called \emph{semi-global} commands). It's also possible to put,
 \emph{at the end of the list of instructions}, a LaTeX command taking exactly
-one argument.
+one (mandatory) argument.
 
 \bigskip
 Here an example which changes the style used to highlight, in the definition
@@ -845,7 +845,7 @@ command |\piton|, it is no-op (as expected).
 
 \index{UserFunction (style)}
 
-The extension \pkg{piton} provides a special style called~|UserFunction|.
+The extension \pkg{piton} provides a special style called~\Definition{UserFunction}.
 That style applies to the names of the functions previously defined by the user
 (for example, in Python, these names are those following the keyword \piton{def}
 in a previous listing). The initial value of that style |\PitonStyle{Identifier}|
