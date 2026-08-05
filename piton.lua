@@ -784,9 +784,12 @@ do
     * SkipSpace
   local OneField =
       K ( 'Name.Field' , identifier ) * SkipSpace
-    * Q "=" * SkipSpace
-    * ( C ( expression_for_fields_value ) / ParseAgain )
-    * SkipSpace
+    * (
+          Q "=" * SkipSpace
+        * ( C ( expression_for_fields_value ) / ParseAgain )
+        * SkipSpace
+      + P ""
+      )
   local RecordVal =
     Q "{" * SkipSpace
     *
