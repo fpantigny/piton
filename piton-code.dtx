@@ -6481,9 +6481,7 @@ do
 % |{ field = field }|.
 %    \begin{macrocode}
     * (
-          Q "=" * SkipSpace
-%    \end{macrocode}
-%    \begin{macrocode}
+        Q "=" * SkipSpace
         * ( C ( expression_for_fields_value ) / ParseAgain )
         * SkipSpace
       + P ""
