@@ -6476,12 +6476,16 @@ do
 %    \begin{macrocode}
   local OneField =
       K ( 'Name.Field' , identifier ) * SkipSpace
-    * Q "=" * SkipSpace
 %    \end{macrocode}
-% Don't forget the parentheses!
+% A value field may use OCaml's abbreviated syntax: |{ field }| means
+% |{ field = field }|.
 %    \begin{macrocode}
-    * ( C ( expression_for_fields_value ) / ParseAgain ) 
-    * SkipSpace
+    * (
+        Q "=" * SkipSpace
+        * ( C ( expression_for_fields_value ) / ParseAgain )
+        * SkipSpace
+      + P ""
+      )
 %    \end{macrocode}
 %
 % \bigskip
