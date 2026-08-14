@@ -20,7 +20,7 @@
 -- -------------------------------------------
 -- 
 -- This file is part of the LuaLaTeX package 'piton'.
-piton_version = "4.14a" -- 2026/07/20
+piton_version = "4.14b" -- 2026/08/14
 piton.comment_latex = piton.comment_latex or ">"
 piton.comment_latex = "#" .. piton.comment_latex
 piton.write_files = { }
@@ -541,7 +541,7 @@ do
     P { "E" ,
          E = ( V "F" * ( Q "," * V "F" ) ^ 0 ) ^ -1 ,
          F = SkipSpace * ( Identifier + Q "*args" + Q "**kwargs" ) * SkipSpace
-             * ( Q ":" * SkipSpace * K ( 'Name.Type' , expression ) ) ^ -1 -- modified 2026/07/15
+             * ( Q ":" * SkipSpace * K ( 'Name.Type' , expression ) ) ^ -1
              * ( SkipSpace * K ( 'InitialValues' , "=" * SkipSpace * expression ) ) ^ -1
       }
   local DefFunction =
