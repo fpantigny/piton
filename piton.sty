@@ -19,7 +19,7 @@
 %% LaTeX version 2005/12/01 or later.
 %% -------------------------------------------
 %% 
-\def\PitonFileVersion{4.14b}
+\def\PitonFileVersion{4.14x}
 \def\PitonFileDate{2026/08/14}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesExplPackage
@@ -30,23 +30,18 @@
 \msg_new:nnn { piton } { latex-too-old }
   {
     Your~LaTeX~release~is~too~old. \\
-    You~need~at~least~the~version~of~2025-06-01. \\
-    If~you~use~Overleaf,~you~need~at~least~"TeX~Live~2025".\\
+    You~need~at~least~the~version~of~2026-06-01. \\
+    If~you~use~Overleaf,~you~need~at~least~"TeX~Live~2026".\\
     The~package~'piton'~won't~be~loaded.
   }
-\providecommand { \IfFormatAtLeastTF } { \@ifl@t@r \fmtversion }
 \IfFormatAtLeastTF
-  { 2025-06-01 }
+  { 2026-06-01 }
   { }
   { \msg_critical:nn { piton } { latex-too-old } }
 \RequirePackage { amstext }
 \RequirePackage { marginalia }
 \RequirePackage { transparent }
-\AtBeginDocument
-  {
-    \IfPackageLoadedT { babel }
-      { \babelprovide { english } }
-  }
+\AddToHook { package / babel / after } { \babelprovide { english } }
 \cs_new_protected:Npn \__piton_error:n { \msg_error:nn { piton } }
 \cs_new_protected:Npn \__piton_warning:n { \msg_warning:nn { piton } }
 \cs_new_protected:Npn \__piton_warning:nn { \msg_warning:nnn { piton } }
@@ -453,7 +448,7 @@
                   { \seq_gput_right:Nn \g__piton_visual_line_numbers_seq { } }
               }
           }
-        \int_compare:nNnT \l__piton_bg_colors_int > { \c_zero_int }
+        \int_compare:nNnT \l__piton_bg_colors_int > \c_zero_int
           {
             \dim_compare:nNnT \l__piton_left_margin_dim = \c_zero_dim
               { \skip_horizontal:n { 0.5 em } }
