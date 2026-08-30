@@ -1033,11 +1033,11 @@ do
   local Keyword =
     K ( 'Keyword' ,
         P "alignas" + "asm" + "auto" + "break" + "case" + "catch" + "class" +
-        "const" + "constexpr" + "continue" + "decltype" + "do" + "else" + "enum" +
-        "extern" + "for" + "goto" + "if" + "nexcept" + "private" + "public" +
-        "register" + "restricted" + "return" + "static" + "static_assert" +
-        "struct" + "switch" + "thread_local" + "throw" + "try" + "typedef" +
-        "union" + "using" + "virtual" + "volatile" + "while"
+        "constexpr" + "const" + "continue" + "decltype" + "do" + "else" + "enum" +
+        "extern" + "for" + "goto" + "if" + "noexcept" + "private" + "public" +
+        "register" + "restrict" + "return" + "static_assert" + "static" + "struct" +
+        "switch" + "thread_local" + "throw" + "try" + "typedef" + "union" +
+        "using" + "virtual" + "volatile" + "while"
       )
     + K ( 'Keyword.Constant' , P "default" + "false" + "NULL" + "nullptr" + "true" )
 
@@ -1051,8 +1051,55 @@ do
         "double" + "float" + "fpos_t" +
         "int8_t" + "int16_t" + "int32_t" + "int64_t" + "uint8_t" + "uint16_t" +
         "uint32_t" + "uint64_t" + "int" + "long" + "short" + "signed" + "unsigned" +
-        "ptrdiff_t" + "size_t" + "time_t" + "void" + "wchar_t" )
-    * -alphanum * Space ^ 0 * Q "*" ^ 0
+        "ptrdiff_t" + "size_t" + "time_t" + "void" + "wchar_t")
+    * -alphanum * Space ^ 0 * Operator ^ 0
+
+  local AggregateKeyword = K ( 'Keyword' , P "struct" + "union" + "enum" )
+  local TypeQualifier =
+    K ( 'Keyword' , P "const" + "volatile" ) * Space ^ 0
+  local TypeSpecifier = Type + TypeQualifier
+  local AggregateName =
+    AggregateKeyword * Space
+    * K ( 'Name.Type' , identifier ) * Space ^ 0
+
+  local DefEnumClass =
+    K ( 'Keyword' , P "enum" ) * Space * K ( 'Keyword' , P "class" ) * Space
+    * K ( 'Name.Type' , identifier ) * Space ^ 0
+
+  local aggregate_string = P "\"" * ( P "\\\"" + 1 - S "\"" ) ^ 0 * P "\""
+  local aggregate_character =
+    P "'" * ( P "\\'" + P "\\\\" + 1 - S "'" ) ^ 0 * P "'"
+  local aggregate_comment =
+    P "//" * ( 1 - P "\r" ) ^ 0 + P "/*" * ( 1 - P "*/" ) ^ 0 * P "*/"
+  local aggregate_braces =
+    Compute_braces ( aggregate_string + aggregate_character + aggregate_comment )
+  local AggregateBraces = C ( P "{" * aggregate_braces * P "}" )
+
+
+  local DefTypedefAggregate =
+    K ( 'Keyword' , P "typedef" ) * Space * AggregateKeyword * SkipSpace
+    * ( K ( 'Name.Type' , identifier ) * SkipSpace ) ^ -1
+    * ( AggregateBraces / ParseAgain ) * SkipSpace
+    * ( Operator * SkipSpace ) ^ 0
+    * K ( 'Name.Type' , identifier ) * Q ";"
+
+  local DefTypedef =
+    K ( 'Keyword' , P "typedef" ) * Space
+    * (
+        TypeSpecifier * TypeSpecifier ^ 0 * Space ^ 0
+      + AggregateName * Operator ^ 0 * Space ^ 0
+      )
+    * K ( 'Name.Type' , identifier )
+    * Q ";"
+
+
+  local UserTypePointerAssignment =
+    K ( 'Name.Type' , identifier ) * Space ^ 0
+    * K ( 'Operator' , P "*" ) * Space ^ 0 * Identifier * SkipSpace * # P "="
+
+  local UserTypeVariable =
+    K ( 'Name.Type' , identifier ) * Space * Identifier
+    * # ( Punct + Delim + Space * P "=" + EOL + -1 )
 
   local DefFunction =
     Type
@@ -1109,13 +1156,19 @@ do
         + Comment + LongComment
         + Delim
         + Operator
-       + Character
-       + String
-       + Punct
+        + Character
+        + String
+        + Punct
+       + DefTypedefAggregate
+       + DefTypedef
+       + DefEnumClass
+       + AggregateName
        + DefFunction
        + DefClass
-        + Type
+       + Type
        + Keyword * EndKeyword
+       + UserTypePointerAssignment
+       + UserTypeVariable
        + Builtin * EndKeyword
        + Identifier
        + Number
