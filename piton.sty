@@ -720,7 +720,7 @@
     step .value_required:n = true ,
 
     position .choices:nn = { left , right }
-      { \str_set_eq:NN \l__piton_line_numbers_position_str \l_keys_choice_tl } ,
+      { \str_set_eq:NN \l__piton_line_numbers_position_str \l_keys_choice_str } ,
     position .value_required:n = true ,
 
     format .tl_set:N = \l__piton_line_numbers_format_tl ,
@@ -749,7 +749,7 @@
           { \__piton_define_leading_space_normal: }
       } ,
     box .choices:nn = { c , t , b , m }
-      { \str_set_eq:NN \l__piton_box_str \l_keys_choice_tl } ,
+      { \str_set_eq:NN \l__piton_box_str \l_keys_choice_str } ,
     box .default:n = c ,
     break-strings-anywhere .bool_set:N = \l__piton_break_strings_anywhere_bool ,
     break-numbers-anywhere .bool_set:N = \l__piton_break_numbers_anywhere_bool ,
@@ -2286,8 +2286,8 @@
   }
 \__piton_msg_new:nn { key~with~normal~form~exists }
   {
-    The~key~'\l_keys_key_str'~does~not~exists.~It~will~be~ignored.\\
-    Maybe~you~want~to~use~the~key~'\l_tmpa_str'.
+    The~key~'\l_keys_key_str'~does~not~exists.\\
+    It~will~be~ignored.~Maybe~you~want~to~use~the~key~'\l_tmpa_str'.
   }
 \__piton_msg_new:nn { No~environment~piton }
   {
