@@ -1043,7 +1043,7 @@ do
 
   local Builtin =
     K ( 'Name.Builtin' ,
-        P "alignof" + "malloc" + "printf" + "scanf" + "sizeof" )
+        P "alignof" + "free" + "malloc" + "printf" + "scanf" + "sizeof" )
 
   local Type =
     K ( 'Name.Type' ,
