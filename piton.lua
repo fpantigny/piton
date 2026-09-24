@@ -387,7 +387,8 @@ do
 
   local RaiseException =
    K ( 'Keyword' , P "raise" ) * SkipSpace * Exception * K ( 'Delim' , P "(" )
-  local Decorator = K ( 'Name.Decorator' , P "@" * letter ^ 1  )
+  local Decorator
+    = K ( 'Name.Decorator' , P "@" * letter * ( alphanum + S "._" ) ^ 0 )
   local DefClass =
     K ( 'Keyword' , "class" ) * Space * K ( 'Name.Class' , identifier )
   local ImportAs =
@@ -582,7 +583,7 @@ do
        + Comment
        + ExceptionInConsole
        + Delim
-       + Decorator
+       + Decorator -- position changed 2026-09-24 : gh #56
        + Operator
        + OperatorWord * EndKeyword
        + ShortString

@@ -5674,7 +5674,8 @@ do
 % In Python, a ``decorator'' is a statement whose begins by |@| which patches
 % the function defined in the following statement.
 %    \begin{macrocode}
-  local Decorator = K ( 'Name.Decorator' , P "@" * letter ^ 1  ) 
+  local Decorator
+    = K ( 'Name.Decorator' , P "@" * letter * ( alphanum + S "._" ) ^ 0 ) 
 %    \end{macrocode}
 % 
 % \bigskip
