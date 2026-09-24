@@ -582,6 +582,7 @@ do
        + Comment
        + ExceptionInConsole
        + Delim
+       + Decorator
        + Operator
        + OperatorWord * EndKeyword
        + ShortString
@@ -592,7 +593,6 @@ do
        + DefClass
        + For
        + Keyword * EndKeyword
-       + Decorator
        + Builtin * EndKeyword
        + Identifier
        + Number
