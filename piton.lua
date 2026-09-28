@@ -1100,20 +1100,123 @@ do
     * Q ";"
 
 
-  local UserTypePointerAssignment =
-    K ( 'Name.Type' , identifier ) * Space ^ 0
-    * K ( 'Operator' , P "*" ) * Space ^ 0 * Identifier * SkipSpace * # P "="
+  local SkipCWhitespace = ( space + P "\r" + P "\t" ) ^ 0
+  local function PreviousCCharacter ( s , pos )
+    local i = pos - 1
+    while i > 0 do
+      while i > 0 and s : sub ( i , i ) : match ( "%s" ) do i = i - 1 end
+      if i == 0 then return nil end
+      if i > 1 and s : sub ( i - 1 , i ) == "*/" then
+        local j = i - 2
+        while j > 1 and s : sub ( j - 1 , j ) ~= "/*" do j = j - 1 end
+        if j > 1 then i = j - 2
+        else return s : sub ( i , i ) , i end
+      else
+        local line_start = i
+        while line_start > 0 and s : sub ( line_start , line_start ) ~= "\r" do
+          line_start = line_start - 1
+        end
+        local line = s : sub ( line_start + 1 , i )
+        local comment = line : find ( "//" , 1 , true )
+        if comment then
+          local before_comment = line : sub ( 1 , comment - 1 )
+          if before_comment : match ( "^%s*$" ) or before_comment : match ( "%s$" ) then
+            i = line_start + comment - 1
+          else
+            return s : sub ( i , i ) , i
+          end
+        else
+          return s : sub ( i , i ) , i
+        end
+      end
+    end
+    return nil
+  end
+
+  local DeclarationStart = Cmt ( P ( true ) ,
+      function ( s , pos )
+        local previous = PreviousCCharacter ( s , pos )
+        if previous == nil or previous == ";" or previous == "}" or previous == "{" then
+          return pos
+        end
+      end
+    )
+
+  local FunctionParameters = P {
+    "Parameters" ,
+    Parameters = P "("
+      * ( aggregate_string + aggregate_character + aggregate_comment
+          + V "Parameters" + ( 1 - S "()" )
+        ) ^ 0
+      * P ")"
+  }
+
+  local FunctionParameterStart = Cmt ( P ( true ) ,
+      function ( s , pos )
+        local separator , i = PreviousCCharacter ( s , pos )
+        if separator ~= "(" and separator ~= "," then return end
+
+        local depth , open = 0 , nil
+        local j = i
+        while j > 0 do
+          local c , at = PreviousCCharacter ( s , j + 1 )
+          if not c then break end
+          if c == ")" then depth = depth + 1
+          elseif c == "(" then
+            if depth == 0 then open = at ; break end
+            depth = depth - 1
+          end
+          j = at - 1
+        end
+        if not open then return end
+
+        local boundary = open - 1
+        while boundary > 0 do
+          local c , at = PreviousCCharacter ( s , boundary + 1 )
+          if not c then boundary = 0 ; break end
+          if c == ";" or c == "{" or c == "}" then boundary = at ; break end
+          boundary = at - 1
+        end
+        local header = s : sub ( boundary + 1 , open - 1 )
+          : gsub ( "/%*.-%*/" , " " )
+          : gsub ( "//[^\r]*" , " " )
+        if header : find ( "[^%w_%s%*]" ) then return end
+        local words = 0
+        for _ in header : gmatch ( "[%a_][%w_]*" ) do words = words + 1 end
+        if words < 2 then return end
+        return pos
+      end
+    )
+
+  local UserPointerDeclarator =
+    identifier * SkipSpace * P "*" * SkipSpace * identifier
+    * # ( SkipCWhitespace * ( P ";" + P "=" + P "," + P ")" ) )
+
+  local UserTypePointerVariable =
+    ( DeclarationStart + # UserPointerDeclarator * FunctionParameterStart )
+    * K ( 'Name.Type' , identifier ) * SkipSpace
+    * K ( 'Operator' , P "*" ) * SkipSpace
+    * Identifier
+    * # ( SkipCWhitespace * P ";"
+          + SkipCWhitespace * P "=" * # ( 1 - P "=" )
+          + SkipCWhitespace * ( P "," + P ")" )
+        )
 
   local UserTypeVariable =
     K ( 'Name.Type' , identifier ) * Space * Identifier
     * # ( Punct + Delim + Space * P "=" + EOL + -1 )
 
-  local DefFunction =
-    Type
+  local ReturnType =
+    ( Type + AggregateName + K ( 'Name.Type' , identifier ) )
+    * ( Space ^ 0 * K ( 'Operator' , P "*" ) ) ^ 0
     * Space ^ 0
+
+  local DefFunction =
+    DeclarationStart
+    * ReturnType
     * K ( 'Name.Function.Internal' , identifier )
     * SkipSpace
-    * # P "("
+    * # ( FunctionParameters * SkipCWhitespace * ( P ";" + P "{" ) )
   local DefClass =
     K ( 'Keyword' , "class" ) * Space * K ( 'Name.Class' , identifier )
   local Character =
@@ -1169,12 +1272,12 @@ do
        + DefTypedefAggregate
        + DefTypedef
        + DefEnumClass
-       + AggregateName
        + DefFunction
+       + AggregateName
        + DefClass
        + Type
        + Keyword * EndKeyword
-       + UserTypePointerAssignment
+       + UserTypePointerVariable
        + UserTypeVariable
        + Builtin * EndKeyword
        + Identifier
