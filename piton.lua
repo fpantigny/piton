@@ -1117,16 +1117,21 @@ do
           line_start = line_start - 1
         end
         local line = s : sub ( line_start + 1 , i )
-        local comment = line : find ( "//" , 1 , true )
-        if comment then
-          local before_comment = line : sub ( 1 , comment - 1 )
-          if before_comment : match ( "^%s*$" ) or before_comment : match ( "%s$" ) then
-            i = line_start + comment - 1
+        if line : match ( "^[ \t]*#" ) then
+          -- A preprocessor directive is a declaration boundary.
+          i = line_start
+        else
+          local comment = line : find ( "//" , 1 , true )
+          if comment then
+            local before_comment = line : sub ( 1 , comment - 1 )
+            if before_comment : match ( "^%s*$" ) or before_comment : match ( "%s$" ) then
+              i = line_start + comment - 1
+            else
+              return s : sub ( i , i ) , i
+            end
           else
             return s : sub ( i , i ) , i
           end
-        else
-          return s : sub ( i , i ) , i
         end
       end
     end
@@ -1180,6 +1185,8 @@ do
         local header = s : sub ( boundary + 1 , open - 1 )
           : gsub ( "/%*.-%*/" , " " )
           : gsub ( "//[^\r]*" , " " )
+          : gsub ( "^[ \t]*#[^\r]*" , " " )
+          : gsub ( "\r[ \t]*#[^\r]*" , "\r" )
         if header : find ( "[^%w_%s%*]" ) then return end
         local words = 0
         for _ in header : gmatch ( "[%a_][%w_]*" ) do words = words + 1 end
