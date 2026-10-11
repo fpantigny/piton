@@ -2070,10 +2070,13 @@ def cube(x):
 If we wish to have a continuity of the line numbers between the sublistings
 it's possible to add |\PitonOptions{resume}| to the parameter |split-separation|.
 
-\bigskip
 \begin{Verbatim}
 \begin{Piton}[
-split-on-empty-lines, ~emphase#split-separation += \PitonOptions{resume}@ , background-color=gray!15, line-numbers ]
+split-on-empty-lines,
+~emphase#split-separation += \PitonOptions{resume}@,
+background-color=gray!15,
+line-numbers
+]
 def square(x):
     """Computes the square of x"""
     return x*x
