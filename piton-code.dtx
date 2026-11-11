@@ -1669,12 +1669,6 @@ piton_version = "4.14c" -- 2026/10/11
 
     format .tl_set:N = \l_@@_line_numbers_format_tl ,
     format .value_required:n = true ,
-
-    format+ .code:n = \tl_put_right:Nn \l_@@_line_numbers_format_tl { #1 } ,
-    format+ .value_required:n = true ,
-
-    format~+ .meta:n = { format+ = #1} ,
-
     lmmono10-drawn .bool_set:N = \l_@@_lmodern_drawn_bool ,
     lmmono10-drawn .default:n = true ,
 
@@ -1683,6 +1677,12 @@ piton_version = "4.14c" -- 2026/10/11
         { PitonOptions / line-numbers }
         { Unknown~key~for~line-numbers }
       
+  }
+\str_compare:eNeT { \ExplLoaderFileDate } < { 2026-11-10 }
+  {
+    format+ .code:n = \tl_put_right:Nn \l_@@_line_numbers_format_tl { #1 } ,
+    format+ .value_required:n = true ,
+    format~+ .meta:n = { format+ = #1} 
   }
 %    \end{macrocode}
 %
@@ -1794,11 +1794,6 @@ piton_version = "4.14c" -- 2026/10/11
     font-command     .tl_set:N          = \l_@@_font_command_tl ,
     font-command     .initial:n         = \ttfamily , 
     font-command     .value_required:n  = true ,
-    font-command+    .code:n
-      = { \tl_put_right:Nn \l_@@_font_command_tl { #1 } } ,
-    font-command+    .value_required:n  = true ,
-    font-command~+   .meta:n            = { font-command+ = #1 } ,
-    font-command~+   .value_required:n  = true ,
     gobble           .int_set:N         = \l_@@_gobble_int , 
     gobble           .default:n         = -1 ,
     auto-gobble      .code:n            = \int_set:Nn \l_@@_gobble_int { -1 } , 
@@ -1822,10 +1817,6 @@ piton_version = "4.14c" -- 2026/10/11
     split-separation .value_required:n = true ,
     split-separation .initial:n = \vspace { \baselineskip } \vspace { -1.25pt } ,
 
-    split-separation+ .code:n = 
-      \tl_put_right:Nn \l_@@_split_separation_tl { #1 } ,
-    split-separation+ .value_required:n = true ,
-    split-separation~+ .meta:n = { split-separation+ = #1 } ,    
     add-to-split-separation .meta:n = { split-separation+ = #1 } ,    
  
     marker .code:n = 
@@ -2025,7 +2016,19 @@ piton_version = "4.14c" -- 2026/10/11
             { \@@_err_rounded_corners_without_Tikz: }
         } ,
     rounded-corners .default:n = 4 pt         
-  }          
+  }
+\str_compare:eNeT { \ExplLoaderFileDate } < { 2026-11-10 }
+  {
+    split-separation+ .code:n = 
+      \tl_put_right:Nn \l_@@_split_separation_tl { #1 } ,
+    split-separation+ .value_required:n = true ,
+    split-separation~+ .meta:n = { split-separation+ = #1 } ,
+    font-command+    .code:n
+      = { \tl_put_right:Nn \l_@@_font_command_tl { #1 } } ,
+    font-command+    .value_required:n  = true ,
+    font-command~+   .meta:n            = { font-command+ = #1 } ,
+    font-command~+   .value_required:n  = true 
+  }
 %    \end{macrocode}
 % 
 %    \begin{macrocode}
