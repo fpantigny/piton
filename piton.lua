@@ -1054,11 +1054,13 @@ do
 
   local Type =
     K ( 'Name.Type' ,
-        P "FILE" + "bool" + "char" + "char16_t" + "char32_t" + "clock_t" +
+        P "FILE" + "bool" + "char16_t" + "char32_t" + "char" + "clock_t" +
         "double" + "float" + "fpos_t" +
-        "int8_t" + "int16_t" + "int32_t" + "int64_t" + "uint8_t" + "uint16_t" +
+        "intmax_t" + "intptr_t" + "int8_t" + "int16_t" + "int32_t" + "int64_t" +
+        "uintmax_t" + "uintptr_t" + "uint8_t" + "uint16_t" +
         "uint32_t" + "uint64_t" + "int" + "long" + "short" + "signed" + "unsigned" +
-        "ptrdiff_t" + "size_t" + "time_t" + "void" + "wchar_t")
+        "nullptr_t" + "ptrdiff_t" + "size_t" + "time_t" + "va_list" + "void" +
+        "wchar_t")
     * -alphanum * Space ^ 0 * Operator ^ 0
 
   local AggregateKeyword = K ( 'Keyword' , P "struct" + "union" + "enum" )
