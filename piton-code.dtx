@@ -6851,15 +6851,18 @@ do
 %    \end{macrocode}
 %
 % \bigskip
-% Some strings of length 2 are explicit because we want the corresponding
+% Some strings of length 2 or 3 are explicit because we want the corresponding
 % ligatures available in some fonts such as \emph{Fira Code} to be active.
 %    \begin{macrocode}
   local identifier = letter * alphanum ^ 0
 
   local Operator = 
     K ( 'Operator' ,
-        P "!=" + "==" + "<<" + ">>" + "<=" + ">=" + "||" + "&&" 
-          + S "-~+/*%=<>&.@|!" )
+        P "<=>" + "->*" + "..." + "<<=" + ">>="
+          + "->" + "++" + "--" + "+=" + "-=" + "*=" + "/=" + "%="
+          + "&=" + "|=" + "^=" + "::"
+          + "!=" + "==" + "<<" + ">>" + "<=" + ">=" + "||" + "&&"
+          + S "-~+/*%=<>&.@|!?^" )
 
   local Keyword = 
     K ( 'Keyword' ,
