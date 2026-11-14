@@ -1676,13 +1676,15 @@ piton_version = "4.14c" -- 2026/10/11
       \@@_unknown_key:nn
         { PitonOptions / line-numbers }
         { Unknown~key~for~line-numbers }
-      
   }
-\str_compare:eNeT { \ExplLoaderFileDate } < { 2026-11-10 }
+\str_compare:eNeT { \ExplFileDate } < { 2026-11-10 }
   {
-    format+ .code:n = \tl_put_right:Nn \l_@@_line_numbers_format_tl { #1 } ,
-    format+ .value_required:n = true ,
-    format~+ .meta:n = { format+ = #1} 
+    \keys_define:nn { PitonOptions / line-numbers }
+      {
+        format+ .code:n = \tl_put_right:Nn \l_@@_line_numbers_format_tl { #1 } ,
+        format+ .value_required:n = true ,
+        format~+ .meta:n = { format+ = #1}
+      }
   }
 %    \end{macrocode}
 %
@@ -2017,17 +2019,20 @@ piton_version = "4.14c" -- 2026/10/11
         } ,
     rounded-corners .default:n = 4 pt         
   }
-\str_compare:eNeT { \ExplLoaderFileDate } < { 2026-11-10 }
+\str_compare:eNeT { \ExplFileDate } < { 2026-11-10 }
   {
-    split-separation+ .code:n = 
-      \tl_put_right:Nn \l_@@_split_separation_tl { #1 } ,
-    split-separation+ .value_required:n = true ,
-    split-separation~+ .meta:n = { split-separation+ = #1 } ,
-    font-command+    .code:n
-      = { \tl_put_right:Nn \l_@@_font_command_tl { #1 } } ,
-    font-command+    .value_required:n  = true ,
-    font-command~+   .meta:n            = { font-command+ = #1 } ,
-    font-command~+   .value_required:n  = true 
+    \keys_define:nn { PitonOptions }
+      {
+        split-separation+ .code:n = 
+          \tl_put_right:Nn \l_@@_split_separation_tl { #1 } ,
+        split-separation+ .value_required:n = true ,
+        split-separation~+ .meta:n = { split-separation+ = #1 } ,
+        font-command+    .code:n
+          = { \tl_put_right:Nn \l_@@_font_command_tl { #1 } } ,
+        font-command+    .value_required:n  = true ,
+        font-command~+   .meta:n            = { font-command+ = #1 } ,
+        font-command~+   .value_required:n  = true
+      }
   }
 %    \end{macrocode}
 % 
